@@ -1,0 +1,17 @@
+# Guaraci Core Dependencies
+# Compatible with PySUS requirements
+
+pysus>=0.11.0
+polars>=0.20.0
+pyarrow>=14.0.0
+pandas>=1.5.0
+tqdm>=4.64.0
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+click>=8.1.0
+rich>=13.7.0
+loguru>=0.6.0,<0.7.0
+httpx>=0.25.0
+aiofiles>=23.2.0

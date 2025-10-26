@@ -1,0 +1,43 @@
+# Docker Compose for Guaraci Platform
+# Future use for web API and services
+
+version: '3.8'
+
+services:
+  guaraci:
+    build: .
+    container_name: guaraci-app
+    volumes:
+      - ./data:/app/data
+      - .:/app
+    environment:
+      - GUARACI_DATA_ROOT=/app/data
+      - GUARACI_LOG_LEVEL=INFO
+      - GUARACI_MAX_CONCURRENT_DOWNLOADS=5
+    ports:
+      - "8000:8000"
+    command: python -c "import guaraci; print(f'Guaraci v{guaraci.__version__} ready!')"
+
+  # Future: Web API service
+  # api:
+  #   build: .
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./data:/app/data
+  #   command: uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000
+  #   depends_on:
+  #     - guaraci
+
+  # Future: Database service
+  # db:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: guaraci
+  #     POSTGRES_USER: guaraci
+  #     POSTGRES_PASSWORD: guaraci
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:
