@@ -5,9 +5,8 @@ Guaraci Configuration Management
 Centralized configuration system using Pydantic for validation and type safety.
 """
 
-import os
 from pathlib import Path
-from typing import Optional, List, Literal
+from typing import Optional, Literal
 from pydantic import Field, field_validator, ConfigDict
 from pydantic_settings import BaseSettings
 
@@ -17,7 +16,6 @@ class GuaraciConfig(BaseSettings):
     
     # Data directories
     data_root: Path = Field(default=Path("data"), description="Root directory for all data")
-    cache_dir: Path = Field(default=Path("data/.cache"), description="Cache directory")
     temp_dir: Path = Field(default=Path("data/.temp"), description="Temporary files directory")
     
     # DATASUS settings
@@ -49,7 +47,7 @@ class GuaraciConfig(BaseSettings):
         case_sensitive=False
     )
     
-    @field_validator("data_root", "cache_dir", "temp_dir", mode="before")
+    @field_validator("data_root", "temp_dir", mode="before")
     @classmethod
     def ensure_path_exists(cls, v):
         """Ensure directories exist."""
@@ -73,12 +71,6 @@ class GuaraciConfig(BaseSettings):
         path.mkdir(parents=True, exist_ok=True)
         return path
     
-    def get_cache_path(self, source: str) -> Path:
-        """Get cache path for specific source."""
-        path = self.cache_dir / source
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-
 
 # Global configuration instance
 config = GuaraciConfig()

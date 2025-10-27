@@ -56,7 +56,6 @@ your-project/
 │   │       ├── RAIV_2020_2020.csv
 │   │       ├── DENG_2018_2020.parquet
 │   │       └── ...
-│   └── .cache/          # Processed data cache
 │       └── sinan/
 └── ...
 ```
@@ -142,7 +141,6 @@ docker run --rm -it -v "$(pwd):/app" \
 - `GUARACI_LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
 - `GUARACI_MAX_CONCURRENT_DOWNLOADS`: Concurrent download limit (default: 5)
 - `GUARACI_MEMORY_LIMIT_GB`: Memory limit in GB (default: 4.0)
-- `GUARACI_CACHE_DIR`: Cache directory (default: `data/.cache`)
 
 ## Development Workflow
 
@@ -268,3 +266,8 @@ kubectl scale deployment guaraci-worker --replicas=5
 6. **Clean up containers** regularly with `docker system prune`
 
 This Docker-first approach ensures that Guaraci works consistently across all platforms while eliminating the complexity of local Python environment management.
+
+
+---
+
+*Maintained by Luis Felipe Vogel Lopes — Guaraci v0.2 (2025)*

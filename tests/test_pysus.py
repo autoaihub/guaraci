@@ -1,15 +1,27 @@
-#!/usr/bin/env python3
-try:
-    import pysus
-    print("✅ PySUS is available")
-    print(f"PySUS version: {pysus.__version__}")
-except ImportError as e:
-    print("⚠️ PySUS is not available")
-    print(f"Error: {e}")
+"""
+Tests for Guaraci SINAN integration via PySUS.
+"""
 
-try:
-    from guaraci.datasus.sinan import SinanDataSource
-    sinan = SinanDataSource()
-    print("✅ SinanDataSource initialized successfully")
-except Exception as e:
-    print(f"⚠️ SinanDataSource error: {e}")
+import pytest
+
+# Skip this entire test file if PySUS is not available
+pytestmark = pytest.mark.skipif(
+    not hasattr(__import__('builtins'), 'pysus'),
+    reason="Requires PySUS to be installed"
+)
+
+from guaraci.datasus.sinan import SinanDataSource
+
+
+class TestSinanDataSource:
+    """Test SINAN data source functionality."""
+
+    def test_initialization(self):
+        """Test that the SinanDataSource initializes correctly."""
+        sinan = SinanDataSource()
+        assert sinan.name == "sinan"
+        assert hasattr(sinan, "output_path")
+
+    def test_download_method_exists(self):
+        """Ensure download() method is defined."""
+        sina

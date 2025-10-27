@@ -256,3 +256,8 @@ If you encounter issues:
 - **Easy Updates**: Simply rebuild the Docker image
 - **Isolation**: Doesn't affect your local Python environment
 - **Reproducibility**: Ensures scientific reproducibility across different machines
+
+
+---
+
+*Maintained by Luis Felipe Vogel Lopes — Guaraci v0.2 (2025)*

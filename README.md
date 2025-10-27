@@ -12,7 +12,7 @@ Guaraci addresses a critical gap in Brazilian public health data accessibility. 
 
 - **Unified Access**: Single interface to multiple Brazilian health databases (DATASUS, SINAN, SIH, SIM, SIA)
 - **Scientific Reproducibility**: Standardized, versioned datasets with complete metadata
-- **Performance Optimized**: Concurrent downloads, intelligent caching, and memory-efficient processing
+- **Performance Optimized**: Concurrent downloads and memory-efficient processing
 - **Multiple Interfaces**: Both Python API and CLI for different use cases
 
 ## 🚀 Quick Start
@@ -181,10 +181,10 @@ print(f"Max downloads: {config.max_concurrent_downloads}")
 sinan = SinanDataSource()
 
 # Download with specific parameters
-sinan.download(2020, 2021, diseases=['DENG'], use_cache=False)
+sinan.download(2020, 2021, diseases=['DENG'])
 
 # Load and process data
-df = sinan.load_dataframe('DENG', use_cache=True)
+df = sinan.load_dataframe('DENG')
 
 # Advanced filtering
 filtered = sinan.filter(
@@ -241,9 +241,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors & Contributors
 
-- **Pedro Guilherme dos Reis Teixeira** - *Lead Developer* - pedro.guilherme2305@usp.br
-- **Prof. Robson Parmezan Bonidia** - *Scientific Advisor* - ICMC/USP
-- **Prof. André Carlos Ponce de Leon Ferreira de Carvalho** - *Scientific Advisor* - ICMC/USP
+- **Luis Felipe Vogel Lopes** – *Lead Developer (v0.2 and ongoing)* – vogel@usp.br  
+  Responsible for the full modernization of Guaraci, including modular architecture, Docker-first workflow, Pydantic configuration system, enhanced CLI, and full testing suite.
+
+- **Pedro Guilherme dos Reis Teixeira** – *Original Author (v0.1)* – pedro.guilherme2305@usp.br  
+  Created the initial Guaraci prototype and early SINAN integration.
+
+- **Prof. Robson Parmezan Bonidia** – *Scientific Advisor* – ICMC/USP  
+- **Prof. André Carlos Ponce de Leon Ferreira de Carvalho** – *Scientific Advisor* – ICMC/USP
 
 ## 🙏 Acknowledgments
 
@@ -257,11 +262,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you use Guaraci in your research, please cite:
 
 ```bibtex
-@software{guaraci2024,
-  title={Guaraci: Brazilian Public Data Integration Platform},
-  author={Teixeira, Pedro Guilherme dos Reis and Bonidia, Robson Parmezan and Carvalho, André Carlos Ponce de Leon Ferreira de},
-  year={2024},
-  url={https://github.com/autoaihub/guaraci}
+@software{guaraci2025,
+  title     = {Guaraci: Brazilian Public Data Integration Platform},
+  author    = {Lopes, Luis Felipe Vogel and Teixeira, Pedro Guilherme dos Reis and Bonidia, Robson Parmezan and Carvalho, André Carlos Ponce de Leon Ferreira de},
+  year      = {2025},
+  version   = {0.2},
+  url       = {https://github.com/autoaihub/guaraci}
 }
 ```
 

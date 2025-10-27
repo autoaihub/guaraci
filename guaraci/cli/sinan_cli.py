@@ -8,7 +8,7 @@ Modern CLI interface for SINAN data operations using Click and Rich.
 from typing import Optional, List
 import click
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.table import Table
 from loguru import logger
 
@@ -39,55 +39,108 @@ def sinan(verbose: bool, config_file: Optional[str]):
 @click.option('--output-dir', type=click.Path(), help='Output directory')
 @click.option('--format', 'output_format', type=click.Choice(['csv', 'parquet', 'sqlite']), 
               default='csv', help='Output format')
-@click.option('--force', is_flag=True, help='Force re-download existing data')
+@click.option('--uf', '-u', help='Filter by state (UF)')
+@click.option('--municipio', '-m', help='Filter by municipality substring')
+@click.option('--sexo', '-s', type=click.Choice(['M', 'F']), help='Filter by sex')
+@click.option('--faixa-etaria', '-f', help='Filter by age band code')
+@click.option('--evolucao', '-e', help='Filter by case evolution')
+@click.option('--classificacao', '-c', help='Filter by classification')
+@click.option('--ano', '-a', type=int, help='Filter by year')
 def download(start_year: int, end_year: int, diseases: tuple, output_dir: Optional[str], 
-             output_format: str, force: bool):
+             output_format: str, uf: Optional[str], municipio: Optional[str], sexo: Optional[str],
+             faixa_etaria: Optional[str], evolucao: Optional[str], classificacao: Optional[str],
+             ano: Optional[int]):
     """Download SINAN data for specified years and diseases."""
     
     console.print(f"[bold blue]Guaraci SINAN Downloader[/bold blue]")
     console.print(f"Years: {start_year}-{end_year}")
     
     # Convert diseases tuple to list, use defaults if empty
-    disease_list = list(diseases) if diseases else None
-    
     try:
         # Initialize data source
         sinan_ds = SinanDataSource(output_path=output_dir or str(config.get_datasus_path("sinan")))
+        disease_list = list(diseases) if diseases else sinan_ds.NEGLECTED_DISEASES.copy()
         
         # Download data with progress tracking
+        progress_state = {"task": None}
+
+        def progress_callback(completed: int, total: int) -> None:
+            if total <= 0:
+                return
+            if progress_state["task"] is None:
+                progress_state["task"] = progress.add_task(
+                    "Downloading SINAN data...",
+                    total=total,
+                )
+            progress.update(progress_state["task"], completed=completed)
+
         with Progress(
             SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console
+            BarColumn(bar_width=None),
+            TextColumn("{task.completed}/{task.total} files"),
+            console=console,
+            transient=True,
         ) as progress:
-            task = progress.add_task("Downloading SINAN data...", total=None)
-            sinan_ds.download(start_year, end_year, disease_list)
-            progress.update(task, completed=True)
+            download_info = sinan_ds.download(
+                start_year,
+                end_year,
+                disease_list,
+                progress_callback=progress_callback,
+            )
+
+        if download_info["total_files"] == 0:
+            console.print("[yellow]No files available for the requested parameters.[/yellow]")
+            return
         
         # Process and export the downloaded data
-        console.print("[blue]📊 Processing and exporting data...[/blue]")
+        if download_info['failed_downloads']:
+            console.print(f"[yellow]WARNING: {len(download_info['failed_downloads'])} files failed during download[/yellow]")
+
+        console.print("[blue]Processing and exporting data...[/blue]")
         
         for disease in disease_list:
             try:
                 # Load the downloaded data
                 df = sinan_ds.load_dataframe(disease)
-                
-                if len(df) > 0:
-                    # Export the data
-                    output_name = f"{disease}_{start_year}_{end_year}"
-                    sinan_ds.export(df, format=output_format, name=output_name)
-                    console.print(f"[green]✅ {disease}: {len(df)} records exported as {output_name}.{output_format}[/green]")
+
+                filters_provided = any([
+                    uf, municipio, sexo, faixa_etaria, evolucao, classificacao, ano
+                ])
+
+                if filters_provided:
+                    df = sinan_ds.filter(
+                        df,
+                        uf=uf,
+                        municipio=municipio,
+                        sexo=sexo,
+                        faixa_etaria=faixa_etaria,
+                        evolucao=evolucao,
+                        classificacao=classificacao,
+                        ano=ano,
+                    )
+
+                if len(df) == 0:
+                    console.print(f"[yellow]WARNING {disease}: No data found[/yellow]")
+                    continue
+
+                output_name = f"{disease}_{start_year}_{end_year}"
+                exported_path = sinan_ds.export(df, format=output_format, name=output_name)
+
+                if exported_path:
+                    console.print(
+                        f"[green]SUCCESS {disease}: {len(df)} records exported to {exported_path.name}[/green]"
+                    )
                 else:
-                    console.print(f"[yellow]⚠️ {disease}: No data found[/yellow]")
-                    
+                    console.print(f"[yellow]WARNING {disease}: Export skipped (no data).[/yellow]")
+
             except Exception as e:
-                console.print(f"[red]❌ {disease}: Failed to process - {e}[/red]")
-        
-        console.print("[green]✅ Download and export completed successfully![/green]")
+                console.print(f"[red]ERROR {disease}: Failed to process - {e}[/red]")
+
+        console.print("[green]SUCCESS Download and export completed successfully![/green]")
         
     except Exception as e:
         logger.error(f"Download failed: {e}")
-        console.print(f"[red]❌ Error: {e}[/red]")
+        console.print(f"[red]ERROR Error: {e}[/red]")
         raise click.Abort()
 
 
@@ -132,11 +185,11 @@ def filter(disease: str, uf: Optional[str], sexo: Optional[str], ano: Optional[i
         output_name = output or f"{disease}_filtered"
         sinan_ds.export(filtered_df, format=output_format, name=output_name)
         
-        console.print(f"[green]✅ Results exported as {output_name}.{output_format}[/green]")
+        console.print(f"[green]SUCCESS Results exported as {output_name}.{output_format}[/green]")
         
     except Exception as e:
         logger.error(f"Filtering failed: {e}")
-        console.print(f"[red]❌ Error: {e}[/red]")
+        console.print(f"[red]ERROR Error: {e}[/red]")
         raise click.Abort()
 
 
@@ -169,7 +222,7 @@ def summary(disease: str, group_by: str, metric: str):
         
     except Exception as e:
         logger.error(f"Summary failed: {e}")
-        console.print(f"[red]❌ Error: {e}[/red]")
+        console.print(f"[red]ERROR Error: {e}[/red]")
         raise click.Abort()
 
 
@@ -194,7 +247,7 @@ def info(disease: str):
         
     except Exception as e:
         logger.error(f"Info retrieval failed: {e}")
-        console.print(f"[red]❌ Error: {e}[/red]")
+        console.print(f"[red]ERROR Error: {e}[/red]")
         raise click.Abort()
 
 

@@ -3,13 +3,13 @@ Guaraci DATASUS SINAN Integration
 ================================
 
 Enhanced module for downloading, processing, and exporting SINAN data via PySUS.
-Includes caching, error handling, and performance optimizations.
+Includes error handling and performance optimizations.
 """
 
 import os
 import sqlite3
 import datetime
-from typing import Optional, Literal, List, Dict, Any
+from typing import Optional, Literal, List, Dict, Any, Callable
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -29,12 +29,12 @@ except ImportError:
     SINAN = None
 
 from guaraci.core.datasource import DataSource
-from guaraci.utils.mapping import utility_mapping, UF_DICT
+from guaraci.utils.mapping import UF_DICT
 from guaraci.core.config import config
 
 
 class SinanDataSource(DataSource):
-    """Enhanced SINAN data source with caching and error handling."""
+    """Enhanced SINAN data source with error handling."""
 
     NEGLECTED_DISEASES = ['ANIM', 'CHAG', 'CHIK', 'DENG', 'ESQU', 'HANS', 'LEIV', 'LTAN', 'RAIV']
     
@@ -80,10 +80,15 @@ class SinanDataSource(DataSource):
                 raise
         return self._sinan_instance
 
-    def download(self, start_year: int, end_year: int, diseases: Optional[List[str]] = None, 
-                 use_cache: bool = True, force_download: bool = False) -> 'SinanDataSource':
+    def download(
+        self,
+        start_year: int,
+        end_year: int,
+        diseases: Optional[List[str]] = None,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
+    ) -> Dict[str, Any]:
         """
-        Download SINAN data with enhanced error handling and caching.
+        Download SINAN data with enhanced error handling.
         
         Parameters
         ----------
@@ -93,15 +98,13 @@ class SinanDataSource(DataSource):
             Ending year for data collection
         diseases : List[str], optional
             List of disease codes. If None, uses NEGLECTED_DISEASES
-        use_cache : bool, default True
-            Whether to use cached data if available
-        force_download : bool, default False
-            Force re-download even if cache exists
+        progress_callback : Callable[[int, int], None], optional
+            Callback invoked with (completed, total) as files finish downloading
             
         Returns
         -------
-        SinanDataSource
-            Self for method chaining
+        Dict[str, Any]
+            Summary with total files, successful downloads, and failures
         """
         if diseases is None:
             diseases = self.NEGLECTED_DISEASES.copy()
@@ -117,20 +120,6 @@ class SinanDataSource(DataSource):
 
         years = list(range(start_year, end_year + 1))
         
-        # Check cache first
-        cache_key = self.get_cache_key(
-            start_year=start_year, 
-            end_year=end_year, 
-            diseases=sorted(diseases)
-        )
-        
-        if use_cache and not force_download:
-            cached_data = self.load_from_cache(cache_key)
-            if cached_data is not None:
-                logger.info("Using cached data")
-                # Reconstruct self.data from cache metadata if needed
-                return self
-
         logger.info(f"Starting SINAN download: {start_year}-{end_year}")
         logger.info(f"Diseases: {', '.join([f'{d} ({self.DISEASE_NAMES.get(d, d)})' for d in diseases])}")
 
@@ -141,9 +130,15 @@ class SinanDataSource(DataSource):
             
             if total_files == 0:
                 logger.warning("No files found for the specified criteria")
-                return self
+                return {
+                    "successful_downloads": 0,
+                    "failed_downloads": [],
+                    "total_files": 0,
+                }
                 
             logger.info(f"Found {total_files} files to download")
+            if progress_callback and total_files > 0:
+                progress_callback(0, total_files)
 
             # Group files by disease
             grouped_files = defaultdict(list)
@@ -153,6 +148,7 @@ class SinanDataSource(DataSource):
 
             # Download with progress tracking and error handling
             failed_downloads = []
+            completed_downloads = 0
             
             with ThreadPoolExecutor(max_workers=config.max_concurrent_downloads) as executor:
                 for disease, files in grouped_files.items():
@@ -166,33 +162,40 @@ class SinanDataSource(DataSource):
                     }
                     
                     # Process completed downloads
-                    with tqdm(total=len(files), desc=f"{disease}", unit="file") as pbar:
-                        for future in as_completed(future_to_file):
-                            disease_code, file_obj = future_to_file[future]
-                            try:
-                                downloaded_path = future.result()
-                                if downloaded_path:
-                                    self.data[disease_code].append(downloaded_path)
-                                else:
-                                    failed_downloads.append((disease_code, str(file_obj)))
-                            except Exception as e:
-                                logger.error(f"Failed to download {file_obj}: {e}")
+                    for future in as_completed(future_to_file):
+                        disease_code, file_obj = future_to_file[future]
+                        try:
+                            downloaded_path = future.result()
+                            if downloaded_path:
+                                self.data[disease_code].append(downloaded_path)
+                            else:
                                 failed_downloads.append((disease_code, str(file_obj)))
-                            finally:
-                                pbar.update(1)
+                        except Exception as e:
+                            logger.error(f"Failed to download {file_obj}: {e}")
+                            failed_downloads.append((disease_code, str(file_obj)))
+                        finally:
+                            completed_downloads += 1
+                            if progress_callback and total_files > 0:
+                                progress_callback(completed_downloads, total_files)
 
             # Report results
             successful_downloads = sum(len(files) for files in self.data.values())
             logger.info(f"Download completed: {successful_downloads}/{total_files} files successful")
-            
+
             if failed_downloads:
                 logger.warning(f"Failed downloads: {len(failed_downloads)}")
-                for disease, file_name in failed_downloads[:5]:  # Show first 5 failures
+                for disease, file_name in failed_downloads[:5]:
                     logger.warning(f"  {disease}: {file_name}")
                 if len(failed_downloads) > 5:
                     logger.warning(f"  ... and {len(failed_downloads) - 5} more")
 
-            return self
+            # Retorna informações úteis para o CLI
+            return {
+                "successful_downloads": successful_downloads,
+                "failed_downloads": failed_downloads,
+                "total_files": total_files
+            }
+
             
         except Exception as e:
             logger.error(f"Download process failed: {e}")
@@ -212,21 +215,13 @@ class SinanDataSource(DataSource):
                     logger.debug(f"Download attempt {attempt + 1} failed for {file_obj}: {e}")
         return None
 
-    def _load_as_polars(self, disease: str, use_cache: bool = True) -> pl.DataFrame:
+    def _load_as_polars(self, disease: str) -> pl.DataFrame:
         """
         Load all downloaded files for a disease into a single Polars DataFrame.
         Applies UF code mapping and handles null/unrecognized values safely.
         """
         if disease not in self.data:
             raise ValueError(f"Disease {disease} not found. Run download() first.")
-            
-        # Check cache first
-        cache_key = f"{disease}_processed"
-        if use_cache:
-            cached_df = self.load_from_cache(cache_key)
-            if cached_df is not None:
-                logger.debug(f"Loaded {disease} from cache: {len(cached_df)} records")
-                return cached_df
 
         parquet_sets = self.data[disease]
         if not parquet_sets:
@@ -268,33 +263,29 @@ class SinanDataSource(DataSource):
         # Combine all DataFrames
         logger.info(f"Combining {len(combined_dfs)} DataFrames for {disease}")
         combined = pl.concat(combined_dfs, how="diagonal")
-        
-        # Cache the processed data
-        if use_cache:
-            self.save_to_cache(combined, cache_key)
-        
+
         logger.info(f"✅ {disease}: {len(combined)} records loaded, {len(combined.columns)} columns")
         return combined
 
     def _apply_uf_mapping(self, df: pl.DataFrame) -> pl.DataFrame:
         """Apply UF code to state abbreviation mapping safely."""
-        
+
         def safe_uf_mapping(value):
             """Safe UF mapping that handles various input types."""
             if value is None or pd.isna(value):
                 return None
-                
+
             # Convert to string and clean
             str_val = str(value).strip().upper()
-            
+
             # Handle empty or invalid values
             if not str_val or str_val in ["NAN", "NONE", "NULL", "0", ""]:
                 return None
-                
+
             # If already a valid UF code, return as-is
             if str_val in UF_DICT.values():
                 return str_val
-                
+
             # Try to convert numeric code to UF
             try:
                 numeric_code = int(float(str_val))
@@ -304,10 +295,10 @@ class SinanDataSource(DataSource):
 
         # Find UF-related columns
         uf_columns = [
-            col for col in df.columns 
+            col for col in df.columns
             if any(pattern in col.upper() for pattern in ["UF", "_UF", "SG_UF"])
         ]
-        
+
         # Apply mapping to UF columns
         for col in uf_columns:
             try:
@@ -318,12 +309,12 @@ class SinanDataSource(DataSource):
                 ])
             except Exception as e:
                 logger.warning(f"Failed to apply UF mapping to column {col}: {e}")
-        
+
         return df
 
-    def load_dataframe(self, disease: str, use_cache: bool = True) -> pl.DataFrame:
+    def load_dataframe(self, disease: str) -> pl.DataFrame:
         """Load and return data for a specific disease as a Polars DataFrame."""
-        return self._load_as_polars(disease, use_cache=use_cache)
+        return self._load_as_polars(disease)
 
     # -----------------------------------------------------------
     # FILTRAGEM
@@ -344,16 +335,54 @@ class SinanDataSource(DataSource):
         if df is None:
             raise ValueError("É necessário fornecer um DataFrame para filtragem.")
 
-        conds = []
-        if uf: conds.append(pl.col("UF") == uf)
-        if municipio: conds.append(pl.col("ID_MN_RESI").str.contains(municipio))
-        if sexo: conds.append(pl.col("CS_SEXO") == sexo)
-        if faixa_etaria: conds.append(pl.col("NU_IDADE_N") == faixa_etaria)
-        if evolucao: conds.append(pl.col("CS_EVOLU") == evolucao)
-        if classificacao: conds.append(pl.col("CLASSI_FIN") == classificacao)
-        if ano: conds.append(pl.col("NU_ANO") == ano)
+        conditions: List[pl.Expr] = []
 
-        return df.filter(pl.all(conds)) if conds else df
+        def resolve_column(options: List[str]) -> Optional[str]:
+            for candidate in options:
+                if candidate in df.columns:
+                    return candidate
+            return None
+
+        uf_col = resolve_column(["UF", "SG_UF", "SG_UF_NOT"])
+        if uf and uf_col:
+            conditions.append(pl.col(uf_col) == uf)
+
+        municipio_col = resolve_column(["ID_MN_RESI", "ID_MUNICIP"])
+        if municipio and municipio_col:
+            conditions.append(
+                pl.col(municipio_col)
+                .cast(pl.Utf8)
+                .str.contains(municipio, literal=True, strict=False)
+            )
+
+        sexo_col = resolve_column(["CS_SEXO"])
+        if sexo and sexo_col:
+            conditions.append(pl.col(sexo_col) == sexo)
+
+        faixa_col = resolve_column(["NU_IDADE_N"])
+        if faixa_etaria and faixa_col:
+            conditions.append(pl.col(faixa_col) == faixa_etaria)
+
+        evolucao_col = resolve_column(["CS_EVOLU", "EVOLUCAO"])
+        if evolucao and evolucao_col:
+            conditions.append(pl.col(evolucao_col) == evolucao)
+
+        classificacao_col = resolve_column(["CLASSI_FIN", "CLASSIFICAC"])
+        if classificacao and classificacao_col:
+            conditions.append(pl.col(classificacao_col) == classificacao)
+
+        ano_col = resolve_column(["NU_ANO", "ANO", "ANO_NOT"])
+        if ano and ano_col:
+            conditions.append(pl.col(ano_col) == ano)
+
+        if not conditions:
+            return df
+
+        combined = conditions[0]
+        for condition in conditions[1:]:
+            combined = combined & condition
+
+        return df.filter(combined)
 
     # -----------------------------------------------------------
     # SUMARIZAÇÃO
@@ -374,21 +403,105 @@ class SinanDataSource(DataSource):
 
     # EXPORTAÇÃO
 
-    def export(self, df: pl.DataFrame, format: Literal["csv", "sqlite", "parquet"] = "csv", name: str = "output"):
-        """Exporta o DataFrame filtrado para CSV, SQLite ou Parquet."""
-        path = os.path.join(self.output_path, f"{name}.{format}")
+    def export(
+        self,
+        df: pl.DataFrame,
+        format: Literal["csv", "sqlite", "parquet"] = "csv",
+        name: str = "output",
+    ) -> Optional[Path]:
+        """Exporta o DataFrame filtrado e retorna o caminho gerado."""
+        if df is None or len(df) == 0:
+            logger.warning(f"Nenhum dado disponível para exportar: {name}")
+            return None
+
+        output_dir = Path(self.output_path)
+        final_stem = name
+
+        if "_" in name:
+            partes = name.split("_")
+            if len(partes) >= 3 and partes[-2].isdigit() and partes[-1].isdigit():
+                start_year, end_year = int(partes[-2]), int(partes[-1])
+                if "NU_ANO" in df.columns:
+                    raw_years = df["NU_ANO"].unique().to_list()
+                    present_years = {
+                        int(str(value).strip())
+                        for value in raw_years
+                        if str(value).strip().isdigit()
+                    }
+                    expected_years = set(range(start_year, end_year + 1))
+                    if not expected_years.issubset(present_years):
+                        final_stem = f"{name}_partial"
+                        logger.warning(
+                            f"O intervalo declarado ({start_year}-{end_year}) não corresponde aos dados reais ({sorted(present_years) or raw_years}). "
+                            f"O arquivo foi salvo como '{final_stem}.{format}'."
+                        )
+
+        final_path = output_dir / f"{final_stem}.{format}"
+
         if format == "csv":
-            df.write_csv(path)
+            df.write_csv(final_path)
         elif format == "parquet":
-            df.write_parquet(path)
+            df.write_parquet(final_path)
         elif format == "sqlite":
-            con = sqlite3.connect(os.path.join(self.output_path, f"{name}.db"))
-            df_pandas = df.to_pandas()
-            df_pandas.to_sql(name=name, con=con, if_exists="replace", index=False)
+            db_path = output_dir / f"{final_stem}.db"
+            con = sqlite3.connect(db_path)
+            df.to_pandas().to_sql(name=final_stem, con=con, if_exists="replace", index=False)
             con.close()
         else:
             raise ValueError("Formato inválido. Escolha entre 'csv', 'sqlite' ou 'parquet'.")
-        print(f"Arquivo exportado: {path}")
+
+        logger.info(f"Exported dataset -> {final_path}")
+        return final_path
+
+    def export_per_year(self, disease: str, format: str = "csv"):
+        """Exporta arquivos individuais por ano para doenças com múltiplos anos baixados."""
+        if disease not in self.data or not self.data[disease]:
+            logger.warning(f"Nenhum arquivo disponível para {disease}.")
+            return
+
+        # Corrige acesso: extrai caminhos válidos de ParquetSet ou Path
+        paths = []
+        for p in self.data[disease]:
+            if hasattr(p, "path"):  # ParquetSet
+                try:
+                    path_str = str(p.path)
+                    if os.path.exists(path_str):
+                        paths.append(path_str)
+                except Exception:
+                    continue
+            elif isinstance(p, (str, Path)) and os.path.exists(p):
+                paths.append(str(p))
+
+        if not paths:
+            logger.warning(f"Nenhum caminho de arquivo válido encontrado para {disease}.")
+            return
+
+        # Extrai anos de cada caminho
+        successful_years = sorted({
+            Path(p).stem[-4:] for p in paths if Path(p).stem[-4:].isdigit()
+        })
+
+        if not successful_years:
+            logger.warning(f"Nenhum ano válido encontrado para {disease}.")
+            return
+
+        for year in successful_years:
+            try:
+                df = self.load_dataframe(disease)
+
+                # Filtra apenas o ano específico, se aplicável
+                if "NU_ANO" in df.columns:
+                    df = df.filter(pl.col("NU_ANO") == int(year))
+
+                output_name = f"{disease}_{year}"
+                exported_path = self.export(df, format=format, name=output_name)
+                if exported_path:
+                    logger.info(f"Exported {disease} {year} -> {exported_path.name} ({len(df)} registros)")
+                else:
+                    logger.warning(f"Export skipped for {disease} {year}: no data")
+
+            except Exception as e:
+                logger.error(f"Failed to export {disease} {year}: {e}")
 
     # -----------------------------------------------------------
     # METADADOS

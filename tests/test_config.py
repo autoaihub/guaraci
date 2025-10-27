@@ -2,8 +2,6 @@
 Tests for Guaraci configuration system.
 """
 
-import pytest
-from pathlib import Path
 from guaraci.core.config import GuaraciConfig
 
 
@@ -26,7 +24,6 @@ class TestGuaraciConfig:
         
         # Paths should be created during initialization
         assert config.data_root.exists()
-        assert config.cache_dir.exists()
         assert config.temp_dir.exists()
         
     def test_get_datasus_path(self):
@@ -39,12 +36,3 @@ class TestGuaraciConfig:
         assert sinan_path == expected_path
         assert sinan_path.exists()
         
-    def test_get_cache_path(self):
-        """Test cache path generation."""
-        config = GuaraciConfig()
-        
-        cache_path = config.get_cache_path("sinan")
-        expected_path = config.cache_dir / "sinan"
-        
-        assert cache_path == expected_path
-        assert cache_path.exists()

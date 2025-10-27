@@ -9,11 +9,11 @@ description = "Brazilian public data integration platform for scientific researc
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Luis", email = "example@email.com"},
-    {name = "Pedro Guilherme dos Reis Teixeira", email = "pedro.guilherme2305@usp.br"}
+    {name = "Luis Felipe Vogel Lopes", email = "vogel@usp.br"},
+    {name = "Pedro Guilherme dos Reis Teixeira", email = "pedro.guilherme2305@usp.br", role = "original author"}
 ]
 maintainers = [
-    {name = "Pedro Guilherme dos Reis Teixeira", email = "pedro.guilherme2305@usp.br"}
+    {name = "Luis Felipe Vogel Lopes", email = "vogel@usp.br"}
 ]
 keywords = ["datasus", "public-health", "epidemiology", "brazil", "data-science"]
 classifiers = [

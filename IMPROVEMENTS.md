@@ -1,5 +1,13 @@
 # 🔧 Guaraci Project Improvements Summary
 
+# Guaraci v0.2 – Modernization and Refactor
+
+**Author:** Luis Felipe Vogel Lopes (vogel@usp.br)  
+**Based on original v0.1 prototype by Pedro Guilherme dos Reis Teixeira**
+
+This version represents a full architectural redesign of Guaraci, transforming it from a single-file proof of concept into a production-ready, modular platform with Dockerized workflows, robust configuration, and comprehensive testing.
+
+
 ## 📋 Overview
 
 This document summarizes the comprehensive improvements made to the Guaraci project, transforming it from a basic script-based tool into a professional, production-ready platform for Brazilian public data integration.
@@ -41,7 +49,7 @@ guaraci/
 #### New Features:
 - **Pydantic-based configuration** with validation and type safety
 - **Environment variable support** with `GUARACI_` prefix
-- **Automatic directory creation** for data, cache, and temp folders
+- **Automatic directory creation** for data and temp folders
 - **Configurable performance settings** (memory limits, concurrent downloads)
 - **Flexible output formats** and compression options
 
@@ -87,14 +95,12 @@ guaraci sinan summary DENG --by UF --metric count
 #### Memory Management:
 - **Lazy loading** with Polars scan operations
 - **Chunked processing** for large datasets
-- **Intelligent caching** with automatic invalidation
 - **Memory limit enforcement** to prevent OOM errors
 
 #### Caching System:
-- **Automatic caching** of processed data
 - **Cache validation** based on file age and parameters
 - **Cache key generation** using parameter hashing
-- **Easy cache management** (clear, validate, etc.)
+- **Simplified data management** with clear output directories
 
 ### 5. **Error Handling & Logging**
 

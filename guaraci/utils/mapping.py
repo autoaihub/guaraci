@@ -165,3 +165,30 @@ def get_region(uf: str) -> Optional[str]:
             return region
     
     return None
+
+def apply_uf_mapping_polars(df, columns: list[str]):
+    """
+    Apply the utility_mapping() function to multiple columns of a Polars DataFrame.
+
+    Parameters
+    ----------
+    df : pl.DataFrame
+        The Polars DataFrame to process.
+    columns : list[str]
+        List of column names to which the mapping will be applied.
+
+    Returns
+    -------
+    pl.DataFrame
+        The same DataFrame with UF values standardized.
+    """
+    import polars as pl
+
+    for col in columns:
+        try:
+            df = df.with_columns([
+                pl.col(col).map_elements(utility_mapping, return_dtype=pl.Utf8).alias(col)
+            ])
+        except Exception as e:
+            print(f"⚠️ Failed to apply UF mapping on column {col}: {e}")
+    return df
