@@ -157,7 +157,7 @@ docker run --rm -it -v "$(pwd):/app" \
   guaraci python -m guaraci.cli.sinan_cli download 2020 2020 --diseases DENG
 ```
 
-### Advanced Usage (Python API in Docker)
+### Python API in Docker
 
 ```bash
 # Start interactive Python session
