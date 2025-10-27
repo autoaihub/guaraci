@@ -34,12 +34,6 @@ docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main --help
 ### Download SINAN Data
 
 ```bash
-# Download data for specific diseases and years
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2022 \
-  --diseases DENG ZIKA --format csv
-
-# Download single disease for one year
 docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.sinan_cli download 2020 2020 \
   --diseases RAIV --format csv
@@ -220,20 +214,6 @@ docker run --rm guaraci python -m pytest tests/test_utils.py -v
 docker run --rm guaraci python test_install.py
 ```
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new functionality
-5. Run the test suite (`pytest`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
 
 ## 📄 License
 
