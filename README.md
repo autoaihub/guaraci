@@ -17,6 +17,15 @@ Guaraci addresses a critical gap in Brazilian public health data accessibility. 
 
 ## 🚀 Quick Start
 
+### Instalação via pip
+
+Escolha conforme a necessidade:
+
+- Núcleo (sem DATASUS nem API): `pip install guaraci`
+- DATASUS (PySUS: SINAN/SIM/SIH): `pip install "guaraci[datasus]"`
+- API (FastAPI/uvicorn/httpx): `pip install "guaraci[api]"`
+- Completo (todos os extras): `pip install "guaraci[full]"`
+
 ### Docker Setup (Recommended)
 
 ```bash
@@ -31,7 +40,7 @@ docker build -t guaraci .
 docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main --help
 ```
 
-### Download SINAN Data
+### Download SINAN Data (Docker)
 
 ```bash
 docker run --rm -it -v "$(pwd):/app" guaraci \
@@ -258,3 +267,6 @@ If you use Guaraci in your research, please cite:
 - [Issue Tracker](https://github.com/autoaihub/guaraci/issues)
 - [DATASUS](https://datasus.saude.gov.br/)
 - [PySUS Documentation](https://pysus.readthedocs.io/)
+## 📝 Changelog
+
+Veja `CHANGELOG.md` para histórico de versões e novidades.
