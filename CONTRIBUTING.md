@@ -94,5 +94,8 @@ Quando adicionar uma nova fonte de dados ou CLI, use os exemplos existentes (`Si
   - Como testar a mudança (comandos de Docker/pytest relevantes).
 - Evite misturar refatoração extensa com correções pequenas na mesma PR.
 
-Se tiver dúvidas sobre estilo ou estrutura, use como referência os módulos mais novos (`guaraci/core`, `guaraci/datasus/sinan.py`, `guaraci/datasus/sim.py`, `guaraci/cli/sinan_cli.py`, `guaraci/cli/sim_cli.py`) e siga o padrão deles. 
+Se tiver dúvidas sobre estilo ou estrutura, use como referência os módulos mais novos (`guaraci/core`, `guaraci/datasus/sinan.py`, `guaraci/datasus/sim.py`, `guaraci/cli/sinan_cli.py`, `guaraci/cli/sim_cli.py`) e siga o padrão deles.
+## Changelog
+
+Veja `CHANGELOG.md` para o histórico de versões e novidades.
 

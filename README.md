@@ -278,3 +278,7 @@ If you use Guaraci in your research, please cite:
 - [Issue Tracker](https://github.com/autoaihub/guaraci/issues)
 - [DATASUS](https://datasus.saude.gov.br/)
 - [PySUS Documentation](https://pysus.readthedocs.io/)
+## 📝 Changelog
+
+Veja `CHANGELOG.md` para histórico de versões e novidades.
+
