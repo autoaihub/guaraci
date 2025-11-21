@@ -46,22 +46,43 @@ __author__ = "Pedro Guilherme dos Reis Teixeira, Luis"
 __email__ = "pedro.guilherme2305@usp.br"
 
 # Core imports for easy access
-from guaraci.core.datasource import DataSource
 from guaraci.core.config import GuaraciConfig
+from guaraci.core.datasource import DataSource
 
 # Optional imports
 try:
     from guaraci.datasus.sinan import SinanDataSource
+
     _SINAN_AVAILABLE = True
-except ImportError:
+except ImportError:  # pragma: no cover - optional dependency
     _SINAN_AVAILABLE = False
-    SinanDataSource = None
+    SinanDataSource = None  # type: ignore
+
+try:
+    from guaraci.datasus.sim import SimDataSource
+
+    _SIM_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency
+    _SIM_AVAILABLE = False
+    SimDataSource = None  # type: ignore
+
+try:
+    from guaraci.datasus.sih import SihDataSource
+
+    _SIH_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency
+    _SIH_AVAILABLE = False
+    SihDataSource = None  # type: ignore
 
 __all__ = [
-    "DataSource", 
+    "DataSource",
     "GuaraciConfig",
-    "__version__"
+    "__version__",
 ]
 
 if _SINAN_AVAILABLE:
     __all__.append("SinanDataSource")
+if _SIM_AVAILABLE:
+    __all__.append("SimDataSource")
+if _SIH_AVAILABLE:
+    __all__.append("SihDataSource")
