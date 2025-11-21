@@ -52,6 +52,32 @@ docker run --rm -it -v "$(pwd):/app" guaraci \
 docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.sinan_cli download 2020 2020 \
   --diseases RAIV --format csv
+
+### Download SIM Data (Docker)
+
+```bash
+# Download SIM (CID10) for SP/RJ, 2019–2020
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.sim_cli download 2019 2020 \
+  --groups CID10 --states SP RJ --format csv
+
+# Summary by basic cause (CAUSABAS)
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.sim_cli summary CID10 --by CAUSABAS
+```
+
+### Download SIH Data (Docker)
+
+```bash
+# Download SIH (AIH reduzida - RD) para SP, meses 1-3 de 2019–2020
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.sih_cli download 2019 2020 \
+  --groups RD --states SP --months 1 2 3 --format csv
+
+# Resumo por UF
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.sih_cli summary RD --by UF_ZI
+```
 ```
 
 ### Python API (Inside Docker)
@@ -81,6 +107,14 @@ sinan.export(filtered, format='csv', name='raiva_sp')
 
 ### Available CLI Commands
 
+Para ajuda detalhada de cada base, use:
+
+```bash
+docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.sinan_cli --help
+docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.sim_cli --help
+docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.sih_cli --help
+```
+
 ```bash
 # Show platform information
 docker run --rm guaraci python -m guaraci.cli.main info
@@ -88,6 +122,14 @@ docker run --rm guaraci python -m guaraci.cli.main info
 # Download SINAN data
 docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.sinan_cli download 2020 2020 --diseases DENG --format csv
+
+# Download SIM data
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.sim_cli download 2019 2020 --groups CID10 --states SP RJ --format csv
+
+# Download SIH data
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.sih_cli download 2019 2020 --groups RD --states SP --months 1 2 3 --format csv
 
 # Filter existing data (after download)
 docker run --rm -it -v "$(pwd):/app" guaraci \
@@ -120,6 +162,18 @@ docker run --rm -it -v "$(pwd):/app" guaraci \
 - `LEIV` - Leishmaniose Visceral
 - `LTAN` - Leishmaniose Tegumentar
 - `RAIV` - Raiva Humana
+
+### SIM (Sistema de Informações sobre Mortalidade)
+- **Focus**: Mortalidade (CID10/CID9)
+- **Coverage**: Décadas recentes (conforme FTP DATASUS)
+- **Format**: Parquet, CSV, SQLite
+- **Groups**: `CID10` (padrão), `CID9`
+
+### SIH (Sistema de Informações Hospitalares)
+- **Focus**: Internações hospitalares financiadas pelo SUS (AIH)
+- **Coverage**: 1992–presente (conforme FTP DATASUS)
+- **Format**: Parquet, CSV, SQLite
+- **Groups**: `RD` (AIH reduzida, padrão), `RJ`, `ER`, `SP`, `CH`, `CM`
 
 ## 🛠 Development Setup
 
