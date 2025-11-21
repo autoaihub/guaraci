@@ -41,7 +41,7 @@ guaraci sinan filter --uf SP --sexo M --input dengue.csv --output filtered.csv
 ```
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __author__ = "Pedro Guilherme dos Reis Teixeira, Luis"
 __email__ = "pedro.guilherme2305@usp.br"
 

@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "guaraci"
-version = "0.2.0"
+version = "0.3.0"
 description = "Brazilian public data integration platform for scientific research"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
     {name = "Luis Felipe Vogel Lopes", email = "vogel@usp.br"},
-    {name = "Pedro Guilherme dos Reis Teixeira", email = "pedro.guilherme2305@usp.br", role = "original author"}
+    {name = "Pedro Guilherme dos Reis Teixeira", email = "pedro.guilherme2305@usp.br"}
 ]
 maintainers = [
     {name = "Luis Felipe Vogel Lopes", email = "vogel@usp.br"}
@@ -31,21 +31,23 @@ dependencies = [
     "polars>=0.20.0",
     "pyarrow>=14.0.0",
     "tqdm>=4.64.0",
-    "fastapi>=0.104.0",
-    "uvicorn[standard]>=0.24.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
     "click>=8.1.0",
     "rich>=13.7.0",
     "loguru>=0.6.0,<0.7.0",
-    "httpx>=0.25.0",
-    "aiofiles>=23.2.0",
     "pandas>=1.5.0"
 ]
 
 [project.optional-dependencies]
 datasus = [
     "pysus>=0.11.0"
+]
+api = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "httpx>=0.25.0",
+    "aiofiles>=23.2.0"
 ]
 dev = [
     "pytest>=7.4.0",
@@ -59,6 +61,10 @@ dev = [
 ]
 full = [
     "pysus>=0.11.0",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "httpx>=0.25.0",
+    "aiofiles>=23.2.0",
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.1.0",
