@@ -1,346 +1,281 @@
-# 🇧🇷 Guaraci: Brazilian Public Data Integration Platform
+# Guaraci
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+Plataforma para download e orquestracao de fontes publicas brasileiras, com foco atual em:
+- `SNIS` e `SINISA` (crawler gov.br)
+- `SINAN`, `SIM` e `SIH` (PySUS/FTP DATASUS)
+- `OpenDataSUS` (API, fontes `doses_aplicadas_pni` e `zikavirus`)
 
-A comprehensive toolkit for accessing, integrating, and analyzing Brazilian public data, with initial focus on public health and Neglected Tropical Diseases (NTDs).
+Versao atual: `0.4.1`
 
-## 🎯 Overview
+## Estado atual do projeto
 
-Guaraci addresses a critical gap in Brazilian public health data accessibility. While databases exist for high-visibility diseases like COVID-19 and tuberculosis, Neglected Tropical Diseases (NTDs) remain underrepresented in computational epidemiology. Guaraci provides:
+- Fluxo **oficial e suportado**: **Docker-first** (CLI, API e UI web).
+- Fluxo sem Docker (Python local puro): **WIP / nao suportado oficialmente no momento**.
+  - Pode funcionar em alguns ambientes.
+  - Nao e considerado caminho estavel, especialmente no Windows.
 
-- **Unified Access**: Single interface to multiple Brazilian health databases (DATASUS, SINAN, SIH, SIM, SIA)
-- **Scientific Reproducibility**: Standardized, versioned datasets with complete metadata
-- **Performance Optimized**: Concurrent downloads and memory-efficient processing
-- **Multiple Interfaces**: Both Python API and CLI for different use cases
+## O que ja funciona hoje
 
-## 🚀 Quick Start
+- Download assincrono via API com fila de jobs, cancelamento e retry.
+- UI web desktop para usuarios tecnicos e nao tecnicos.
+- Schema dinamico por fonte (`/sources/{source}/schema`) para montar filtros na UI.
+- Progresso de jobs com:
+  - percentual,
+  - arquivo atual,
+  - bytes transferidos,
+  - ETA,
+  - logs estruturados.
+- Persistencia de jobs em disco (`data/jobs/download_jobs.json`).
+- Exportacao opcional de datasets processados (`csv`, `parquet`, `sqlite`) para fontes PySUS e OpenDataSUS.
 
-### Instalação via pip
+## Arquitetura (resumo)
 
-Escolha conforme a necessidade:
+- `guaraci/services/downloads.py`
+  - Registro de fontes.
+  - Validacao de parametros por schema.
+  - Adaptadores para `gov.br crawl` e `pysus ftp`.
+- `guaraci/services/jobs.py`
+  - Execucao em background.
+  - Estados de job (`queued`, `running`, `completed`, `failed`, `canceled`).
+  - Retry/cancel.
+  - Persistencia e logs.
+- `guaraci/api/main.py`
+  - Endpoints HTTP (health, schema, jobs, logs, output).
+- `guaraci/api/static/index.html`
+  - UI web desktop.
+  - Formulario dinamico por schema.
+  - Monitoramento de jobs e pasta de saida.
 
-- Núcleo (sem DATASUS nem API): `pip install guaraci`
-- DATASUS (PySUS: SINAN/SIM/SIH): `pip install "guaraci[datasus]"`
-- API (FastAPI/uvicorn/httpx): `pip install "guaraci[api]"`
-- Completo (todos os extras): `pip install "guaraci[full]"`
+Detalhes completos:
+- `docs/README.md`
+- `docs/ARCHITECTURE.md`
+- `docs/API_REFERENCE.md`
+- `docs/UI_GUIDE.md`
+- `docs/SOURCES_AND_FILTERS.md`
+- `docs/AI_HANDOFF_OPENDATASUS.md`
+- `AGENTS.md`
 
-### Docker Setup (Recommended)
+## Quick Start (Docker-first)
+
+### 1) Build
 
 ```bash
-# Clone the repository
-git clone https://github.com/autoaihub/guaraci.git
-cd guaraci
-
-# Build the Docker image
 docker build -t guaraci .
-
-# Run Guaraci commands
-docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main --help
 ```
 
-### Download SINAN Data (Docker)
+### 2) Subir API + UI (launcher)
 
-```bash
-# Download data for specific diseases and years
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2022 \
-  --diseases DENG ZIKA --format csv
-
-# Download single disease for one year
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2020 \
-  --diseases RAIV --format csv
-
-### Download SIM Data (Docker)
-
-```bash
-# Download SIM (CID10) for SP/RJ, 2019–2020
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sim_cli download 2019 2020 \
-  --groups CID10 --states SP RJ --format csv
-
-# Summary by basic cause (CAUSABAS)
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sim_cli summary CID10 --by CAUSABAS
-```
-
-### Download SIH Data (Docker)
-
-```bash
-# Download SIH (AIH reduzida - RD) para SP, meses 1-3 de 2019–2020
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sih_cli download 2019 2020 \
-  --groups RD --states SP --months 1 2 3 --format csv
-
-# Resumo por UF
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sih_cli summary RD --by UF_ZI
-```
-```
-
-### Python API (Inside Docker)
-
-```bash
-# Interactive Python session
-docker run --rm -it -v "$(pwd):/app" guaraci python
-
-# Then in Python:
-from guaraci.datasus import SinanDataSource
-
-# Initialize SINAN data source
-sinan = SinanDataSource()
-
-# Download data
-sinan.download(start_year=2020, end_year=2020, diseases=['RAIV'])
-
-# Load as DataFrame
-df = sinan.load_dataframe('RAIV')
-
-# Apply filters
-filtered = sinan.filter(df, uf='SP')
-
-# Export results
-sinan.export(filtered, format='csv', name='raiva_sp')
-```
-
-### Available CLI Commands
-
-Para ajuda detalhada de cada base, use:
-
-```bash
-docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.sinan_cli --help
-docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.sim_cli --help
-docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.sih_cli --help
-```
-
-```bash
-# Show platform information
-docker run --rm guaraci python -m guaraci.cli.main info
-
-# Download SINAN data
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases DENG --format csv
-
-# Download SIM data
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sim_cli download 2019 2020 --groups CID10 --states SP RJ --format csv
-
-# Download SIH data
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sih_cli download 2019 2020 --groups RD --states SP --months 1 2 3 --format csv
-
-# Filter existing data (after download)
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli filter DENG --uf SP --output filtered_dengue
-
-# Generate summary statistics
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli summary DENG --by UF --metric count
-
-# Get information about available fields
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli info DENG
-```
-
-## 📊 Supported Data Sources
-
-### SINAN (Sistema de Informação de Agravos de Notificação)
-- **Focus**: Notifiable diseases surveillance
-- **Coverage**: 2007-present
-- **Diseases**: All SINAN diseases with emphasis on NTDs
-- **Format**: Parquet, CSV, SQLite
-
-#### Supported Neglected Tropical Diseases
-- `ANIM` - Acidentes por Animais Peçonhentos
-- `CHAG` - Doença de Chagas  
-- `CHIK` - Chikungunya
-- `DENG` - Dengue
-- `ESQU` - Esquistossomose
-- `HANS` - Hanseníase
-- `LEIV` - Leishmaniose Visceral
-- `LTAN` - Leishmaniose Tegumentar
-- `RAIV` - Raiva Humana
-
-### SIM (Sistema de Informações sobre Mortalidade)
-- **Focus**: Mortalidade (CID10/CID9)
-- **Coverage**: Décadas recentes (conforme FTP DATASUS)
-- **Format**: Parquet, CSV, SQLite
-- **Groups**: `CID10` (padrão), `CID9`
-
-### SIH (Sistema de Informações Hospitalares)
-- **Focus**: Internações hospitalares financiadas pelo SUS (AIH)
-- **Coverage**: 1992–presente (conforme FTP DATASUS)
-- **Format**: Parquet, CSV, SQLite
-- **Groups**: `RD` (AIH reduzida, padrão), `RJ`, `ER`, `SP`, `CH`, `CM`
-
-## 🛠 Development Setup
-
-### Docker-Based Development (Recommended)
-
-```bash
-# Clone repository
-git clone https://github.com/autoaihub/guaraci.git
-cd guaraci
-
-# Build the Docker image
-docker build -t guaraci .
-
-# Run tests
-docker run --rm guaraci python -m pytest tests/ -v
-
-# Interactive development shell
-docker run --rm -it -v "$(pwd):/app" guaraci bash
-
-# Run specific commands
-docker run --rm -it -v "$(pwd):/app" guaraci python -c "import guaraci; print(guaraci.__version__)"
-```
-
-### Windows Users
+PowerShell (Windows):
 
 ```powershell
-# Use full paths for volume mounting
-docker run --rm -it -v "C:\path\to\guaraci:/app" guaraci python -m guaraci.cli.main info
-
-# Example with actual path (single line)
-docker run --rm -it -v "C:\Users\username\Documents\guaraci:/app" guaraci python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
-
-# Multi-line with PowerShell backtick continuation
-docker run --rm -it -v "C:\Users\username\Documents\guaraci:/app" guaraci `
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
+.\scripts\desktop\start-guaraci.ps1
 ```
 
-## 📖 Documentation
-
-### Configuration
-
-Guaraci can be configured using environment variables in Docker:
+Bash (Linux/macOS):
 
 ```bash
-# Run with custom configuration
-docker run --rm -it -v "$(pwd):/app" \
-  -e GUARACI_DATA_ROOT=/app/data \
-  -e GUARACI_LOG_LEVEL=DEBUG \
-  -e GUARACI_MAX_CONCURRENT_DOWNLOADS=10 \
-  guaraci python -m guaraci.cli.sinan_cli download 2020 2020 --diseases DENG
+./scripts/desktop/start-guaraci.sh
 ```
 
-### Advanced Usage (Python API in Docker)
+Padrao: UI em `http://localhost:8002/`.
+
+No launcher desktop, os downloads sao centralizados em `Guaraci Downloads` na Area de Trabalho.
+
+### 3) Verificar saude da API
 
 ```bash
-# Start interactive Python session
-docker run --rm -it -v "$(pwd):/app" guaraci python
-
-# Then in Python:
-from guaraci.datasus import SinanDataSource
-from guaraci.core.config import config
-
-# View current configuration
-print(f"Data root: {config.data_root}")
-print(f"Max downloads: {config.max_concurrent_downloads}")
-
-# Initialize with custom settings
-sinan = SinanDataSource()
-
-# Download with specific parameters
-sinan.download(2020, 2021, diseases=['DENG'])
-
-# Load and process data
-df = sinan.load_dataframe('DENG')
-
-# Advanced filtering
-filtered = sinan.filter(
-    df,
-    uf='SP',
-    municipio='São Paulo',
-    ano=2021
-)
-
-# Generate summary statistics
-summary = sinan.summary(filtered, by='CS_SEXO', metric='count')
-print(summary)
-
-# Export results
-sinan.export(filtered, format='csv', name='dengue_sp_2021')
+curl http://localhost:8002/health
 ```
 
-## 🧪 Testing
+Resposta esperada:
 
-All testing is done within Docker containers:
+```json
+{"status":"ok","version":"0.4.1"}
+```
+
+## Uso via UI (resumo)
+
+1. Escolher fonte.
+2. Preencher filtros (campos sao gerados pelo schema da fonte).
+3. Confirmar revisao e criar job.
+4. Acompanhar progresso e logs no painel.
+5. Copiar caminho de saida ou abrir pasta.
+
+Observacoes importantes:
+- Em Docker, abrir pasta direto do container pode nao funcionar no host.
+- A UI mostra `host_output_dir` quando disponivel para abrir no sistema host.
+- Mensagem de UX na tela: consulte os arquivos na pasta `Guaraci Downloads` da Area de Trabalho.
+
+Guia detalhado: `docs/UI_GUIDE.md`.
+
+## Uso via API (resumo)
+
+Base URL (launcher): `http://localhost:8002`
+
+- `GET /health`
+- `GET /sources`
+- `GET /sources/{source}/schema`
+- `POST /jobs`
+- `GET /jobs`
+- `GET /jobs/{job_id}`
+- `POST /jobs/{job_id}/cancel`
+- `POST /jobs/{job_id}/retry`
+- `GET /jobs/{job_id}/logs`
+- `GET /jobs/{job_id}/output`
+- `POST /jobs/{job_id}/open-output`
+
+Referencia completa: `docs/API_REFERENCE.md`.
+
+## Uso via CLI (Docker)
+
+Entrypoints principais:
+- `python -m guaraci.cli.main`
+- `python -m guaraci.cli.snis_cli`
+- `python -m guaraci.cli.sinan_cli`
+- `python -m guaraci.cli.sim_cli`
+- `python -m guaraci.cli.sih_cli`
+
+Exemplos:
 
 ```bash
-# Run all tests
-docker run --rm guaraci python -m pytest tests/ -v
+# Ajuda geral
+docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main --help
 
-# Run with coverage
-docker run --rm guaraci python -m pytest tests/ --cov=guaraci --cov-report=term-missing
+# SNIS (gov.br)
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.snis_cli download \
+  --file-kinds planilhas --modules agua --extract-archives
 
-# Run specific test file
-docker run --rm guaraci python -m pytest tests/test_utils.py -v
+# SINAN
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.sinan_cli download 2023 2024 --diseases RAIV --format csv
 
-# Test installation
-docker run --rm guaraci python test_install.py
+# SIM
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.sim_cli download 2023 2024 --groups CID10 --states SP RJ --format csv
+
+# SIH
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.sih_cli download 2024 2025 --groups RJ --states RJ --months 1 --format csv
 ```
 
-## 🤝 Contributing
+Observacao:
+- No fluxo de **jobs/UI**, `SIH` nao expoe filtro `ano`.
+- Na CLI direta de `sih_cli`, o parametro `--ano` ainda existe para filtro de exportacao local.
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+## Fontes e filtros
 
-### Development Workflow
+Tabela detalhada por fonte: `docs/SOURCES_AND_FILTERS.md`.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new functionality
-5. Run the test suite (`pytest`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+Resumo rapido:
+- `snis` / `sinisa`:
+  - `results_url`, `file_kinds`, `modules`, `extract_archives`, `overwrite`, `timeout`.
+- `doses_aplicadas_pni` (modo `opendatasus api`):
+  - coleta base (API nativa): `start_year`, `end_year`
+  - refinamento opcional: `uf`, `start_date`, `end_date`
+  - exportacao: `output_format`
+  - avancado: `keep_raw` (padrao `false`), `batch_size`, `max_pages`, `resource_id`, `api_base_url`
+- `zikavirus` (modo `opendatasus api`):
+  - coleta base (API nativa): `start_year`, `end_year`
+  - refinamento opcional: `start_date`, `end_date`, `uf`
+  - exportacao: `output_format`
+  - avancado: `keep_raw` (padrao `false`), `batch_size`, `max_pages`, `api_base_url`
+- `sinan`:
+  - coleta: `start_year`, `end_year`, `diseases`
+  - exportacao: `output_format`, `uf`, `municipio`, `sexo`, `faixa_etaria`, `evolucao`, `classificacao`
+- `sim`:
+  - coleta: `start_year`, `end_year`, `groups`, `states`
+  - exportacao: `output_format`, `uf`, `municipio`, `sexo`, `causa_basica`, `ano_obito`
+- `sih`:
+  - coleta: `start_year`, `end_year`, `groups`, `states`, `months`
+  - exportacao: `output_format`, `uf`, `municipio`, `sexo`, `mes`
 
-## 📄 License
+Observacao de nomenclatura OpenDataSUS:
+- use nomes explicitos de fonte: `doses_aplicadas_pni` ou `zikavirus`.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Estrutura de saida de dados
 
-## 👥 Authors & Contributors
+### SNIS/SINISA (crawler)
 
-- **Luis Felipe Vogel Lopes** – *Lead Developer (v0.2 and ongoing)* – vogel@usp.br  
-  Responsible for the full modernization of Guaraci, including modular architecture, Docker-first workflow, Pydantic configuration system, enhanced CLI, and full testing suite.
-
-- **Pedro Guilherme dos Reis Teixeira** – *Original Author (v0.1)* – pedro.guilherme2305@usp.br  
-  Created the initial Guaraci prototype and early SINAN integration.
-
-- **Prof. Robson Parmezan Bonidia** – *Scientific Advisor* – ICMC/USP  
-- **Prof. André Carlos Ponce de Leon Ferreira de Carvalho** – *Scientific Advisor* – ICMC/USP
-
-## 🙏 Acknowledgments
-
-- [PySUS](https://github.com/AlertaDengue/PySUS) - Foundation for DATASUS integration
-- [Polars](https://pola.rs/) - High-performance DataFrame library
-- [ICMC/USP](https://www.icmc.usp.br/) - Institutional support
-- Brazilian Ministry of Health - Data provision through DATASUS
-
-## 📚 Citation
-
-If you use Guaraci in your research, please cite:
-
-```bibtex
-@software{guaraci2025,
-  title     = {Guaraci: Brazilian Public Data Integration Platform},
-  author    = {Lopes, Luis Felipe Vogel and Teixeira, Pedro Guilherme dos Reis and Bonidia, Robson Parmezan and Carvalho, André Carlos Ponce de Leon Ferreira de},
-  year      = {2025},
-  version   = {0.2},
-  url       = {https://github.com/autoaihub/guaraci}
-}
+```text
+<output_dir>/
+  raw/
+  extracted/            # quando extract_archives=true
+  manifest.json
 ```
 
-## 🔗 Links
+### PySUS (SINAN/SIM/SIH)
 
-- [Documentation](https://guaraci.readthedocs.io) (Coming Soon)
-- [PyPI Package](https://pypi.org/project/guaraci) (Coming Soon)
-- [Issue Tracker](https://github.com/autoaihub/guaraci/issues)
-- [DATASUS](https://datasus.saude.gov.br/)
-- [PySUS Documentation](https://pysus.readthedocs.io/)
-## 📝 Changelog
+```text
+<output_dir>/
+  raw/                  # artefatos materializados
+  <arquivos_exportados> # quando output_format definido
+  manifest.json         # quando houve materializacao de artefatos
+```
 
-Veja `CHANGELOG.md` para histórico de versões e novidades.
+### OpenDataSUS
+
+```text
+<output_dir>/
+  manifest.json
+  <arquivos_exportados> # quando output_format definido
+  raw/                  # apenas quando keep_raw=true
+```
+
+No endpoint `/jobs/{job_id}/output`, alem do output path, a API retorna:
+- `output_format`
+- `exported_files`
+- `export_warning` (quando formato foi pedido mas nada foi exportado)
+
+## Launcher desktop
+
+Scripts disponiveis:
+- Windows (PowerShell + `.cmd`): `scripts/desktop/`
+- Linux/macOS (bash): `scripts/desktop/`
+
+Comandos uteis (Windows):
+
+```powershell
+.\scripts\desktop\launcher.ps1
+.\scripts\desktop\start-guaraci.ps1
+.\scripts\desktop\status-guaraci.ps1
+.\scripts\desktop\stop-guaraci.ps1
+```
+
+Comandos uteis (Linux/macOS):
+
+```bash
+./scripts/desktop/launcher.sh
+./scripts/desktop/start-guaraci.sh
+./scripts/desktop/status-guaraci.sh
+./scripts/desktop/stop-guaraci.sh
+```
+
+## Desenvolvimento e testes
+
+```bash
+# Testes
+docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
+
+# Testes focados
+docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/test_api.py tests/test_jobs.py -v
+```
+
+## Limitacoes atuais
+
+- Execucao Python local fora de Docker: **WIP**.
+- Abertura de pasta via UI em ambiente Docker depende do host path mapping.
+- Algumas fontes PySUS podem falhar por instabilidades externas de FTP/rede.
+
+## Versao e roadmap imediato
+
+- Release atual: `0.4.1` (MVP OpenDataSUS integrado ao fluxo de jobs/UI).
+- Proximo alvo: expandir datasets OpenDataSUS e endurecer retries/observabilidade por fonte.
+
+## Documentacao complementar
+
+- `INSTALL.md`: instalacao e operacao suportada.
+- `DOCKER_WORKFLOW.md`: rotina operacional Docker.
+- `CONTRIBUTING.md`: fluxo para contribuicao.
+- `IMPROVEMENTS.md`: historico e direcao de evolucao.
+- `CHANGELOG.md`: historico de versoes.

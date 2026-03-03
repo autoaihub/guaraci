@@ -39,8 +39,8 @@ class DataSource(ABC):
         logger.info(f"Initialized {self.__class__.__name__} (output: {self.output_path})")
 
     @abstractmethod
-    def download(self, *args, **kwargs) -> 'DataSource':
-        """Download data from the source. Must be implemented by subclasses."""
+    def download(self, *args, **kwargs) -> Any:
+        """Run a download job and return its result payload."""
         pass
 
     @abstractmethod

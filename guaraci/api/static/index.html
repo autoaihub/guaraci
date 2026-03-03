@@ -1,0 +1,1834 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guaraci Downloader</title>
+  <style>
+    :root {
+      --bg: #f2eee4;
+      --surface: #fff8ea;
+      --surface-strong: #fff2d3;
+      --surface-dark: #1d2227;
+      --ink: #171b20;
+      --muted: #53606d;
+      --line: rgba(23, 27, 32, 0.14);
+      --brand: #c84a02;
+      --brand-strong: #a53e00;
+      --accent: #0a7a70;
+      --ok: #1f7a1f;
+      --warn: #8e5900;
+      --fail: #a90033;
+      --ring: rgba(200, 74, 2, 0.24);
+      --shadow: 0 14px 36px rgba(23, 27, 32, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 8%, rgba(200, 74, 2, 0.16), transparent 35%),
+        radial-gradient(circle at 90% 86%, rgba(10, 122, 112, 0.2), transparent 36%),
+        linear-gradient(180deg, #fffdf8 0%, var(--bg) 55%, #e9dfcb 100%);
+    }
+
+    .shell {
+      width: 1360px;
+      max-width: calc(100vw - 36px);
+      margin: 0 auto;
+      padding: 22px 0 28px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      line-height: 1;
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.74);
+    }
+
+    .notice {
+      display: none;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      border: 1px solid transparent;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .notice-visible {
+      display: block;
+    }
+
+    .notice-info {
+      background: #e9f4f2;
+      border-color: rgba(10, 122, 112, 0.32);
+      color: #085f57;
+    }
+
+    .notice-ok {
+      background: #ecf8ec;
+      border-color: rgba(31, 122, 31, 0.36);
+      color: #195f19;
+    }
+
+    .notice-fail {
+      background: #fde9ef;
+      border-color: rgba(169, 0, 51, 0.34);
+      color: #7f0026;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 58% 42%;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .wizard-steps {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0 14px;
+    }
+
+    .step-btn {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      padding: 8px 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .step-btn.step-active {
+      color: #fff;
+      background: var(--surface-dark);
+      border-color: var(--surface-dark);
+    }
+
+    .step-pane {
+      display: none;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fffef9;
+      padding: 11px;
+      min-height: 235px;
+    }
+
+    .step-pane.step-visible {
+      display: block;
+    }
+
+    .step-pane h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 4px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    input,
+    select,
+    textarea {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 9px;
+      font: inherit;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--ring);
+    }
+
+    .toggles {
+      display: flex;
+      gap: 14px;
+      margin-top: 4px;
+      align-items: center;
+    }
+
+    .toggles label {
+      display: flex;
+      gap: 5px;
+      color: var(--ink);
+      font-size: 0.9rem;
+    }
+
+    .source-mode {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #e8f4ff;
+      color: #24517d;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .fields-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .fields-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .advanced-toggle {
+      width: fit-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #2f3944;
+      color: #fff;
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      border-radius: 9px;
+    }
+
+    .advanced-arrow {
+      font-size: 0.76rem;
+      line-height: 1;
+    }
+
+    .advanced-wrap {
+      display: none;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff9ef;
+    }
+
+    .advanced-wrap.is-open {
+      display: block;
+    }
+
+    .field-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fffef9;
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .field-card.is-wide {
+      grid-column: 1 / -1;
+    }
+
+    .field-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #27323e;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .field-required {
+      display: inline-block;
+      border-radius: 999px;
+      background: #fee9ef;
+      color: #9b0030;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+    }
+
+    .field-help {
+      margin: 0;
+      font-size: 0.74rem;
+      color: #526171;
+      line-height: 1.35;
+    }
+
+    .hint-icon {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid #7b8896;
+      background: #f3f6fa;
+      color: #2d4258;
+      font-size: 0.72rem;
+      font-weight: 800;
+      cursor: help;
+      user-select: none;
+      flex: 0 0 auto;
+    }
+
+    .hint-icon::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%) translateY(4px);
+      min-width: 180px;
+      max-width: 280px;
+      padding: 8px 9px;
+      border-radius: 8px;
+      border: 1px solid rgba(23, 27, 32, 0.2);
+      background: #10161d;
+      color: #f4f7fb;
+      font-size: 0.73rem;
+      line-height: 1.35;
+      white-space: normal;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease, transform 0.12s ease;
+      z-index: 6;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+    }
+
+    .hint-icon:hover::after,
+    .hint-icon:focus-visible::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .multi-select {
+      min-height: 110px;
+    }
+
+    .schema-lines {
+      line-height: 1.5;
+    }
+
+    .schema-box,
+    .review-box,
+    .latest-box {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      background: var(--surface-strong);
+      padding: 9px;
+      font-size: 0.86rem;
+      color: #27323e;
+    }
+
+    .schema-box {
+      min-height: 120px;
+      height: auto;
+      overflow: visible;
+      margin-top: 8px;
+      white-space: pre-line;
+    }
+
+    .review-box {
+      min-height: 160px;
+      height: auto;
+      overflow: visible;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      white-space: normal;
+      line-height: 1.45;
+    }
+
+    .review-item {
+      margin-bottom: 6px;
+      font-size: 0.84rem;
+      color: #27323e;
+    }
+
+    .review-key {
+      font-weight: 700;
+      color: #2b3844;
+    }
+
+    .wizard-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .wizard-actions .group {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: #fff;
+      background: var(--brand);
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.12s ease, transform 0.12s ease;
+    }
+
+    button:hover {
+      background: var(--brand-strong);
+      transform: translateY(-1px);
+    }
+
+    .btn-alt {
+      background: #2f3944;
+    }
+
+    .btn-alt:hover {
+      background: #1f272f;
+    }
+
+    .btn-warn {
+      background: #8e5900;
+    }
+
+    .btn-warn:hover {
+      background: #724800;
+    }
+
+    .btn-fail {
+      background: #a90033;
+    }
+
+    .btn-fail:hover {
+      background: #860028;
+    }
+
+    .btn-muted {
+      background: #5a6673;
+    }
+
+    .btn-muted:hover {
+      background: #46505a;
+    }
+
+    .btn-small {
+      font-size: 0.79rem;
+      padding: 6px 8px;
+      border-radius: 8px;
+      letter-spacing: 0.01em;
+    }
+
+    button:disabled {
+      opacity: 0.48;
+      cursor: default;
+      transform: none;
+    }
+
+    .latest-box {
+      margin: 11px 0;
+      min-height: 90px;
+    }
+
+    .progress-panel {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fffdf4;
+      padding: 8px;
+      margin: 0 0 10px;
+    }
+
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .progress-track {
+      position: relative;
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: #e4e8ec;
+      overflow: hidden;
+      margin-bottom: 7px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent) 0%, #2aa7b3 100%);
+      transition: width 0.4s ease;
+    }
+
+    .progress-meta {
+      font-size: 0.78rem;
+      color: #2a3744;
+      line-height: 1.45;
+      word-break: break-all;
+    }
+
+    .latest-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 11px;
+    }
+
+    .output-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 11px;
+      align-items: center;
+    }
+
+    .output-path {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fff9e8;
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      color: #2b3844;
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+
+    .log-box {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #10161d;
+      color: #f5f7fa;
+      padding: 8px;
+      height: 160px;
+      overflow: auto;
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 0.74rem;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+
+    .jobs {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      overflow: auto;
+      height: 520px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 7px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #fdf5e4;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.72rem;
+      z-index: 1;
+    }
+
+    tr.is-selected {
+      background: #fff4d5;
+    }
+
+    .mono {
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 0.78rem;
+      word-break: break-all;
+    }
+
+    .status-queued {
+      color: var(--warn);
+    }
+
+    .status-running {
+      color: var(--accent);
+    }
+
+    .status-cancel_requested {
+      color: var(--warn);
+    }
+
+    .status-canceled {
+      color: var(--warn);
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
+
+    .status-completed {
+      color: var(--ok);
+    }
+
+    .status-failed {
+      color: var(--fail);
+    }
+
+    .hint {
+      margin: 7px 0 0;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <h1>Guaraci Data Downloader</h1>
+        <p>Painel desktop para disparar, cancelar e repetir jobs de download.</p>
+      </div>
+      <div class="pill" id="api-pill">API: conectando...</div>
+    </section>
+
+    <div id="notice" class="notice"></div>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Novo Job</h2>
+        <form id="job-form">
+          <div class="wizard-steps">
+            <button class="step-btn step-active" type="button" data-step="1">1. Fonte</button>
+            <button class="step-btn" type="button" data-step="2">2. Filtros</button>
+            <button class="step-btn" type="button" data-step="3">3. Revisão</button>
+          </div>
+
+          <section class="step-pane step-visible" data-step-pane="1">
+            <h3>Selecione a fonte</h3>
+            <label>
+              Fonte
+              <select id="source" name="source" required></select>
+            </label>
+            <div id="source-mode" class="source-mode">Carregando...</div>
+            <p class="hint">O schema de parâmetros dessa fonte aparece abaixo.</p>
+            <div id="schema-info" class="schema-box">Carregando schema...</div>
+          </section>
+
+          <section class="step-pane" data-step-pane="2">
+            <h3>Defina os parâmetros</h3>
+            <p class="hint">Consulte seus downloads na pasta Guaraci Downloads na sua Área de Trabalho.</p>
+            <div id="dynamic-fields" class="fields-stack">
+              <div id="dynamic-fields-basic" class="fields-grid"></div>
+              <button id="advanced-toggle" class="advanced-toggle" type="button" hidden>
+                <span>Filtragem avançada</span>
+                <span id="advanced-arrow" class="advanced-arrow">▼</span>
+              </button>
+              <div id="advanced-wrap" class="advanced-wrap">
+                <div id="dynamic-fields-advanced" class="fields-grid"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="step-pane" data-step-pane="3">
+            <h3>Confirmação</h3>
+            <div id="review-box" class="review-box">Preencha os campos para visualizar o resumo da operação.</div>
+            <p class="hint">Confira os filtros escolhidos antes de criar o job.</p>
+          </section>
+
+          <div class="wizard-actions">
+            <div class="group">
+              <button id="btn-prev" class="btn-alt" type="button">Voltar</button>
+              <button id="btn-next" class="btn-muted" type="button">Próximo</button>
+            </div>
+            <div class="group">
+              <button id="btn-submit" type="submit">Criar Job</button>
+            </div>
+          </div>
+        </form>
+      </article>
+
+      <article class="card">
+        <h2>Monitoramento</h2>
+        <div id="latest-job" class="latest-box">Nenhum job selecionado.</div>
+        <div class="progress-panel">
+          <div class="progress-row">
+            <span id="progress-percent">0.0%</span>
+            <span id="progress-time">00:00 | ETA --</span>
+          </div>
+          <div class="progress-track">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+          <div id="progress-file" class="progress-meta">Arquivo: --</div>
+          <div id="progress-destination" class="progress-meta">Destino: --</div>
+        </div>
+        <div id="output-path" class="output-path">Pasta de saída: indisponível.</div>
+
+        <div class="latest-controls">
+          <button id="cancel-latest" class="btn-fail" type="button">Cancelar Selecionado</button>
+          <button id="retry-latest" class="btn-warn" type="button">Retry Selecionado</button>
+          <button id="refresh-jobs" class="btn-alt" type="button">Atualizar Lista</button>
+        </div>
+
+        <div class="output-controls">
+          <button id="copy-output" class="btn-muted" type="button">Copiar Caminho</button>
+          <button id="open-output" class="btn-alt" type="button">Abrir Pasta</button>
+        </div>
+
+        <div id="log-box" class="log-box">Sem logs para exibir.</div>
+
+        <div class="jobs">
+          <table>
+            <thead>
+              <tr>
+                <th>Job</th>
+                <th>Status</th>
+                <th>Fonte</th>
+                <th>Tent.</th>
+                <th>Resumo</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="jobs-body"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </div>
+
+  <script>
+    let wizardStep = 1;
+    let latestJobId = null;
+    let currentSchema = null;
+    const schemasBySource = {};
+    let refreshInFlight = false;
+    let selectedJobStatus = null;
+
+    function splitCsv(rawValue) {
+      return rawValue
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+    }
+
+    function statusClass(status) {
+      return "status-" + (status || "queued");
+    }
+
+    function isTerminalStatus(status) {
+      return status === "completed" || status === "failed" || status === "canceled";
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function formatSeconds(value) {
+      if (value === null || value === undefined) {
+        return "--";
+      }
+      const total = Math.max(0, Math.round(Number(value)));
+      const min = Math.floor(total / 60);
+      const sec = total % 60;
+      return String(min).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+    }
+
+    function humanBytes(value) {
+      if (value === null || value === undefined) {
+        return "--";
+      }
+      const bytes = Number(value);
+      if (!Number.isFinite(bytes) || bytes < 0) {
+        return "--";
+      }
+      const units = ["B", "KB", "MB", "GB", "TB"];
+      let amount = bytes;
+      let idx = 0;
+      while (amount >= 1024 && idx < units.length - 1) {
+        amount /= 1024;
+        idx += 1;
+      }
+      return amount.toFixed(idx === 0 ? 0 : 1) + " " + units[idx];
+    }
+
+    function pad2(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function formatLogTimestamp(raw) {
+      if (!raw) {
+        return "--";
+      }
+      const compactPattern = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+      const text = String(raw);
+      if (compactPattern.test(text)) {
+        return text;
+      }
+      const parsed = new Date(text);
+      if (Number.isNaN(parsed.getTime())) {
+        return text.replace("T", " ").replace(/\.\d+/, "").replace("Z", "").replace("+00:00", "");
+      }
+      return (
+        parsed.getUTCFullYear() + "-" +
+        pad2(parsed.getUTCMonth() + 1) + "-" +
+        pad2(parsed.getUTCDate()) + " " +
+        pad2(parsed.getUTCHours()) + ":" +
+        pad2(parsed.getUTCMinutes()) + ":" +
+        pad2(parsed.getUTCSeconds())
+      );
+    }
+
+    function shortName(pathOrUrl) {
+      if (!pathOrUrl) {
+        return "--";
+      }
+      const text = String(pathOrUrl).trim();
+      if (!text) {
+        return "--";
+      }
+      const normalized = text.replaceAll("\\", "/");
+      const idx = normalized.lastIndexOf("/");
+      return idx >= 0 ? normalized.slice(idx + 1) || normalized : normalized;
+    }
+
+    function setProgressPanel(job, outputDir) {
+      const pctValue = Math.max(0, Math.min(100, Number(job && job.progress ? job.progress : 0)));
+      const elapsed = formatSeconds(job ? job.elapsed_seconds : null);
+      const eta = formatSeconds(job ? job.eta_seconds : null);
+      const fileName = shortName(job ? job.current_file : null);
+      const destination = outputDir || (job && job.output_dir ? String(job.output_dir) : "--");
+
+      document.getElementById("progress-percent").textContent = pctValue.toFixed(1) + "%";
+      document.getElementById("progress-time").textContent = elapsed + " | ETA " + eta;
+      document.getElementById("progress-fill").style.width = pctValue.toFixed(1) + "%";
+      document.getElementById("progress-file").textContent = "Arquivo: " + fileName;
+      document.getElementById("progress-destination").textContent = "Destino: " + destination;
+    }
+
+    function showNotice(type, message) {
+      const box = document.getElementById("notice");
+      box.className = "notice notice-visible notice-" + type;
+      box.textContent = message;
+    }
+
+    function clearNotice() {
+      const box = document.getElementById("notice");
+      box.className = "notice";
+      box.textContent = "";
+    }
+
+    function setApiPill(ok) {
+      const pill = document.getElementById("api-pill");
+      if (ok) {
+        pill.textContent = "API: online";
+        pill.style.background = "#e8f6e8";
+        pill.style.color = "#1f7a1f";
+      } else {
+        pill.textContent = "API: offline";
+        pill.style.background = "#fde8ef";
+        pill.style.color = "#a90033";
+      }
+    }
+
+    function setWizardStep(step) {
+      wizardStep = Math.max(1, Math.min(3, step));
+      document.querySelectorAll(".step-btn").forEach((btn) => {
+        const active = Number(btn.dataset.step) === wizardStep;
+        btn.classList.toggle("step-active", active);
+      });
+      document.querySelectorAll(".step-pane").forEach((pane) => {
+        const active = Number(pane.dataset.stepPane) === wizardStep;
+        pane.classList.toggle("step-visible", active);
+      });
+      document.getElementById("btn-prev").disabled = wizardStep === 1;
+      document.getElementById("btn-next").disabled = wizardStep === 3;
+      document.getElementById("btn-submit").disabled = wizardStep !== 3;
+      if (wizardStep === 3) {
+        renderReview();
+      }
+    }
+
+    function prettyLabel(name) {
+      const raw = String(name || "");
+      if (raw === "output_dir") {
+        return "Diretorio do Download";
+      }
+      if (raw === "keep_raw") {
+        return "Manter Arquivo Bruto";
+      }
+      return String(name || "")
+        .split("_")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+    }
+
+    function orderSchemaParams(params) {
+      const priority = {
+        output_dir: 10,
+        output_format: 20,
+        start_year: 30,
+        end_year: 40
+      };
+      return [...params].sort((a, b) => {
+        const pa = Object.prototype.hasOwnProperty.call(priority, a.name) ? priority[a.name] : 100;
+        const pb = Object.prototype.hasOwnProperty.call(priority, b.name) ? priority[b.name] : 100;
+        if (pa !== pb) {
+          return pa - pb;
+        }
+        return String(a.name).localeCompare(String(b.name));
+      });
+    }
+
+    function fieldHintText(spec) {
+      const name = String(spec.name || "");
+      const allowed = Array.isArray(spec.allowed_values) ? spec.allowed_values : [];
+
+      if (name === "output_dir") {
+        return "Diretorio principal de saida.\nPadrao: pasta Guaraci Downloads na Area de Trabalho.";
+      }
+      if (name === "output_format") {
+        return "Formato de exportação pós-download.\nExemplo: csv";
+      }
+      if (name === "keep_raw") {
+        return "Quando ativado, também salva o JSONL bruto da API.\nPadrão: desativado";
+      }
+      if (name === "start_year") {
+        return "Ano inicial para buscar arquivos.\nExemplo: 2023";
+      }
+      if (name === "end_year") {
+        return "Ano final para buscar arquivos.\nExemplo: 2025";
+      }
+      if (name === "uf") {
+        return "Filtra por unidade federativa no arquivo exportado.\nExemplo: SP";
+      }
+      if (name === "sexo") {
+        return "Filtra por sexo no arquivo exportado.\nExemplo: M";
+      }
+      if (name === "municipio") {
+        return "Filtra por município (texto).\nExemplo: Fortaleza";
+      }
+      if (allowed.length > 0) {
+        if (spec.type === "string_list") {
+          return "Selecione um ou mais valores.\nExemplo: " + allowed.slice(0, 3).join(", ");
+        }
+        return "Selecione um valor válido.\nExemplo: " + String(allowed[0]);
+      }
+      if (spec.type === "integer") {
+        const numericExample = spec.default ?? spec.minimum ?? 2024;
+        return "Valor numérico.\nExemplo: " + String(numericExample);
+      }
+      if (spec.type === "boolean") {
+        return "Ative para SIM; desative para NÃO.";
+      }
+      if (spec.type === "string_list") {
+        return "Lista separada por vírgulas.\nExemplo: valor1, valor2";
+      }
+      return "Campo opcional de texto livre.";
+    }
+
+    function renderSchemaDetails(schema) {
+      const box = document.getElementById("schema-info");
+      const modeBadge = document.getElementById("source-mode");
+      if (!schema || !Array.isArray(schema.params)) {
+        modeBadge.textContent = "Schema indisponível";
+        box.textContent = "Schema indisponível para esta fonte.";
+        return;
+      }
+
+      const modeText = String(schema.mode || "desconhecido");
+      modeBadge.textContent = "Modo: " + modeText;
+      const modeLower = modeText.toLowerCase();
+      let behaviorHint = "Download com filtros estruturados por parâmetros.";
+      if (modeLower.includes("crawl")) {
+        behaviorHint = "Crawler web: use filtros básicos e URL opcional quando necessário.";
+      } else if (modeLower.includes("pysus")) {
+        behaviorHint = "PySUS: use filtros de período, grupo e UF para reduzir volume.";
+      } else if (modeLower.includes("opendatasus")) {
+        behaviorHint = "OpenDataSUS API: prefira janelas curtas de data e abra filtros avançados só quando necessário.";
+      }
+
+      const ordered = orderSchemaParams(schema.params);
+      const lines = ordered.map((item) => {
+        const required = item.required ? "obrigatório" : "opcional";
+        const type = item.type || "string";
+        return prettyLabel(item.name) + " (" + type + ", " + required + ")";
+      });
+      box.innerHTML = "<div class='schema-lines'><b>Dica:</b> " + escapeHtml(behaviorHint) + "<br>" +
+        lines.map((line) => "• " + escapeHtml(line)).join("<br>") + "</div>";
+    }
+
+    function isAdvancedField(spec) {
+      const name = String(spec.name || "");
+      if (name === "output_dir") {
+        return false;
+      }
+      const technical = new Set([
+        "api_base_url",
+        "batch_size",
+        "max_pages",
+        "resource_id",
+        "results_url",
+        "timeout",
+        "overwrite",
+        "extract_archives"
+      ]);
+      if (technical.has(name)) {
+        return true;
+      }
+
+      const basic = new Set([
+        "dataset",
+        "output_format",
+        "start_year",
+        "end_year",
+        "diseases",
+        "groups",
+        "states",
+        "months",
+        "file_kinds",
+        "modules",
+        "uf"
+      ]);
+      if (name === "start_date" || name === "end_date") {
+        return true;
+      }
+      if (name === "uf" && currentSchema && currentSchema.source === "zikavirus") {
+        return true;
+      }
+      if (basic.has(name)) {
+        return false;
+      }
+
+      if (spec.required) {
+        return false;
+      }
+
+      if (name.endsWith("_url") || name.endsWith("_id")) {
+        return true;
+      }
+
+      return true;
+    }
+
+    function setAdvancedSectionVisible(show, expanded) {
+      const toggle = document.getElementById("advanced-toggle");
+      const wrap = document.getElementById("advanced-wrap");
+      const arrow = document.getElementById("advanced-arrow");
+      if (!toggle || !wrap || !arrow) {
+        return;
+      }
+      toggle.hidden = !show;
+      if (!show) {
+        wrap.classList.remove("is-open");
+        arrow.textContent = "▼";
+        return;
+      }
+      wrap.classList.toggle("is-open", Boolean(expanded));
+      arrow.textContent = expanded ? "▲" : "▼";
+    }
+
+    function createFieldCard(spec) {
+      const field = document.createElement("div");
+      const isWide = spec.type === "string_list" || spec.name === "results_url";
+      field.className = "field-card" + (isWide ? " is-wide" : "");
+      field.dataset.paramName = spec.name;
+      field.dataset.paramType = spec.type;
+
+      const title = document.createElement("div");
+      title.className = "field-title";
+      const labelText = document.createElement("span");
+      labelText.textContent = prettyLabel(spec.name);
+      title.appendChild(labelText);
+      const hint = document.createElement("span");
+      hint.className = "hint-icon";
+      hint.textContent = "?";
+      hint.tabIndex = 0;
+      hint.setAttribute("data-tooltip", fieldHintText(spec));
+      hint.setAttribute("title", fieldHintText(spec).replaceAll("\n", " | "));
+      title.appendChild(hint);
+      if (spec.required) {
+        const required = document.createElement("span");
+        required.className = "field-required";
+        required.textContent = "Obrigatório";
+        title.appendChild(required);
+      }
+      field.appendChild(title);
+
+      const help = document.createElement("p");
+      help.className = "field-help";
+      help.textContent = spec.description || "";
+      field.appendChild(help);
+
+      if (spec.type === "boolean") {
+        const checkWrap = document.createElement("label");
+        checkWrap.className = "toggles";
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.dataset.role = "value";
+        input.checked = Boolean(spec.default);
+        input.addEventListener("change", renderReview);
+        checkWrap.appendChild(input);
+        checkWrap.append(" Ativar");
+        field.appendChild(checkWrap);
+        return field;
+      }
+
+      if (spec.type === "integer") {
+        const input = document.createElement("input");
+        input.type = "number";
+        input.step = "1";
+        input.dataset.role = "value";
+        if (spec.minimum !== null && spec.minimum !== undefined) {
+          input.min = String(spec.minimum);
+        }
+        if (spec.maximum !== null && spec.maximum !== undefined) {
+          input.max = String(spec.maximum);
+        }
+        if (spec.default !== null && spec.default !== undefined) {
+          input.value = String(spec.default);
+        }
+        input.placeholder = spec.minimum !== null && spec.minimum !== undefined
+          ? "Mínimo: " + spec.minimum
+          : "";
+        input.addEventListener("input", renderReview);
+        field.appendChild(input);
+        return field;
+      }
+
+      if (spec.type === "string" && Array.isArray(spec.allowed_values) && spec.allowed_values.length > 0) {
+        const select = document.createElement("select");
+        select.dataset.role = "value";
+        if (!spec.required) {
+          const empty = document.createElement("option");
+          empty.value = "";
+          empty.textContent = "(sem filtro)";
+          select.appendChild(empty);
+        }
+        spec.allowed_values.forEach((value) => {
+          const option = document.createElement("option");
+          option.value = String(value);
+          option.textContent = String(value);
+          select.appendChild(option);
+        });
+        if (spec.default !== null && spec.default !== undefined) {
+          select.value = String(spec.default);
+        }
+        select.addEventListener("change", renderReview);
+        field.appendChild(select);
+        return field;
+      }
+
+      if (spec.type === "string_list" && Array.isArray(spec.allowed_values) && spec.allowed_values.length > 0) {
+        const controls = document.createElement("div");
+        controls.className = "output-controls";
+        controls.style.marginBottom = "6px";
+
+        const allBtn = document.createElement("button");
+        allBtn.type = "button";
+        allBtn.className = "btn-small btn-muted";
+        allBtn.textContent = "Selecionar tudo";
+        const clearBtn = document.createElement("button");
+        clearBtn.type = "button";
+        clearBtn.className = "btn-small btn-alt";
+        clearBtn.textContent = "Limpar";
+        controls.appendChild(allBtn);
+        controls.appendChild(clearBtn);
+        field.appendChild(controls);
+
+        const select = document.createElement("select");
+        select.dataset.role = "value";
+        select.multiple = true;
+        select.className = "multi-select";
+        select.size = Math.min(12, Math.max(4, spec.allowed_values.length));
+        spec.allowed_values.forEach((value) => {
+          const option = document.createElement("option");
+          option.value = String(value);
+          option.textContent = String(value);
+          select.appendChild(option);
+        });
+        const defaults = Array.isArray(spec.default) ? spec.default.map(String) : [];
+        Array.from(select.options).forEach((option) => {
+          option.selected = defaults.includes(option.value);
+        });
+        select.addEventListener("change", renderReview);
+        allBtn.addEventListener("click", () => {
+          Array.from(select.options).forEach((option) => {
+            option.selected = true;
+          });
+          renderReview();
+        });
+        clearBtn.addEventListener("click", () => {
+          Array.from(select.options).forEach((option) => {
+            option.selected = false;
+          });
+          renderReview();
+        });
+        field.appendChild(select);
+        return field;
+      }
+
+      const input = document.createElement("input");
+      input.dataset.role = "value";
+      if (spec.type === "string_list") {
+        const defaultCsv = Array.isArray(spec.default) ? spec.default.join(", ") : "";
+        input.placeholder = defaultCsv || "valor1, valor2";
+        input.value = defaultCsv;
+      } else {
+        input.placeholder = spec.default !== null && spec.default !== undefined
+          ? String(spec.default)
+          : "";
+        if (spec.default !== null && spec.default !== undefined) {
+          input.value = String(spec.default);
+        }
+      }
+      input.addEventListener("input", renderReview);
+      field.appendChild(input);
+      return field;
+    }
+
+    function renderDynamicFields(schema) {
+      const basic = document.getElementById("dynamic-fields-basic");
+      const advanced = document.getElementById("dynamic-fields-advanced");
+      if (!basic || !advanced) {
+        return;
+      }
+      basic.innerHTML = "";
+      advanced.innerHTML = "";
+      setAdvancedSectionVisible(false, false);
+
+      if (!schema || !Array.isArray(schema.params) || schema.params.length === 0) {
+        basic.innerHTML = "<div class='field-card is-wide'>Sem parâmetros configuráveis para esta fonte.</div>";
+        return;
+      }
+
+      const orderedSpecs = orderSchemaParams(schema.params);
+      let advancedCount = 0;
+      orderedSpecs.forEach((spec) => {
+        const card = createFieldCard(spec);
+        if (isAdvancedField(spec)) {
+          advanced.appendChild(card);
+          advancedCount += 1;
+        } else {
+          basic.appendChild(card);
+        }
+      });
+
+      if (basic.children.length === 0 && advancedCount > 0) {
+        basic.innerHTML = "<div class='field-card is-wide'>Use os filtros avançados para configurar esta fonte.</div>";
+      }
+      setAdvancedSectionVisible(advancedCount > 0, false);
+    }
+
+    function buildPayload() {
+      const payload = {
+        source: document.getElementById("source").value,
+        params: {}
+      };
+      const schema = currentSchema;
+      if (!schema || !Array.isArray(schema.params)) {
+        return payload;
+      }
+
+      schema.params.forEach((spec) => {
+        const card = document.querySelector("[data-param-name='" + spec.name + "']");
+        if (!card) {
+          return;
+        }
+        const control = card.querySelector("[data-role='value']");
+        if (!control) {
+          return;
+        }
+
+        if (spec.type === "boolean") {
+          payload.params[spec.name] = Boolean(control.checked);
+          return;
+        }
+
+        if (spec.type === "integer") {
+          const raw = String(control.value || "").trim();
+          if (!raw) {
+            if (spec.required) {
+              payload.params[spec.name] = spec.default ?? null;
+            }
+            return;
+          }
+          const parsed = Number(raw);
+          if (Number.isFinite(parsed)) {
+            payload.params[spec.name] = parsed;
+          }
+          return;
+        }
+
+        if (spec.type === "string_list") {
+          let values = [];
+          if (control.tagName === "SELECT") {
+            values = Array.from(control.selectedOptions || []).map((option) => option.value);
+          } else {
+            values = splitCsv(String(control.value || ""));
+          }
+          if (values.length > 0) {
+            payload.params[spec.name] = values;
+          }
+          return;
+        }
+
+        const text = String(control.value || "").trim();
+        if (text) {
+          payload.params[spec.name] = text;
+        }
+      });
+      return payload;
+    }
+
+    function renderReview() {
+      const reviewBox = document.getElementById("review-box");
+      const payload = buildPayload();
+      const schema = currentSchema;
+      if (!schema || !Array.isArray(schema.params)) {
+        reviewBox.textContent = "Selecione uma fonte para ver o resumo.";
+        return;
+      }
+
+      const selectedParams = Object.entries(payload.params);
+      const items = [
+        "<div class='review-item'><span class='review-key'>Fonte:</span> " + escapeHtml(String(schema.title || payload.source)) + "</div>",
+        "<div class='review-item'><span class='review-key'>Modo de coleta:</span> " + escapeHtml(String(schema.mode || "--")) + "</div>",
+      ];
+      if (selectedParams.length === 0) {
+        items.push("<div class='review-item'>Nenhum parâmetro foi definido.</div>");
+      } else {
+        items.push("<div class='review-item'><span class='review-key'>Parâmetros selecionados:</span></div>");
+        selectedParams.forEach(([key, value]) => {
+          const rendered = Array.isArray(value) ? value.join(", ") : String(value);
+          items.push(
+            "<div class='review-item'>• " + escapeHtml(prettyLabel(key)) + ": " + escapeHtml(rendered || "(vazio)") + "</div>"
+          );
+        });
+      }
+      reviewBox.innerHTML = items.join("");
+    }
+
+    async function loadSourceSchema(source) {
+      if (schemasBySource[source]) {
+        return schemasBySource[source];
+      }
+      const response = await fetch("/sources/" + source + "/schema");
+      if (!response.ok) {
+        return null;
+      }
+      const schema = await response.json();
+      schemasBySource[source] = schema;
+      return schema;
+    }
+
+    async function applySourceSchema(source) {
+      const schema = await loadSourceSchema(source);
+      currentSchema = schema;
+      renderSchemaDetails(schema);
+      renderDynamicFields(schema);
+      renderReview();
+    }
+
+    async function loadSources() {
+      const response = await fetch("/sources");
+      if (!response.ok) {
+        throw new Error("Falha ao carregar fontes");
+      }
+      const sources = (await response.json()).slice().sort((a, b) =>
+        String(a.title || a.source).localeCompare(String(b.title || b.source))
+      );
+      const select = document.getElementById("source");
+      select.innerHTML = "";
+      sources.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.source;
+        option.textContent = item.title;
+        select.appendChild(option);
+      });
+      if (sources.length > 0) {
+        await applySourceSchema(sources[0].source);
+      }
+    }
+
+    function resultSummary(job) {
+      if (job.error) {
+        return job.error;
+      }
+      if (!job.result) {
+        return "Aguardando resultado";
+      }
+      const success = job.result.downloaded_count ?? 0;
+      const failed = job.result.failed_count ?? 0;
+      const skipped = job.result.skipped_count ?? 0;
+      return "down=" + success + " | skip=" + skipped + " | fail=" + failed;
+    }
+
+    function jobLine(job) {
+      const status = job.status || "queued";
+      const pct = Number(job.progress || 0).toFixed(0) + "%";
+      return "<span class='" + statusClass(status) + "'>" + escapeHtml(status) + "</span> (" + pct + ")";
+    }
+
+    async function fetchJob(jobId) {
+      const response = await fetch("/jobs/" + jobId);
+      if (!response.ok) {
+        throw new Error("Falha ao consultar job " + jobId);
+      }
+      return await response.json();
+    }
+
+    async function fetchJobs() {
+      const response = await fetch("/jobs?limit=40");
+      if (!response.ok) {
+        throw new Error("Falha ao listar jobs");
+      }
+      return await response.json();
+    }
+
+    async function fetchJobLogs(jobId) {
+      const response = await fetch("/jobs/" + jobId + "/logs?limit=120");
+      if (!response.ok) {
+        throw new Error("Falha ao consultar logs do job " + jobId);
+      }
+      return await response.json();
+    }
+
+    async function fetchJobOutput(jobId) {
+      const response = await fetch("/jobs/" + jobId + "/output");
+      if (!response.ok) {
+        throw new Error("Falha ao consultar saída do job " + jobId);
+      }
+      return await response.json();
+    }
+
+    function renderLatest(job) {
+      latestJobId = job.job_id;
+      selectedJobStatus = job.status || null;
+      const box = document.getElementById("latest-job");
+      const status = jobLine(job);
+      const elapsed = formatSeconds(job.elapsed_seconds);
+      const eta = formatSeconds(job.eta_seconds);
+      const bytesLabel = humanBytes(job.bytes_downloaded);
+      const bytesTotalLabel = humanBytes(job.bytes_total);
+      const currentFile = shortName(job.current_file || "--");
+      box.innerHTML =
+        "<div><b>Job:</b> <span class='mono'>" + escapeHtml(job.job_id) + "</span></div>" +
+        "<div><b>Fonte:</b> " + escapeHtml(job.source) + "</div>" +
+        "<div><b>Status:</b> " + status + "</div>" +
+        "<div><b>Tentativa:</b> " + escapeHtml(String(job.attempt || 1)) + "</div>" +
+        "<div><b>Resumo:</b> " + escapeHtml(resultSummary(job)) + "</div>" +
+        "<div><b>Arquivos:</b> " + escapeHtml(String(job.files_completed || 0)) + " / " +
+          escapeHtml(String(job.files_total || 0)) + "</div>" +
+        "<div><b>Transferido:</b> " + bytesLabel + " / " + bytesTotalLabel + "</div>" +
+        "<div><b>Tempo:</b> " + elapsed + " | <b>ETA:</b> " + eta + "</div>" +
+        "<div><b>Arquivo Atual:</b> " + escapeHtml(currentFile) + "</div>";
+      setProgressPanel(job, null);
+    }
+
+    function renderOutputInfo(payload) {
+      const box = document.getElementById("output-path");
+      const outputDir = payload && payload.output_dir ? String(payload.output_dir) : null;
+      const hostOutputDir = payload && payload.host_output_dir ? String(payload.host_output_dir) : null;
+      const bestPath = hostOutputDir || outputDir;
+      if (!payload || !outputDir) {
+        box.textContent = "Pasta de saída: indisponível.";
+        box.dataset.path = "";
+        document.getElementById("progress-destination").textContent = "Destino: --";
+        return;
+      }
+      const suffix = hostOutputDir ? " (host)" : "";
+      const exported = Array.isArray(payload.exported_files) ? payload.exported_files : [];
+      const format = payload.output_format ? String(payload.output_format) : "";
+      const warning = payload.export_warning ? String(payload.export_warning) : "";
+      const exportedLabel = exported.length > 0
+        ? exported.map((path) => "• " + escapeHtml(String(path))).join("<br>")
+        : "nenhum";
+      box.innerHTML =
+        "<b>Pasta de saída:</b> " + escapeHtml(bestPath + suffix) + "<br>" +
+        (format ? "<b>Formato:</b> " + escapeHtml(format) + "<br>" : "") +
+        "<b>Arquivos exportados:</b> " + exported.length + "<br>" +
+        (exported.length > 0 ? exportedLabel + "<br>" : "") +
+        (warning ? "<b>Aviso:</b> " + escapeHtml(warning) : "");
+      box.dataset.path = bestPath;
+      document.getElementById("progress-destination").textContent = "Destino: " + bestPath;
+    }
+
+    function renderLogs(logs) {
+      const box = document.getElementById("log-box");
+      if (!Array.isArray(logs) || logs.length === 0) {
+        box.textContent = "Sem logs para exibir.";
+        return;
+      }
+      const lines = logs.map((item) => {
+        const ts = formatLogTimestamp(item.timestamp_utc || "--");
+        const level = String(item.level || "info").toUpperCase();
+        const message = String(item.message || "");
+        return "[" + ts + "] [" + level + "] " + message;
+      });
+      box.textContent = lines.join("\n");
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function refreshSelectedDetails(jobId) {
+      if (!jobId) {
+        renderOutputInfo(null);
+        renderLogs([]);
+        return;
+      }
+      try {
+        const [logs, output] = await Promise.all([fetchJobLogs(jobId), fetchJobOutput(jobId)]);
+        renderLogs(logs);
+        renderOutputInfo(output);
+      } catch (error) {
+        showNotice("fail", String(error));
+      }
+    }
+
+    async function copyOutputPath() {
+      const path = document.getElementById("output-path").dataset.path || "";
+      if (!path) {
+        showNotice("info", "Ainda não há pasta de saída para copiar.");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(path);
+        showNotice("ok", "Caminho copiado para a área de transferência.");
+      } catch (error) {
+        showNotice("fail", "Não foi possível copiar o caminho.");
+      }
+    }
+
+    async function openOutputFolder(jobId) {
+      if (!jobId) {
+        showNotice("info", "Selecione um job para abrir a pasta.");
+        return;
+      }
+      clearNotice();
+      try {
+        const response = await fetch("/jobs/" + jobId + "/open-output", { method: "POST" });
+        const payload = await response.json();
+        if (!response.ok) {
+          showNotice("fail", payload.detail || "Não foi possível abrir a pasta.");
+          return;
+        }
+        if (payload.opened) {
+          showNotice("ok", payload.message || "Comando para abrir pasta executado.");
+        } else {
+          const hostPath = payload.host_output_dir || payload.output_dir || "";
+          if (hostPath) {
+            document.getElementById("output-path").dataset.path = String(hostPath);
+          }
+          showNotice("info", payload.message || "Abra a pasta manualmente usando o caminho exibido.");
+        }
+      } catch (error) {
+        showNotice("fail", String(error));
+      }
+    }
+
+    function renderJobs(jobs) {
+      const body = document.getElementById("jobs-body");
+      body.innerHTML = "";
+      jobs.forEach((job) => {
+        const isSelected = latestJobId && latestJobId === job.job_id;
+        const row = document.createElement("tr");
+        if (isSelected) {
+          row.classList.add("is-selected");
+        }
+
+        const canCancel = !isTerminalStatus(job.status);
+        const canRetry = job.status === "failed" || job.status === "canceled";
+
+        row.innerHTML =
+          "<td class='mono'>" + escapeHtml(job.job_id) + "</td>" +
+          "<td>" + jobLine(job) + "</td>" +
+          "<td>" + escapeHtml(job.source) + "</td>" +
+          "<td>" + escapeHtml(String(job.attempt || 1)) + "</td>" +
+          "<td>" + escapeHtml(resultSummary(job)) + "</td>" +
+          "<td>" +
+            "<button class='btn-small btn-muted' type='button' data-action='select' data-job='" + escapeHtml(job.job_id) + "'>Selecionar</button> " +
+            "<button class='btn-small btn-fail' type='button' data-action='cancel' data-job='" + escapeHtml(job.job_id) + "'" + (canCancel ? "" : " disabled") + ">Cancelar</button> " +
+            "<button class='btn-small btn-warn' type='button' data-action='retry' data-job='" + escapeHtml(job.job_id) + "'" + (canRetry ? "" : " disabled") + ">Retry</button>" +
+          "</td>";
+        body.appendChild(row);
+      });
+    }
+
+    async function refreshJobs() {
+      if (refreshInFlight) {
+        return;
+      }
+      refreshInFlight = true;
+      try {
+        const jobs = await fetchJobs();
+        renderJobs(jobs);
+
+        if (!latestJobId && jobs.length > 0) {
+          latestJobId = jobs[0].job_id;
+          renderLatest(jobs[0]);
+          await refreshSelectedDetails(latestJobId);
+          return;
+        }
+
+        if (latestJobId) {
+          const selected = jobs.find((item) => item.job_id === latestJobId);
+          if (selected) {
+            const previousStatus = selectedJobStatus;
+            renderLatest(selected);
+            const transitionedToTerminal = Boolean(
+              previousStatus &&
+              !isTerminalStatus(previousStatus) &&
+              isTerminalStatus(selected.status)
+            );
+            if (!isTerminalStatus(selected.status) || transitionedToTerminal) {
+              await refreshSelectedDetails(latestJobId);
+            }
+          }
+        }
+      } catch (error) {
+        showNotice("fail", String(error));
+      } finally {
+        refreshInFlight = false;
+      }
+    }
+
+    async function submitJob(event) {
+      event.preventDefault();
+      clearNotice();
+      const payload = buildPayload();
+
+      try {
+        const response = await fetch("/jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const raw = await response.json();
+
+        if (!response.ok) {
+          showNotice("fail", raw.detail || "Falha ao criar job");
+          return;
+        }
+
+        renderLatest(raw);
+        await refreshSelectedDetails(raw.job_id);
+        showNotice("ok", "Job criado: " + raw.job_id);
+        await refreshJobs();
+      } catch (error) {
+        showNotice("fail", String(error));
+      }
+    }
+
+    async function cancelJob(jobId) {
+      if (!jobId) {
+        return;
+      }
+      clearNotice();
+      try {
+        const response = await fetch("/jobs/" + jobId + "/cancel", { method: "POST" });
+        const raw = await response.json();
+        if (!response.ok) {
+          showNotice("fail", raw.detail || "Falha ao cancelar job");
+          return;
+        }
+        renderLatest(raw);
+        await refreshSelectedDetails(raw.job_id);
+        showNotice("info", "Cancelamento solicitado para " + jobId);
+        await refreshJobs();
+      } catch (error) {
+        showNotice("fail", String(error));
+      }
+    }
+
+    async function retryJob(jobId) {
+      if (!jobId) {
+        return;
+      }
+      clearNotice();
+      try {
+        const response = await fetch("/jobs/" + jobId + "/retry", { method: "POST" });
+        const raw = await response.json();
+        if (!response.ok) {
+          showNotice("fail", raw.detail || "Falha ao disparar retry");
+          return;
+        }
+        renderLatest(raw);
+        await refreshSelectedDetails(raw.job_id);
+        showNotice("ok", "Retry criado: " + raw.job_id);
+        await refreshJobs();
+      } catch (error) {
+        showNotice("fail", String(error));
+      }
+    }
+
+    function bindWizardEvents() {
+      document.querySelectorAll(".step-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setWizardStep(Number(btn.dataset.step));
+        });
+      });
+
+      document.getElementById("btn-prev").addEventListener("click", () => {
+        setWizardStep(wizardStep - 1);
+      });
+
+      document.getElementById("btn-next").addEventListener("click", () => {
+        setWizardStep(wizardStep + 1);
+      });
+    }
+
+    function bindFieldEvents() {
+      document.getElementById("source").addEventListener("change", async (event) => {
+        await applySourceSchema(event.target.value);
+      });
+      document.getElementById("advanced-toggle").addEventListener("click", () => {
+        const wrap = document.getElementById("advanced-wrap");
+        const open = !(wrap && wrap.classList.contains("is-open"));
+        setAdvancedSectionVisible(true, open);
+      });
+      document.getElementById("dynamic-fields").addEventListener("change", renderReview);
+      document.getElementById("dynamic-fields").addEventListener("input", renderReview);
+    }
+
+    function bindJobTableEvents() {
+      document.getElementById("jobs-body").addEventListener("click", async (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) {
+          return;
+        }
+        const action = button.dataset.action;
+        const jobId = button.dataset.job;
+        if (!jobId) {
+          return;
+        }
+
+        try {
+          if (action === "select") {
+            latestJobId = jobId;
+            const job = await fetchJob(jobId);
+            renderLatest(job);
+            await refreshSelectedDetails(jobId);
+            await refreshJobs();
+            return;
+          }
+          if (action === "cancel") {
+            await cancelJob(jobId);
+            return;
+          }
+          if (action === "retry") {
+            await retryJob(jobId);
+          }
+        } catch (error) {
+          showNotice("fail", String(error));
+        }
+      });
+    }
+
+    async function bootstrap() {
+      try {
+        await loadSources();
+        renderReview();
+        await refreshJobs();
+        setApiPill(true);
+      } catch (error) {
+        setApiPill(false);
+        showNotice("fail", "Erro ao iniciar interface: " + String(error));
+      }
+
+      bindWizardEvents();
+      bindFieldEvents();
+      bindJobTableEvents();
+
+      document.getElementById("job-form").addEventListener("submit", submitJob);
+      document.getElementById("cancel-latest").addEventListener("click", async () => {
+        await cancelJob(latestJobId);
+      });
+      document.getElementById("retry-latest").addEventListener("click", async () => {
+        await retryJob(latestJobId);
+      });
+      document.getElementById("refresh-jobs").addEventListener("click", refreshJobs);
+      document.getElementById("copy-output").addEventListener("click", copyOutputPath);
+      document.getElementById("open-output").addEventListener("click", async () => {
+        await openOutputFolder(latestJobId);
+      });
+
+      setWizardStep(1);
+      setInterval(refreshJobs, 8000);
+    }
+
+    bootstrap();
+  </script>
+</body>
+</html>

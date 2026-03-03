@@ -10,3 +10,5 @@ pydantic-settings>=2.1.0
 click>=8.1.0
 rich>=13.7.0
 loguru>=0.6.0,<0.7.0
+google-cloud-bigquery>=3.11.0
+db-dtypes>=1.2.0

@@ -150,7 +150,9 @@ class SinanDataSource(DataSource):
             failed_downloads = []
             completed_downloads = 0
             
-            with ThreadPoolExecutor(max_workers=config.max_concurrent_downloads) as executor:
+            # PySUS FTP singleton is not thread-safe; use single worker for reliability.
+            worker_count = 1
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
                 for disease, files in grouped_files.items():
                     disease_name = self.DISEASE_NAMES.get(disease, disease)
                     logger.info(f"Downloading {disease} ({disease_name}): {len(files)} files")
@@ -201,13 +203,31 @@ class SinanDataSource(DataSource):
             logger.error(f"Download process failed: {e}")
             raise
 
-    def _download_file_safe(self, file_obj) -> Optional[Path]:
+    def _download_file_safe(self, file_obj) -> Optional[Any]:
         """Safely download a single file with retries."""
+        ftpsingleton = None
+        if PYSUS_AVAILABLE:
+            try:
+                from pysus.ftp import FTPSingleton  # type: ignore
+
+                ftpsingleton = FTPSingleton
+            except Exception:
+                ftpsingleton = None
+
         for attempt in range(config.retry_attempts):
             try:
+                if ftpsingleton:
+                    ftpsingleton.close()
                 downloaded = file_obj.download()
+                if ftpsingleton:
+                    ftpsingleton.close()
                 return downloaded
             except Exception as e:
+                if ftpsingleton:
+                    try:
+                        ftpsingleton.close()
+                    except Exception:
+                        pass
                 if attempt == config.retry_attempts - 1:
                     logger.error(f"Failed to download {file_obj} after {config.retry_attempts} attempts: {e}")
                     return None

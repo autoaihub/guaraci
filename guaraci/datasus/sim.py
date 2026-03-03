@@ -168,7 +168,10 @@ class SimDataSource(DataSource):
             failed_downloads: List[tuple[str, str]] = []
             completed_downloads = 0
 
-            with ThreadPoolExecutor(max_workers=config.max_concurrent_downloads) as executor:
+            # PySUS FTP singleton is not thread-safe; use single worker for reliability.
+            worker_count = 1
+
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
                 for group_name, files in grouped_files.items():
                     logger.info(f"Downloading SIM {group_name}: {len(files)} files")
 
@@ -217,12 +220,32 @@ class SimDataSource(DataSource):
 
     def _download_file_safe(self, file_obj) -> Optional[Any]:
         """Safely download a single SIM file with retries."""
+        ftpsingleton = None
+        if PYSUS_AVAILABLE:
+            try:
+                # Resetting the PySUS FTP singleton helps avoid stale connections.
+                from pysus.ftp import FTPSingleton  # type: ignore
+
+                ftpsingleton = FTPSingleton
+            except Exception:
+                ftpsingleton = None
+
         for attempt in range(config.retry_attempts):
             try:
+                if ftpsingleton:
+                    ftpsingleton.close()
+
                 # PySUS File.download() returns a Data object that resolves to ParquetSet
                 downloaded = file_obj.download()
+                if ftpsingleton:
+                    ftpsingleton.close()
                 return downloaded
             except Exception as exc:
+                if ftpsingleton:
+                    try:
+                        ftpsingleton.close()
+                    except Exception:
+                        pass
                 if attempt == config.retry_attempts - 1:
                     logger.error(
                         f"Failed to download {file_obj} after "

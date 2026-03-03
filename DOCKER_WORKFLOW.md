@@ -1,273 +1,199 @@
-# 🐳 Guaraci Docker Workflow
+# Docker Workflow
 
-This document outlines the complete Docker-based workflow for the Guaraci platform.
+Guia operacional detalhado do fluxo Docker do Guaraci.
 
-## Why Docker-Only?
-
-After extensive testing and optimization, Guaraci has adopted a Docker-first approach for several critical reasons:
-
-1. **Dependency Hell Elimination**: PySUS and related packages have complex C dependencies that often fail on different systems
-2. **Consistent Environments**: Same behavior across Windows, Mac, and Linux
-3. **Scientific Reproducibility**: Ensures identical results across different machines and time periods
-4. **Zero Local Installation**: No need to manage Python environments or system dependencies
-5. **Easy Updates**: Simply rebuild the Docker image for updates
-
-## Complete Workflow
-
-### Initial Setup
+## 1) Build da imagem
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/autoaihub/guaraci.git
-cd guaraci
-
-# 2. Build the Docker image (one-time setup)
 docker build -t guaraci .
-
-# 3. Verify installation
-docker run --rm guaraci python test_install.py
 ```
 
-### Daily Usage
+Quando usar `--no-cache`:
+- upgrade de dependencias,
+- comportamento inconsistente apos varias mudancas,
+- suspeita de cache quebrado.
 
 ```bash
-# Download SINAN data
-docker run --rm -it -v "$(pwd):/app" guaraci \ python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
+docker build --no-cache -t guaraci .
+```
 
-# Interactive Python session
-docker run --rm -it -v "$(pwd):/app" guaraci python
+## 2) Modos de execucao
 
-# Run tests
-docker run --rm guaraci python -m pytest tests/ -v
+### 2.1 Launcher desktop (recomendado)
 
-# Development shell
+Windows (PowerShell):
+
+```powershell
+.\scripts\desktop\start-guaraci.ps1
+```
+
+Linux/macOS (bash):
+
+```bash
+./scripts/desktop/start-guaraci.sh
+```
+
+Padrao:
+- container: `guaraci-desktop`
+- porta host: `8002`
+- API interna: `8000`
+
+### 2.2 Execucao manual
+
+```bash
+docker run --rm -it -p 8002:8000 -v "$(pwd):/app" guaraci \
+  uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log
+```
+
+## 3) Launcher: comportamento interno
+
+`start-guaraci` executa:
+1. valida Docker ativo,
+2. opcionalmente faz rebuild,
+3. remove container antigo com mesmo nome,
+4. sobe API com mapeamento de volume e porta,
+5. injeta variaveis para mapear path do container para path do host:
+   - `GUARACI_HOST_APP_ROOT`
+   - `GUARACI_CONTAINER_APP_ROOT`
+6. espera `GET /health` retornar `{"status":"ok"}`.
+
+## 4) Comandos operacionais
+
+Windows:
+
+```powershell
+.\scripts\desktop\launcher.ps1
+.\scripts\desktop\status-guaraci.ps1
+.\scripts\desktop\stop-guaraci.ps1
+```
+
+Linux/macOS:
+
+```bash
+./scripts/desktop/launcher.sh
+./scripts/desktop/status-guaraci.sh
+./scripts/desktop/stop-guaraci.sh
+```
+
+## 5) Fluxo de dados com volume mount
+
+Sempre monte `project:/app`:
+
+- dados gerados em `/app/data` no container ficam no `./data` do host,
+- arquivos de job persistem em `data/jobs/download_jobs.json`.
+
+Sem mount, dados sao perdidos ao remover container.
+
+## 6) API/UI no Docker
+
+URLs usuais:
+- UI: `http://localhost:8002/`
+- Health: `http://localhost:8002/health`
+
+Checagens uteis:
+
+```bash
+curl http://localhost:8002/health
+curl http://localhost:8002/sources
+curl http://localhost:8002/sources/sih/schema
+```
+
+## 7) Jobs assincronos
+
+### Ciclo
+
+1. `POST /jobs`
+2. monitoramento: `GET /jobs` e `GET /jobs/{job_id}`
+3. logs: `GET /jobs/{job_id}/logs`
+4. saida: `GET /jobs/{job_id}/output`
+
+### Status de job
+
+- `queued`
+- `running`
+- `cancel_requested`
+- `completed`
+- `failed`
+- `canceled`
+
+### Retry
+
+Permitido para:
+- `failed`
+- `canceled`
+
+Bloqueado para:
+- `completed`
+- `running`
+- `queued`
+
+## 8) Progresso e logs
+
+A UI mostra:
+- percentual,
+- ETA,
+- arquivo atual,
+- bytes transferidos,
+- logs estruturados.
+
+No backend, eventos sao persistidos com timestamp compacto `YYYY-MM-DD HH:MM:SS`.
+
+## 9) Output e abertura de pasta
+
+Endpoint:
+- `GET /jobs/{job_id}/output`
+
+Retorna, entre outros:
+- `output_dir`
+- `host_output_dir` (quando mapeavel)
+- `exported_files`
+- `output_format`
+- `export_warning`
+
+Endpoint:
+- `POST /jobs/{job_id}/open-output`
+
+Com Docker, normalmente retorna aviso para abrir manualmente no host usando `host_output_dir`.
+
+## 10) Troubleshooting
+
+### Porta ja alocada
+
+Erro tipico:
+- `Bind for 0.0.0.0:8002 failed: port is already allocated`
+
+Acoes:
+1. mudar porta host,
+2. parar container anterior,
+3. validar com `docker ps`.
+
+### Jobs antigos com erro de restart
+
+Se a API reiniciar no meio da execucao, jobs em andamento podem ser marcados como interrompidos/failed.
+
+### Muito log HTTP no console
+
+Suba uvicorn com `--no-access-log` (launcher ja usa por padrao).
+
+### Exportacao solicitada sem arquivo gerado
+
+Verificar em `/jobs/{job_id}/output`:
+- `exported_files` vazio,
+- `export_warning` presente.
+
+Isso indica que download pode ter funcionado, mas exportacao filtrada nao gerou dataset final.
+
+## 11) Desenvolvimento no Docker
+
+```bash
+# testes
+docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
+
+# shell interativo
 docker run --rm -it -v "$(pwd):/app" guaraci bash
 ```
 
-### Data Management
+## 12) Nota sobre Python local sem Docker
 
-All data is automatically saved to your local directory through Docker volume mounting:
-
-```
-your-project/
-├── data/
-│   ├── datasus/
-│   │   └── sinan/
-│   │       ├── RAIV_2020_2020.csv
-│   │       ├── DENG_2018_2020.parquet
-│   │       └── ...
-│       └── sinan/
-└── ...
-```
-
-### Platform-Specific Commands
-
-#### Windows (PowerShell)
-
-```powershell
-docker run --rm -it -v "C:\Users\YourName\Documents\guaraci:/app" guaraci `
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
-```
-
-#### Linux/Mac (Bash)
-
-```bash
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
-```
-
-## Available Commands
-
-### CLI Commands
-
-```bash
-# Show platform info
-docker run --rm guaraci python -m guaraci.cli.main info
-
-# Download data
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download START_YEAR END_YEAR --diseases DISEASE_CODES --format FORMAT
-
-# Filter data
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli filter DISEASE --uf STATE --output OUTPUT_NAME
-
-# Generate summaries
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli summary DISEASE --by COLUMN --metric METRIC
-
-# Show field information
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli info DISEASE
-```
-
-### Python API
-
-```python
-# Start interactive session
-docker run --rm -it -v "$(pwd):/app" guaraci python
-
-# Then in Python:
-from guaraci.datasus import SinanDataSource
-
-# Initialize
-sinan = SinanDataSource()
-
-# Download
-sinan.download(2020, 2020, diseases=['RAIV'])
-
-# Load and process
-df = sinan.load_dataframe('RAIV')
-filtered = sinan.filter(df, uf='SP')
-sinan.export(filtered, format='csv', name='raiva_sp')
-```
-
-## Configuration
-
-### Environment Variables
-
-```bash
-# Custom configuration
-docker run --rm -it -v "$(pwd):/app" \
-  -e GUARACI_LOG_LEVEL=DEBUG \
-  -e GUARACI_MAX_CONCURRENT_DOWNLOADS=10 \
-  -e GUARACI_MEMORY_LIMIT_GB=8 \
-  guaraci python -m guaraci.cli.sinan_cli download 2020 2020 --diseases DENG
-```
-
-### Available Environment Variables
-
-- `GUARACI_DATA_ROOT`: Data output directory (default: `/app/data`)
-- `GUARACI_LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
-- `GUARACI_MAX_CONCURRENT_DOWNLOADS`: Concurrent download limit (default: 5)
-- `GUARACI_MEMORY_LIMIT_GB`: Memory limit in GB (default: 4.0)
-
-## Development Workflow
-
-### Code Changes
-
-```bash
-# 1. Make changes to code
-# 2. Rebuild image
-docker build -t guaraci .
-
-# 3. Test changes
-docker run --rm guaraci python -m pytest tests/ -v
-
-# 4. Test functionality
-docker run --rm -it -v "$(pwd):/app" guaraci python test_install.py
-```
-
-### Testing
-
-```bash
-# Run all tests
-docker run --rm guaraci python -m pytest tests/ -v
-
-# Run specific tests
-docker run --rm guaraci python -m pytest tests/test_utils.py -v
-
-# Run with coverage
-docker run --rm guaraci python -m pytest tests/ --cov=guaraci --cov-report=term-missing
-```
-
-### Code Quality
-
-```bash
-# Format code
-docker run --rm -v "$(pwd):/app" guaraci python -m black guaraci/
-
-# Sort imports
-docker run --rm -v "$(pwd):/app" guaraci python -m isort guaraci/
-
-# Type checking
-docker run --rm -v "$(pwd):/app" guaraci python -m mypy guaraci/
-
-# Linting
-docker run --rm -v "$(pwd):/app" guaraci python -m flake8 guaraci/
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Volume Mount Problems**
-
-   ```bash
-   # Ensure correct path format
-   # Windows: Use forward slashes
-   docker run --rm -it -v "C:/Users/Name/project:/app" guaraci
-
-   # Linux/Mac: Use $(pwd)
-   docker run --rm -it -v "$(pwd):/app" guaraci
-   ```
-
-2. **Memory Issues**
-
-   ```bash
-   # Increase container memory
-   docker run --rm -it --memory=8g -v "$(pwd):/app" guaraci
-   ```
-
-3. **Permission Issues**
-
-   ```bash
-   # Check directory permissions
-   chmod 755 $(pwd)
-   ```
-
-4. **Build Issues**
-   ```bash
-   # Clean rebuild
-   docker build --no-cache -t guaraci .
-   ```
-
-### Debug Mode
-
-```bash
-# Run with debug logging
-docker run --rm -it -v "$(pwd):/app" \
-  -e GUARACI_LOG_LEVEL=DEBUG \
-  guaraci python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV
-```
-
-## Future Enhancements
-
-### Docker Compose (Planned)
-
-```bash
-# Future: Multi-service setup
-docker-compose up
-
-# Future: Web API
-docker-compose up api
-
-# Future: Background processing
-docker-compose up worker
-```
-
-### Kubernetes (Planned)
-
-```bash
-# Future: Scalable deployment
-kubectl apply -f k8s/
-
-# Future: Distributed processing
-kubectl scale deployment guaraci-worker --replicas=5
-```
-
-## Best Practices
-
-1. **Always use volume mounts** to persist data
-2. **Use environment variables** for configuration
-3. **Rebuild images** after code changes
-4. **Use specific tags** for production deployments
-5. **Monitor resource usage** for large datasets
-6. **Clean up containers** regularly with `docker system prune`
-
-This Docker-first approach ensures that Guaraci works consistently across all platforms while eliminating the complexity of local Python environment management.
-
-
----
-
-*Maintained by Luis Felipe Vogel Lopes — Guaraci v0.2 (2025)*
+Fluxo local sem Docker esta em WIP e nao e o caminho recomendado para operacao.
+Use Docker para validacao final de comportamento.

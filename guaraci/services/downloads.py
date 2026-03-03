@@ -1,0 +1,1382 @@
+"""Download orchestration services used by CLI and API layers."""
+
+from __future__ import annotations
+
+import json
+import shutil
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Sequence
+
+from loguru import logger
+
+from guaraci.core.contracts import SourceParameterSpec, validate_source_params
+from guaraci.core.results import JobResult
+from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
+from guaraci.opendatasus import OpenDataSUSDataSource
+from guaraci.snis import SinisaDataSource, SnisDataSource
+from guaraci.utils.mapping import UF_DICT
+
+EXPORT_FORMAT_VALUES = ["csv", "parquet", "sqlite"]
+
+
+@dataclass(frozen=True)
+class SourceDescriptor:
+    """Human-readable metadata for supported sources."""
+
+    source: str
+    title: str
+    mode: str
+
+
+class DownloadSource(Protocol):
+    """Contract for pluggable download sources."""
+
+    descriptor: SourceDescriptor
+
+    def params_schema(self) -> List[SourceParameterSpec]:
+        """Return supported input params for this source."""
+
+    def validate_params(self, params: Mapping[str, object]) -> None:
+        """Validate user-provided params before datasource execution."""
+
+    def download(self, **kwargs: object) -> JobResult:
+        """Execute source download and return normalized result."""
+
+
+class GovBrDownloadSource:
+    """Adapter for gov.br crawler datasources with shared params."""
+
+    def __init__(
+        self,
+        descriptor: SourceDescriptor,
+        datasource_cls: Callable[..., Any],
+    ) -> None:
+        self.descriptor = descriptor
+        self._datasource_cls = datasource_cls
+        self._params_schema = self._build_default_param_schema()
+
+    def params_schema(self) -> List[SourceParameterSpec]:
+        return list(self._params_schema)
+
+    def _build_default_param_schema(self) -> List[SourceParameterSpec]:
+        valid_kinds = list(getattr(self._datasource_cls, "VALID_FILE_KINDS", []))
+        valid_modules = list(getattr(self._datasource_cls, "VALID_MODULES", []))
+        return [
+            SourceParameterSpec(
+                name="output_dir",
+                param_type="string",
+                description="Output directory for downloaded files.",
+                required=False,
+                default=None,
+            ),
+            SourceParameterSpec(
+                name="results_url",
+                param_type="string",
+                description="Custom results page URL for discovery.",
+                required=False,
+                default=None,
+            ),
+            SourceParameterSpec(
+                name="file_kinds",
+                param_type="string_list",
+                description="Kinds of files to collect for the selected source.",
+                required=False,
+                default=["planilhas"],
+                allowed_values=valid_kinds or None,
+            ),
+            SourceParameterSpec(
+                name="modules",
+                param_type="string_list",
+                description="Functional modules to filter results.",
+                required=False,
+                default=None,
+                allowed_values=valid_modules or None,
+            ),
+            SourceParameterSpec(
+                name="extract_archives",
+                param_type="boolean",
+                description="If true, extract ZIP files after download.",
+                required=False,
+                default=True,
+            ),
+            SourceParameterSpec(
+                name="overwrite",
+                param_type="boolean",
+                description="If true, overwrite existing local files.",
+                required=False,
+                default=False,
+            ),
+            SourceParameterSpec(
+                name="timeout",
+                param_type="integer",
+                description="HTTP timeout in seconds.",
+                required=False,
+                default=120,
+                minimum=1,
+            ),
+        ]
+
+    def validate_params(self, params: Mapping[str, object]) -> None:
+        validate_source_params(params=params, specs=self._params_schema, reject_unknown=True)
+
+    def download(self, **kwargs: object) -> JobResult:
+        output_dir = kwargs.get("output_dir")
+        datasource = self._datasource_cls(output_path=output_dir)
+        payload = datasource.download(**kwargs)
+        return JobResult.from_payload(source=self.descriptor.source, payload=payload)
+
+    def download_with_progress(
+        self,
+        progress_callback: Callable[[Dict[str, object]], None],
+        **kwargs: object,
+    ) -> JobResult:
+        output_dir = kwargs.get("output_dir")
+        datasource = self._datasource_cls(output_path=output_dir)
+        payload = datasource.download(progress_callback=progress_callback, **kwargs)
+        return JobResult.from_payload(source=self.descriptor.source, payload=payload)
+
+
+class PysusDownloadSource:
+    """Adapter for PySUS-backed DATASUS datasources."""
+
+    def __init__(
+        self,
+        descriptor: SourceDescriptor,
+        datasource_cls: Callable[..., Any],
+        params_schema: Sequence[SourceParameterSpec],
+        normalize_params: Optional[Callable[[Dict[str, object]], Dict[str, object]]] = None,
+    ) -> None:
+        self.descriptor = descriptor
+        self._datasource_cls = datasource_cls
+        self._params_schema = list(params_schema)
+        self._normalize_params = normalize_params
+
+    def params_schema(self) -> List[SourceParameterSpec]:
+        return list(self._params_schema)
+
+    def validate_params(self, params: Mapping[str, object]) -> None:
+        validate_source_params(params=params, specs=self._params_schema, reject_unknown=True)
+
+    def _prepare_kwargs(self, kwargs: Mapping[str, object]) -> Dict[str, object]:
+        prepared = dict(kwargs)
+        if self._normalize_params is not None:
+            prepared = self._normalize_params(prepared)
+        return prepared
+
+    def _download(
+        self,
+        *,
+        progress_callback: Optional[Callable[[Dict[str, object]], None]],
+        **kwargs: object,
+    ) -> JobResult:
+        output_dir = kwargs.get("output_dir")
+        datasource = self._datasource_cls(output_path=output_dir)
+        prepared = self._prepare_kwargs(dict(kwargs))
+        prepared.pop("output_dir", None)
+        download_kwargs, postprocess_kwargs = self._split_download_and_postprocess_kwargs(prepared)
+
+        if progress_callback is None:
+            payload = datasource.download(**download_kwargs)
+        else:
+            progress_state = {"started": False}
+
+            def pysus_progress(completed: int, total: int) -> None:
+                completed_int = max(0, int(completed))
+                total_int = max(0, int(total))
+                if not progress_state["started"]:
+                    progress_callback(
+                        {
+                            "event": "download_start",
+                            "source": self.descriptor.source,
+                            "documents_total": total_int,
+                        }
+                    )
+                    progress_state["started"] = True
+                progress_callback(
+                    {
+                        "event": "file_progress",
+                        "source": self.descriptor.source,
+                        "documents_total": total_int,
+                        "document_index": completed_int,
+                        "files_completed": completed_int,
+                    }
+                )
+
+            payload = datasource.download(progress_callback=pysus_progress, **download_kwargs)
+
+            total_files = int(payload.get("total_files", 0)) if isinstance(payload, Mapping) else 0
+            downloaded = (
+                int(payload.get("successful_downloads", 0))
+                if isinstance(payload, Mapping)
+                else 0
+            )
+            failed = (
+                len(payload.get("failed_downloads", []))
+                if isinstance(payload, Mapping)
+                else 0
+            )
+            progress_callback(
+                {
+                    "event": "download_complete",
+                    "source": self.descriptor.source,
+                    "documents_total": total_files,
+                    "downloaded_count": downloaded,
+                    "failed_count": failed,
+                    "skipped_count": max(0, total_files - downloaded - failed),
+                    "output_dir": str(datasource.output_path),
+                }
+            )
+
+        materialized_paths: List[str] = []
+        local_paths = self._collect_datasource_local_paths(datasource)
+        if local_paths:
+            materialized_paths = self._materialize_local_artifacts(
+                local_paths=local_paths,
+                output_root=Path(datasource.output_path),
+            )
+        exported_files = self._export_processed_outputs(
+            datasource=datasource,
+            download_kwargs=download_kwargs,
+            postprocess_kwargs=postprocess_kwargs,
+        )
+        requested_output_format = str(postprocess_kwargs.get("output_format") or "").strip().lower()
+
+        if isinstance(payload, dict):
+            if payload.get("output_dir") is None:
+                payload["output_dir"] = str(datasource.output_path)
+            if materialized_paths:
+                payload["materialized_paths"] = materialized_paths
+                payload["manifest_path"] = str(
+                    self._write_manifest(
+                        output_root=Path(datasource.output_path),
+                        payload=payload,
+                        materialized_paths=materialized_paths,
+                        )
+                    )
+            if requested_output_format:
+                payload["output_format"] = requested_output_format
+                payload["exported_files"] = exported_files
+                if not exported_files:
+                    payload["export_warning"] = (
+                        "No processed file was exported. Check format and export filters."
+                    )
+        return JobResult.from_payload(source=self.descriptor.source, payload=payload)
+
+    def download(self, **kwargs: object) -> JobResult:
+        return self._download(progress_callback=None, **kwargs)
+
+    def download_with_progress(
+        self,
+        progress_callback: Callable[[Dict[str, object]], None],
+        **kwargs: object,
+    ) -> JobResult:
+        return self._download(progress_callback=progress_callback, **kwargs)
+
+    @staticmethod
+    def _collect_datasource_local_paths(datasource: Any) -> List[Path]:
+        data = getattr(datasource, "data", None)
+        if not isinstance(data, dict):
+            return []
+
+        collected: List[Path] = []
+        seen: set[str] = set()
+        for items in data.values():
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                candidate = None
+                if hasattr(item, "path"):
+                    candidate = getattr(item, "path")
+                elif isinstance(item, (str, Path)):
+                    candidate = item
+                if candidate is None:
+                    continue
+                try:
+                    resolved = Path(str(candidate)).resolve()
+                except OSError:
+                    continue
+                if not resolved.exists():
+                    continue
+                key = str(resolved)
+                if key in seen:
+                    continue
+                seen.add(key)
+                collected.append(resolved)
+        return collected
+
+    @staticmethod
+    def _materialize_local_artifacts(local_paths: Sequence[Path], output_root: Path) -> List[str]:
+        raw_root = output_root / "raw"
+        raw_root.mkdir(parents=True, exist_ok=True)
+
+        materialized: List[str] = []
+        for source_path in local_paths:
+            destination = raw_root / source_path.name
+            if source_path.is_dir():
+                shutil.copytree(source_path, destination, dirs_exist_ok=True)
+            else:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source_path, destination)
+            materialized.append(str(destination))
+        return materialized
+
+    def _write_manifest(
+        self,
+        *,
+        output_root: Path,
+        payload: Mapping[str, object],
+        materialized_paths: Sequence[str],
+    ) -> Path:
+        manifest_path = output_root / "manifest.json"
+        manifest_payload = {
+            "source": self.descriptor.source,
+            "generated_at_utc": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            "summary": {
+                "total_files": int(payload.get("total_files", 0)),
+                "successful_downloads": int(payload.get("successful_downloads", 0)),
+                "failed_downloads": len(payload.get("failed_downloads", [])),
+            },
+            "output_dir": str(output_root),
+            "materialized_paths": list(materialized_paths),
+        }
+        manifest_path.write_text(
+            json.dumps(manifest_payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        return manifest_path
+
+    def _split_download_and_postprocess_kwargs(
+        self,
+        params: Mapping[str, object],
+    ) -> tuple[Dict[str, object], Dict[str, object]]:
+        source = self.descriptor.source
+        post_keys = {"output_format"}
+        if source == "sinan":
+            post_keys |= {
+                "uf",
+                "municipio",
+                "sexo",
+                "faixa_etaria",
+                "evolucao",
+                "classificacao",
+            }
+        elif source == "sim":
+            post_keys |= {"uf", "municipio", "sexo", "causa_basica", "ano_obito"}
+        elif source == "sih":
+            post_keys |= {"uf", "municipio", "sexo", "mes"}
+
+        download_kwargs = {
+            key: value for key, value in params.items() if key not in post_keys
+        }
+        postprocess_kwargs = {
+            key: value for key, value in params.items() if key in post_keys
+        }
+        return download_kwargs, postprocess_kwargs
+
+    def _export_processed_outputs(
+        self,
+        *,
+        datasource: Any,
+        download_kwargs: Mapping[str, object],
+        postprocess_kwargs: Mapping[str, object],
+    ) -> List[str]:
+        output_format = str(postprocess_kwargs.get("output_format") or "").strip().lower()
+        if not output_format:
+            return []
+
+        source = self.descriptor.source
+        exported: List[str] = []
+        if source == "sinan":
+            exported.extend(
+                self._export_sinan(
+                    datasource=datasource,
+                    output_format=output_format,
+                    download_kwargs=download_kwargs,
+                    postprocess_kwargs=postprocess_kwargs,
+                )
+            )
+        elif source == "sim":
+            exported.extend(
+                self._export_sim(
+                    datasource=datasource,
+                    output_format=output_format,
+                    download_kwargs=download_kwargs,
+                    postprocess_kwargs=postprocess_kwargs,
+                )
+            )
+        elif source == "sih":
+            exported.extend(
+                self._export_sih(
+                    datasource=datasource,
+                    output_format=output_format,
+                    download_kwargs=download_kwargs,
+                    postprocess_kwargs=postprocess_kwargs,
+                )
+            )
+        return exported
+
+    @staticmethod
+    def _compact_filter_kwargs(raw: Mapping[str, object], keys: Sequence[str]) -> Dict[str, object]:
+        payload: Dict[str, object] = {}
+        for key in keys:
+            value = raw.get(key)
+            if value is None:
+                continue
+            if isinstance(value, str) and not value.strip():
+                continue
+            payload[key] = value
+        return payload
+
+    def _export_sinan(
+        self,
+        *,
+        datasource: Any,
+        output_format: str,
+        download_kwargs: Mapping[str, object],
+        postprocess_kwargs: Mapping[str, object],
+    ) -> List[str]:
+        diseases = list(download_kwargs.get("diseases") or getattr(datasource, "NEGLECTED_DISEASES", []))
+        start_year = int(download_kwargs.get("start_year", datetime.now().year))
+        end_year = int(download_kwargs.get("end_year", start_year))
+        filter_kwargs = self._compact_filter_kwargs(
+            postprocess_kwargs,
+            ["uf", "municipio", "sexo", "faixa_etaria", "evolucao", "classificacao"],
+        )
+        exported: List[str] = []
+        for disease in diseases:
+            available = getattr(datasource, "data", {}).get(disease, [])
+            if not available:
+                continue
+            try:
+                df = datasource.load_dataframe(str(disease))
+                if filter_kwargs:
+                    df = datasource.filter(df, **filter_kwargs)
+                exported_path = datasource.export(
+                    df,
+                    format=output_format,
+                    name=f"{disease}_{start_year}_{end_year}",
+                )
+                if exported_path is not None:
+                    exported.append(str(exported_path))
+            except Exception as exc:
+                logger.warning(
+                    "Failed to export SINAN disease '{}' to format '{}': {}",
+                    disease,
+                    output_format,
+                    exc,
+                )
+                continue
+        return exported
+
+    def _export_sim(
+        self,
+        *,
+        datasource: Any,
+        output_format: str,
+        download_kwargs: Mapping[str, object],
+        postprocess_kwargs: Mapping[str, object],
+    ) -> List[str]:
+        groups = list(download_kwargs.get("groups") or getattr(datasource, "DEFAULT_GROUPS", []))
+        start_year = int(download_kwargs.get("start_year", datetime.now().year))
+        end_year = int(download_kwargs.get("end_year", start_year))
+        filter_kwargs = self._compact_filter_kwargs(
+            postprocess_kwargs,
+            ["uf", "municipio", "sexo", "causa_basica", "ano_obito"],
+        )
+        exported: List[str] = []
+        for group in groups:
+            available = getattr(datasource, "data", {}).get(group, [])
+            if not available:
+                continue
+            try:
+                df = datasource.load_dataframe(str(group))
+                if filter_kwargs:
+                    df = datasource.filter(df, **filter_kwargs)
+                exported_path = datasource.export(
+                    df,
+                    format=output_format,
+                    name=f"{group}_{start_year}_{end_year}",
+                )
+                if exported_path is not None:
+                    exported.append(str(exported_path))
+            except Exception as exc:
+                logger.warning(
+                    "Failed to export SIM group '{}' to format '{}': {}",
+                    group,
+                    output_format,
+                    exc,
+                )
+                continue
+        return exported
+
+    def _export_sih(
+        self,
+        *,
+        datasource: Any,
+        output_format: str,
+        download_kwargs: Mapping[str, object],
+        postprocess_kwargs: Mapping[str, object],
+    ) -> List[str]:
+        groups = list(download_kwargs.get("groups") or getattr(datasource, "DEFAULT_GROUPS", []))
+        start_year = int(download_kwargs.get("start_year", datetime.now().year))
+        end_year = int(download_kwargs.get("end_year", start_year))
+        filter_kwargs = self._compact_filter_kwargs(
+            postprocess_kwargs,
+            ["uf", "municipio", "sexo", "mes"],
+        )
+        exported: List[str] = []
+        for group in groups:
+            available = getattr(datasource, "data", {}).get(group, [])
+            if not available:
+                continue
+            try:
+                df = datasource.load_dataframe(str(group))
+                if filter_kwargs:
+                    df = datasource.filter(df, **filter_kwargs)
+                exported_path = datasource.export(
+                    df,
+                    format=output_format,
+                    name=f"{group}_{start_year}_{end_year}",
+                )
+                if exported_path is not None:
+                    exported.append(str(exported_path))
+            except Exception as exc:
+                logger.warning(
+                    "Failed to export SIH group '{}' to format '{}': {}",
+                    group,
+                    output_format,
+                    exc,
+                )
+                continue
+        return exported
+
+
+class OpenDataSUSDownloadSource:
+    """Adapter for OpenDataSUS API-backed datasources."""
+
+    def __init__(
+        self,
+        descriptor: SourceDescriptor,
+        datasource_cls: Callable[..., Any],
+        params_schema: Sequence[SourceParameterSpec],
+        fixed_dataset: Optional[str] = None,
+        normalize_params: Optional[Callable[[Dict[str, object]], Dict[str, object]]] = None,
+    ) -> None:
+        self.descriptor = descriptor
+        self._datasource_cls = datasource_cls
+        self._params_schema = list(params_schema)
+        self._fixed_dataset = fixed_dataset.strip().lower() if fixed_dataset else None
+        self._normalize_params = normalize_params
+
+    def params_schema(self) -> List[SourceParameterSpec]:
+        return list(self._params_schema)
+
+    def validate_params(self, params: Mapping[str, object]) -> None:
+        prepared = self._prepare_kwargs(params)
+        validate_source_params(params=prepared, specs=self._params_schema, reject_unknown=True)
+
+    def _prepare_kwargs(self, kwargs: Mapping[str, object]) -> Dict[str, object]:
+        prepared = dict(kwargs)
+        if self._normalize_params is not None:
+            prepared = self._normalize_params(prepared)
+        return prepared
+
+    def _download(
+        self,
+        *,
+        progress_callback: Optional[Callable[[Dict[str, object]], None]],
+        **kwargs: object,
+    ) -> JobResult:
+        output_dir = kwargs.get("output_dir")
+        datasource = self._datasource_cls(output_path=output_dir)
+        prepared = self._prepare_kwargs(dict(kwargs))
+        prepared.pop("output_dir", None)
+        if self._fixed_dataset is not None:
+            prepared["dataset"] = self._fixed_dataset
+        if progress_callback is not None:
+            prepared["progress_callback"] = progress_callback
+        payload = datasource.download(**prepared)
+        return JobResult.from_payload(source=self.descriptor.source, payload=payload)
+
+    def download(self, **kwargs: object) -> JobResult:
+        return self._download(progress_callback=None, **kwargs)
+
+    def download_with_progress(
+        self,
+        progress_callback: Callable[[Dict[str, object]], None],
+        **kwargs: object,
+    ) -> JobResult:
+        return self._download(progress_callback=progress_callback, **kwargs)
+
+
+class DownloadService:
+    """Facade with source registry and normalized `JobResult` responses."""
+
+    def __init__(self, sources: Optional[Sequence[DownloadSource]] = None) -> None:
+        self._sources: Dict[str, DownloadSource] = {}
+        for source in sources or self._default_sources():
+            self.register_source(source)
+
+    @staticmethod
+    def _normalize_source_name(source: str) -> str:
+        key = source.strip().lower()
+        if not key:
+            raise ValueError("Source name cannot be empty.")
+        return key
+
+    def _default_sources(self) -> List[DownloadSource]:
+        current_year = datetime.now().year
+        last_year = current_year - 1
+        uf_values = sorted(set(UF_DICT.values()))
+        return [
+            GovBrDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="snis",
+                    title="SNIS",
+                    mode="gov.br crawl",
+                ),
+                datasource_cls=SnisDataSource,
+            ),
+            GovBrDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="sinisa",
+                    title="SINISA",
+                    mode="gov.br crawl",
+                ),
+                datasource_cls=SinisaDataSource,
+            ),
+            OpenDataSUSDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="doses_aplicadas_pni",
+                    title="Doses Aplicadas PNI",
+                    mode="opendatasus api",
+                ),
+                datasource_cls=OpenDataSUSDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        param_type="integer",
+                        description="Ano inicial para consulta na API OpenDataSUS (endpoint anual).",
+                        required=True,
+                        default=last_year,
+                        minimum=2020,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        param_type="integer",
+                        description="Ano final para consulta na API OpenDataSUS (endpoint anual).",
+                        required=True,
+                        default=last_year,
+                        minimum=2020,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        param_type="string",
+                        description="Filtro opcional por UF.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data inicial (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data final (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        param_type="boolean",
+                        description="Se true, salva snapshot bruto JSONL além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="batch_size",
+                        param_type="integer",
+                        description="Page size for OpenDataSUS API pagination.",
+                        required=False,
+                        default=1000,
+                        minimum=1,
+                        maximum=1000,
+                    ),
+                    SourceParameterSpec(
+                        name="max_pages",
+                        param_type="integer",
+                        description=(
+                            "Maximum number of pages fetched per year in OpenDataSUS API. "
+                            "Increase for broader coverage in large periods."
+                        ),
+                        required=False,
+                        default=OpenDataSUSDataSource.DEFAULT_MAX_PAGES,
+                        minimum=1,
+                        maximum=200000,
+                    ),
+                    SourceParameterSpec(
+                        name="resource_id",
+                        param_type="string",
+                        description=(
+                            "Optional explicit resource id (CKAN mode). "
+                            "Ignored in DEMAS mode."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        param_type="string",
+                        description=(
+                            "Optional OpenDataSUS API base URL override "
+                            "(DEMAS: apidadosabertos.saude.gov.br | CKAN: .../api/3/action)."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                fixed_dataset=OpenDataSUSDataSource.DEFAULT_DATASET,
+                normalize_params=_normalize_opendatasus_params,
+            ),
+            OpenDataSUSDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="zikavirus",
+                    title="Arboviroses Zikavirus",
+                    mode="opendatasus api",
+                ),
+                datasource_cls=OpenDataSUSDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        param_type="integer",
+                        description="Ano inicial para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        param_type="integer",
+                        description="Ano final para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data inicial (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data final (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        param_type="string",
+                        description="Refinamento local opcional por UF.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        param_type="boolean",
+                        description="Se true, salva snapshot bruto JSONL além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="batch_size",
+                        param_type="integer",
+                        description="Page size for OpenDataSUS API pagination.",
+                        required=False,
+                        default=1000,
+                        minimum=1,
+                        maximum=1000,
+                    ),
+                    SourceParameterSpec(
+                        name="max_pages",
+                        param_type="integer",
+                        description=(
+                            "Maximum number of pages fetched in OpenDataSUS API. "
+                            "Increase for broader coverage in large periods."
+                        ),
+                        required=False,
+                        default=OpenDataSUSDataSource.DEFAULT_MAX_PAGES,
+                        minimum=1,
+                        maximum=200000,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        param_type="string",
+                        description=(
+                            "Optional OpenDataSUS API base URL override "
+                            "(DEMAS: apidadosabertos.saude.gov.br)."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                fixed_dataset="zikavirus",
+                normalize_params=_normalize_opendatasus_params,
+            ),
+            PysusDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="sinan",
+                    title="SINAN",
+                    mode="pysus ftp",
+                ),
+                datasource_cls=SinanDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        param_type="integer",
+                        description="Starting year for file discovery.",
+                        required=True,
+                        default=last_year,
+                        minimum=1990,
+                        maximum=last_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        param_type="integer",
+                        description="Ending year for file discovery.",
+                        required=True,
+                        default=last_year,
+                        minimum=1990,
+                        maximum=last_year,
+                    ),
+                    SourceParameterSpec(
+                        name="diseases",
+                        param_type="string_list",
+                        description="Disease code list to download.",
+                        required=False,
+                        default=list(SinanDataSource.NEGLECTED_DISEASES),
+                        allowed_values=list(SinanDataSource.NEGLECTED_DISEASES),
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        param_type="string",
+                        description="Optional UF filter for exported dataset.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="municipio",
+                        param_type="string",
+                        description="Optional municipality name filter for export.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="sexo",
+                        param_type="string",
+                        description="Optional sex filter for export.",
+                        required=False,
+                        default=None,
+                        allowed_values=["M", "F"],
+                    ),
+                    SourceParameterSpec(
+                        name="faixa_etaria",
+                        param_type="string",
+                        description="Optional age-band code filter for export.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="evolucao",
+                        param_type="string",
+                        description="Optional case evolution filter for export.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="classificacao",
+                        param_type="string",
+                        description="Optional classification filter for export.",
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                normalize_params=_normalize_sinan_params,
+            ),
+            PysusDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="sim",
+                    title="SIM",
+                    mode="pysus ftp",
+                ),
+                datasource_cls=SimDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        param_type="integer",
+                        description="Starting year for file discovery.",
+                        required=True,
+                        default=last_year,
+                        minimum=1979,
+                        maximum=last_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        param_type="integer",
+                        description="Ending year for file discovery.",
+                        required=True,
+                        default=last_year,
+                        minimum=1979,
+                        maximum=last_year,
+                    ),
+                    SourceParameterSpec(
+                        name="groups",
+                        param_type="string_list",
+                        description="SIM groups to download.",
+                        required=False,
+                        default=list(SimDataSource.DEFAULT_GROUPS),
+                        allowed_values=list(SimDataSource.ALL_GROUPS),
+                    ),
+                    SourceParameterSpec(
+                        name="states",
+                        param_type="string_list",
+                        description="UF filter list.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        param_type="string",
+                        description="Optional UF filter for exported dataset.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="municipio",
+                        param_type="string",
+                        description="Optional municipality filter for export.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="sexo",
+                        param_type="string",
+                        description="Optional sex filter for export.",
+                        required=False,
+                        default=None,
+                        allowed_values=["M", "F"],
+                    ),
+                    SourceParameterSpec(
+                        name="causa_basica",
+                        param_type="string",
+                        description="Optional basic cause filter for export.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="ano_obito",
+                        param_type="integer",
+                        description="Optional year-of-death filter for export.",
+                        required=False,
+                        default=None,
+                        minimum=1979,
+                        maximum=last_year,
+                    ),
+                ],
+                normalize_params=_normalize_sim_params,
+            ),
+            PysusDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="sih",
+                    title="SIH",
+                    mode="pysus ftp",
+                ),
+                datasource_cls=SihDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        param_type="integer",
+                        description="Starting year for file discovery.",
+                        required=True,
+                        default=last_year,
+                        minimum=1979,
+                        maximum=last_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        param_type="integer",
+                        description="Ending year for file discovery.",
+                        required=True,
+                        default=last_year,
+                        minimum=1979,
+                        maximum=last_year,
+                    ),
+                    SourceParameterSpec(
+                        name="groups",
+                        param_type="string_list",
+                        description="SIH groups to download.",
+                        required=False,
+                        default=list(SihDataSource.DEFAULT_GROUPS),
+                        allowed_values=list(SihDataSource.ALL_GROUPS),
+                    ),
+                    SourceParameterSpec(
+                        name="states",
+                        param_type="string_list",
+                        description="UF filter list.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="months",
+                        param_type="string_list",
+                        description="Month list (1-12).",
+                        required=False,
+                        default=None,
+                        allowed_values=[str(item) for item in range(1, 13)],
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        param_type="string",
+                        description="Optional UF filter for exported dataset.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="municipio",
+                        param_type="string",
+                        description="Optional municipality filter for export.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="sexo",
+                        param_type="string",
+                        description="Optional sex filter for export.",
+                        required=False,
+                        default=None,
+                        allowed_values=["M", "F"],
+                    ),
+                    SourceParameterSpec(
+                        name="mes",
+                        param_type="integer",
+                        description="Optional month filter for export.",
+                        required=False,
+                        default=None,
+                        minimum=1,
+                        maximum=12,
+                    ),
+                ],
+                normalize_params=_normalize_sih_params,
+            ),
+        ]
+
+    def register_source(self, source: DownloadSource, replace: bool = False) -> None:
+        key = self._normalize_source_name(source.descriptor.source)
+        if not replace and key in self._sources:
+            raise ValueError(f"Source '{key}' is already registered.")
+        self._sources[key] = source
+
+    def _get_registered_source(self, source: str) -> DownloadSource:
+        key = self._normalize_source_name(source)
+        selected = self._sources.get(key)
+        if selected is None:
+            supported = ", ".join(sorted(self._sources))
+            raise ValueError(f"Unsupported source '{source}'. Supported: {supported}")
+        return selected
+
+    @staticmethod
+    def _get_source_param_specs(source: DownloadSource) -> List[SourceParameterSpec]:
+        getter = getattr(source, "params_schema", None)
+        if callable(getter):
+            return getter()
+        return []
+
+    def list_sources(self) -> List[SourceDescriptor]:
+        items = [item.descriptor for item in self._sources.values()]
+        return sorted(items, key=lambda item: (item.title.lower(), item.source.lower()))
+
+    def list_source_schemas(self) -> List[Dict[str, object]]:
+        return [self.get_source_schema(item.source) for item in self.list_sources()]
+
+    def get_source_schema(self, source: str) -> Dict[str, object]:
+        selected = self._get_registered_source(source)
+        return {
+            "source": selected.descriptor.source,
+            "title": selected.descriptor.title,
+            "mode": selected.descriptor.mode,
+            "params": [item.to_dict() for item in self._get_source_param_specs(selected)],
+        }
+
+    def validate_source_params(
+        self,
+        source: str,
+        params: Mapping[str, object],
+    ) -> None:
+        selected = self._get_registered_source(source)
+        selected.validate_params(params)
+
+    def run(
+        self,
+        source: str,
+        *,
+        progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
+        **kwargs: object,
+    ) -> JobResult:
+        self.validate_source_params(source=source, params=kwargs)
+        selected = self._get_registered_source(source)
+        if progress_callback is not None:
+            download_with_progress = getattr(selected, "download_with_progress", None)
+            if callable(download_with_progress):
+                return download_with_progress(progress_callback=progress_callback, **kwargs)
+        return selected.download(**kwargs)
+
+    def download_snis(
+        self,
+        output_dir: Optional[str] = None,
+        results_url: Optional[str] = None,
+        file_kinds: Optional[Sequence[str]] = None,
+        modules: Optional[Sequence[str]] = None,
+        extract_archives: bool = True,
+        overwrite: bool = False,
+        timeout: int = 120,
+    ) -> JobResult:
+        return self.run(
+            "snis",
+            output_dir=output_dir,
+            results_url=results_url,
+            file_kinds=file_kinds,
+            modules=modules,
+            extract_archives=extract_archives,
+            overwrite=overwrite,
+            timeout=timeout,
+        )
+
+    def download_sinisa(
+        self,
+        output_dir: Optional[str] = None,
+        results_url: Optional[str] = None,
+        file_kinds: Optional[Sequence[str]] = None,
+        modules: Optional[Sequence[str]] = None,
+        extract_archives: bool = True,
+        overwrite: bool = False,
+        timeout: int = 120,
+    ) -> JobResult:
+        return self.run(
+            "sinisa",
+            output_dir=output_dir,
+            results_url=results_url,
+            file_kinds=file_kinds,
+            modules=modules,
+            extract_archives=extract_archives,
+            overwrite=overwrite,
+            timeout=timeout,
+        )
+
+
+def _normalize_sinan_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+    diseases = normalized.get("diseases")
+    if isinstance(diseases, list):
+        normalized["diseases"] = [str(item).strip().upper() for item in diseases if str(item).strip()]
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+    sexo = normalized.get("sexo")
+    if isinstance(sexo, str):
+        normalized["sexo"] = sexo.strip().upper()
+    uf = normalized.get("uf")
+    if isinstance(uf, str):
+        normalized["uf"] = uf.strip().upper()
+    return normalized
+
+
+def _normalize_sim_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+    groups = normalized.get("groups")
+    states = normalized.get("states")
+    if isinstance(groups, list):
+        normalized["groups"] = [str(item).strip().upper() for item in groups if str(item).strip()]
+    if isinstance(states, list):
+        normalized["states"] = [str(item).strip().upper() for item in states if str(item).strip()]
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+    sexo = normalized.get("sexo")
+    if isinstance(sexo, str):
+        normalized["sexo"] = sexo.strip().upper()
+    uf = normalized.get("uf")
+    if isinstance(uf, str):
+        normalized["uf"] = uf.strip().upper()
+    return normalized
+
+
+def _normalize_sih_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = _normalize_sim_params(params)
+    months = normalized.get("months")
+    if isinstance(months, list):
+        parsed = []
+        for item in months:
+            raw = str(item).strip()
+            if raw:
+                parsed.append(int(raw))
+        normalized["months"] = parsed
+    mes = normalized.get("mes")
+    if mes is not None:
+        normalized["mes"] = int(mes)
+    return normalized
+
+
+def _normalize_opendatasus_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+    dataset = normalized.get("dataset")
+    if isinstance(dataset, str):
+        normalized["dataset"] = dataset.strip().lower()
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    uf = normalized.get("uf")
+    if isinstance(uf, str):
+        cleaned_uf = uf.strip().upper()
+        normalized["uf"] = cleaned_uf if cleaned_uf else None
+
+    for key in ("start_date", "end_date", "resource_id", "api_base_url"):
+        value = normalized.get(key)
+        if isinstance(value, str):
+            cleaned_value = value.strip()
+            normalized[key] = cleaned_value if cleaned_value else None
+
+    for key in ("start_year", "end_year", "batch_size", "max_pages"):
+        value = normalized.get(key)
+        if value is None or isinstance(value, bool):
+            continue
+        if isinstance(value, str):
+            stripped = value.strip()
+            if not stripped:
+                normalized[key] = None
+                continue
+            normalized[key] = int(stripped)
+            continue
+        normalized[key] = int(value)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
