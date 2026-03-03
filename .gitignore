@@ -169,3 +169,5 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+guaraci-sa.json

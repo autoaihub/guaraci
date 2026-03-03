@@ -35,4 +35,27 @@ class TestGuaraciConfig:
         
         assert sinan_path == expected_path
         assert sinan_path.exists()
+
+    def test_get_datasus_path_uses_default_download_root(self, tmp_path, monkeypatch):
+        """When configured, source outputs should use the user download root."""
+        custom_root = tmp_path / "Guaraci Downloads"
+        monkeypatch.setenv("GUARACI_DEFAULT_DOWNLOAD_ROOT", str(custom_root))
+
+        config = GuaraciConfig()
+        sinan_path = config.get_datasus_path("sinan")
+
+        assert sinan_path == custom_root / "sinan"
+        assert sinan_path.exists()
+
+    def test_get_datasus_path_accepts_legacy_default_output_root_env(self, tmp_path, monkeypatch):
+        """Backwards compatibility for launcher env var name."""
+        legacy_root = tmp_path / "Legacy Downloads"
+        monkeypatch.setenv("GUARACI_DEFAULT_OUTPUT_ROOT", str(legacy_root))
+        monkeypatch.delenv("GUARACI_DEFAULT_DOWNLOAD_ROOT", raising=False)
+
+        config = GuaraciConfig()
+        sim_path = config.get_datasus_path("sim")
+
+        assert sim_path == legacy_root / "sim"
+        assert sim_path.exists()
         

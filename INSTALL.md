@@ -1,263 +1,138 @@
-# � Guaaraci Docker Installation Guide
+# Guia de Instalacao
 
-Guaraci is designed to run exclusively in Docker containers to ensure consistent environments and avoid dependency conflicts. This approach eliminates the need for local Python environment management.
+Este projeto deve ser considerado **Docker-first**.
 
-## Prerequisites
+## Status de suporte
 
-- **Docker Desktop** (Windows/Mac) or **Docker Engine** (Linux)
-- **Git** for cloning the repository
+- Suportado oficialmente: execucao via Docker (CLI, API e UI).
+- Nao suportado oficialmente: execucao Python local sem Docker (WIP).
 
-### Install Docker
+## Pre-requisitos
 
-- **Windows/Mac**: Download [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- **Linux**: Follow the [official Docker installation guide](https://docs.docker.com/engine/install/)
+- Docker Desktop (Windows/macOS) ou Docker Engine (Linux).
+- Git.
 
-## Quick Start
-
-### 1. Clone and Build
+## Instalacao rapida
 
 ```bash
-# Clone the repository
 git clone https://github.com/autoaihub/guaraci.git
 cd guaraci
-
-# Build the Docker image (this may take a few minutes)
 docker build -t guaraci .
 ```
 
-### 2. Verify Installation
+## Verificacao basica
 
 ```bash
-# Test the installation
-docker run --rm guaraci python test_install.py
+# Versao
+docker run --rm guaraci python -c "import guaraci; print(guaraci.__version__)"
 
-# Check version
-docker run --rm guaraci python -c "import guaraci; print(f'Guaraci v{guaraci.__version__}')"
-
-# Run tests
-docker run --rm guaraci python -m pytest tests/ -v
+# Teste de instalacao do pacote
+docker run --rm guaraci python -m pytest tests/test_install.py -v
 ```
 
-### 3. Basic Usage
-
-```bash
-# Show help
-docker run --rm guaraci python -m guaraci.cli.main --help
-
-# Download SINAN data (replace path with your actual directory)
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
-```
-
-## Platform-Specific Instructions
+## Operacao recomendada (launcher desktop)
 
 ### Windows (PowerShell)
 
 ```powershell
-# Clone repository
-git clone https://github.com/autoaihub/guaraci.git
-cd guaraci
-
-# Build image
-docker build -t guaraci .
-
-# Run with full path (replace with your actual path) - single line recommended
-docker run --rm -it -v "C:\Users\YourUsername\Documents\guaraci:/app" guaraci python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
-
-# Alternative: Multi-line with PowerShell backtick continuation
-docker run --rm -it -v "C:\Users\YourUsername\Documents\guaraci:/app" guaraci `
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
+.\scripts\desktop\start-guaraci.ps1
 ```
 
-### Linux/Mac (Bash)
+A UI abre em `http://localhost:8002/`.
 
-```bash
-# Clone repository
-git clone https://github.com/autoaihub/guaraci.git
-cd guaraci
-
-# Build image
-docker build -t guaraci .
-
-# Run with current directory mounted
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
-```
-
-## Common Usage Patterns
-
-### Data Download
-
-```bash
-# Download single disease for one year
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV --format csv
-
-# Download multiple diseases for multiple years
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2018 2020 --diseases DENG ZIKA CHIK --format csv
-
-# Download with different output format
-docker run --rm -it -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases HANS --format parquet
-```
-
-### Interactive Development
-
-```bash
-# Start interactive Python session
-docker run --rm -it -v "$(pwd):/app" guaraci python
-
-# Start bash shell for development
-docker run --rm -it -v "$(pwd):/app" guaraci bash
-
-# Run specific Python script
-docker run --rm -it -v "$(pwd):/app" guaraci python your_script.py
-```
-
-### Configuration
-
-```bash
-# Run with custom environment variables
-docker run --rm -it -v "$(pwd):/app" \
-  -e GUARACI_LOG_LEVEL=DEBUG \
-  -e GUARACI_MAX_CONCURRENT_DOWNLOADS=10 \
-  guaraci python -m guaraci.cli.sinan_cli download 2020 2020 --diseases DENG
-```
-
-## Data Output
-
-All downloaded data will be saved to the `data/` directory in your project folder:
-
-```
-your-project/
-├── data/
-│   └── datasus/
-│       └── sinan/
-│           ├── RAIV_2020_2020.csv
-│           ├── DENG_2018_2020.csv
-│           └── ...
-└── ...
-```
-
-## Troubleshooting
-
-### Docker Build Issues
-
-```bash
-# Clean build (if you encounter caching issues)
-docker build --no-cache -t guaraci .
-
-# Check Docker version
-docker --version
-
-# Ensure Docker is running
-docker ps
-```
-
-### Volume Mount Issues
-
-```bash
-# Windows: Use full paths with forward slashes
-docker run --rm -it -v "C:/Users/YourName/Documents/guaraci:/app" guaraci
-
-# Linux/Mac: Ensure directory permissions
-chmod 755 $(pwd)
-```
-
-### PowerShell Line Continuation Issues
+Outros comandos:
 
 ```powershell
-# ❌ Wrong: Using bash-style backslash (will fail)
-docker run --rm -it -v "C:\Users\Name\guaraci:/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV
-
-# ✅ Correct: Single line
-docker run --rm -it -v "C:\Users\Name\guaraci:/app" guaraci python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV
-
-# ✅ Correct: PowerShell backtick continuation
-docker run --rm -it -v "C:\Users\Name\guaraci:/app" guaraci `
-  python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV
+.\scripts\desktop\launcher.ps1
+.\scripts\desktop\status-guaraci.ps1
+.\scripts\desktop\stop-guaraci.ps1
 ```
 
-### Memory Issues
+Atalhos `.cmd` (duplo clique):
+- `scripts\desktop\launcher.cmd`
+- `scripts\desktop\start-guaraci.cmd`
+- `scripts\desktop\status-guaraci.cmd`
+- `scripts\desktop\stop-guaraci.cmd`
+
+### Linux/macOS (bash)
 
 ```bash
-# Run with increased memory limit
-docker run --rm -it --memory=4g -v "$(pwd):/app" guaraci \
-  python -m guaraci.cli.sinan_cli download 2015 2020 --diseases DENG
+./scripts/desktop/start-guaraci.sh
 ```
 
-## Development Setup
-
-### For Contributors
+Outros comandos:
 
 ```bash
-# Clone and build
-git clone https://github.com/autoaihub/guaraci.git
-cd guaraci
-docker build -t guaraci .
-
-# Run tests
-docker run --rm guaraci python -m pytest tests/ -v
-
-# Code formatting (if you modify code)
-docker run --rm -v "$(pwd):/app" guaraci python -m black guaraci/
-docker run --rm -v "$(pwd):/app" guaraci python -m isort guaraci/
-
-# Type checking
-docker run --rm -v "$(pwd):/app" guaraci python -m mypy guaraci/
+./scripts/desktop/launcher.sh
+./scripts/desktop/status-guaraci.sh
+./scripts/desktop/stop-guaraci.sh
 ```
 
-### Rebuilding After Changes
+## Operacao manual sem launcher
+
+### Subir API em porta customizada
+
+PowerShell:
+
+```powershell
+docker run --rm -it -p 8002:8000 -v "${PWD}:/app" guaraci \
+  uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log
+```
+
+Bash:
 
 ```bash
-# After modifying code, rebuild the image
-docker build -t guaraci .
-
-# Or use a different tag for testing
-docker build -t guaraci:dev .
-docker run --rm guaraci:dev python test_install.py
+docker run --rm -it -p 8002:8000 -v "$(pwd):/app" guaraci \
+  uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log
 ```
 
-## Getting Help
-
-### Check Logs
+## Testes no container
 
 ```bash
-# Run with verbose logging
-docker run --rm -it -v "$(pwd):/app" \
-  -e GUARACI_LOG_LEVEL=DEBUG \
-  guaraci python -m guaraci.cli.sinan_cli download 2020 2020 --diseases RAIV
+# suite completa
+docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
+
+# API/jobs
+docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/test_api.py tests/test_jobs.py -v
 ```
 
-### Common Issues
+## Estrategia de dados e volumes
 
-1. **"No such file or directory"**: Check your volume mount path
-2. **"Permission denied"**: Ensure Docker has access to your directory
-3. **"Out of memory"**: Use `--memory` flag to increase container memory
-4. **"Build failed"**: Try `docker build --no-cache -t guaraci .`
+Sempre monte o projeto em `/app` para persistir saidas no host:
 
-### Support
+- Windows PowerShell: `-v "${PWD}:/app"`
+- Linux/macOS: `-v "$(pwd):/app"`
 
-If you encounter issues:
+Sem volume mount, os dados ficam dentro do container efemero.
 
-1. Check the [Issues](https://github.com/autoaihub/guaraci/issues) page
-2. Create a new issue with:
-   - Your operating system
-   - Docker version (`docker --version`)
-   - Full error message
-   - Command you were trying to run
+## Troubleshooting rapido
 
-## Why Docker-Only?
+### Porta em uso
 
-- **Consistent Environment**: Same setup across Windows, Mac, and Linux
-- **No Dependency Conflicts**: All dependencies are managed within the container
-- **Easy Updates**: Simply rebuild the Docker image
-- **Isolation**: Doesn't affect your local Python environment
-- **Reproducibility**: Ensures scientific reproducibility across different machines
+Erro comum: `Bind for 0.0.0.0:8002 failed: port is already allocated`
 
+Acoes:
+1. Trocar porta host (`-p 8003:8000`).
+2. Parar container ativo (`scripts/desktop/stop-guaraci.*`).
 
----
+### API de pe mas UI sem dados
 
-*Maintained by Luis Felipe Vogel Lopes — Guaraci v0.2 (2025)*
+Verifique:
+- `GET /health`
+- `GET /sources`
+- permissao de escrita em `data/`
+
+### Botao "Abrir Pasta" em Docker
+
+Em container, abrir pasta no host nao e direto. Use o caminho mostrado em `host_output_dir` na UI/API.
+
+## Execucao local sem Docker (WIP)
+
+Este caminho existe apenas para desenvolvimento pontual e pode falhar.
+
+Limites atuais:
+- comportamento inconsistente entre sistemas,
+- maior risco de conflito de dependencias (PySUS/FTP stack),
+- nao e caminho validado para usuarios finais.
+
+Se for necessario testar localmente, use por sua conta e valide em Docker antes de considerar resultado como definitivo.

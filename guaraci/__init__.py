@@ -41,13 +41,14 @@ guaraci sinan filter --uf SP --sexo M --input dengue.csv --output filtered.csv
 ```
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.1"
 __author__ = "Pedro Guilherme dos Reis Teixeira, Luis"
 __email__ = "pedro.guilherme2305@usp.br"
 
 # Core imports for easy access
 from guaraci.core.config import GuaraciConfig
 from guaraci.core.datasource import DataSource
+from guaraci.core.results import JobResult
 
 # Optional imports
 try:
@@ -74,9 +75,34 @@ except ImportError:  # pragma: no cover - optional dependency
     _SIH_AVAILABLE = False
     SihDataSource = None  # type: ignore
 
+try:
+    from guaraci.snis import SnisDataSource
+
+    _SNIS_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency
+    _SNIS_AVAILABLE = False
+    SnisDataSource = None  # type: ignore
+
+try:
+    from guaraci.snis import SinisaDataSource
+
+    _SINISA_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency
+    _SINISA_AVAILABLE = False
+    SinisaDataSource = None  # type: ignore
+
+try:
+    from guaraci.opendatasus import OpenDataSUSDataSource
+
+    _OPENDATASUS_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency
+    _OPENDATASUS_AVAILABLE = False
+    OpenDataSUSDataSource = None  # type: ignore
+
 __all__ = [
     "DataSource",
     "GuaraciConfig",
+    "JobResult",
     "__version__",
 ]
 
@@ -86,3 +112,9 @@ if _SIM_AVAILABLE:
     __all__.append("SimDataSource")
 if _SIH_AVAILABLE:
     __all__.append("SihDataSource")
+if _SNIS_AVAILABLE:
+    __all__.append("SnisDataSource")
+if _SINISA_AVAILABLE:
+    __all__.append("SinisaDataSource")
+if _OPENDATASUS_AVAILABLE:
+    __all__.append("OpenDataSUSDataSource")
