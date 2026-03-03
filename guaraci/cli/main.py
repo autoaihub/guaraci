@@ -12,6 +12,7 @@ from guaraci import __version__
 from guaraci.cli.sinan_cli import sinan
 from guaraci.cli.sim_cli import sim
 from guaraci.cli.sih_cli import sih
+from guaraci.cli.snis_cli import snis
 
 console = Console()
 
@@ -34,6 +35,7 @@ def app(verbose: bool):
 app.add_command(sinan)
 app.add_command(sim)
 app.add_command(sih)
+app.add_command(snis)
 
 
 @app.command()
@@ -46,6 +48,8 @@ def info():
     console.print("• [cyan]sinan[/cyan] - DATASUS notification system (health surveillance)")
     console.print("• [cyan]sim[/cyan]   - DATASUS mortality information system (SIM)")
     console.print("• [cyan]sih[/cyan]   - DATASUS hospital information system (SIH/SUS)")
+    console.print("• [cyan]snis[/cyan]  - SNIS legado (BigQuery) e SINISA cru (gov.br)")
+    console.print("• [cyan]api[/cyan]   - HTTP API (FastAPI) em guaraci.api.main:app")
     console.print()
     console.print("[bold]Quick Start:[/bold]")
     console.print("  guaraci sinan download 2020 2022 --diseases DENG ZIKA")

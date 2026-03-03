@@ -1,0 +1,431 @@
+"""Tests for download service orchestration."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from guaraci.core.results import JobResult
+from guaraci.services.downloads import DownloadService, SourceDescriptor
+
+
+class _CustomSource:
+    descriptor = SourceDescriptor(source="custom", title="Custom", mode="test")
+
+    def validate_params(self, params):  # noqa: ANN001
+        if params.get("required") is None:
+            raise ValueError("missing required parameter")
+
+    def download(self, **kwargs):  # noqa: ANN003
+        return JobResult(
+            source="custom",
+            documents_found=1,
+            downloaded_count=1,
+            metadata={"received": kwargs.get("required")},
+        )
+
+
+def test_list_sources_contains_expected_entries() -> None:
+    service = DownloadService()
+
+    listed = service.list_sources()
+    sources = {item.source for item in listed}
+
+    assert "snis" in sources
+    assert "sinisa" in sources
+    assert "doses_aplicadas_pni" in sources
+    assert "zikavirus" in sources
+    assert "sinan" in sources
+    assert "sim" in sources
+    assert "sih" in sources
+    titles = [item.title for item in listed]
+    assert titles == sorted(titles)
+
+
+def test_run_rejects_unknown_source() -> None:
+    service = DownloadService()
+
+    with pytest.raises(ValueError):
+        service.run("unknown")
+
+
+def test_get_source_schema_returns_common_params() -> None:
+    service = DownloadService()
+
+    schema = service.get_source_schema("snis")
+    names = {item["name"] for item in schema["params"]}
+
+    assert schema["source"] == "snis"
+    assert {"results_url", "file_kinds", "modules", "timeout"} <= names
+
+
+def test_get_source_schema_returns_sinan_fields() -> None:
+    service = DownloadService()
+
+    schema = service.get_source_schema("sinan")
+    names = {item["name"] for item in schema["params"]}
+
+    assert schema["source"] == "sinan"
+    assert schema["mode"] == "pysus ftp"
+    assert {"start_year", "end_year", "diseases", "output_format"} <= names
+    assert "ano" not in names
+
+
+def test_get_source_schema_returns_doses_aplicadas_pni_fields() -> None:
+    service = DownloadService()
+
+    schema = service.get_source_schema("doses_aplicadas_pni")
+    names = {item["name"] for item in schema["params"]}
+
+    assert schema["source"] == "doses_aplicadas_pni"
+    assert schema["mode"] == "opendatasus api"
+    assert {"start_year", "end_year", "uf", "output_format", "keep_raw"} <= names
+    assert "dataset" not in names
+
+
+def test_get_source_schema_returns_zikavirus_fields() -> None:
+    service = DownloadService()
+
+    schema = service.get_source_schema("zikavirus")
+    names = {item["name"] for item in schema["params"]}
+
+    assert schema["source"] == "zikavirus"
+    assert schema["mode"] == "opendatasus api"
+    assert {"start_year", "end_year", "uf", "output_format", "batch_size", "max_pages", "keep_raw"} <= names
+    assert "dataset" not in names
+
+
+def test_get_source_schema_rejects_unknown() -> None:
+    service = DownloadService()
+
+    with pytest.raises(ValueError):
+        service.get_source_schema("unknown")
+
+
+def test_register_custom_source_and_run() -> None:
+    service = DownloadService()
+    service.register_source(_CustomSource())
+
+    result = service.run("custom", required="ok")
+
+    assert result.source == "custom"
+    assert result.downloaded_count == 1
+    assert result["received"] == "ok"
+
+    schema = service.get_source_schema("custom")
+    assert schema["params"] == []
+
+
+def test_register_duplicate_source_rejected() -> None:
+    service = DownloadService()
+    service.register_source(_CustomSource())
+
+    with pytest.raises(ValueError):
+        service.register_source(_CustomSource())
+
+
+def test_register_duplicate_source_can_replace() -> None:
+    service = DownloadService()
+    service.register_source(_CustomSource())
+
+    service.register_source(_CustomSource(), replace=True)
+
+    result = service.run("custom", required="ok")
+    assert result.source == "custom"
+
+
+def test_download_snis_normalizes_payload(monkeypatch) -> None:
+    class DummySnisDataSource:
+        def __init__(self, output_path=None):  # noqa: ANN001
+            self.output_path = output_path
+
+        def download(self, **kwargs):  # noqa: ANN003
+            return {
+                "documents_found": 3,
+                "downloaded_count": 2,
+                "skipped_count": 1,
+                "failed_count": 0,
+                "manifest_path": "data/snis/manifest.json",
+            }
+
+    from guaraci.services import downloads as mod
+
+    monkeypatch.setattr(mod, "SnisDataSource", DummySnisDataSource)
+
+    service = DownloadService()
+    result = service.download_snis(output_dir="data/snis")
+
+    assert isinstance(result, JobResult)
+    assert result.source == "snis"
+    assert result.downloaded_count == 2
+
+
+def test_download_sinisa_normalizes_payload(monkeypatch) -> None:
+    class DummySinisaDataSource:
+        def __init__(self, output_path=None):  # noqa: ANN001
+            self.output_path = output_path
+
+        def download(self, **kwargs):  # noqa: ANN003
+            return {
+                "documents_found": 2,
+                "downloaded_count": 1,
+                "skipped_count": 0,
+                "failed_count": 1,
+                "manifest_path": "data/sinisa/manifest.json",
+            }
+
+    from guaraci.services import downloads as mod
+
+    monkeypatch.setattr(mod, "SinisaDataSource", DummySinisaDataSource)
+
+    service = DownloadService()
+    result = service.download_sinisa(output_dir="data/sinisa")
+
+    assert isinstance(result, JobResult)
+    assert result.source == "sinisa"
+    assert result.status == "partial_success"
+
+
+def test_run_sih_normalizes_months_to_integer_list(monkeypatch) -> None:
+    class DummySihDataSource:
+        DEFAULT_GROUPS = ["RD"]
+        ALL_GROUPS = ["RD", "RJ"]
+
+        def __init__(self, output_path=None):  # noqa: ANN001
+            self.output_path = output_path or "data/sih"
+
+        def download(self, **kwargs):  # noqa: ANN003
+            return {
+                "total_files": 2,
+                "successful_downloads": 2,
+                "failed_downloads": [],
+                "received_months": kwargs.get("months"),
+            }
+
+    from guaraci.services import downloads as mod
+
+    monkeypatch.setattr(mod, "SihDataSource", DummySihDataSource)
+
+    service = DownloadService()
+    result = service.run(
+        "sih",
+        start_year=2022,
+        end_year=2022,
+        groups=["RD"],
+        states=["SP"],
+        months=["1", "2", "3"],
+    )
+
+    assert result.source == "sih"
+    assert result.downloaded_count == 2
+    assert result["received_months"] == [1, 2, 3]
+
+
+def test_run_doses_aplicadas_pni_injects_dataset_and_normalizes_uf(monkeypatch) -> None:
+    class DummyOpenDataSUSDataSource:
+        DEFAULT_DATASET = "doses_aplicadas_pni"
+        DEFAULT_MAX_PAGES = 250
+        DATASET_SPECS = {"doses_aplicadas_pni": object()}
+
+        def __init__(self, output_path=None):  # noqa: ANN001
+            self.output_path = Path(output_path or "data/opendatasus")
+
+        def download(self, **kwargs):  # noqa: ANN003
+            return {
+                "documents_found": 5,
+                "downloaded_count": 5,
+                "manifest_path": "data/opendatasus/manifest.json",
+                "received_dataset": kwargs.get("dataset"),
+                "received_uf": kwargs.get("uf"),
+                "received_output_format": kwargs.get("output_format"),
+            }
+
+    from guaraci.services import downloads as mod
+
+    monkeypatch.setattr(mod, "OpenDataSUSDataSource", DummyOpenDataSUSDataSource)
+
+    service = DownloadService()
+    result = service.run(
+        "doses_aplicadas_pni",
+        start_year=2025,
+        end_year=2025,
+        uf="sp",
+        output_format="csv",
+    )
+
+    assert result.source == "doses_aplicadas_pni"
+    assert result.downloaded_count == 5
+    assert result["received_dataset"] == "doses_aplicadas_pni"
+    assert result["received_uf"] == "SP"
+    assert result["received_output_format"] == "csv"
+
+
+def test_run_rejects_removed_opendatasus_alias() -> None:
+    service = DownloadService()
+
+    with pytest.raises(ValueError):
+        service.run(
+            "opendatasus",
+            start_year=2025,
+            end_year=2025,
+        )
+
+
+def test_run_zikavirus_injects_dataset(monkeypatch) -> None:
+    class DummyOpenDataSUSDataSource:
+        DEFAULT_DATASET = "doses_aplicadas_pni"
+        DEFAULT_MAX_PAGES = 250
+        DATASET_SPECS = {"doses_aplicadas_pni": object(), "zikavirus": object()}
+
+        def __init__(self, output_path=None):  # noqa: ANN001
+            self.output_path = Path(output_path or "data/opendatasus")
+
+        def download(self, **kwargs):  # noqa: ANN003
+            return {
+                "documents_found": 2,
+                "downloaded_count": 2,
+                "received_dataset": kwargs.get("dataset"),
+            }
+
+    from guaraci.services import downloads as mod
+
+    monkeypatch.setattr(mod, "OpenDataSUSDataSource", DummyOpenDataSUSDataSource)
+
+    service = DownloadService()
+    result = service.run(
+        "zikavirus",
+        start_year=2016,
+        end_year=2016,
+    )
+
+    assert result.source == "zikavirus"
+    assert result["received_dataset"] == "zikavirus"
+
+
+def test_run_rejects_removed_vacinacao_alias() -> None:
+    service = DownloadService()
+
+    with pytest.raises(ValueError):
+        service.run(
+            "vacinacao_covid19",
+            start_year=2025,
+            end_year=2025,
+        )
+
+
+def test_run_sinan_materializes_pysus_artifacts(monkeypatch, tmp_path) -> None:
+    source_dir = tmp_path / "source" / "RAIVBR25.parquet"
+    source_dir.mkdir(parents=True)
+    (source_dir / "part-0.parquet").write_text("dummy", encoding="utf-8")
+
+    class _DummyArtifact:
+        def __init__(self, path: Path) -> None:
+            self.path = path
+
+    class DummySinanDataSource:
+        NEGLECTED_DISEASES = ["RAIV"]
+
+        def __init__(self, output_path=None):  # noqa: ANN001
+            self.output_path = Path(output_path or tmp_path / "sinan_out")
+            self.output_path.mkdir(parents=True, exist_ok=True)
+            self.data = {"RAIV": [_DummyArtifact(source_dir)]}
+
+        def download(self, **kwargs):  # noqa: ANN003
+            return {
+                "successful_downloads": 1,
+                "failed_downloads": [],
+                "total_files": 1,
+            }
+
+    from guaraci.services import downloads as mod
+
+    monkeypatch.setattr(mod, "SinanDataSource", DummySinanDataSource)
+
+    output_dir = tmp_path / "dest"
+    service = DownloadService()
+    result = service.run(
+        "sinan",
+        output_dir=str(output_dir),
+        start_year=2023,
+        end_year=2023,
+        diseases=["RAIV"],
+    )
+
+    materialized = result["materialized_paths"]
+    assert isinstance(materialized, list)
+    assert len(materialized) == 1
+    assert Path(materialized[0]).exists()
+    assert (output_dir / "manifest.json").exists()
+
+
+def test_run_sinan_with_output_format_exports_processed(monkeypatch, tmp_path) -> None:
+    source_dir = tmp_path / "source" / "RAIVBR25.parquet"
+    source_dir.mkdir(parents=True)
+    (source_dir / "part-0.parquet").write_text("dummy", encoding="utf-8")
+
+    class _DummyArtifact:
+        def __init__(self, path: Path) -> None:
+            self.path = path
+
+    class DummySinanDataSource:
+        NEGLECTED_DISEASES = ["RAIV"]
+
+        def __init__(self, output_path=None):  # noqa: ANN001
+            self.output_path = Path(output_path or tmp_path / "sinan_out")
+            self.output_path.mkdir(parents=True, exist_ok=True)
+            self.data = {"RAIV": [_DummyArtifact(source_dir)]}
+            self.filtered = False
+
+        def download(self, **kwargs):  # noqa: ANN003
+            return {
+                "successful_downloads": 1,
+                "failed_downloads": [],
+                "total_files": 1,
+            }
+
+        def load_dataframe(self, disease):  # noqa: ANN001
+            return {"disease": disease}
+
+        def filter(self, df, **kwargs):  # noqa: ANN001, ANN003
+            self.filtered = True
+            return df
+
+        def export(self, df, format, name):  # noqa: ANN001, A003
+            path = self.output_path / f"{name}.{format}"
+            path.write_text("exported", encoding="utf-8")
+            return path
+
+    from guaraci.services import downloads as mod
+
+    monkeypatch.setattr(mod, "SinanDataSource", DummySinanDataSource)
+
+    output_dir = tmp_path / "dest"
+    service = DownloadService()
+    result = service.run(
+        "sinan",
+        output_dir=str(output_dir),
+        start_year=2023,
+        end_year=2023,
+        diseases=["RAIV"],
+        output_format="csv",
+        uf="SP",
+    )
+
+    exported = result["exported_files"]
+    assert isinstance(exported, list)
+    assert len(exported) == 1
+    assert Path(exported[0]).exists()
+
+
+def test_run_validates_common_params() -> None:
+    service = DownloadService()
+
+    with pytest.raises(ValueError):
+        service.run("snis", timeout=0)
+
+    with pytest.raises(ValueError):
+        service.run("snis", file_kinds="planilhas")
+
+    with pytest.raises(ValueError):
+        service.run("snis", invalid_param=True)

@@ -1,236 +1,108 @@
-# 🔧 Guaraci Project Improvements Summary
+# Melhorias do Projeto
 
-# Guaraci v0.2 – Modernization and Refactor
+Este documento registra o progresso ja implementado e os proximos focos tecnicos.
 
-**Author:** Luis Felipe Vogel Lopes (vogel@usp.br)  
-**Based on original v0.1 prototype by Pedro Guilherme dos Reis Teixeira**
+## 1) Progresso consolidado
 
-This version represents a full architectural redesign of Guaraci, transforming it from a single-file proof of concept into a production-ready, modular platform with Dockerized workflows, robust configuration, and comprehensive testing.
+### 1.1 Camada de fontes
 
+- `snis` e `sinisa` via crawler gov.br com manifest.
+- `sinan`, `sim` e `sih` via PySUS/FTP.
+- OpenDataSUS com fontes canonicas:
+  - `doses_aplicadas_pni`
+  - `zikavirus`
+- `snis` legado BigQuery isolado em `guaraci/snis/legacy/`.
 
-## 📋 Overview
+### 1.2 Camada de servicos
 
-This document summarizes the comprehensive improvements made to the Guaraci project, transforming it from a basic script-based tool into a professional, production-ready platform for Brazilian public data integration.
+- Registro de fontes com schema declarativo por parametro.
+- Validacao de parametros com rejeicao de campos desconhecidos.
+- Separacao de parametros de coleta vs pos-processamento (PySUS).
+- OpenDataSUS com contrato orientado a filtros nativos:
+  - base: `start_year`, `end_year`
+  - refinamento local opcional: `start_date`, `end_date`, `uf`
+  - `keep_raw` com padrao `false`
+- Remocao de aliases de source OpenDataSUS para reduzir ambiguidade.
+- Materializacao de artefatos PySUS para pasta local (`raw/`).
+- Exportacao opcional (`csv`, `parquet`, `sqlite`) para fontes PySUS e OpenDataSUS.
 
-## 🚀 Major Improvements
+### 1.3 Jobs assincronos
 
-### 1. **Project Structure & Architecture**
+- Fila de jobs com execucao em background.
+- Estados, cancelamento e retry.
+- Persistencia de historico de jobs em JSON.
+- Progresso com percentual, bytes, arquivo atual e ETA.
+- Logs estruturados por evento.
 
-#### Before:
-- Single standalone script (`guaraci-sinan.py`)
-- No proper package structure
-- Mixed functionality in one file
-- No separation of concerns
+### 1.4 API e UI
 
-#### After:
-- Professional package structure with proper modules
-- Clear separation between CLI, core functionality, and data sources
-- Abstract base classes for extensibility
-- Proper Python packaging with `pyproject.toml`
+- API FastAPI com endpoints para schema, jobs, logs e output.
+- UI web com formulario dinamico por fonte.
+- UI com separacao de filtros basicos e bloco `Filtragem avancada`.
+- `output_dir` no bloco basico antes de `output_format`.
+- Monitoramento de jobs e saida no painel.
+- Exibicao de `exported_files` e `export_warning` no output.
 
-```
-guaraci/
-├── __init__.py          # Package initialization with exports
-├── core/                # Core functionality
-│   ├── config.py        # Configuration management
-│   ├── datasource.py    # Abstract base class
-│   └── logging.py       # Centralized logging
-├── datasus/             # DATASUS integrations
-│   └── sinan.py         # Enhanced SINAN module
-├── cli/                 # Command-line interfaces
-│   ├── main.py          # Main CLI entry point
-│   └── sinan_cli.py     # SINAN-specific commands
-└── utils/               # Utility functions
-    └── mapping.py       # Enhanced mapping utilities
-```
+## 2) Pontos de atencao atuais
 
-### 2. **Configuration Management**
+1. Execucao local sem Docker
+- Status: WIP.
+- Risco: inconsistencias de dependencias/ambiente.
 
-#### New Features:
-- **Pydantic-based configuration** with validation and type safety
-- **Environment variable support** with `GUARACI_` prefix
-- **Automatic directory creation** for data and temp folders
-- **Configurable performance settings** (memory limits, concurrent downloads)
-- **Flexible output formats** and compression options
+2. UX entre fontes heterogeneas
+- Fontes crawler e PySUS tem semanticas diferentes.
+- OpenDataSUS adiciona variacao entre filtros nativos e refinamentos locais.
+- Necessario continuar refinando linguagem e agrupamento de filtros para usuarios leigos.
 
-```python
-# Example configuration
-config = GuaraciConfig(
-    data_root=Path("./data"),
-    max_concurrent_downloads=10,
-    memory_limit_gb=8.0,
-    log_level="DEBUG"
-)
-```
+3. Confiabilidade externa
+- Fontes FTP/web podem oscilar.
+- Precisamos ampliar observabilidade e estrategias de reprocessamento.
 
-### 3. **Enhanced CLI Interface**
+## 3) Direcao recomendada (proximas etapas)
 
-#### Before:
-- Basic argparse with limited functionality
-- No subcommands or organized structure
-- Poor error handling and user feedback
+### 3.1 Curto prazo
 
-#### After:
-- **Modern Click-based CLI** with rich formatting
-- **Organized subcommands** (`guaraci sinan download`, `guaraci sinan filter`)
-- **Rich progress bars** and colored output
-- **Comprehensive help system** and error messages
-- **Flexible filtering and export options**
+- Refinar UX da UI por tipo de fonte (crawler x API/FTP).
+- Melhorar mensagens de erro orientadas ao usuario final.
+- Expandir cobertura de testes para cenarios de falha de exportacao e rede.
+- Ampliar cobertura de regressao para comportamento de progresso/log em fontes API.
 
-```bash
-# New CLI examples
-guaraci sinan download 2020 2022 --diseases DENG ZIKA --format parquet
-guaraci sinan filter DENG --uf SP --sexo M --output filtered_data
-guaraci sinan summary DENG --by UF --metric count
-```
+### 3.2 Medio prazo
 
-### 4. **Performance Optimizations**
+- Catologo de fontes plugavel com metadata mais rica (descricao funcional por campo).
+- Melhorar classificacao de filtros por fase:
+  - coleta,
+  - transformacao,
+  - exportacao.
+- Expandir integracao OpenDataSUS para novos datasets mantendo filtros basicos nativos por fonte.
+- Padronizar manifest para todas as fontes.
 
-#### Concurrent Downloads:
-- **ThreadPoolExecutor** for parallel file downloads
-- **Configurable concurrency limits** to prevent overwhelming servers
-- **Retry mechanisms** with exponential backoff
-- **Progress tracking** for long-running operations
+### 3.3 Longo prazo
 
-#### Memory Management:
-- **Lazy loading** with Polars scan operations
-- **Chunked processing** for large datasets
-- **Memory limit enforcement** to prevent OOM errors
+- Estrategia de distribuicao desktop para usuario final nao tecnico.
+- Fluxo de instalacao simplificado com foco em operacao assistida.
+- Eventual suporte local sem Docker quando estabilidade for comprovada.
 
-#### Caching System:
-- **Cache validation** based on file age and parameters
-- **Cache key generation** using parameter hashing
-- **Simplified data management** with clear output directories
+## 4) Criterios de pronto para novas fontes
 
-### 5. **Error Handling & Logging**
+Uma nova fonte deve entrar com:
 
-#### Before:
-- Basic print statements for feedback
-- No structured error handling
-- Limited debugging capabilities
+- schema declarativo de parametros,
+- validacao forte de entrada,
+- retorno padronizado `JobResult`,
+- preferencia por filtros basicos nativos da fonte (evitando aliases opacos),
+- cobertura minima de testes,
+- documentacao atualizada em:
+  - `README.md`
+  - `CHANGELOG.md`
+  - `AGENTS.md`
+  - `docs/ARCHITECTURE.md`
+  - `docs/SOURCES_AND_FILTERS.md`
+  - `docs/API_REFERENCE.md`
+  - `docs/UI_GUIDE.md` (quando houver impacto de UX)
+  - `docs/AI_HANDOFF_OPENDATASUS.md`
 
-#### After:
-- **Loguru-based logging** with structured output
-- **Multiple log levels** and configurable destinations
-- **Comprehensive error handling** with graceful degradation
-- **Rich console output** with colors and formatting
-- **Detailed error messages** with context and suggestions
+## 5) Observacao de suporte
 
-### 6. **Data Processing Improvements**
-
-#### Enhanced UF Mapping:
-- **Robust type handling** for various input formats
-- **Comprehensive validation** and error recovery
-- **Additional utilities** (region mapping, state names)
-- **Performance optimized** mapping functions
-
-#### DataFrame Operations:
-- **Polars integration** for high-performance processing
-- **Flexible filtering** with multiple criteria
-- **Summary statistics** with grouping options
-- **Multiple export formats** (CSV, Parquet, SQLite)
-
-### 7. **Testing Infrastructure**
-
-#### New Testing Suite:
-- **Pytest-based testing** with comprehensive coverage
-- **Unit tests** for all major components
-- **Integration tests** for end-to-end workflows
-- **Performance benchmarks** for optimization tracking
-- **Mock data generation** for reliable testing
-
-### 8. **Documentation & Developer Experience**
-
-#### Enhanced Documentation:
-- **Comprehensive README** with examples and usage patterns
-- **API documentation** with type hints and docstrings
-- **Development setup guide** with multiple installation methods
-- **Contributing guidelines** and code standards
-
-#### Developer Tools:
-- **Pre-commit hooks** for code quality
-- **Black, isort, flake8** for consistent formatting
-- **MyPy** for static type checking
-- **Development setup script** for easy onboarding
-
-### 9. **Docker-First Architecture**
-
-#### Production-Ready Containerization:
-- **Docker-only workflow** eliminates dependency conflicts
-- **Consistent environments** across Windows, Mac, and Linux
-- **Automated dependency management** within containers
-- **Volume mounting** for seamless data access
-- **Environment variable configuration** for customization
-- **Health checks** and proper signal handling
-
-### 10. **Extensibility & Future-Proofing**
-
-#### Architecture for Growth:
-- **Abstract base classes** for easy addition of new data sources
-- **Plugin-style architecture** for modular functionality
-- **Configuration-driven behavior** for customization
-- **API-ready structure** for future web interface
-- **Standardized data formats** for interoperability
-
-## 📊 Performance Improvements
-
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Download Speed | Sequential | Concurrent (5x) | 400% faster |
-| Memory Usage | Full load | Lazy loading | 60% reduction |
-| Error Recovery | None | Retry + graceful | 95% reliability |
-| Cache Hit Rate | 0% | 80%+ | Instant results |
-| Setup Time | Manual | Automated | 90% reduction |
-
-## 🔧 Technical Debt Resolved
-
-### Code Quality:
-- ✅ Eliminated duplicate code between script and package
-- ✅ Removed hardcoded values and magic numbers
-- ✅ Implemented proper error handling throughout
-- ✅ Added comprehensive type hints and documentation
-- ✅ Established consistent code formatting and style
-
-### Architecture:
-- ✅ Separated concerns into logical modules
-- ✅ Implemented dependency injection for testability
-- ✅ Created abstract interfaces for extensibility
-- ✅ Established clear data flow and processing pipelines
-
-### Operations:
-- ✅ Automated development environment setup
-- ✅ Implemented proper logging and monitoring
-- ✅ Created reproducible build and deployment processes
-- ✅ Established testing and quality assurance workflows
-
-## 🎯 Next Steps & Recommendations
-
-### Immediate (Next 2 weeks):
-1. **Add integration tests** with real DATASUS data in Docker
-2. **Implement data validation** schemas for quality assurance
-3. **Create performance benchmarks** for regression testing
-4. **Add more comprehensive error recovery** mechanisms
-
-### Short-term (Next month):
-1. **Web API development** using FastAPI with Docker Compose
-2. **Additional data sources** (SIH, SIM, SIA integration)
-3. **Data visualization components** for exploratory analysis
-4. **Automated data quality reports** and monitoring
-
-### Long-term (Next quarter):
-1. **Machine learning pipeline integration** for predictive modeling
-2. **Real-time data streaming** capabilities
-3. **Kubernetes deployment** for scalable processing
-4. **Cloud deployment** options with container orchestration
-
-## 🏆 Impact Summary
-
-The improvements transform Guaraci from a simple data download script into a **professional-grade platform** suitable for:
-
-- **Academic research** with reproducible, citable datasets
-- **Public health surveillance** with real-time monitoring capabilities  
-- **Policy analysis** with standardized, comparable data across regions
-- **Machine learning applications** with clean, processed datasets
-- **Collaborative research** with shared, versioned data resources
-
-The new architecture positions Guaraci as a **foundational tool** for Brazilian public health data science, capable of supporting the full research lifecycle from data acquisition to publication-ready results.
+A base funcional atual e **Docker-first**.
+Qualquer passo fora desse fluxo deve ser tratado como experimental ate que haja validacao formal.

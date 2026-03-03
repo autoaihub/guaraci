@@ -1,0 +1,4134 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "API para disponibilização de dados abertos para repartições pertencentes ao DEMAS.",
+    "version": "1.8.19",
+    "title": "DEMAS - API de Dados Abertos",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "tags": [
+    {
+      "name": "Autenticação",
+      "description": "Controle de Acesso da API"
+    },
+    {
+      "name": "Agravo Arboviroses",
+      "description": "Cadastro de ocorrência de agravo de arboviroses"
+    },
+    {
+      "name": "Assistência à Saúde",
+      "description": ""
+    },
+    {
+      "name": "Atenção Primária",
+      "description": ""
+    },
+    {
+      "name": "Educação em Saúde",
+      "description": ""
+    },
+    {
+      "name": "BNAFAR",
+      "description": "Base Nacional de Dados de Ações e Serviços da Assistência Farmacêutica do Sistema Único de Saúde"
+    },
+    {
+      "name": "Ciência & Tecnologia",
+      "description": ""
+    },
+    {
+      "name": "CNES",
+      "description": "Cadastro Nacional de Estabelecimentos de Saúde"
+    },
+    {
+      "name": "Macrorregião e Região de Saúde",
+      "description": "Informações de Macrorregião e Região de Saúde"
+    },
+    {
+      "name": "Plataforma Brasil",
+      "description": "Cadastro de Projetos de Pesquisa na Plataforma Brasil"
+    },
+    {
+      "name": "SISAGUA",
+      "description": "Sistema de Informação da Vigilância da Qualidade da Água para Consumo Humano"
+    },
+    {
+      "name": "SISVAN",
+      "description": "Sistema de Vigilância Alimentar e Nutricional"
+    }
+  ],
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/autenticacao/login": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Obtém access token para autorização aos endpoints restritos.",
+        "description": "",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Login e senha do usuário.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/login"
+            }
+          }
+        ],
+        "responses": {
+          "405": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/autenticacao/logout": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Revogar a autorização para acessso aos endpoints restritos.",
+        "description": "",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "405": {
+            "description": "Invalid input"
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/cnes/tipounidades": {
+      "get": {
+        "tags": [
+          "CNES"
+        ],
+        "summary": "Obtém todos os tipos de unidade.",
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista com todos os tipos de unidades presentes na API.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cnes/tipounidades/{codigo_tipo_unidade}": {
+      "get": {
+        "tags": [
+          "CNES"
+        ],
+        "summary": "Obtém tipo de unidade utilizando o código do tipo da unidade.",
+        "parameters": [
+          {
+            "name": "codigo_tipo_unidade",
+            "in": "path",
+            "description": "código do tipo de unidade",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipo de Unidade foi encontrada com o código informado.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tipo de Unidade não foi encontrada com o código informado."
+          }
+        }
+      }
+    },
+    "/cnes/estabelecimentos": {
+      "get": {
+        "tags": [
+          "CNES"
+        ],
+        "summary": "Obtém todos os estabelecimentos.",
+        "parameters": [
+          {
+            "name": "codigo_tipo_unidade",
+            "in": "query",
+            "description": "Filtra estabelecimentos pelo código do tipo de unidade",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "codigo_uf",
+            "in": "query",
+            "description": "Filtra pelo código do estado",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "codigo_municipio",
+            "in": "query",
+            "description": "Filtra pelo código do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filtra estabelecimentos que possuem status ativo (código 1) ou inativo (código 0).",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ]
+          },
+          {
+            "name": "estabelecimento_possui_centro_cirurgico",
+            "in": "query",
+            "description": "Filtra estabelecimentos que possuem (código 1) ou não (código 0) centro cirúrgico.",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ]
+          },
+          {
+            "name": "estabelecimento_possui_centro_obstetrico",
+            "in": "query",
+            "description": "Filtra estabelecimentos que possuem (código 1) ou não (código 0) centro obstétrico.",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ]
+          },
+          {
+            "name": "data_atualizacao",
+            "in": "query",
+            "description": "Filtra estabelecimentos que foram atualizados a partir da data informada. Formato: YYYY-MM-DD",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista com todos os estabelecimentos presentes na API.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cnes/estabelecimentos/{codigo_cnes}": {
+      "get": {
+        "tags": [
+          "CNES"
+        ],
+        "summary": "Obtém estabelecimento utilizando o código CNES.",
+        "parameters": [
+          {
+            "name": "codigo_cnes",
+            "in": "path",
+            "description": "código do estabelecimento",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Estabelecimento foi encontrado com o código informado.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Estabelecimento não foi encontrado com o código CNES informado."
+          }
+        }
+      }
+    },
+    "/sisagua/vigilancia-parametros-basicos": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Obtém lista de parâmetros básicos de vigilância das instituições",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Filtra pela sigla do estado",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_ibge",
+            "in": "query",
+            "description": "Filtra pelo código do município",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "motivo_da_coleta",
+            "in": "query",
+            "description": "Filtra pela descrição do motivo da coleta",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tipo_da_forma_de_abastecimento",
+            "in": "query",
+            "description": "Filtra pelo tipo da forma de abastecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano",
+            "in": "query",
+            "description": "Filtra pelo ano de referência",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "mes",
+            "in": "query",
+            "description": "Filtra pelo mês de referência",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "procedencia_da_coleta",
+            "in": "query",
+            "description": "Filtra pela descrição da procedência da coleta",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ponto_de_coleta",
+            "in": "query",
+            "description": "Filtra pela descrição do ponto de coleta",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "parametro",
+            "in": "query",
+            "description": "Filtra pela descrição do parâmetro básico",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ld_minimo",
+            "in": "query",
+            "description": "Filtra pelo valor mínimo de limite de detecção",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "ld_maximo",
+            "in": "query",
+            "description": "Filtra pelo valor máximo de limite de detecção",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "lq_minimo",
+            "in": "query",
+            "description": "Filtra pelo valor mínimo de limite de qualificação",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "lq_maximo",
+            "in": "query",
+            "description": "Filtra pelo valor máximo de limite de qualificação",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista com todos os parâmetros de controle mensal coletado das instituições.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/controle-semestral": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Obtém lista de parâmetros de controle semestral",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Filtra pela sigla do estado",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_ibge",
+            "in": "query",
+            "description": "Filtra pelo código do município",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cnpj_da_instituicao",
+            "in": "query",
+            "description": "Filtra CNPJ da instituição",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tipo_da_forma_de_abastecimento",
+            "in": "query",
+            "description": "Filtra pelo tipo da forma de abastecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_de_referencia",
+            "in": "query",
+            "description": "Filtra pelo ano de referência",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "semestre_de_referencia",
+            "in": "query",
+            "description": "Filtra pelo semestre de referência",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "grupo_de_parametros",
+            "in": "query",
+            "description": "Filtra pelo grupo de parâmetros",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ld_minimo",
+            "in": "query",
+            "description": "Filtra pelo valor mínimo de limite de detecção",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "ld_maximo",
+            "in": "query",
+            "description": "Filtra pelo valor máximo de limite de detecção",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "lq_minimo",
+            "in": "query",
+            "description": "Filtra pelo valor mínimo de limite de qualificação",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "lq_maximo",
+            "in": "query",
+            "description": "Filtra pelo valor máximo de limite de qualificação",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "resultado_minimo",
+            "in": "query",
+            "description": "Filtra pelo valor mínimo de resultado",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "resultado_maximo",
+            "in": "query",
+            "description": "Filtra pelo valor máximo de resultado",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista com todos os parâmetros de controle mensal coletado das instituições.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/controle-mensal-parametros-basicos": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Obtém lista de parâmetros básicos de controle mensal coletado das instituições.",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Filtra pela sigla do estado",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_ibge",
+            "in": "query",
+            "description": "Filtra pelo código do município",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cnpj_da_instituicao",
+            "in": "query",
+            "description": "Filtra CNPJ da instituição",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tipo_da_forma_de_abastecimento",
+            "in": "query",
+            "description": "Filtra pelo tipo da forma de abastecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_de_referencia",
+            "in": "query",
+            "description": "Filtra pelo ano de referência",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "mes_de_referencia",
+            "in": "query",
+            "description": "Filtra pelo mês de referência",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "parametro",
+            "in": "query",
+            "description": "Filtra pelo parâmetro avaliado",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "valor_minimo",
+            "in": "query",
+            "description": "Filtra pelo valor mínimo",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "valor_maximo",
+            "in": "query",
+            "description": "Filtra pelo valor máximo",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista com todos os parâmetros de controle mensal coletado das instituições.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/pontos-de-captacao": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados sobre os pontos de captação de água para consumo humano registrados nos sistemas e soluções alternativas de abastecimento de água cadastrados no SISAGUA.",
+        "parameters": [
+          {
+            "name": "codigo_ibge",
+            "in": "query",
+            "description": "Filtra pelo código do município",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Filtra pela sigla do estado",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/cadastro-carro-pipa-populacao": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados cadastrais sobre Carros-Pipa utilizados para abastecimento de água para consumo humano, com informações sobre a população atendida por cada um deles",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/cadastro-carro-pipa-procedencia": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "SISAGUA - Cadastro Carro Pipa Procedência",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/controle-mensal-amostras-fora-do-padrao": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados detalhados sobre as análises de qualidade da água de responsabilidade dos prestadores de serviço que não atenderam ao padrão de potabilidade, informados em frequência mensal.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/controle-mensal-demais-parametros": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados das análises de qualidade da água de média/alta complexidade, realizado pelas instituições responsáveis por SAA e SAC, em frequência mensal ou inferior.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/controle-mensal-infraestrutura-operacional": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados sobre as condições operacionais e de infraestrutura dos sistemas e soluções de abastecimento de água para consumo humano, informados pelo prestador de serviço em frequência mensal.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/controle-mensal-plano-amostragem": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados sobre os quantitativos mínimos de análises definidos para os prestadores de serviço, por forma de abastecimento, parâmetro de qualidade da água e ponto de monitoramento, com respectivas frequências de amostragem.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/populacao-abastecida": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados anuais sobre as formas de abastecimento de água para consumo humano (SAA, SAC e SAI), com informações sobre a população atendida por cada uma delas.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/tratamento-de-agua": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados sobre o tratamento de água empregado nos sistemas e soluções alternativas de abastecimento de água para consumo humano, informados pelo prestador de serviço em frequência anual.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/vigilancia-cianobacterias-e-cianotoxinas": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados sobre as análises de cianobactérias e cianotoxinas realizadas pelo setor saúde.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisagua/vigilancia-demais-parametros": {
+      "get": {
+        "tags": [
+          "SISAGUA"
+        ],
+        "summary": "Dados sobre as análises de qualidade da água de alta complexidade realizadas pelo setor saúde.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sisvan/estado-nutricional": {
+      "get": {
+        "tags": [
+          "SISVAN"
+        ],
+        "summary": "Obtém informações de acompanhamento de estado nutricional.",
+        "parameters": [
+          {
+            "name": "codigo_municipio",
+            "in": "query",
+            "description": "Filtra pelo código do município.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Filtra pelo estado.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_cnes",
+            "in": "query",
+            "description": "Filtra pelo Código CNES.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "idade_minima",
+            "in": "query",
+            "description": "Filtra pela idade mínima.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "idade_maxima",
+            "in": "query",
+            "description": "Filtra pela idade máxima.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "codigo_fase_vida",
+            "in": "query",
+            "description": "Filtra pelo código de fase da vida: 1 - Menor de 6 meses, 2 - Entre 6 meses a 2 anos, 3 - Entre 2 anos a 5 ano, 4 - Entre 5 anos a 7 anos, 5 - Entre 7 anos a 10 anos, 6 - Adolescente, 7 - Adulto, 8 - Idoso",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "codigo_povo_comunidade",
+            "in": "query",
+            "description": "Filtra pelo código de povo da comunidade.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "codigo_escolaridade",
+            "in": "query",
+            "description": "Filtra pelo código de escolaridade: 1 - Creche, 3 - Classe alfabetizada, 4 - Ensino fundamental 1ª a 4ª séries, 5 - Ensino fundamental 5ª a 8ª séries, 6 - Ensino fundamental completo, 15 - Nenhum, 99 - Sem informação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "ano_mes_competencia",
+            "in": "query",
+            "description": "Filtra pelo Ano/Mês da competência. Ex.: 202301",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "gestante",
+            "in": "query",
+            "description": "Filtra acompanhamentos de gestantes (código 1) ou não gestantes (código 0).",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ]
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista com todos os estabelecimentos presentes na API.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plataformabr/projetos": {
+      "get": {
+        "tags": [
+          "Plataforma Brasil"
+        ],
+        "summary": "Obtém todos os projetos.",
+        "parameters": [
+          {
+            "name": "uf_comite_etica_pesquisa",
+            "in": "query",
+            "description": "Filtra projetos pelo estado do comitê de ética e pesquisa",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_situacao_parecer",
+            "in": "query",
+            "description": "Filtra projetos pela situação do parecer: 1 - Aprovado, 2 - Aprovado com Recomendação, 3 - Devolvido com Recomendação, 4 - Não aprovado, 5 - Pendente, 6 - Retirado.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "uf_instituicao_proponente",
+            "in": "query",
+            "description": "Filtra projetos pelo estado da instituição proponente.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista com todos os projetos presentes na API.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plataformabr/projetos/{numero_caae}": {
+      "get": {
+        "tags": [
+          "Plataforma Brasil"
+        ],
+        "summary": "Obtém projeto utilizando o número CAAE (Certificado de Apresentação de Apreciação Ética).",
+        "parameters": [
+          {
+            "name": "numero_caae",
+            "in": "path",
+            "description": "número do certificado de apresentação de apreciação ética (apenas dígitos)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Projeto foi encontrado com o número CAAE informado.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tipo de Unidade não foi encontrada com o código informado."
+          }
+        }
+      }
+    },
+    "/arboviroses/zikavirus": {
+      "get": {
+        "tags": [
+          "Agravo Arboviroses"
+        ],
+        "summary": "Obtém base de ocorrência de arbovirose zikavirus",
+        "parameters": [
+          {
+            "name": "nu_ano",
+            "in": "query",
+            "description": "Filtra arbovirose pelo ano da ocorrência",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Base de ocorrência de arbovirose Zikavirus.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/arboviroses/dengue": {
+      "get": {
+        "tags": [
+          "Agravo Arboviroses"
+        ],
+        "summary": "Obtém base de ocorrência de arbovirose Dengue",
+        "parameters": [
+          {
+            "name": "nu_ano",
+            "in": "query",
+            "description": "Filtra arbovirose pelo ano da ocorrência",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Base de ocorrência de arbovirose Dengue.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/arboviroses/chikungunya": {
+      "get": {
+        "tags": [
+          "Agravo Arboviroses"
+        ],
+        "summary": "Obtém base de ocorrência de arbovirose Chikungunya",
+        "parameters": [
+          {
+            "name": "nu_ano",
+            "in": "query",
+            "description": "Filtra arbovirose pelo ano da ocorrência",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Base de ocorrência de arbovirose Chikungunya.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/daf/estoque-medicamentos-bnafar-horus": {
+      "get": {
+        "tags": [
+          "BNAFAR"
+        ],
+        "summary": "Obtém base de estoque de medicamentos do Sistema Nacional de Gestão da Assistência Farmacêutica (Hórus)",
+        "parameters": [
+          {
+            "name": "codigo_uf",
+            "in": "query",
+            "description": "Filtra pelo Código IBGE da Unidade da Federação à qual pertence o estabelecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_municipio",
+            "in": "query",
+            "description": "Filtra pelo Código IBGE do município ao qual pertence o estabelecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_cnes",
+            "in": "query",
+            "description": "Filtra pelo Código CNES do estabelecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "anomes_posicao_estoque",
+            "in": "query",
+            "description": "Filtra pela Ano Mês da posição de estoque informada. Formato: AAAAMM. Exemplo: 202402",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "data_posicao_estoque",
+            "in": "query",
+            "description": "Filtra pela Data da posição de estoque informada. Formato: AAAA-MM-DD. Exemplo: 2024-02-21",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_catmat",
+            "in": "query",
+            "description": "Filtra pelo Código CATMAT com unidade de fornecimento do item em estoque",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sigla_programa_saude",
+            "in": "query",
+            "description": "Filtra pela Sigla do programa de Saúde vinculado ao item",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tipo_produto",
+            "in": "query",
+            "description": "Filtra pela Sigla do Tipo do produto em estoque",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sigla_sistema_origem",
+            "in": "query",
+            "description": "Filtra pela Sigla do Sistema de origem do dado",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Base de estoque de medicamentos do Sistema Nacional de Gestão da Assistência Farmacêutica (Hórus).",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/macrorregiao-e-regiao-de-saude/municipio": {
+      "get": {
+        "tags": [
+          "Macrorregião e Região de Saúde"
+        ],
+        "summary": "Obtém lista de municípios com as informações de macrorregião e região de saúde",
+        "parameters": [
+          {
+            "name": "codigo_municipio",
+            "in": "query",
+            "description": "Filtra pelo código do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "municipio",
+            "in": "query",
+            "description": "Filtra pelo nome do município",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sigla_uf",
+            "in": "query",
+            "description": "Filtra pela sigla do estado",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_regiao_saude",
+            "in": "query",
+            "description": "Filtra pelo código de região saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "regiao_saude",
+            "in": "query",
+            "description": "Filtra pelo nome de regiao saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_macrorregiao_de_saude",
+            "in": "query",
+            "description": "Filtra pelo código de macrorregiao saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "macrorregiao_saude",
+            "in": "query",
+            "description": "Filtra pelo nome de macrorregiao saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 860.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de municípios com as informações de macrorregião e região de saúde.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/hospitais-e-leitos": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Obtém lista de dados gerais dos estabelecimentos hospitalares, leitos gerais e complementares, bem como informações de contato com os estabelecimentos como endereço, telefone e e-mail",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Filtra pela sigla do estado",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacinacao/doses-aplicadas-pni-2020": {
+      "get": {
+        "tags": [
+          "Vacinação"
+        ],
+        "summary": "Doses aplicadas pelo Programa de Nacional Imunizações (PNI) - 2020",
+        "parameters": [
+          {
+            "name": "uf_estabelecimento",
+            "in": "query",
+            "description": "Filtra pela sigla do estabelecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "uf_paciente",
+            "in": "query",
+            "description": "Filtra pela sigla do paciente",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacinacao/doses-aplicadas-pni-2021": {
+      "get": {
+        "tags": [
+          "Vacinação"
+        ],
+        "summary": "Doses aplicadas pelo Programa de Nacional Imunizações (PNI) - 2021",
+        "parameters": [
+          {
+            "name": "uf_estabelecimento",
+            "in": "query",
+            "description": "Filtra pela sigla da UF do estabelecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacinacao/doses-aplicadas-pni-2022": {
+      "get": {
+        "tags": [
+          "Vacinação"
+        ],
+        "summary": "Doses aplicadas pelo Programa de Nacional Imunizações (PNI) - 2022",
+        "parameters": [
+          {
+            "name": "uf_paciente",
+            "in": "query",
+            "description": "Filtra pela sigla do paciente",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacinacao/doses-aplicadas-pni-2023": {
+      "get": {
+        "tags": [
+          "Vacinação"
+        ],
+        "summary": "Doses aplicadas pelo Programa de Nacional Imunizações (PNI) - 2023",
+        "parameters": [
+          {
+            "name": "uf_estabelecimento",
+            "in": "query",
+            "description": "Filtra pela sigla do estabelecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacinacao/doses-aplicadas-pni-2024": {
+      "get": {
+        "tags": [
+          "Vacinação"
+        ],
+        "summary": "Dose aplicadas pelo Programa Nacional de Imunizações (PNI) - 2024",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacinacao/doses-aplicadas-pni-2025": {
+      "get": {
+        "tags": [
+          "Vacinação"
+        ],
+        "summary": "Dose aplicadas pelo Programa Nacional de Imunizações (PNI) - 2025",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacinacao/doses-aplicadas-pni-2026": {
+      "get": {
+        "tags": [
+          "Vacinação"
+        ],
+        "summary": "Dose aplicadas pelo Programa Nacional de Imunizações (PNI) - 2026",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/economia-da-saude/bps": {
+      "get": {
+        "tags": [
+          "Economia da Saúde"
+        ],
+        "summary": "Banco de Preço em Saúde - sistema de registro de informações de compras públicas e privadas de medicamentos e dispositivos médicos.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/economia-da-saude/sistema-de-apuracao-e-gestao-de-custos-do-sus-apurasus": {
+      "get": {
+        "tags": [
+          "Economia da Saúde"
+        ],
+        "summary": "Número de unidades de saúde usando o ApuraSUS por tipo de estabelecimento. Base de dados de custos em saúde, disponível para alimentação gratuita para todos os estabelecimentos de saúde",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/outros-temas/ced": {
+      "get": {
+        "tags": [
+          "Outros Temas"
+        ],
+        "summary": "CED - Sistema de controle de demandas abertas para a equipe de banco de dados, GAAD.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/prevencao-e-promocao/distribuicao_epi_insumo": {
+      "get": {
+        "tags": [
+          "Prevenção e Promoção"
+        ],
+        "summary": "Esta base de dados possui informações sobre os equipamentos de proteção individual (EPI) e insumos de saúde distribuídos em razão do combate à emergência de saúde pública de importância internacional decorrente da Covid-19.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sasisus-esgotamento-sanitario": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Caracterização das formas de esgotamento sanitário nas aldeias agregadas por Dsei.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sasi-sus-gerenciamento-de-residuos-solidos": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Caracterização das formas de gerenciamento de resíduos sólidos nas aldeias, por Dsei.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/acompanhamento-obra-infraestrutura-saude": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Microdados dos acompanhamentos de Obras de Infraestruturas de Saúde e Saneamento da Secretaria de Saúde Indígena.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/planilha-de-fornecimento-e-monitoramento-da-qualidade-da-agua-acesso-a-agua": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Microdados dos acompanhamentos de Fornecimento e Monitoramento da Qualidade da Água da Secretaria de Saúde Indígena.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/planilha-registros-habilitacao-recebimento-incentivo": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Estabelecimentos de saúde habilitados ao recebimento do IAE-PI",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/indicadores-enfrentamento-monitoramento-covid19-indigenas": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Dados referentes aos indicadores de enfrentamento e monitoramento à Covid-19 dos Povos Indígenas Brasileiros",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sistema-de-atencao-a-saude-indigena-modulo-de-vigilancia-alimentar-e-nutricional": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Os dados disponibilizados são referentes ao módulo de Vigilância Alimentar e Nutricional (VAN) da base nacional do Sistema de Atenção à Saúde Indígena (Siasi) de crianças indígenas menores de 5 anos.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/enani-2019": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "Base com estudo nacional de alimentação e nutrição infantil: ENANI-2019",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 10.",
+            "required": false,
+            "type": "integer",
+            "default": 10
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/pmmb": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "Programas de Provimento Federal - Programa Mais Médicos para o Brasil (PMMB) e Programa Médicos pelo Brasil (PMpB)",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/educacao-em-saude/pvc": {
+      "get": {
+        "tags": [
+          "Educação em Saúde"
+        ],
+        "summary": "Programa De Volta Para Casa (PVC)",
+        "description": "O Programa \"De Volta Para Casa\" (PVC) é parte integrante da Rede de Atenção Psicossocial (RAPS), compondo a estratégia de ressocialização de pessoas com transtornos mentais. O PVC oferece um auxílio financeiro a pacientes com longas internações em hospitais psiquiátricos e hospitais de custódia (no mínimo 2 anos ininterruptos ou mais). Essa iniciativa visa oferecer condições objetivas para a reinserção psicossocial considerando a dimensão financeira como fundamental nesse processo. O PVC melhora a qualidade de vida e fortalece a autonomia financeira.",
+        "parameters": [
+          {
+            "name": "co_uf",
+            "in": "query",
+            "description": "Código da unidade federativa (UF).",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "nu_ano",
+            "in": "query",
+            "description": "Ano de referência.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "nu_mes",
+            "in": "query",
+            "description": "Mês de referência.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/pmmb-serie-historica": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "Série histórica de profissionais vinculados ao PMMB",
+        "parameters": [
+          {
+            "name": "regiao",
+            "in": "query",
+            "description": "Nome da região.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Sigla da unidade federativa.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/pmmb-profissionais-ativos": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "Profissionais ativos no Programa Mais Médicos para o Brasil (PMMB)",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Sigla da unidade federativa.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sexo",
+            "in": "query",
+            "description": "Sexo do profissional.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "nacionalidade",
+            "in": "query",
+            "description": "Nacionalidade do profissional.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacinacao/esavi": {
+      "get": {
+        "tags": [
+          "Vacinação"
+        ],
+        "summary": "Evento supostamente atribuível à vacinação ou imunização (ESAVI) é qualquer ocorrência médica indesejada após a vacinação, não possuindo necessariamente uma relação causal com o uso de uma vacina ou outro imunobiológico (imunoglobulinas e soros heterólogos).",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vacinacao/sistema-de-informacao-de-insumos-estrategicos": {
+      "get": {
+        "tags": [
+          "Vacinação"
+        ],
+        "summary": "Monitoramento dos dados de doses distribuídas",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/arboviroses/febre-amarela-humanos-primatas-nao-humanos": {
+      "get": {
+        "tags": [
+          "Agravo Arboviroses"
+        ],
+        "summary": "Notificações de casos suspeitos da doença de febre amarela em humanos e em primatas não-humanos",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/notificacoes-de-sindrome-gripal-leve-2020": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "Base de dados de SG de casos leves e moderados suspeitos de covid-19, a partir da incorporação do sistema e-SUS Notifica.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/notificacoes-de-sindrome-gripal-leve-2021": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "Base de dados de SG de casos leves e moderados suspeitos de covid-19, a partir da incorporação do sistema e-SUS Notifica.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/notificacoes-de-sindrome-gripal-leve-2022": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "Base de dados de SG de casos leves e moderados suspeitos de covid-19, a partir da incorporação do sistema e-SUS Notifica.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/notificacoes-de-sindrome-gripal-leve-2023": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "Base de dados de SG de casos leves e moderados suspeitos de covid-19, a partir da incorporação do sistema e-SUS Notifica.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/notificacoes-de-sindrome-gripal-leve-2024": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "Base de dados de SG de casos leves e moderados suspeitos de covid-19, a partir da incorporação do sistema e-SUS Notifica.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/sistema-de-informacao-sobre-mortalidade": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "O Sistema de Informação sobre Mortalidade (SIM), desenvolvido pelo Ministério da Saúde em 1975, é produto da unificação de mais de quarenta modelos de Declaração de Óbito utilizados ao longo dos anos, para coletar dados sobre mortalidade no país.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/sistema-de-informacao-sobre-nascidos-vivos": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "O Sistema de Informações sobre Nascidos Vivos (Sinasc), foi implantado oficialmente a partir de 1990, com o objetivo de coletar dados sobre os nascimentos informados em todo território nacional e fornecer dados sobre natalidade para todos os níveis do Sistema de Saúde.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/srag-2009-2012": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "Legado dos bancos de dados (BD) epidemiológicos de SRAG, da rede de vigilância da Influenza e outros vírus respiratórios, desde o início da sua implantação.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/srag-2013-2018": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "Legado dos bancos de dados (BD) epidemiológicos de SRAG, da rede de vigilância da Influenza e outros vírus respiratórios, desde o início da sua implantação.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/srag-2019-2026": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "Legado dos bancos de dados (BD) epidemiológicos de SRAG, da rede de vigilância da Influenza e outros vírus respiratórios, desde o início da sua implantação.",
+        "parameters": [
+          {
+            "name": "dt_notific",
+            "in": "query",
+            "description": "Data de preenchimento da ficha de notificação. Formato: AAAA-MM-DD. Exemplo: 2024-02-21.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "anomes_notific",
+            "in": "query",
+            "description": "Filtra pela Ano Mês da ficha de notificação informada. Formato: AAAAMM. Exemplo: 202402",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/mpox": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "O Projeto e-SUS Sinan tem como objetivo modernizar o Sistema de Informação de Agravos de Notificação (Sinan), além de registrar em tempo real as notificações das doenças e agravos que compõem a lista nacional de notificação compulsória e substituir as versões vigentes (Sinan NET e Sinan Online) do sistema Sinan, bem como os aplicativos auxiliares.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/unidade-basicas-de-saude": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Relação de Unidades Básicas de Saúde - UBS cadastradas no CNES",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/siasi-acompanhamento-gestacional": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Apresenta microdados de informações registradas no Módulo de Gestação e Acompanhamento Gestacional do Sistema de Atenção à Saúde Indígena (SIASI). Dados referem-se aos registros de acompanhamento de gestações de mulheres indígenas residentes em aldeias ou acampamentos, cuja gestação foi finalizada no ano de referência.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/siasi-modulo-morbidades": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Apresenta microdados de informações registradas Módulo Módulo de Morbidades no Sistema de Atenção à Saúde Indígena (SIASI) para o CID-X n°Z001-Exame de rotina de saúde da criança, referente aos acompanhamentos de crianças menores de um ano.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/siasi-modulo-saude-bucal-ficha3": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Microdados de informações registradas no Módulo de Saúde Bucal do Sistema de Informação da Atenção à Saúde Indígena (SIASI). Ficha 3 – Consolidado Mensal de Odontologia – Atividades Coletivas, que possibilitam a análise das características das atividades de educação em saúde, de escovação dental supervisionada, de aplicação coletiva de flúor gel e quanto a distribuição de material de higiene bucal.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/siasi-modulo-saude-bucal-ficha4": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Microdados de informações registradas no Módulo de Saúde Bucal do Sistema de Informação da Atenção à Saúde Indígena (SIASI). Ficha 4 - Ficha odontológica individual, que possibilitam a análise das características demográficas da população atendida bem como informações relacionadas a presença de má-formação orofaciais, uso e necessidade de prótese dentária e fluorose dentária.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/siasi-modulo-saude-bucal-ficha7": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Microdados de informações registradas no Módulo de Saúde Bucal do Sistema de Informação da Atenção à Saúde Indígena (SIASI). Ficha 7 - Consolidado Mensal de Odontologia – Procedimentos Individuais, que possibilitam a análise das características dos atendimentos e procedimentos odontológicos realizados pelas Equipes Multidisciplinares de saúde Indígena (EMSI).",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ciencia-tecnologia/dgits-contribuicoes-consultas-publicas": {
+      "get": {
+        "tags": [
+          "Ciência & Tecnologia"
+        ],
+        "summary": "A Conitec é um órgão colegiado permanente, integrante da estrutura do Ministério da Saúde, e tem por objetivo assessorar a Pasta nas atribuições relativas à incorporação, exclusão ou alteração de tecnologias em saúde, pelo SUS, bem como na constituição ou alteração de Protocolos Clínicos e Diretrizes Terapêuticas (PCDT). As Consultas Públicas da Conitec referente as tecnologias estão na plataforma Participa + Brasil.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ciencia-tecnologia/dgits-controle-demandas-conitec": {
+      "get": {
+        "tags": [
+          "Ciência & Tecnologia"
+        ],
+        "summary": "A Conitec é um órgão colegiado permanente, integrante da estrutura do Ministério da Saúde, e tem por objetivo assessorar a Pasta nas atribuições relativas à incorporação, exclusão ou alteração de tecnologias em saúde, pelo SUS, bem como na constituição ou alteração de Protocolos Clínicos e Diretrizes Terapêuticas (PCDT). Estão apresentadas nestes dados a seção somente as demandas de tecnologias já avaliadas ou em avaliação. Assim, aquelas que estão em análise de conformidade ou que já foram consideradas não conformes, nos termos da legislação vigente, não estão computadas.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ciencia-tecnologia/dgits-controle-pcdt": {
+      "get": {
+        "tags": [
+          "Ciência & Tecnologia"
+        ],
+        "summary": "A Conitec é um órgão colegiado permanente, integrante da estrutura do Ministério da Saúde, e tem por objetivo assessorar a Pasta nas atribuições relativas à incorporação, exclusão ou alteração de tecnologias em saúde, pelo SUS, bem como na constituição ou alteração de Protocolos Clínicos e Diretrizes Terapêuticas (PCDT).",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ciencia-tecnologia/dgits-tecnologias-diretrizes": {
+      "get": {
+        "tags": [
+          "Ciência & Tecnologia"
+        ],
+        "summary": "O Monitoramento do Horizonte Tecnológico (MHT) tem como objetivo identificar tecnologias novas e emergentes (em estágio de desenvolvimento) e prever os impactos que possam causar no sistema de saúde. O documento disponibilizado foi elaborado com base nas evidências disponíveis, com a finalidade de informar à sociedade quanto aos potenciais das tecnologias em desenvolvimento para o tratamento da Covid-19.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/registro-de-ocupacao-hospitalar-covid-19": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Registro de Ocupação Hospitalar COVID-19",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/cadastro-vinculado-programa-previne-brasil": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "Esta base de dados disponibiliza os resultados Cadastro Vinculado do Programa Previne Brasil, que fazia parte do modelo de cofinanciamento federal adotado na Atenção Primária à Saúde a partir da Portaria Nº 2.979, de novembro de 2019.",
+        "parameters": [
+          {
+            "name": "competencia_referencia",
+            "in": "query",
+            "description": "Competência de referência. Formato: AAAAMM. Exemplo: 202402.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sigla_unidade_federacao",
+            "in": "query",
+            "description": "Sigla da Unidade da Federação",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_municipio_ibge",
+            "in": "query",
+            "description": "Código do munícipio conforme o IBGE",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/indicador-desempenho-programa-previne-brasil": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "Esta base de dados disponibiliza os resultados dos indicadores de desempenho do Programa Previne Brasil, que faziam parte do modelo de cofinanciamento federal adotado na Atenção Primária à Saúde a partir da Portaria Nº 2.979, de novembro de 2019.",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Sigla da UF",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "quadrimestre",
+            "in": "query",
+            "description": "Número do quadrimestre do ano. Exemplo: 2024Q1",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "codigo_municipio",
+            "in": "query",
+            "description": "Código IBGE do Municipio",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "competencia",
+            "in": "query",
+            "description": "Competência de referência. Formato: AAAAMM. Exemplo: 202402.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "definitions": {
+    "login": {
+      "type": "object",
+      "required": [
+        "login",
+        "senha"
+      ],
+      "properties": {
+        "login": {
+          "type": "string",
+          "example": "<nome do usuário>"
+        },
+        "senha": {
+          "type": "string",
+          "example": "<senha do usuário>"
+        }
+      }
+    }
+  }
+}
