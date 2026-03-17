@@ -50,6 +50,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 CMD ["python", "-c", "import guaraci; print(f'Guaraci v{guaraci.__version__} ready!')"]
 
 # Labels for metadata
-LABEL maintainer="pedro.guilherme2305@usp.br"
-LABEL version="0.4.0"
+LABEL maintainer="vogel@usp.br"
+LABEL version="0.4.1"
 LABEL description="Guaraci - Brazilian Public Data Integration Platform"
