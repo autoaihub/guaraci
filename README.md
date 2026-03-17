@@ -1,116 +1,107 @@
 # Guaraci
 
-Plataforma para download e orquestracao de fontes publicas brasileiras, com foco atual em:
-- `SNIS` e `SINISA` (crawler gov.br)
-- `SINAN`, `SIM` e `SIH` (PySUS/FTP DATASUS)
-- `OpenDataSUS` (API, fontes `doses_aplicadas_pni` e `zikavirus`)
+| Quick Access | Resource |
+| --- | --- |
+| License | [MIT License](LICENSE) |
+| Terms of Use | [TERMS_OF_USE.md](TERMS_OF_USE.md) |
+| Citation | [CITATION.cff](CITATION.cff) |
 
-Versao atual: `0.4.1`
+Guaraci is a platform for downloading and orchestrating Brazilian public data sources for scientific and technical workflows. The current project scope includes:
+- `SNIS` and `SINISA` (`gov.br` crawler)
+- `SINAN`, `SIM`, and `SIH` (PySUS/FTP DATASUS)
+- `OpenDataSUS` (`doses_aplicadas_pni` and `zikavirus`)
 
-## Estado atual do projeto
+Current version: `0.4.1`
 
-- Fluxo **oficial e suportado**: **Docker-first** (CLI, API e UI web).
-- Fluxo sem Docker (Python local puro): **WIP / nao suportado oficialmente no momento**.
-  - Pode funcionar em alguns ambientes.
-  - Nao e considerado caminho estavel, especialmente no Windows.
+## Project Status
 
-## O que ja funciona hoje
+- Officially supported workflow: **Docker-first** (CLI, API, and web UI).
+- Local Python execution without Docker remains **WIP** and is not the primary supported path.
+- The desktop launcher centralizes downloads in `Guaraci Downloads` on the user's Desktop.
 
-- Download assincrono via API com fila de jobs, cancelamento e retry.
-- UI web desktop para usuarios tecnicos e nao tecnicos.
-- Schema dinamico por fonte (`/sources/{source}/schema`) para montar filtros na UI.
-- Progresso de jobs com:
-  - percentual,
-  - arquivo atual,
-  - bytes transferidos,
-  - ETA,
-  - logs estruturados.
-- Persistencia de jobs em disco (`data/jobs/download_jobs.json`).
-- Exportacao opcional de datasets processados (`csv`, `parquet`, `sqlite`) para fontes PySUS e OpenDataSUS.
+## What Works Today
 
-## Arquitetura (resumo)
+- Asynchronous downloads through the API with queued jobs, cancellation, and retry.
+- A desktop-oriented web UI for technical and non-technical users.
+- Source-driven dynamic schemas from `/sources/{source}/schema`.
+- Job progress tracking with percentage, current file, transferred bytes, ETA, and structured logs.
+- On-disk job persistence in `data/jobs/download_jobs.json`.
+- Optional processed dataset export in `csv`, `parquet`, or `sqlite` for PySUS and OpenDataSUS sources.
+
+## Architecture Summary
 
 - `guaraci/services/downloads.py`
-  - Registro de fontes.
-  - Validacao de parametros por schema.
-  - Adaptadores para `gov.br crawl` e `pysus ftp`.
+  Handles source registration, schema-based parameter validation, and adapters for `gov.br crawl`, `pysus ftp`, and `opendatasus api`.
 - `guaraci/services/jobs.py`
-  - Execucao em background.
-  - Estados de job (`queued`, `running`, `completed`, `failed`, `canceled`).
-  - Retry/cancel.
-  - Persistencia e logs.
+  Runs jobs in the background, tracks lifecycle states, supports retry and cancellation, and persists job state and logs.
 - `guaraci/api/main.py`
-  - Endpoints HTTP (health, schema, jobs, logs, output).
+  Exposes health, schema, jobs, logs, and output endpoints.
 - `guaraci/api/static/index.html`
-  - UI web desktop.
-  - Formulario dinamico por schema.
-  - Monitoramento de jobs e pasta de saida.
+  Provides the web UI with schema-driven forms and job monitoring.
 
-Detalhes completos:
-- `docs/README.md`
-- `docs/ARCHITECTURE.md`
-- `docs/API_REFERENCE.md`
-- `docs/UI_GUIDE.md`
-- `docs/SOURCES_AND_FILTERS.md`
-- `docs/AI_HANDOFF_OPENDATASUS.md`
+Detailed documentation:
+- [Documentation index](docs/README.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [API reference](docs/API_REFERENCE.md)
+- [UI guide](docs/UI_GUIDE.md)
+- [Sources and filters](docs/SOURCES_AND_FILTERS.md)
+- [AI handoff for OpenDataSUS](docs/AI_HANDOFF_OPENDATASUS.md)
 - `AGENTS.md`
 
-## Quick Start (Docker-first)
+## Quick Start
 
-### 1) Build
+### 1. Build the image
 
 ```bash
 docker build -t guaraci .
 ```
 
-### 2) Subir API + UI (launcher)
+### 2. Start the API and UI
 
-PowerShell (Windows):
+PowerShell on Windows:
 
 ```powershell
 .\scripts\desktop\start-guaraci.ps1
 ```
 
-Bash (Linux/macOS):
+Bash on Linux or macOS:
 
 ```bash
 ./scripts/desktop/start-guaraci.sh
 ```
 
-Padrao: UI em `http://localhost:8002/`.
+Default launcher URL: `http://localhost:8002/`
 
-No launcher desktop, os downloads sao centralizados em `Guaraci Downloads` na Area de Trabalho.
-
-### 3) Verificar saude da API
+### 3. Check API health
 
 ```bash
 curl http://localhost:8002/health
 ```
 
-Resposta esperada:
+Expected response:
 
 ```json
 {"status":"ok","version":"0.4.1"}
 ```
 
-## Uso via UI (resumo)
+## Using the Web UI
 
-1. Escolher fonte.
-2. Preencher filtros (campos sao gerados pelo schema da fonte).
-3. Confirmar revisao e criar job.
-4. Acompanhar progresso e logs no painel.
-5. Copiar caminho de saida ou abrir pasta.
+1. Choose a source.
+2. Fill in the source-specific filters generated from the schema.
+3. Review the request and create the job.
+4. Monitor progress and logs in the dashboard.
+5. Copy the output path or open the destination folder.
 
-Observacoes importantes:
-- Em Docker, abrir pasta direto do container pode nao funcionar no host.
-- A UI mostra `host_output_dir` quando disponivel para abrir no sistema host.
-- Mensagem de UX na tela: consulte os arquivos na pasta `Guaraci Downloads` da Area de Trabalho.
+Important notes:
+- In Docker, opening a folder from inside the container may not work directly on the host.
+- The UI exposes `host_output_dir` when host path mapping is available.
+- The launcher UX points users to the `Guaraci Downloads` folder on the Desktop.
 
-Guia detalhado: `docs/UI_GUIDE.md`.
+See [docs/UI_GUIDE.md](docs/UI_GUIDE.md) for the detailed UI workflow.
 
-## Uso via API (resumo)
+## Using the API
 
-Base URL (launcher): `http://localhost:8002`
+Base URL from the launcher: `http://localhost:8002`
 
 - `GET /health`
 - `GET /sources`
@@ -124,21 +115,21 @@ Base URL (launcher): `http://localhost:8002`
 - `GET /jobs/{job_id}/output`
 - `POST /jobs/{job_id}/open-output`
 
-Referencia completa: `docs/API_REFERENCE.md`.
+See [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for the full API contract.
 
-## Uso via CLI (Docker)
+## Using the CLI
 
-Entrypoints principais:
+Main entry points:
 - `python -m guaraci.cli.main`
 - `python -m guaraci.cli.snis_cli`
 - `python -m guaraci.cli.sinan_cli`
 - `python -m guaraci.cli.sim_cli`
 - `python -m guaraci.cli.sih_cli`
 
-Exemplos:
+Examples:
 
 ```bash
-# Ajuda geral
+# General help
 docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main --help
 
 # SNIS (gov.br)
@@ -159,81 +150,72 @@ docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.sih_cli download 2024 2025 --groups RJ --states RJ --months 1 --format csv
 ```
 
-Observacao:
-- No fluxo de **jobs/UI**, `SIH` nao expoe filtro `ano`.
-- Na CLI direta de `sih_cli`, o parametro `--ano` ainda existe para filtro de exportacao local.
+Note:
+- In the **jobs/UI** workflow, `SIH` does not expose a standalone `year` filter.
+- In the direct `sih_cli` workflow, the historical `--ano` option still exists for local export filtering.
 
-## Fontes e filtros
+## Sources and Filters
 
-Tabela detalhada por fonte: `docs/SOURCES_AND_FILTERS.md`.
+See the full source matrix in [docs/SOURCES_AND_FILTERS.md](docs/SOURCES_AND_FILTERS.md).
 
-Resumo rapido:
-- `snis` / `sinisa`:
-  - `results_url`, `file_kinds`, `modules`, `extract_archives`, `overwrite`, `timeout`.
-- `doses_aplicadas_pni` (modo `opendatasus api`):
-  - coleta base (API nativa): `start_year`, `end_year`
-  - refinamento opcional: `uf`, `start_date`, `end_date`
-  - exportacao: `output_format`
-  - avancado: `keep_raw` (padrao `false`), `batch_size`, `max_pages`, `resource_id`, `api_base_url`
-- `zikavirus` (modo `opendatasus api`):
-  - coleta base (API nativa): `start_year`, `end_year`
-  - refinamento opcional: `start_date`, `end_date`, `uf`
-  - exportacao: `output_format`
-  - avancado: `keep_raw` (padrao `false`), `batch_size`, `max_pages`, `api_base_url`
-- `sinan`:
-  - coleta: `start_year`, `end_year`, `diseases`
-  - exportacao: `output_format`, `uf`, `municipio`, `sexo`, `faixa_etaria`, `evolucao`, `classificacao`
-- `sim`:
-  - coleta: `start_year`, `end_year`, `groups`, `states`
-  - exportacao: `output_format`, `uf`, `municipio`, `sexo`, `causa_basica`, `ano_obito`
-- `sih`:
-  - coleta: `start_year`, `end_year`, `groups`, `states`, `months`
-  - exportacao: `output_format`, `uf`, `municipio`, `sexo`, `mes`
+High-level summary:
+- `snis` and `sinisa`
+  Use `results_url`, `file_kinds`, `modules`, `extract_archives`, `overwrite`, and `timeout`.
+- `doses_aplicadas_pni`
+  Base API query uses `start_year` and `end_year`; optional refinement uses `uf`, `start_date`, and `end_date`; advanced controls include `keep_raw`, `batch_size`, `max_pages`, `resource_id`, and `api_base_url`.
+- `zikavirus`
+  Base API query uses `start_year` and `end_year`; optional refinement uses `start_date`, `end_date`, and `uf`; advanced controls include `keep_raw`, `batch_size`, `max_pages`, and `api_base_url`.
+- `sinan`
+  Collection uses `start_year`, `end_year`, and `diseases`; export filtering includes `output_format`, `uf`, `municipio`, `sexo`, `faixa_etaria`, `evolucao`, and `classificacao`.
+- `sim`
+  Collection uses `start_year`, `end_year`, `groups`, and `states`; export filtering includes `output_format`, `uf`, `municipio`, `sexo`, `causa_basica`, and `ano_obito`.
+- `sih`
+  Collection uses `start_year`, `end_year`, `groups`, `states`, and `months`; export filtering includes `output_format`, `uf`, `municipio`, `sexo`, and `mes`.
 
-Observacao de nomenclatura OpenDataSUS:
-- use nomes explicitos de fonte: `doses_aplicadas_pni` ou `zikavirus`.
+OpenDataSUS naming rule:
+- Use canonical source names only: `doses_aplicadas_pni` and `zikavirus`.
 
-## Estrutura de saida de dados
+## Output Structure
 
-### SNIS/SINISA (crawler)
+### SNIS and SINISA
 
 ```text
 <output_dir>/
   raw/
-  extracted/            # quando extract_archives=true
+  extracted/            # when extract_archives=true
   manifest.json
 ```
 
-### PySUS (SINAN/SIM/SIH)
+### PySUS sources
 
 ```text
 <output_dir>/
-  raw/                  # artefatos materializados
-  <arquivos_exportados> # quando output_format definido
-  manifest.json         # quando houve materializacao de artefatos
+  raw/                  # materialized artifacts
+  <exported_files>      # when output_format is set
+  manifest.json         # when artifacts were materialized
 ```
 
-### OpenDataSUS
+### OpenDataSUS sources
 
 ```text
 <output_dir>/
   manifest.json
-  <arquivos_exportados> # quando output_format definido
-  raw/                  # apenas quando keep_raw=true
+  <exported_files>      # when output_format is set
+  raw/                  # only when keep_raw=true
 ```
 
-No endpoint `/jobs/{job_id}/output`, alem do output path, a API retorna:
+`/jobs/{job_id}/output` also returns:
 - `output_format`
 - `exported_files`
-- `export_warning` (quando formato foi pedido mas nada foi exportado)
+- `export_warning`
 
-## Launcher desktop
+## Desktop Launcher
 
-Scripts disponiveis:
-- Windows (PowerShell + `.cmd`): `scripts/desktop/`
-- Linux/macOS (bash): `scripts/desktop/`
+Available scripts:
+- Windows (`.ps1` and `.cmd`): `scripts/desktop/`
+- Linux or macOS (`.sh`): `scripts/desktop/`
 
-Comandos uteis (Windows):
+Useful commands on Windows:
 
 ```powershell
 .\scripts\desktop\launcher.ps1
@@ -242,7 +224,7 @@ Comandos uteis (Windows):
 .\scripts\desktop\stop-guaraci.ps1
 ```
 
-Comandos uteis (Linux/macOS):
+Useful commands on Linux or macOS:
 
 ```bash
 ./scripts/desktop/launcher.sh
@@ -251,31 +233,55 @@ Comandos uteis (Linux/macOS):
 ./scripts/desktop/stop-guaraci.sh
 ```
 
-## Desenvolvimento e testes
+## Development and Testing
 
 ```bash
-# Testes
+# Full suite
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
 
-# Testes focados
-docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/test_api.py tests/test_jobs.py -v
+# Focused suite
+docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
+  tests/test_opendatasus_swagger_catalog.py \
+  tests/test_opendatasus_datasource.py \
+  tests/test_services.py \
+  tests/test_api.py \
+  tests/test_jobs.py \
+  tests/test_config.py -q
 ```
 
-## Limitacoes atuais
+## Current Limitations
 
-- Execucao Python local fora de Docker: **WIP**.
-- Abertura de pasta via UI em ambiente Docker depende do host path mapping.
-- Algumas fontes PySUS podem falhar por instabilidades externas de FTP/rede.
+- Local Python execution outside Docker remains **WIP**.
+- Opening folders from the UI in Docker depends on host path mapping.
+- Some PySUS sources can fail due to external FTP or network instability.
 
-## Versao e roadmap imediato
+## Version and Immediate Roadmap
 
-- Release atual: `0.4.1` (MVP OpenDataSUS integrado ao fluxo de jobs/UI).
-- Proximo alvo: expandir datasets OpenDataSUS e endurecer retries/observabilidade por fonte.
+- Current release line: `0.4.1`
+- Immediate focus: expand OpenDataSUS datasets and strengthen retries and observability per source.
 
-## Documentacao complementar
+## Additional Documentation
 
-- `INSTALL.md`: instalacao e operacao suportada.
-- `DOCKER_WORKFLOW.md`: rotina operacional Docker.
-- `CONTRIBUTING.md`: fluxo para contribuicao.
-- `IMPROVEMENTS.md`: historico e direcao de evolucao.
-- `CHANGELOG.md`: historico de versoes.
+- `INSTALL.md`
+- `DOCKER_WORKFLOW.md`
+- `CONTRIBUTING.md`
+- `IMPROVEMENTS.md`
+- `CHANGELOG.md`
+
+## License
+
+Guaraci is distributed under the MIT License. See [LICENSE](LICENSE) for the full text.
+
+## Terms of Use
+
+Use of Guaraci requires compliance with the terms, policies, and legal constraints of each upstream data source. See [TERMS_OF_USE.md](TERMS_OF_USE.md) for the full project terms, including warranty disclaimers and user responsibilities.
+
+## Citation
+
+If you use Guaraci in research, technical reports, or derived software, cite the software version that supported your work. Formal citation metadata is available in [CITATION.cff](CITATION.cff).
+
+Recommended software citation for the current release:
+
+```text
+Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.4.1) [Computer software]. https://github.com/autoaihub/guaraci
+```

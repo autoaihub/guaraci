@@ -42,8 +42,13 @@ guaraci sinan filter --uf SP --sexo M --input dengue.csv --output filtered.csv
 """
 
 __version__ = "0.4.1"
-__author__ = "Pedro Guilherme dos Reis Teixeira, Luis"
-__email__ = "pedro.guilherme2305@usp.br"
+__author__ = (
+    "Luis Felipe Vogel Lopes, "
+    "Pedro Guilherme dos Reis Teixeira, "
+    "Robson Parmezan Bonidia, "
+    "André Carlos Ponce de Leon Ferreira de Carvalho"
+)
+__email__ = "vogel@usp.br"
 
 # Core imports for easy access
 from guaraci.core.config import GuaraciConfig

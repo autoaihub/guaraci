@@ -10,7 +10,9 @@ readme = "README.md"
 license = {text = "MIT"}
 authors = [
     {name = "Luis Felipe Vogel Lopes", email = "vogel@usp.br"},
-    {name = "Pedro Guilherme dos Reis Teixeira", email = "pedro.guilherme2305@usp.br"}
+    {name = "Pedro Guilherme dos Reis Teixeira", email = "pedro.guilherme2305@usp.br"},
+    {name = "Robson Parmezan Bonidia"},
+    {name = "André Carlos Ponce de Leon Ferreira de Carvalho"}
 ]
 maintainers = [
     {name = "Luis Felipe Vogel Lopes", email = "vogel@usp.br"}
@@ -92,6 +94,9 @@ Homepage = "https://github.com/autoaihub/guaraci"
 Documentation = "https://guaraci.readthedocs.io"
 Repository = "https://github.com/autoaihub/guaraci"
 Issues = "https://github.com/autoaihub/guaraci/issues"
+License = "https://github.com/autoaihub/guaraci/blob/main/LICENSE"
+Citation = "https://github.com/autoaihub/guaraci/blob/main/CITATION.cff"
+TermsOfUse = "https://github.com/autoaihub/guaraci/blob/main/TERMS_OF_USE.md"
 
 [project.scripts]
 guaraci = "guaraci.cli.main:app"

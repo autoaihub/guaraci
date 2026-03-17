@@ -1,18 +1,18 @@
-# Guia de Instalacao
+# Installation Guide
 
-Este projeto deve ser considerado **Docker-first**.
+This project should be treated as **Docker-first**.
 
-## Status de suporte
+## Support Status
 
-- Suportado oficialmente: execucao via Docker (CLI, API e UI).
-- Nao suportado oficialmente: execucao Python local sem Docker (WIP).
+- Officially supported: Docker-based execution for CLI, API, and UI.
+- Not officially supported: local Python execution without Docker, which remains WIP.
 
-## Pre-requisitos
+## Prerequisites
 
-- Docker Desktop (Windows/macOS) ou Docker Engine (Linux).
-- Git.
+- Docker Desktop on Windows or macOS, or Docker Engine on Linux
+- Git
 
-## Instalacao rapida
+## Quick Installation
 
 ```bash
 git clone https://github.com/autoaihub/guaraci.git
@@ -20,17 +20,17 @@ cd guaraci
 docker build -t guaraci .
 ```
 
-## Verificacao basica
+## Basic Verification
 
 ```bash
-# Versao
+# Version
 docker run --rm guaraci python -c "import guaraci; print(guaraci.__version__)"
 
-# Teste de instalacao do pacote
+# Package installation smoke test
 docker run --rm guaraci python -m pytest tests/test_install.py -v
 ```
 
-## Operacao recomendada (launcher desktop)
+## Recommended Operation: Desktop Launcher
 
 ### Windows (PowerShell)
 
@@ -38,9 +38,9 @@ docker run --rm guaraci python -m pytest tests/test_install.py -v
 .\scripts\desktop\start-guaraci.ps1
 ```
 
-A UI abre em `http://localhost:8002/`.
+The UI opens at `http://localhost:8002/`.
 
-Outros comandos:
+Other commands:
 
 ```powershell
 .\scripts\desktop\launcher.ps1
@@ -48,19 +48,19 @@ Outros comandos:
 .\scripts\desktop\stop-guaraci.ps1
 ```
 
-Atalhos `.cmd` (duplo clique):
+`.cmd` shortcuts for double-click use:
 - `scripts\desktop\launcher.cmd`
 - `scripts\desktop\start-guaraci.cmd`
 - `scripts\desktop\status-guaraci.cmd`
 - `scripts\desktop\stop-guaraci.cmd`
 
-### Linux/macOS (bash)
+### Linux or macOS (bash)
 
 ```bash
 ./scripts/desktop/start-guaraci.sh
 ```
 
-Outros comandos:
+Other commands:
 
 ```bash
 ./scripts/desktop/launcher.sh
@@ -68,9 +68,9 @@ Outros comandos:
 ./scripts/desktop/stop-guaraci.sh
 ```
 
-## Operacao manual sem launcher
+## Manual Operation Without the Launcher
 
-### Subir API em porta customizada
+### Start the API on a custom port
 
 PowerShell:
 
@@ -86,53 +86,53 @@ docker run --rm -it -p 8002:8000 -v "$(pwd):/app" guaraci \
   uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log
 ```
 
-## Testes no container
+## Running Tests in the Container
 
 ```bash
-# suite completa
+# Full suite
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
 
-# API/jobs
+# API and jobs
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/test_api.py tests/test_jobs.py -v
 ```
 
-## Estrategia de dados e volumes
+## Data Strategy and Volume Mounts
 
-Sempre monte o projeto em `/app` para persistir saidas no host:
+Always mount the project to `/app` to persist outputs on the host:
 
 - Windows PowerShell: `-v "${PWD}:/app"`
-- Linux/macOS: `-v "$(pwd):/app"`
+- Linux or macOS: `-v "$(pwd):/app"`
 
-Sem volume mount, os dados ficam dentro do container efemero.
+Without a volume mount, data remains inside the ephemeral container.
 
-## Troubleshooting rapido
+## Quick Troubleshooting
 
-### Porta em uso
+### Port already in use
 
-Erro comum: `Bind for 0.0.0.0:8002 failed: port is already allocated`
+Common error: `Bind for 0.0.0.0:8002 failed: port is already allocated`
 
-Acoes:
-1. Trocar porta host (`-p 8003:8000`).
-2. Parar container ativo (`scripts/desktop/stop-guaraci.*`).
+Actions:
+1. Change the host port, for example `-p 8003:8000`.
+2. Stop the running container with `scripts/desktop/stop-guaraci.*`.
 
-### API de pe mas UI sem dados
+### API is up but the UI has no data
 
-Verifique:
+Check:
 - `GET /health`
 - `GET /sources`
-- permissao de escrita em `data/`
+- write permissions for `data/`
 
-### Botao "Abrir Pasta" em Docker
+### "Open Folder" button in Docker
 
-Em container, abrir pasta no host nao e direto. Use o caminho mostrado em `host_output_dir` na UI/API.
+Inside a container, opening a folder on the host is not direct. Use the `host_output_dir` value shown by the UI or API.
 
-## Execucao local sem Docker (WIP)
+## Local Python Execution Without Docker (WIP)
 
-Este caminho existe apenas para desenvolvimento pontual e pode falhar.
+This path exists only for occasional development and may fail.
 
-Limites atuais:
-- comportamento inconsistente entre sistemas,
-- maior risco de conflito de dependencias (PySUS/FTP stack),
-- nao e caminho validado para usuarios finais.
+Current limits:
+- inconsistent behavior across systems
+- higher risk of dependency conflicts, especially in the PySUS and FTP stack
+- not validated for end users
 
-Se for necessario testar localmente, use por sua conta e valide em Docker antes de considerar resultado como definitivo.
+If you need to test locally, do so at your own risk and validate the final behavior in Docker before treating the result as definitive.

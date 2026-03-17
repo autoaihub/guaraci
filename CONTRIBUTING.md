@@ -1,13 +1,13 @@
-# Contribuindo para o Guaraci
+# Contributing to Guaraci
 
-Guia pratico para contribuicao tecnica.
+Practical guide for technical contributions.
 
-## Regra principal de ambiente
+## Main Environment Rule
 
-- Desenvolvimento e validacao devem ser feitos em **Docker**.
-- Execucao local sem Docker esta em **WIP** e nao deve ser baseline para aprovar mudanca.
+- Development and validation must be done in **Docker**.
+- Local execution without Docker remains **WIP** and should not be treated as the approval baseline.
 
-## Setup rapido
+## Quick Setup
 
 ```bash
 git clone https://github.com/autoaihub/guaraci.git
@@ -15,83 +15,83 @@ cd guaraci
 docker build -t guaraci .
 ```
 
-## Fluxo recomendado de desenvolvimento
+## Recommended Development Flow
 
-1. Criar branch de trabalho.
-2. Implementar mudanca pequena e isolada.
-3. Rodar testes relevantes no container.
-4. Atualizar documentacao impactada.
-5. Abrir PR com descricao objetiva e comandos usados para validacao.
+1. Create a working branch.
+2. Implement a small, isolated change.
+3. Run the relevant tests in the container.
+4. Update the impacted documentation.
+5. Open a PR with a concise description and the commands used for validation.
 
-## Estrutura atual (alto nivel)
+## Current Structure at a High Level
 
-- `guaraci/core/`: contratos, configuracao, resultado e base de datasource.
-- `guaraci/snis/`: fontes crawler (`snis`, `sinisa`) + legado BigQuery em `legacy/`.
-- `guaraci/datasus/`: fontes PySUS (`sinan`, `sim`, `sih`).
-- `guaraci/services/`: orquestracao de download e jobs assincronos.
-- `guaraci/api/`: FastAPI + UI web estatica.
-- `guaraci/cli/`: CLIs por fonte.
+- `guaraci/core/`: contracts, configuration, result types, and datasource base classes
+- `guaraci/snis/`: crawler sources (`snis`, `sinisa`) and legacy BigQuery code in `legacy/`
+- `guaraci/datasus/`: PySUS sources (`sinan`, `sim`, `sih`)
+- `guaraci/services/`: download orchestration and asynchronous jobs
+- `guaraci/api/`: FastAPI and static web UI
+- `guaraci/cli/`: per-source CLIs
 
-## Padroes de codigo
+## Code Standards
 
 - Python 3.11+
-- Formatacao: `black`
+- Formatting: `black`
 - Imports: `isort`
-- Tipagem: `mypy`
-- Testes: `pytest`
+- Typing: `mypy`
+- Tests: `pytest`
 
-Comandos:
+Commands:
 
 ```bash
-# testes
+# Tests
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
 
-# formatacao
+# Formatting
 docker run --rm -v "$(pwd):/app" guaraci python -m black guaraci/ tests/
 docker run --rm -v "$(pwd):/app" guaraci python -m isort guaraci/ tests/
 
-# tipagem
+# Typing
 docker run --rm -v "$(pwd):/app" guaraci python -m mypy guaraci/
 ```
 
-## Convencoes
+## Conventions
 
-- Modulos/funcoes: `snake_case`
+- Modules and functions: `snake_case`
 - Classes: `CamelCase`
-- Constantes: `UPPER_SNAKE_CASE`
-- API publica em ingles (nomes de classes/metodos/params).
-- Mensagens para usuario e logs podem estar em portugues.
+- Constants: `UPPER_SNAKE_CASE`
+- Public API names should stay in English
+- User-facing messages and logs may remain in Portuguese when the product requires it
 
-## Testes por area
+## Test Scope by Area
 
-### Alterou API/UI/jobs
+### If you changed API, UI, or jobs
 
-Rode ao menos:
+Run at least:
 
 ```bash
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/test_api.py tests/test_jobs.py -v
 ```
 
-### Alterou schemas/validacao de fontes
+### If you changed source schemas or validation
 
 ```bash
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/test_services.py -v
 ```
 
-### Alterou datasource especifico
+### If you changed a specific datasource
 
-Rode testes do datasource e relacionados.
+Run the datasource-specific tests and related coverage.
 
-## Regras de documentacao
+## Documentation Rules
 
-Sempre atualize docs quando houver mudanca de:
-- parametros de fonte,
-- comportamento de exportacao,
-- estados de job,
-- endpoints da API,
-- UX da UI.
+Always update docs when a change affects:
+- source parameters
+- export behavior
+- job states
+- API endpoints
+- UI behavior or UX
 
-Arquivos principais:
+Main files:
 - `README.md`
 - `CHANGELOG.md`
 - `AGENTS.md`
@@ -103,13 +103,13 @@ Arquivos principais:
 - `docs/SOURCES_AND_FILTERS.md`
 - `docs/AI_HANDOFF_OPENDATASUS.md`
 
-## Pull Request
+## Pull Requests
 
-Inclua no PR:
-- contexto/problema,
-- o que foi alterado,
-- riscos e trade-offs,
-- comandos de teste executados,
-- impacto em docs.
+Include in the PR:
+- context and problem statement
+- what changed
+- risks and trade-offs
+- test commands executed
+- documentation impact
 
-PRs com mudanca funcional sem atualizacao de documentacao serao considerados incompletos.
+Functional changes without documentation updates should be treated as incomplete.
