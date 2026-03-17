@@ -1,157 +1,160 @@
-# Guia da UI
+# UI Guide
 
-Painel web desktop em `http://localhost:8002/` (launcher padrao).
+Desktop web panel at `http://localhost:8002/` in the default launcher flow.
 
-## 1) Objetivo da interface
+## 1. Interface Goal
 
-Permitir que usuarios criem e monitorem downloads sem depender de CLI.
+The UI allows users to create and monitor downloads without depending on the CLI.
 
-A UI cobre:
-- selecao de fonte,
-- preenchimento de filtros dinamicos,
-- criacao de jobs,
-- monitoramento de progresso,
-- consulta de logs,
-- acesso ao caminho de saida,
-- cancelamento/retry.
+The interface covers:
+- source selection
+- dynamic schema-based filters
+- job creation
+- progress monitoring
+- log inspection
+- output path access
+- cancellation and retry
 
-## 2) Layout
+## 2. Layout
 
-A UI tem dois blocos principais:
+The UI is organized into two main areas:
 
-1. **Novo Job** (wizard 3 passos)
-- `1. Fonte`
-- `2. Filtros`
-- `3. Revisao`
+1. **New Job** with a three-step wizard
+   - `1. Source`
+   - `2. Filters`
+   - `3. Review`
+2. **Monitoring**
+   - selected job summary
+   - progress bar
+   - output panel
+   - logs
+   - jobs table
 
-2. **Monitoramento**
-- resumo do job selecionado,
-- barra de progresso,
-- painel de output,
-- logs,
-- tabela de jobs.
+## 3. Creating a Job
 
-## 3) Passo a passo: criar job
+### Step 1. Source
 
-### Passo 1 - Fonte
+- Select a source in the dropdown.
+- The UI calls `GET /sources/{source}/schema`.
+- It displays the source mode such as `gov.br crawl` or `pysus ftp`.
 
-- Escolha a fonte no select.
-- A UI chama `GET /sources/{source}/schema`.
-- Mostra modo da fonte (`gov.br crawl` ou `pysus ftp`).
+### Step 2. Filters
 
-### Passo 2 - Filtros
+- Fields are generated dynamically from the schema.
+- `Download Directory` remains in the basic block and appears before `output_format`.
+- Technical parameters and local refinements are grouped under the expandable `Advanced Filtering` block.
+- Field types:
+  - `integer` -> numeric input
+  - `boolean` -> checkbox
+  - `string` with `allowed_values` -> select
+  - `string_list` with `allowed_values` -> multi-select
+  - everything else -> text input
+- The `?` icon shows contextual help text.
 
-- Campos sao gerados dinamicamente pelo schema.
-- `Diretorio do Download` fica no bloco basico e vem antes de `output_format`.
-- Parametros tecnicos/especificos ficam no bloco expansivel `Filtragem avancada`.
-- Tipos de campo:
-  - `integer` -> input numerico,
-  - `boolean` -> checkbox,
-  - `string` + `allowed_values` -> select,
-  - `string_list` + `allowed_values` -> multi-select,
-  - outros -> input texto.
-- Icone `?` mostra dica de preenchimento.
+### Step 3. Review
 
-### Passo 3 - Revisao
+- Shows the chosen source, mode, and parameters.
+- Confirmation sends `POST /jobs`.
 
-- Mostra fonte, modo e parametros escolhidos.
-- Ao confirmar, envia `POST /jobs`.
+## 4. Real-Time Monitoring
 
-## 4) Monitoramento em tempo real
-
-A cada intervalo de refresh, a UI consulta:
+On each refresh cycle, the UI queries:
 - `GET /jobs?limit=40`
 - `GET /jobs/{job_id}`
 - `GET /jobs/{job_id}/logs?limit=120`
 - `GET /jobs/{job_id}/output`
 
-Indicadores exibidos:
-- status + percentual,
-- tentativa,
-- arquivos completos / total,
-- bytes transferidos,
-- tempo decorrido e ETA,
-- arquivo atual.
+Displayed indicators:
+- status and percentage
+- attempt number
+- completed files versus total files
+- transferred bytes
+- elapsed time and ETA
+- current file
 
-## 5) Tabela de jobs
+## 5. Jobs Table
 
-Acoes por linha:
-- `Selecionar`
-- `Cancelar`
+Row actions:
+- `Select`
+- `Cancel`
 - `Retry`
 
-Regras:
-- `Cancelar` so habilitado para jobs nao terminais.
-- `Retry` habilitado apenas para `failed` e `canceled`.
+Rules:
+- `Cancel` is enabled only for non-terminal jobs.
+- `Retry` is enabled only for `failed` and `canceled`.
 
-## 6) Output e rastreabilidade
+## 6. Output and Traceability
 
-Painel de output mostra:
-- pasta de saida,
-- formato de exportacao (quando aplicavel),
-- quantidade/lista de arquivos exportados,
-- aviso de exportacao (`export_warning`) quando nenhum arquivo foi gerado.
+The output panel shows:
+- output folder
+- export format when applicable
+- number and list of exported files
+- `export_warning` when no export file was generated
 
-Botoes:
-- `Copiar Caminho`
-- `Abrir Pasta`
+Buttons:
+- `Copy Path`
+- `Open Folder`
 
-Observacao Docker:
-- em container, `Abrir Pasta` pode retornar apenas instrucoes.
-- use o caminho `host_output_dir` quando fornecido.
+Docker note:
+- inside a container, `Open Folder` may return instructions instead of opening the folder directly
+- use `host_output_dir` when the host mapping is available
 
-## 7) Logs
+## 7. Logs
 
-Formato:
-- `[YYYY-MM-DD HH:MM:SS] [LEVEL] mensagem`
+Format:
+- `[YYYY-MM-DD HH:MM:SS] [LEVEL] message`
 
-Os logs da UI sao eventos da pipeline de job, nao apenas logs de servidor HTTP.
+The UI log stream reflects job pipeline events, not only HTTP server logs.
 
-## 8) Dicas por tipo de fonte
+## 8. Source-Specific Tips
 
-### 8.1 SNIS/SINISA (crawler)
+### 8.1 SNIS and SINISA
 
-- Comece com `file_kinds = planilhas`.
-- Use `modules` para reduzir volume.
-- `extract_archives = true` para descompactar zip automaticamente.
+- Start with `file_kinds = planilhas`.
+- Use `modules` to reduce volume.
+- Set `extract_archives = true` to unzip archives automatically.
 
-### 8.2 OpenDataSUS (API)
+### 8.2 OpenDataSUS
 
-- Fontes disponiveis: `doses_aplicadas_pni` e `zikavirus`.
-- Comece pelos filtros basicos nativos da API: `start_year` e `end_year`.
-- Para gerar arquivo final, informe `output_format`.
-- Em `Filtragem avancada` ficam os refinamentos/opcoes tecnicas, como:
-  - `start_date`, `end_date`,
-  - `keep_raw` (padrao desativado),
-  - `api_base_url`, `batch_size`, `max_pages`, `resource_id`.
-- Para `zikavirus`, o `uf` e tratado como refinamento local e aparece no bloco avancado.
-- Se a API retornar HTML ao inves de JSON, ajuste `api_base_url` para um endpoint valido:
+- Available sources: `doses_aplicadas_pni` and `zikavirus`.
+- Start with the native API filters `start_year` and `end_year`.
+- Set `output_format` if you need exported files.
+- `Advanced Filtering` contains local refinements and technical options such as:
+  - `start_date`
+  - `end_date`
+  - `keep_raw`
+  - `api_base_url`
+  - `batch_size`
+  - `max_pages`
+  - `resource_id`
+- For `zikavirus`, `uf` is treated as a local refinement and stays in the advanced block.
+- If the API returns HTML instead of JSON, switch `api_base_url` to a valid endpoint:
   - `https://apidadosabertos.saude.gov.br` (DEMAS)
-  - `https://ckan-dadosabertos.saude.gov.br/api/3/action` (CKAN, quando disponivel)
+  - `https://ckan-dadosabertos.saude.gov.br/api/3/action` (CKAN, when available)
 
-### 8.3 SINAN/SIM/SIH (PySUS)
+### 8.3 SINAN, SIM, and SIH
 
-- Primeiro defina periodo (`start_year`, `end_year`).
-- Use grupos/doencas/UF para reduzir cardinalidade.
-- Se quiser arquivo final, preencha `output_format`.
+- Define the period first with `start_year` and `end_year`.
+- Use diseases, groups, and state filters to reduce cardinality.
+- Set `output_format` only when you need a final export file.
 
-## 9) Problemas comuns
+## 9. Common Problems
 
-### Job fica `running` por muito tempo
+### A job stays in `running` for too long
 
-- Pode ser rede/FTP lento.
-- Verifique logs do job para progresso real.
+- The cause may be slow network or FTP responses.
+- Check the job logs to confirm whether progress is still moving.
 
-### Download concluido, mas sem CSV
+### The download finished but no CSV was generated
 
-- Confira `output_format` no payload.
-- Verifique `exported_files` e `export_warning` no painel de output.
+- Confirm that `output_format` was included in the payload.
+- Check `exported_files` and `export_warning` in the output panel.
 
-### Porta 8002 indisponivel
+### Port 8002 is unavailable
 
-- Suba em outra porta no script de start.
+- Start the launcher on a different port.
 
-### UI nao carrega fontes
+### The UI does not load sources
 
-- Verificar `GET /health` e `GET /sources`.
-- Verificar container/API ativos.
+- Check `GET /health` and `GET /sources`.
+- Verify that the API and container are running.

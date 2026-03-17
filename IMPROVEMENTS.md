@@ -1,108 +1,106 @@
-# Melhorias do Projeto
+# Project Improvements
 
-Este documento registra o progresso ja implementado e os proximos focos tecnicos.
+This document records the implemented progress so far and the next technical focus areas.
 
-## 1) Progresso consolidado
+## 1. Consolidated Progress
 
-### 1.1 Camada de fontes
+### 1.1 Source layer
 
-- `snis` e `sinisa` via crawler gov.br com manifest.
-- `sinan`, `sim` e `sih` via PySUS/FTP.
-- OpenDataSUS com fontes canonicas:
+- `snis` and `sinisa` through the `gov.br` crawler flow with manifests
+- `sinan`, `sim`, and `sih` through PySUS/FTP
+- OpenDataSUS with canonical sources:
   - `doses_aplicadas_pni`
   - `zikavirus`
-- `snis` legado BigQuery isolado em `guaraci/snis/legacy/`.
+- legacy BigQuery SNIS flow isolated in `guaraci/snis/legacy/`
 
-### 1.2 Camada de servicos
+### 1.2 Service layer
 
-- Registro de fontes com schema declarativo por parametro.
-- Validacao de parametros com rejeicao de campos desconhecidos.
-- Separacao de parametros de coleta vs pos-processamento (PySUS).
-- OpenDataSUS com contrato orientado a filtros nativos:
+- source registry with declarative per-parameter schema
+- strong parameter validation with unknown-field rejection
+- separation between collection parameters and post-processing parameters for PySUS
+- OpenDataSUS contract oriented around native filters:
   - base: `start_year`, `end_year`
-  - refinamento local opcional: `start_date`, `end_date`, `uf`
-  - `keep_raw` com padrao `false`
-- Remocao de aliases de source OpenDataSUS para reduzir ambiguidade.
-- Materializacao de artefatos PySUS para pasta local (`raw/`).
-- Exportacao opcional (`csv`, `parquet`, `sqlite`) para fontes PySUS e OpenDataSUS.
+  - optional local refinement: `start_date`, `end_date`, `uf`
+  - `keep_raw` defaulting to `false`
+- removal of OpenDataSUS source aliases to reduce ambiguity
+- materialization of PySUS artifacts in local `raw/` folders
+- optional export in `csv`, `parquet`, and `sqlite` for PySUS and OpenDataSUS sources
 
-### 1.3 Jobs assincronos
+### 1.3 Asynchronous jobs
 
-- Fila de jobs com execucao em background.
-- Estados, cancelamento e retry.
-- Persistencia de historico de jobs em JSON.
-- Progresso com percentual, bytes, arquivo atual e ETA.
-- Logs estruturados por evento.
+- queued jobs with background execution
+- status tracking, cancellation, and retry
+- JSON persistence for job history
+- progress reporting with percentage, bytes, current file, and ETA
+- structured event logs
 
-### 1.4 API e UI
+### 1.4 API and UI
 
-- API FastAPI com endpoints para schema, jobs, logs e output.
-- UI web com formulario dinamico por fonte.
-- UI com separacao de filtros basicos e bloco `Filtragem avancada`.
-- `output_dir` no bloco basico antes de `output_format`.
-- Monitoramento de jobs e saida no painel.
-- Exibicao de `exported_files` e `export_warning` no output.
+- FastAPI endpoints for schema, jobs, logs, and output
+- web UI with dynamic per-source forms
+- separation between basic filters and the `Advanced Filtering` block
+- `output_dir` kept in the basic block before `output_format`
+- monitoring and output details in the dashboard
+- display of `exported_files` and `export_warning`
 
-## 2) Pontos de atencao atuais
+## 2. Current Attention Points
 
-1. Execucao local sem Docker
-- Status: WIP.
-- Risco: inconsistencias de dependencias/ambiente.
+1. Local execution without Docker
+   Status: WIP.
+   Risk: dependency and environment inconsistencies.
+2. UX across heterogeneous sources
+   Crawler and PySUS sources have different semantics.
+   OpenDataSUS adds variation between native filters and local refinements.
+   The product still needs clearer language and filter grouping for non-technical users.
+3. External reliability
+   FTP and web sources can fluctuate.
+   The project still needs stronger observability and reprocessing strategies.
 
-2. UX entre fontes heterogeneas
-- Fontes crawler e PySUS tem semanticas diferentes.
-- OpenDataSUS adiciona variacao entre filtros nativos e refinamentos locais.
-- Necessario continuar refinando linguagem e agrupamento de filtros para usuarios leigos.
+## 3. Recommended Direction
 
-3. Confiabilidade externa
-- Fontes FTP/web podem oscilar.
-- Precisamos ampliar observabilidade e estrategias de reprocessamento.
+### 3.1 Short term
 
-## 3) Direcao recomendada (proximas etapas)
+- refine UI UX by source type, especially crawler versus API or FTP flows
+- improve user-oriented error messages
+- expand test coverage for export and network failure scenarios
+- increase regression coverage for progress and log behavior in API-based sources
 
-### 3.1 Curto prazo
+### 3.2 Medium term
 
-- Refinar UX da UI por tipo de fonte (crawler x API/FTP).
-- Melhorar mensagens de erro orientadas ao usuario final.
-- Expandir cobertura de testes para cenarios de falha de exportacao e rede.
-- Ampliar cobertura de regressao para comportamento de progresso/log em fontes API.
+- a pluggable source catalog with richer per-field metadata
+- better classification of filters by phase:
+  - collection
+  - transformation
+  - export
+- expanded OpenDataSUS integration for new datasets while keeping native basic filters per source
+- manifest standardization across all sources
 
-### 3.2 Medio prazo
+### 3.3 Long term
 
-- Catologo de fontes plugavel com metadata mais rica (descricao funcional por campo).
-- Melhorar classificacao de filtros por fase:
-  - coleta,
-  - transformacao,
-  - exportacao.
-- Expandir integracao OpenDataSUS para novos datasets mantendo filtros basicos nativos por fonte.
-- Padronizar manifest para todas as fontes.
+- desktop distribution strategy for non-technical end users
+- simpler installation flows focused on assisted operation
+- eventual local non-Docker support once stability is proven
 
-### 3.3 Longo prazo
+## 4. Definition of Ready for New Sources
 
-- Estrategia de distribuicao desktop para usuario final nao tecnico.
-- Fluxo de instalacao simplificado com foco em operacao assistida.
-- Eventual suporte local sem Docker quando estabilidade for comprovada.
+A new source should ship with:
 
-## 4) Criterios de pronto para novas fontes
-
-Uma nova fonte deve entrar com:
-
-- schema declarativo de parametros,
-- validacao forte de entrada,
-- retorno padronizado `JobResult`,
-- preferencia por filtros basicos nativos da fonte (evitando aliases opacos),
-- cobertura minima de testes,
-- documentacao atualizada em:
+- declarative parameter schema
+- strong input validation
+- standardized `JobResult` output
+- preference for native basic source filters instead of opaque aliases
+- minimum test coverage
+- updated documentation in:
   - `README.md`
   - `CHANGELOG.md`
   - `AGENTS.md`
   - `docs/ARCHITECTURE.md`
   - `docs/SOURCES_AND_FILTERS.md`
   - `docs/API_REFERENCE.md`
-  - `docs/UI_GUIDE.md` (quando houver impacto de UX)
+  - `docs/UI_GUIDE.md` when UX is impacted
   - `docs/AI_HANDOFF_OPENDATASUS.md`
 
-## 5) Observacao de suporte
+## 5. Support Note
 
-A base funcional atual e **Docker-first**.
-Qualquer passo fora desse fluxo deve ser tratado como experimental ate que haja validacao formal.
+The current functional baseline is **Docker-first**.
+Any path outside that flow should be treated as experimental until formal validation exists.

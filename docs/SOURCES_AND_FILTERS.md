@@ -1,161 +1,161 @@
-# Fontes e Filtros
+# Sources and Filters
 
-Documento de referencia dos parametros expostos via schema/API/UI.
+Reference document for the parameters exposed through the schema, API, and UI.
 
-## 1) Conceito de fases
+## 1. Execution Phases
 
-Para fontes PySUS, parametros podem atuar em fases diferentes:
+For PySUS sources, parameters can act in different phases:
 
-- **Coleta/download**: quais arquivos buscar.
-- **Exportacao/filtro**: como filtrar dataset final antes de exportar.
+- **Collection/download**: which source files to fetch
+- **Export/filtering**: how to filter the final dataset before export
 
-Na UI esses campos aparecem juntos, mas semanticamente sao fases distintas.
+The UI shows these parameters in one flow, but they still represent different stages.
 
-## 2) Fontes suportadas
+## 2. Supported Sources
 
-- `snis` (modo `gov.br crawl`)
-- `sinisa` (modo `gov.br crawl`)
-- `doses_aplicadas_pni` (modo `opendatasus api`)
-- `zikavirus` (modo `opendatasus api`)
-- `sinan` (modo `pysus ftp`)
-- `sim` (modo `pysus ftp`)
-- `sih` (modo `pysus ftp`)
+- `snis` (`gov.br crawl`)
+- `sinisa` (`gov.br crawl`)
+- `doses_aplicadas_pni` (`opendatasus api`)
+- `zikavirus` (`opendatasus api`)
+- `sinan` (`pysus ftp`)
+- `sim` (`pysus ftp`)
+- `sih` (`pysus ftp`)
 
-Convencao:
-- use sempre o `source` canonico retornado por `GET /sources`.
+Convention:
+- Always use the canonical `source` value returned by `GET /sources`.
 
-## 3) Parametros por fonte (schema de jobs/UI)
+## 3. Parameters by Source
 
 ### 3.1 SNIS (`snis`)
 
-| Parametro | Tipo | Fase | Observacao |
-|---|---|---|---|
-| `output_dir` | string | download | Pasta de saida (padrao: `Guaraci Downloads` na Area de Trabalho) |
-| `results_url` | string | download | URL customizada da pagina base |
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | download | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `results_url` | string | download | Custom base page URL |
 | `file_kinds` | string_list | download | `planilhas`, `relatorios`, `glossarios`, `atestados`, `all` |
 | `modules` | string_list | download | `gestao_municipal`, `agua`, `esgoto`, `residuos`, `aguas_pluviais` |
-| `extract_archives` | boolean | download | Extrair zip |
-| `overwrite` | boolean | download | Sobrescrever arquivos existentes |
-| `timeout` | integer | download | Timeout HTTP |
+| `extract_archives` | boolean | download | Extract zip archives |
+| `overwrite` | boolean | download | Overwrite existing files |
+| `timeout` | integer | download | HTTP timeout |
 
 ### 3.2 SINISA (`sinisa`)
 
-Mesmo schema base do SNIS (gov.br crawler).
+Uses the same base schema as SNIS.
 
 ### 3.3 OpenDataSUS (`doses_aplicadas_pni`)
 
-| Parametro | Tipo | Fase | Observacao |
-|---|---|---|---|
-| `output_dir` | string | download | Pasta de saida (padrao: `Guaraci Downloads` na Area de Trabalho) |
-| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
-| `start_year` | integer | download | Ano inicial da consulta (filtro base) |
-| `end_year` | integer | download | Ano final da consulta (filtro base) |
-| `uf` | string | download/refino | UF opcional (ex.: `SP`) |
-| `start_date` | string | refino local | Data inicial opcional (`YYYY-MM-DD`) dentro da janela de anos |
-| `end_date` | string | refino local | Data final opcional (`YYYY-MM-DD`) dentro da janela de anos |
-| `keep_raw` | boolean | download | Salvar `raw/*.jsonl` (padrao: `false`) |
-| `batch_size` | integer | download | Paginacao da API |
-| `max_pages` | integer | download | Limite de paginas por ano (controle de volume/tempo) |
-| `resource_id` | string | download | Override opcional do recurso CKAN |
-| `api_base_url` | string | download | Override opcional da base API |
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | download | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | export | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | download | Initial query year, used as a base API filter |
+| `end_year` | integer | download | Final query year, used as a base API filter |
+| `uf` | string | download/refinement | Optional state code such as `SP` |
+| `start_date` | string | local refinement | Optional initial date (`YYYY-MM-DD`) inside the selected year window |
+| `end_date` | string | local refinement | Optional final date (`YYYY-MM-DD`) inside the selected year window |
+| `keep_raw` | boolean | download | Save `raw/*.jsonl`, default `false` |
+| `batch_size` | integer | download | API pagination size |
+| `max_pages` | integer | download | Per-year page limit for controlling volume and runtime |
+| `resource_id` | string | download | Optional CKAN resource override |
+| `api_base_url` | string | download | Optional API base override |
 
 ### 3.4 OpenDataSUS (`zikavirus`)
 
-| Parametro | Tipo | Fase | Observacao |
-|---|---|---|---|
-| `output_dir` | string | download | Pasta de saida (padrao: `Guaraci Downloads` na Area de Trabalho) |
-| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
-| `start_year` | integer | download | Ano inicial da consulta (filtro base) |
-| `end_year` | integer | download | Ano final da consulta (filtro base) |
-| `start_date` | string | refino local | Data inicial opcional (`YYYY-MM-DD`) dentro da janela de anos |
-| `end_date` | string | refino local | Data final opcional (`YYYY-MM-DD`) dentro da janela de anos |
-| `uf` | string | refino local | UF opcional (ex.: `SP`) |
-| `keep_raw` | boolean | download | Salvar `raw/*.jsonl` (padrao: `false`) |
-| `batch_size` | integer | download | Paginacao da API |
-| `max_pages` | integer | download | Limite de paginas (controle de volume/tempo) |
-| `api_base_url` | string | download | Override opcional da base API |
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | download | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | export | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | download | Initial query year, used as a base API filter |
+| `end_year` | integer | download | Final query year, used as a base API filter |
+| `start_date` | string | local refinement | Optional initial date (`YYYY-MM-DD`) inside the selected year window |
+| `end_date` | string | local refinement | Optional final date (`YYYY-MM-DD`) inside the selected year window |
+| `uf` | string | local refinement | Optional state code such as `SP` |
+| `keep_raw` | boolean | download | Save `raw/*.jsonl`, default `false` |
+| `batch_size` | integer | download | API pagination size |
+| `max_pages` | integer | download | Page limit for controlling volume and runtime |
+| `api_base_url` | string | download | Optional API base override |
 
-Observacoes OpenDataSUS:
-- Diretriz atual: filtros basicos devem privilegiar parametros nativos da API.
-- Refinos locais (ex.: `start_date`, `end_date`, `uf` em fontes sem suporte direto) ficam no bloco avancado da UI.
+OpenDataSUS notes:
+- The current UX rule is to prioritize native API filters in the basic form.
+- Local refinements and technical options belong in the advanced UI block.
 
 ### 3.5 SINAN (`sinan`)
 
-| Parametro | Tipo | Fase | Observacao |
-|---|---|---|---|
-| `output_dir` | string | download | Pasta de saida |
-| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
-| `start_year` | integer | download | Ano inicial |
-| `end_year` | integer | download | Ano final |
-| `diseases` | string_list | download | Lista de doencas suportadas |
-| `uf` | string | exportacao | Filtro por UF |
-| `municipio` | string | exportacao | Filtro textual |
-| `sexo` | string | exportacao | `M` ou `F` |
-| `faixa_etaria` | string | exportacao | Codigo de faixa |
-| `evolucao` | string | exportacao | Filtro evolucao |
-| `classificacao` | string | exportacao | Filtro classificacao |
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | download | Output folder |
+| `output_format` | string | export | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | download | Initial year |
+| `end_year` | integer | download | Final year |
+| `diseases` | string_list | download | Supported disease list |
+| `uf` | string | export | Filter by state |
+| `municipio` | string | export | Text filter |
+| `sexo` | string | export | `M` or `F` |
+| `faixa_etaria` | string | export | Age range code |
+| `evolucao` | string | export | Outcome filter |
+| `classificacao` | string | export | Classification filter |
 
-Observacao:
-- O campo `ano` foi removido do schema de jobs/UI.
-- O recorte temporal no fluxo de jobs/UI e feito por `start_year` + `end_year`.
+Notes:
+- The standalone `ano` field was removed from the jobs/UI schema.
+- The jobs/UI temporal window is defined by `start_year` and `end_year`.
 
 ### 3.6 SIM (`sim`)
 
-| Parametro | Tipo | Fase | Observacao |
-|---|---|---|---|
-| `output_dir` | string | download | Pasta de saida |
-| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
-| `start_year` | integer | download | Ano inicial |
-| `end_year` | integer | download | Ano final |
-| `groups` | string_list | download | Grupos SIM |
-| `states` | string_list | download | Lista de UFs na coleta |
-| `uf` | string | exportacao | UF no dataset final |
-| `municipio` | string | exportacao | Filtro textual |
-| `sexo` | string | exportacao | `M` ou `F` |
-| `causa_basica` | string | exportacao | Causa basica |
-| `ano_obito` | integer | exportacao | Ano de obito |
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | download | Output folder |
+| `output_format` | string | export | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | download | Initial year |
+| `end_year` | integer | download | Final year |
+| `groups` | string_list | download | SIM groups |
+| `states` | string_list | download | Collection states |
+| `uf` | string | export | State filter in the final dataset |
+| `municipio` | string | export | Text filter |
+| `sexo` | string | export | `M` or `F` |
+| `causa_basica` | string | export | Basic cause of death |
+| `ano_obito` | integer | export | Year of death |
 
 ### 3.7 SIH (`sih`)
 
-| Parametro | Tipo | Fase | Observacao |
-|---|---|---|---|
-| `output_dir` | string | download | Pasta de saida |
-| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
-| `start_year` | integer | download | Ano inicial |
-| `end_year` | integer | download | Ano final |
-| `groups` | string_list | download | Grupos SIH |
-| `states` | string_list | download | Lista de UFs na coleta |
-| `months` | string_list | download | Meses na coleta (1-12) |
-| `uf` | string | exportacao | UF no dataset final |
-| `municipio` | string | exportacao | Filtro textual |
-| `sexo` | string | exportacao | `M` ou `F` |
-| `mes` | integer | exportacao | Mes no dataset final |
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | download | Output folder |
+| `output_format` | string | export | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | download | Initial year |
+| `end_year` | integer | download | Final year |
+| `groups` | string_list | download | SIH groups |
+| `states` | string_list | download | Collection states |
+| `months` | string_list | download | Collection months (`1-12`) |
+| `uf` | string | export | State filter in the final dataset |
+| `municipio` | string | export | Text filter |
+| `sexo` | string | export | `M` or `F` |
+| `mes` | integer | export | Month in the final dataset |
 
-Observacao:
-- `ano` nao faz parte do schema de jobs/UI de SIH.
+Note:
+- `ano` is not part of the SIH jobs/UI schema.
 
-## 4) Diferencas relevantes UI/API x CLI
+## 4. UI and API Versus Direct CLI
 
-A UI/API de jobs segue estritamente o schema de `DownloadService`.
+The jobs UI and API strictly follow the `DownloadService` schema.
 
-A CLI direta por fonte (`sinan_cli`, `sim_cli`, `sih_cli`) pode expor opcoes adicionais historicas.
-Exemplo atual:
-- `sih_cli` ainda possui `--ano` para filtro local de dataframe.
+The direct source CLIs (`sinan_cli`, `sim_cli`, `sih_cli`) may still expose historical options.
+Current example:
+- `sih_cli` still includes `--ano` for local dataframe filtering.
 
-## 5) Legacy SNIS (BigQuery)
+## 5. Legacy SNIS (BigQuery)
 
-O fluxo legado existe na CLI:
+The legacy flow remains available in the CLI:
 - `python -m guaraci.cli.snis_cli download-legacy`
 - `python -m guaraci.cli.snis_cli schema-legacy`
 
-Codigo legado:
+Legacy implementation:
 - `guaraci/snis/legacy/bigquery.py`
 
-Nao e o fluxo principal recomendado para SNIS atual.
+It is not the recommended primary path for current SNIS usage.
 
-## 6) Boas praticas de uso
+## 6. Recommended Usage Practices
 
-1. Sempre comece com periodo e filtros de menor escopo.
-2. Defina `output_format` apenas quando realmente precisar exportacao final.
-3. Para crawler, use `modules` + `file_kinds` para reduzir ruido.
-4. Acompanhe `export_warning` para detectar exportacao sem resultado.
+1. Start with the smallest time window and the narrowest filters possible.
+2. Set `output_format` only when you need a final exported dataset.
+3. For crawler sources, combine `modules` and `file_kinds` to reduce noise.
+4. Monitor `export_warning` to detect empty exports.

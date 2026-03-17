@@ -1,26 +1,26 @@
 # API Reference
 
-Base URL (launcher padrao): `http://localhost:8002`
+Default launcher base URL: `http://localhost:8002`
 
-## 1) Health
+## 1. Health
 
 ### `GET /health`
 
-Retorna status da API e versao.
+Returns API status and version.
 
-Exemplo:
+Example:
 
 ```json
 {"status":"ok","version":"0.4.1"}
 ```
 
-## 2) Fontes
+## 2. Sources
 
 ### `GET /sources`
 
-Lista fontes registradas.
+Lists the registered sources.
 
-Retorno:
+Response:
 
 ```json
 [
@@ -36,12 +36,12 @@ Retorno:
 
 ### `GET /sources/{source}/schema`
 
-Retorna schema de parametros da fonte.
+Returns the parameter schema for the selected source.
 
-Observacao:
-- use o nome canonico da fonte no path (`doses_aplicadas_pni`, `zikavirus`, etc.).
+Note:
+- Use the canonical source name in the path (`doses_aplicadas_pni`, `zikavirus`, and so on).
 
-Campos de cada parametro:
+Parameter fields:
 - `name`
 - `type` (`string`, `integer`, `boolean`, `string_list`)
 - `description`
@@ -51,11 +51,11 @@ Campos de cada parametro:
 - `minimum`
 - `maximum`
 
-## 3) Jobs
+## 3. Jobs
 
 ### `POST /jobs`
 
-Cria job assincrono.
+Creates an asynchronous job.
 
 Body:
 
@@ -70,19 +70,19 @@ Body:
 }
 ```
 
-Respostas:
-- `202`: job criado.
-- `400`: parametro invalido/nao suportado.
+Responses:
+- `202`: job created
+- `400`: invalid or unsupported parameter
 
 ### `GET /jobs?limit=40`
 
-Lista jobs mais recentes.
+Lists the most recent jobs.
 
 ### `GET /jobs/{job_id}`
 
-Detalhe de um job.
+Returns job details.
 
-Campos relevantes:
+Relevant fields:
 - `status`
 - `progress`
 - `attempt`
@@ -99,21 +99,21 @@ Campos relevantes:
 
 ### `POST /jobs/{job_id}/cancel`
 
-Solicita cancelamento.
+Requests cancellation.
 
 ### `POST /jobs/{job_id}/retry`
 
-Cria novo job com mesmos parametros.
+Creates a new job with the same parameters.
 
-Permitido apenas para status:
+Allowed only when the current job status is:
 - `failed`
 - `canceled`
 
-## 4) Logs e output
+## 4. Logs and Output
 
 ### `GET /jobs/{job_id}/logs?limit=120`
 
-Retorna eventos estruturados:
+Returns structured events:
 - `timestamp_utc` (`YYYY-MM-DD HH:MM:SS`)
 - `event`
 - `level`
@@ -121,7 +121,7 @@ Retorna eventos estruturados:
 
 ### `GET /jobs/{job_id}/output`
 
-Retorna informacoes de saida:
+Returns output metadata:
 - `output_dir`
 - `host_output_dir`
 - `manifest_path`
@@ -133,24 +133,24 @@ Retorna informacoes de saida:
 
 ### `POST /jobs/{job_id}/open-output`
 
-Tenta abrir pasta de saida.
+Attempts to open the output folder.
 
-- Fora de Docker: chama `explorer`/`open`/`xdg-open`.
-- Em Docker: retorna instrucoes para abrir no host.
+- Outside Docker: calls `explorer`, `open`, or `xdg-open`.
+- Inside Docker: returns instructions for opening the folder on the host.
 
-## 5) Endpoints de download direto
+## 5. Direct Download Endpoints
 
 ### `POST /downloads/snis`
 ### `POST /downloads/sinisa`
 
-Execucao direta sem fila.
+Runs a direct download without the jobs queue.
 
-Observacao:
-- A UI atual usa majoritariamente o fluxo de jobs (`/jobs`).
+Note:
+- The current UI primarily uses the jobs flow (`/jobs`).
 
-## 6) Status e semantica
+## 6. Status Semantics
 
-### Status de job
+### Job status
 
 - `queued`
 - `running`
@@ -159,15 +159,15 @@ Observacao:
 - `failed`
 - `canceled`
 
-### Status de resultado (`result.status`)
+### Result status (`result.status`)
 
 - `success`
 - `partial_success`
 - `failed`
 
-Regra: `result.status = failed` leva o job final para `failed`.
+Rule: `result.status = failed` makes the final job status `failed`.
 
-## 7) Exemplos de chamada
+## 7. Request Examples
 
 ### PowerShell
 
@@ -203,20 +203,20 @@ curl -X POST http://localhost:8002/jobs \
   -d '{"source":"doses_aplicadas_pni","params":{"start_year":2025,"end_year":2025,"uf":"SP","output_format":"csv","keep_raw":false}}'
 ```
 
-## 8) Erros comuns
+## 8. Common Errors
 
 - `400 Unsupported parameter(s)`:
-  - parametro nao existe no schema da fonte.
+  - the parameter does not exist in the source schema
 - `404 Job not found`:
-  - `job_id` inexistente.
+  - the `job_id` does not exist
 - `400 Cannot retry job ... with status completed`:
-  - retry so para `failed`/`canceled`.
+  - retry is available only for `failed` or `canceled`
 - `OpenDataSUS returned a non-JSON response`:
-  - use endpoint valido:
+  - use a valid endpoint:
     - `https://apidadosabertos.saude.gov.br` (DEMAS)
-    - ou `https://ckan-dadosabertos.saude.gov.br/api/3/action` (CKAN, quando disponivel)
+    - `https://ckan-dadosabertos.saude.gov.br/api/3/action` (CKAN, when available)
 
-Notas OpenDataSUS:
-- `start_year` e `end_year` sao os filtros base.
-- `start_date` e `end_date` sao refinamentos opcionais dentro da janela de anos.
-- `keep_raw=false` (padrao) nao grava `raw/*.jsonl`; com `keep_raw=true`, grava.
+OpenDataSUS notes:
+- `start_year` and `end_year` are the base filters.
+- `start_date` and `end_date` are optional refinements inside the selected year window.
+- `keep_raw=false` by default does not write `raw/*.jsonl`; `keep_raw=true` does.
