@@ -1,11 +1,14 @@
-# Documentacao Tecnica
+# Technical Documentation
 
-- `ARCHITECTURE.md`: funcionamento interno da arquitetura.
-- `API_REFERENCE.md`: referencia dos endpoints HTTP.
-- `UI_GUIDE.md`: guia de uso da interface web.
-- `SOURCES_AND_FILTERS.md`: matriz de fontes, filtros e fases (download/exportacao).
-- `AI_HANDOFF_OPENDATASUS.md`: contexto atualizado de OpenDataSUS + runbook para novos chats.
-- `../AGENTS.md`: diretrizes explicitas para agentes de IA no repositorio.
+- `ARCHITECTURE.md`: internal architecture and execution model.
+- `API_REFERENCE.md`: HTTP endpoint reference.
+- `UI_GUIDE.md`: web UI workflow and operational notes.
+- `SOURCES_AND_FILTERS.md`: source matrix, filters, and execution phases.
+- `AI_HANDOFF_OPENDATASUS.md`: current OpenDataSUS context and runbook for future AI chats.
+- `../LICENSE`: MIT license text.
+- `../TERMS_OF_USE.md`: explicit project terms of use.
+- `../CITATION.cff`: formal software citation metadata.
+- `../AGENTS.md`: repository-specific guidance for AI agents.
 
-Contexto geral e quick start:
+General project context and quick start:
 - `../README.md`

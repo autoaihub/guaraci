@@ -1,25 +1,25 @@
 # Docker Workflow
 
-Guia operacional detalhado do fluxo Docker do Guaraci.
+Detailed operational guide for the Guaraci Docker flow.
 
-## 1) Build da imagem
+## 1. Build the Image
 
 ```bash
 docker build -t guaraci .
 ```
 
-Quando usar `--no-cache`:
-- upgrade de dependencias,
-- comportamento inconsistente apos varias mudancas,
-- suspeita de cache quebrado.
+When to use `--no-cache`:
+- dependency upgrades
+- inconsistent behavior after multiple changes
+- suspicion of a broken Docker cache
 
 ```bash
 docker build --no-cache -t guaraci .
 ```
 
-## 2) Modos de execucao
+## 2. Execution Modes
 
-### 2.1 Launcher desktop (recomendado)
+### 2.1 Desktop launcher (recommended)
 
 Windows (PowerShell):
 
@@ -27,37 +27,37 @@ Windows (PowerShell):
 .\scripts\desktop\start-guaraci.ps1
 ```
 
-Linux/macOS (bash):
+Linux or macOS (bash):
 
 ```bash
 ./scripts/desktop/start-guaraci.sh
 ```
 
-Padrao:
+Defaults:
 - container: `guaraci-desktop`
-- porta host: `8002`
-- API interna: `8000`
+- host port: `8002`
+- internal API port: `8000`
 
-### 2.2 Execucao manual
+### 2.2 Manual execution
 
 ```bash
 docker run --rm -it -p 8002:8000 -v "$(pwd):/app" guaraci \
   uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log
 ```
 
-## 3) Launcher: comportamento interno
+## 3. Launcher Internal Behavior
 
-`start-guaraci` executa:
-1. valida Docker ativo,
-2. opcionalmente faz rebuild,
-3. remove container antigo com mesmo nome,
-4. sobe API com mapeamento de volume e porta,
-5. injeta variaveis para mapear path do container para path do host:
+`start-guaraci` performs the following:
+1. validates that Docker is running
+2. optionally rebuilds the image
+3. removes an older container with the same name
+4. starts the API with volume and port mapping
+5. injects variables to map container paths to host paths:
    - `GUARACI_HOST_APP_ROOT`
    - `GUARACI_CONTAINER_APP_ROOT`
-6. espera `GET /health` retornar `{"status":"ok"}`.
+6. waits for `GET /health` to return `{"status":"ok"}`
 
-## 4) Comandos operacionais
+## 4. Operational Commands
 
 Windows:
 
@@ -67,7 +67,7 @@ Windows:
 .\scripts\desktop\stop-guaraci.ps1
 ```
 
-Linux/macOS:
+Linux or macOS:
 
 ```bash
 ./scripts/desktop/launcher.sh
@@ -75,22 +75,22 @@ Linux/macOS:
 ./scripts/desktop/stop-guaraci.sh
 ```
 
-## 5) Fluxo de dados com volume mount
+## 5. Data Flow with Volume Mounts
 
-Sempre monte `project:/app`:
+Always mount `project:/app`:
 
-- dados gerados em `/app/data` no container ficam no `./data` do host,
-- arquivos de job persistem em `data/jobs/download_jobs.json`.
+- data generated in `/app/data` inside the container is written to `./data` on the host
+- job records persist in `data/jobs/download_jobs.json`
 
-Sem mount, dados sao perdidos ao remover container.
+Without the mount, data is lost when the container is removed.
 
-## 6) API/UI no Docker
+## 6. API and UI in Docker
 
-URLs usuais:
+Common URLs:
 - UI: `http://localhost:8002/`
 - Health: `http://localhost:8002/health`
 
-Checagens uteis:
+Useful checks:
 
 ```bash
 curl http://localhost:8002/health
@@ -98,16 +98,16 @@ curl http://localhost:8002/sources
 curl http://localhost:8002/sources/sih/schema
 ```
 
-## 7) Jobs assincronos
+## 7. Asynchronous Jobs
 
-### Ciclo
+### Lifecycle
 
 1. `POST /jobs`
-2. monitoramento: `GET /jobs` e `GET /jobs/{job_id}`
-3. logs: `GET /jobs/{job_id}/logs`
-4. saida: `GET /jobs/{job_id}/output`
+2. monitor with `GET /jobs` and `GET /jobs/{job_id}`
+3. inspect logs with `GET /jobs/{job_id}/logs`
+4. inspect output with `GET /jobs/{job_id}/output`
 
-### Status de job
+### Job statuses
 
 - `queued`
 - `running`
@@ -118,34 +118,34 @@ curl http://localhost:8002/sources/sih/schema
 
 ### Retry
 
-Permitido para:
+Allowed for:
 - `failed`
 - `canceled`
 
-Bloqueado para:
+Blocked for:
 - `completed`
 - `running`
 - `queued`
 
-## 8) Progresso e logs
+## 8. Progress and Logs
 
-A UI mostra:
-- percentual,
-- ETA,
-- arquivo atual,
-- bytes transferidos,
-- logs estruturados.
+The UI displays:
+- percentage
+- ETA
+- current file
+- transferred bytes
+- structured logs
 
-No backend, eventos sao persistidos com timestamp compacto `YYYY-MM-DD HH:MM:SS`.
+On the backend, events are persisted with compact `YYYY-MM-DD HH:MM:SS` timestamps.
 
-## 9) Output e abertura de pasta
+## 9. Output and Folder Opening
 
 Endpoint:
 - `GET /jobs/{job_id}/output`
 
-Retorna, entre outros:
+Returns, among other fields:
 - `output_dir`
-- `host_output_dir` (quando mapeavel)
+- `host_output_dir` when it can be mapped
 - `exported_files`
 - `output_format`
 - `export_warning`
@@ -153,47 +153,47 @@ Retorna, entre outros:
 Endpoint:
 - `POST /jobs/{job_id}/open-output`
 
-Com Docker, normalmente retorna aviso para abrir manualmente no host usando `host_output_dir`.
+Inside Docker, this usually returns instructions for manual opening on the host using `host_output_dir`.
 
-## 10) Troubleshooting
+## 10. Troubleshooting
 
-### Porta ja alocada
+### Port already allocated
 
-Erro tipico:
+Typical error:
 - `Bind for 0.0.0.0:8002 failed: port is already allocated`
 
-Acoes:
-1. mudar porta host,
-2. parar container anterior,
-3. validar com `docker ps`.
+Actions:
+1. change the host port
+2. stop the previous container
+3. validate with `docker ps`
 
-### Jobs antigos com erro de restart
+### Older jobs fail after a restart
 
-Se a API reiniciar no meio da execucao, jobs em andamento podem ser marcados como interrompidos/failed.
+If the API restarts during execution, in-progress jobs can be marked as interrupted or failed.
 
-### Muito log HTTP no console
+### Too much HTTP logging in the console
 
-Suba uvicorn com `--no-access-log` (launcher ja usa por padrao).
+Start `uvicorn` with `--no-access-log`. The launcher already does this by default.
 
-### Exportacao solicitada sem arquivo gerado
+### Export requested but no output file generated
 
-Verificar em `/jobs/{job_id}/output`:
-- `exported_files` vazio,
-- `export_warning` presente.
+Check `/jobs/{job_id}/output`:
+- `exported_files` is empty
+- `export_warning` is present
 
-Isso indica que download pode ter funcionado, mas exportacao filtrada nao gerou dataset final.
+This usually means the download succeeded, but the filtered export produced no final dataset.
 
-## 11) Desenvolvimento no Docker
+## 11. Development in Docker
 
 ```bash
-# testes
+# Tests
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
 
-# shell interativo
+# Interactive shell
 docker run --rm -it -v "$(pwd):/app" guaraci bash
 ```
 
-## 12) Nota sobre Python local sem Docker
+## 12. Note About Local Python Without Docker
 
-Fluxo local sem Docker esta em WIP e nao e o caminho recomendado para operacao.
-Use Docker para validacao final de comportamento.
+The local non-Docker flow remains WIP and is not the recommended operational path.
+Use Docker for final validation.

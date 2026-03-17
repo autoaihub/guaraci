@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use Guaraci in research, technical reports, or derived software, please cite it using the metadata below."
+title: "Guaraci"
+type: software
+version: "0.4.1"
+date-released: 2026-02-24
+license: MIT
+abstract: "Brazilian public data integration platform for scientific research."
+repository-code: "https://github.com/autoaihub/guaraci"
+url: "https://github.com/autoaihub/guaraci"
+authors:
+  - given-names: "Luis Felipe"
+    family-names: "Vogel Lopes"
+    email: "vogel@usp.br"
+  - given-names: "Pedro Guilherme"
+    family-names: "dos Reis Teixeira"
+    email: "pedro.guilherme2305@usp.br"
+  - given-names: "Robson Parmezan"
+    family-names: "Bonidia"
+  - given-names: "André Carlos Ponce de Leon Ferreira"
+    family-names: "de Carvalho"
+keywords:
+  - "Brazilian public data"
+  - "public health"
+  - "epidemiology"
+  - "OpenDataSUS"
+  - "DATASUS"

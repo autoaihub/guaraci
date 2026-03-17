@@ -1,52 +1,52 @@
-# AI Handoff: OpenDataSUS e Diretrizes para Agentes
+# AI Handoff: OpenDataSUS and Agent Guidelines
 
-Este documento serve como ponto unico de contexto para novas conversas com agentes de IA no projeto Guaraci.
+This document is the single-source context handoff for future AI-agent conversations in the Guaraci repository.
 
-## 1) Estado atual (0.4.1)
+## 1. Current State (`0.4.1`)
 
-- Projeto: `Guaraci` `0.4.1`
-- Modo oficial: **Docker-first**
-- Python local sem Docker: **WIP** (nao suportado oficialmente)
-- Fontes registradas no pipeline de jobs/UI:
-  - `snis`, `sinisa` (crawler gov.br)
-  - `doses_aplicadas_pni`, `zikavirus` (opendatasus api)
-  - `sinan`, `sim`, `sih` (pysus ftp)
+- Project: `Guaraci` `0.4.1`
+- Official workflow: **Docker-first**
+- Local Python without Docker: **WIP** and not officially supported
+- Sources currently registered in the jobs/UI pipeline:
+  - `snis`, `sinisa` (`gov.br` crawler)
+  - `doses_aplicadas_pni`, `zikavirus` (`opendatasus api`)
+  - `sinan`, `sim`, `sih` (`pysus ftp`)
 
-## 2) Contrato atual OpenDataSUS
+## 2. Current OpenDataSUS Contract
 
 ### 2.1 `doses_aplicadas_pni`
 
-- Filtros base (API nativa): `start_year`, `end_year`
-- Refino local opcional: `start_date`, `end_date`, `uf`
-- Tecnicos/opcionais: `batch_size`, `max_pages`, `resource_id`, `api_base_url`, `keep_raw`
-- `keep_raw`: padrao `false`
-- Exportacao opcional: `output_format` em `csv|parquet|sqlite`
+- Base native API filters: `start_year`, `end_year`
+- Optional local refinement: `start_date`, `end_date`, `uf`
+- Technical or optional parameters: `batch_size`, `max_pages`, `resource_id`, `api_base_url`, `keep_raw`
+- `keep_raw` default: `false`
+- Optional export: `output_format` with `csv`, `parquet`, or `sqlite`
 
 ### 2.2 `zikavirus`
 
-- Filtros base (API nativa): `start_year`, `end_year`
-- Refino local opcional: `start_date`, `end_date`, `uf`
-- Tecnicos/opcionais: `batch_size`, `max_pages`, `api_base_url`, `keep_raw`
-- `keep_raw`: padrao `false`
-- Exportacao opcional: `output_format` em `csv|parquet|sqlite`
+- Base native API filters: `start_year`, `end_year`
+- Optional local refinement: `start_date`, `end_date`, `uf`
+- Technical or optional parameters: `batch_size`, `max_pages`, `api_base_url`, `keep_raw`
+- `keep_raw` default: `false`
+- Optional export: `output_format` with `csv`, `parquet`, or `sqlite`
 
-## 3) Principios de implementacao (agentes IA)
+## 3. Implementation Principles for AI Agents
 
-1. Nao quebrar fontes existentes.
-2. Respeitar arquitetura atual:
-   - `DownloadService` (registro/schema/validacao)
-   - `DownloadJobService` (fila/status/progresso/log/retry/cancel)
-3. Toda nova fonte deve:
-   - ter `SourceDescriptor`,
-   - declarar `SourceParameterSpec`,
-   - rejeitar parametros desconhecidos (validacao padrao).
-4. Preferir filtros basicos nativos da API de origem.
-5. Filtros tecnicos e refinamentos locais devem ficar em bloco avancado na UI.
-6. Manter retorno consistente em `JobResult` e no endpoint `/jobs/{job_id}/output`.
-7. Cobrir mudancas com testes de service/API/jobs/datasource.
-8. Atualizar documentacao no mesmo PR.
+1. Do not break existing sources.
+2. Respect the current architecture:
+   - `DownloadService` for registration, schema, and validation
+   - `DownloadJobService` for queueing, status, progress, logs, retry, and cancellation
+3. Every new source must:
+   - define a `SourceDescriptor`
+   - declare `SourceParameterSpec`
+   - reject unknown parameters through the default validation path
+4. Prefer native upstream API filters in the basic UX.
+5. Keep technical parameters and local refinements in the advanced UI block.
+6. Preserve consistent `JobResult` output and `/jobs/{job_id}/output` semantics.
+7. Cover changes with service, API, job, and datasource tests.
+8. Update documentation in the same change set.
 
-## 4) Arquivos-chave para evolucao
+## 4. Key Files for Evolution
 
 - `guaraci/services/downloads.py`
 - `guaraci/services/jobs.py`
@@ -56,29 +56,29 @@ Este documento serve como ponto unico de contexto para novas conversas com agent
 - `guaraci/api/main.py`
 - `guaraci/api/static/index.html`
 
-## 5) Checklist rapido para mudancas OpenDataSUS
+## 5. Quick Checklist for OpenDataSUS Changes
 
-1. Ajustar schema da fonte no `DownloadService`.
-2. Garantir normalizacao de params (ex.: ano, formato, bool).
-3. Implementar/ajustar coleta no datasource (DEMAS/CKAN conforme fonte).
-4. Garantir progresso/log compreensivel no fluxo de jobs.
-5. Validar output (`manifest`, `exported_files`, `export_warning`, `raw_file`).
-6. Cobrir com testes.
-7. Atualizar:
+1. Update the source schema in `DownloadService`.
+2. Guarantee parameter normalization for year, format, and booleans.
+3. Implement or adjust the datasource collection flow for DEMAS or CKAN as required by the source.
+4. Keep job progress and logs understandable in the queued-job flow.
+5. Validate output artifacts such as `manifest`, `exported_files`, `export_warning`, and any raw output.
+6. Cover the behavior with tests.
+7. Update:
    - `README.md`
    - `docs/ARCHITECTURE.md`
    - `docs/API_REFERENCE.md`
    - `docs/UI_GUIDE.md`
    - `docs/SOURCES_AND_FILTERS.md`
-   - `CHANGELOG.md` (quando aplicavel)
+   - `CHANGELOG.md` when applicable
 
-## 6) Comandos uteis de validacao (Docker)
+## 6. Useful Validation Commands (Docker)
 
 ```bash
-# Suite principal
+# Main suite
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
 
-# Suite focada em servicos/api/jobs/opendatasus
+# Focused OpenDataSUS, services, API, and jobs suite
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
   tests/test_opendatasus_swagger_catalog.py \
   tests/test_opendatasus_datasource.py \
@@ -87,32 +87,32 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
   tests/test_jobs.py \
   tests/test_config.py -q
 
-# Subir API local no container
+# Run the local API inside the container
 docker run --rm -it -p 8002:8000 -v "$(pwd):/app" guaraci \
   uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log
 ```
 
-## 7) Prompt base para novo chat de manutencao
+## 7. Base Prompt for a New Maintenance Chat
 
-Use este bloco quando precisar iniciar um novo chat:
+Use the block below when starting a new maintenance conversation:
 
 ---
-Quero evoluir OpenDataSUS no projeto Guaraci mantendo compatibilidade com o fluxo atual.
+I want to evolve OpenDataSUS support in the Guaraci project while keeping compatibility with the current workflow.
 
-Contexto:
-- Versao atual: 0.4.1
-- Modo oficial: Docker-first
-- Fontes OpenDataSUS atuais: doses_aplicadas_pni, zikavirus
-- Contrato atual OpenDataSUS:
+Context:
+- Current version: 0.4.1
+- Official workflow: Docker-first
+- Current OpenDataSUS sources: doses_aplicadas_pni, zikavirus
+- Current OpenDataSUS contract:
   - base: start_year/end_year
-  - refinamento opcional: start_date/end_date/uf
-  - keep_raw false por padrao
-  - exportacao opcional csv/parquet/sqlite
-- Arquitetura: DownloadService + DownloadJobService + schema dinamico na UI
-- Regras: rejeitar parametros desconhecidos, nao quebrar fontes atuais, atualizar testes e docs.
+  - optional refinement: start_date/end_date/uf
+  - keep_raw defaults to false
+  - optional export in csv/parquet/sqlite
+- Architecture: DownloadService + DownloadJobService + dynamic UI schema
+- Rules: reject unknown parameters, do not break current sources, update tests and docs
 
-Ao final:
-- listar arquivos alterados,
-- explicar trade-offs,
-- informar comandos exatos de teste em Docker.
+At the end:
+- list changed files
+- explain trade-offs
+- provide exact Docker test commands
 ---
