@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- OpenDataSUS client errors now distinguish connectivity, timeout, HTTP, configuration, and response-format failures with actionable hints
+- OpenDataSUS datasource failures now include CKAN/DEMAS execution context such as package resolution, endpoint, page, and resource offset when available
+- OpenDataSUS export warnings are more precise about preserved artifacts, and manifests now persist warning messages for troubleshooting
+
 ## [0.4.1] - 2026-02-24
 
 ### Added

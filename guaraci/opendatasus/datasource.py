@@ -226,7 +226,7 @@ class OpenDataSUSDataSource(DataSource):
                 records=records,
             )
         exported_files: List[str] = []
-        export_warning: Optional[str] = None
+        warnings: List[str] = []
         if requested_format:
             if records:
                 try:
@@ -238,16 +238,19 @@ class OpenDataSUSDataSource(DataSource):
                     )
                     exported_files.append(str(export_path))
                 except Exception as exc:
-                    export_warning = (
-                        "OpenDataSUS export failed; raw download and manifest were generated. "
-                        f"Error: {exc}"
+                    warnings.append(
+                        self._build_export_failure_warning(
+                            exc=exc,
+                            keep_raw=keep_raw_value,
+                        )
                     )
             else:
-                export_warning = (
-                    "No records returned by OpenDataSUS query; export file was not generated."
+                warnings.append(
+                    "No records returned by OpenDataSUS query; export file was not generated. "
+                    "Consider widening the date window or removing optional refinements such as UF."
                 )
         elif not keep_raw_value:
-            export_warning = (
+            warnings.append(
                 "No data artifact generated (keep_raw=false and output_format is empty). "
                 "Set output_format or enable keep_raw."
             )
@@ -269,6 +272,7 @@ class OpenDataSUSDataSource(DataSource):
             output_format=requested_format,
             exported_files=exported_files,
             api_base_url=client.base_url,
+            warnings=warnings,
         )
 
         if progress_callback is not None:
@@ -306,6 +310,7 @@ class OpenDataSUSDataSource(DataSource):
             "output_format": requested_format,
             "exported_files": exported_files,
         }
+        export_warning = self._combine_warnings(warnings)
         if export_warning:
             payload["export_warning"] = export_warning
         return payload
@@ -367,7 +372,16 @@ class OpenDataSUSDataSource(DataSource):
         if resource_id and resource_id.strip():
             return resource_id.strip()
 
-        package_payload = client.package_show(spec.package_id)
+        try:
+            package_payload = client.package_show(spec.package_id)
+        except OpenDataSUSClientError as exc:
+            raise self._annotate_client_error(
+                exc,
+                context=(
+                    "OpenDataSUS CKAN metadata lookup failed while resolving "
+                    f"package '{spec.package_id}'"
+                ),
+            ) from exc
         resources = package_payload.get("resources")
         if not isinstance(resources, list):
             raise OpenDataSUSClientError(
@@ -464,7 +478,16 @@ class OpenDataSUSDataSource(DataSource):
                 if uf and uf_param_name:
                     params[uf_param_name] = uf
 
-                payload = client.demas_get(endpoint, params=params)
+                try:
+                    payload = client.demas_get(endpoint, params=params)
+                except OpenDataSUSClientError as exc:
+                    raise self._annotate_client_error(
+                        exc,
+                        context=(
+                            "OpenDataSUS DEMAS request failed for "
+                            f"dataset '{dataset}' at endpoint '{endpoint}' page {page + 1}"
+                        ),
+                    ) from exc
                 fetched = self._extract_demas_rows(payload)
                 if not fetched:
                     break
@@ -512,7 +535,7 @@ class OpenDataSUSDataSource(DataSource):
             )
 
         exported_files: List[str] = []
-        export_warning: Optional[str] = None
+        warnings: List[str] = []
         if requested_format:
             if records:
                 try:
@@ -524,26 +547,28 @@ class OpenDataSUSDataSource(DataSource):
                     )
                     exported_files.append(str(export_path))
                 except Exception as exc:
-                    export_warning = (
-                        "OpenDataSUS export failed; raw download and manifest were generated. "
-                        f"Error: {exc}"
+                    warnings.append(
+                        self._build_export_failure_warning(
+                            exc=exc,
+                            keep_raw=keep_raw,
+                        )
                     )
             else:
-                export_warning = (
-                    "No records returned by OpenDataSUS query; export file was not generated."
+                warnings.append(
+                    "No records returned by OpenDataSUS query; export file was not generated. "
+                    "Consider widening the date window or removing optional refinements such as UF."
                 )
         elif not keep_raw:
-            export_warning = (
+            warnings.append(
                 "No data artifact generated (keep_raw=false and output_format is empty). "
                 "Set output_format or enable keep_raw."
             )
 
         if truncated:
-            warning_text = (
+            warnings.append(
                 "OpenDataSUS query reached max_pages limit before exhausting remote pages. "
-                f"Increase max_pages (current={max_pages_per_year}) for broader coverage."
+                f"Increase max_pages (current={max_pages_per_year}) or narrow the selected date window."
             )
-            export_warning = f"{export_warning} {warning_text}".strip() if export_warning else warning_text
 
         endpoint_slug = ",".join([item.path.lstrip("/") for item in endpoints]) or dataset
         resolved_resource = (
@@ -568,6 +593,7 @@ class OpenDataSUSDataSource(DataSource):
             output_format=requested_format,
             exported_files=exported_files,
             api_base_url=client.base_url,
+            warnings=warnings,
             extra_metadata={
                 "api_mode": "demas",
                 "years": years,
@@ -615,6 +641,7 @@ class OpenDataSUSDataSource(DataSource):
             "output_format": requested_format,
             "exported_files": exported_files,
         }
+        export_warning = self._combine_warnings(warnings)
         if export_warning:
             payload["export_warning"] = export_warning
         return payload
@@ -841,7 +868,16 @@ class OpenDataSUSDataSource(DataSource):
             f"SELECT COUNT(*) AS total FROM {self._quote_identifier(resource_id)} "
             f"WHERE {where_sql}"
         )
-        result = client.datastore_search_sql(sql)
+        try:
+            result = client.datastore_search_sql(sql)
+        except OpenDataSUSClientError as exc:
+            raise self._annotate_client_error(
+                exc,
+                context=(
+                    "OpenDataSUS CKAN count query failed for "
+                    f"resource '{resource_id}'"
+                ),
+            ) from exc
         records = result.get("records")
         if not isinstance(records, list) or not records:
             return 0
@@ -871,7 +907,16 @@ class OpenDataSUSDataSource(DataSource):
             f"ORDER BY {self._quote_identifier(date_column)} ASC "
             f"LIMIT {max(1, int(limit))} OFFSET {max(0, int(offset))}"
         )
-        result = client.datastore_search_sql(sql)
+        try:
+            result = client.datastore_search_sql(sql)
+        except OpenDataSUSClientError as exc:
+            raise self._annotate_client_error(
+                exc,
+                context=(
+                    "OpenDataSUS CKAN page query failed for "
+                    f"resource '{resource_id}' at offset {max(0, int(offset))}"
+                ),
+            ) from exc
         rows = result.get("records")
         if not isinstance(rows, list):
             return []
@@ -941,6 +986,7 @@ class OpenDataSUSDataSource(DataSource):
         output_format: Optional[str],
         exported_files: List[str],
         api_base_url: str,
+        warnings: Optional[List[str]] = None,
         extra_metadata: Optional[Mapping[str, object]] = None,
     ) -> Path:
         manifest_path = self.output_path / "manifest.json"
@@ -969,6 +1015,7 @@ class OpenDataSUSDataSource(DataSource):
             "raw_file": str(raw_path) if raw_path else None,
             "output_format": output_format,
             "exported_files": list(exported_files),
+            "warnings": list(warnings or []),
         }
         if extra_metadata:
             payload["details"] = dict(extra_metadata)
@@ -977,6 +1024,39 @@ class OpenDataSUSDataSource(DataSource):
             encoding="utf-8",
         )
         return manifest_path
+
+    @staticmethod
+    def _annotate_client_error(
+        exc: OpenDataSUSClientError,
+        *,
+        context: str,
+    ) -> OpenDataSUSClientError:
+        return exc.with_context(context)
+
+    @staticmethod
+    def _combine_warnings(warnings: List[str]) -> Optional[str]:
+        cleaned = [item.strip() for item in warnings if str(item).strip()]
+        if not cleaned:
+            return None
+        return " ".join(cleaned)
+
+    @staticmethod
+    def _build_export_failure_warning(
+        *,
+        exc: Exception,
+        keep_raw: bool,
+    ) -> str:
+        if keep_raw:
+            artifact_note = "Raw snapshot and manifest were generated."
+        else:
+            artifact_note = (
+                "Manifest was generated, but no data artifact was preserved. "
+                "Re-run with keep_raw=true to retain the raw payload."
+            )
+        return (
+            "OpenDataSUS export failed after download. "
+            f"{artifact_note} Error: {exc}"
+        )
 
     @staticmethod
     def _parse_iso_date(value: str, *, field_name: str) -> date:

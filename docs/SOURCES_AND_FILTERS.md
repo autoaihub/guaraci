@@ -78,6 +78,8 @@ Uses the same base schema as SNIS.
 OpenDataSUS notes:
 - The current UX rule is to prioritize native API filters in the basic form.
 - Local refinements and technical options belong in the advanced UI block.
+- `max_pages` may generate an `export_warning` if the query was truncated before exhausting remote pages.
+- If export fails with `keep_raw=false`, the warning advises re-running with `keep_raw=true` to preserve a raw snapshot.
 
 ### 3.5 SINAN (`sinan`)
 

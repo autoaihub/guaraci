@@ -133,6 +133,10 @@ These events feed:
   - optional local refinement: `start_date`, `end_date`, and `uf` when applicable
 - `keep_raw` is optional and defaults to `false`
 - Optional export uses `csv`, `parquet`, or `sqlite` within the same jobs/UI flow
+- Error handling is contextual:
+  - connectivity, timeout, HTTP, configuration, and response-format failures are differentiated in OpenDataSUS client errors
+  - datasource-raised errors include endpoint, page, package, or resource context when the failure happened mid-flow
+  - manifests persist warning messages such as truncation or export issues
 
 ## 8. Persistence and Recovery
 

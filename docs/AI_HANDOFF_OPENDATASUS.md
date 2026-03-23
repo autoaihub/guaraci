@@ -21,6 +21,10 @@ This document is the single-source context handoff for future AI-agent conversat
 - Technical or optional parameters: `batch_size`, `max_pages`, `resource_id`, `api_base_url`, `keep_raw`
 - `keep_raw` default: `false`
 - Optional export: `output_format` with `csv`, `parquet`, or `sqlite`
+- Reliability behavior:
+  - client errors should distinguish connectivity, timeout, HTTP, configuration, and response-format failures
+  - datasource errors should add endpoint, page, package, or resource context when available
+  - warnings such as truncation and export preservation should be visible in `export_warning` and manifest metadata
 
 ### 2.2 `zikavirus`
 
@@ -80,6 +84,7 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
 
 # Focused OpenDataSUS, services, API, and jobs suite
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
+  tests/test_opendatasus_client.py \
   tests/test_opendatasus_swagger_catalog.py \
   tests/test_opendatasus_datasource.py \
   tests/test_services.py \
