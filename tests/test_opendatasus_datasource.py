@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
+from guaraci.opendatasus.client import OpenDataSUSClientError
 from guaraci.opendatasus.datasource import OpenDataSUSDataSource
 
 
@@ -187,7 +190,46 @@ def test_download_demas_export_error_becomes_warning(tmp_path) -> None:  # noqa:
 
     assert payload["downloaded_count"] == 2
     assert payload["exported_files"] == []
-    assert "export failed" in str(payload.get("export_warning", "")).lower()
+    warning = str(payload.get("export_warning", "")).lower()
+    assert "export failed after download" in warning
+    assert "keep_raw=true" in warning
+
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["warnings"]
+
+
+def test_download_demas_failure_adds_endpoint_context(tmp_path) -> None:  # noqa: ANN001
+    class _FailingDemasClient:
+        mode = "demas"
+        base_url = "https://apidadosabertos.saude.gov.br"
+
+        def demas_get(self, path: str, params):  # noqa: ANN001
+            raise OpenDataSUSClientError(
+                "OpenDataSUS request failed (503): temporarily unavailable",
+                category="http_error",
+                retryable=True,
+                hint="Retry later, reduce the query window, or lower request volume.",
+            )
+
+    datasource = OpenDataSUSDataSource(
+        output_path=str(tmp_path),
+        client=_FailingDemasClient(),  # type: ignore[arg-type]
+    )
+
+    with pytest.raises(OpenDataSUSClientError) as excinfo:
+        datasource.download(
+            dataset="doses_aplicadas_pni",
+            start_year=2025,
+            end_year=2025,
+            batch_size=2,
+            max_pages=2,
+        )
+
+    message = str(excinfo.value)
+    assert "dataset 'doses_aplicadas_pni'" in message
+    assert "/vacinacao/doses-aplicadas-pni-2025" in message
+    assert "page 1" in message
+    assert "retry later" in message.lower()
 
 
 def test_download_zikavirus_filters_by_date_and_uf_code(tmp_path) -> None:  # noqa: ANN001
