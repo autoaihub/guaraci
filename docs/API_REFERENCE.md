@@ -211,6 +211,13 @@ curl -X POST http://localhost:8002/jobs \
   - the `job_id` does not exist
 - `400 Cannot retry job ... with status completed`:
   - retry is available only for `failed` or `canceled`
+- `Could not connect to OpenDataSUS endpoint ...`:
+  - check DNS, proxy/firewall rules, and upstream availability
+  - retry may succeed when the endpoint is temporarily unstable
+- `OpenDataSUS request failed (429|5xx)`:
+  - retry later or reduce the query window / request volume
+- `OpenDataSUS request failed (404)`:
+  - confirm `api_base_url`, `resource_id`, dataset path, and CKAN vs DEMAS mode
 - `OpenDataSUS returned a non-JSON response`:
   - use a valid endpoint:
     - `https://apidadosabertos.saude.gov.br` (DEMAS)
@@ -220,3 +227,4 @@ OpenDataSUS notes:
 - `start_year` and `end_year` are the base filters.
 - `start_date` and `end_date` are optional refinements inside the selected year window.
 - `keep_raw=false` by default does not write `raw/*.jsonl`; `keep_raw=true` does.
+- `export_warning` may include truncation (`max_pages`) or export-preservation guidance.

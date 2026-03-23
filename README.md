@@ -241,6 +241,7 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/ -v
 
 # Focused suite
 docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
+  tests/test_opendatasus_client.py \
   tests/test_opendatasus_swagger_catalog.py \
   tests/test_opendatasus_datasource.py \
   tests/test_services.py \
@@ -254,6 +255,7 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
 - Local Python execution outside Docker remains **WIP**.
 - Opening folders from the UI in Docker depends on host path mapping.
 - Some PySUS sources can fail due to external FTP or network instability.
+- OpenDataSUS reliability still depends on upstream API availability, but error messages now distinguish connectivity, HTTP, and response-format failures more explicitly.
 
 ## Version and Immediate Roadmap
 

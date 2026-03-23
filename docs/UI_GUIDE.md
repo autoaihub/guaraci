@@ -131,6 +131,7 @@ The UI log stream reflects job pipeline events, not only HTTP server logs.
 - If the API returns HTML instead of JSON, switch `api_base_url` to a valid endpoint:
   - `https://apidadosabertos.saude.gov.br` (DEMAS)
   - `https://ckan-dadosabertos.saude.gov.br/api/3/action` (CKAN, when available)
+- When an OpenDataSUS job fails, the job error text should now indicate whether the issue was connectivity, HTTP status, configuration, or unexpected response format.
 
 ### 8.3 SINAN, SIM, and SIH
 
@@ -148,6 +149,7 @@ The UI log stream reflects job pipeline events, not only HTTP server logs.
 ### The download finished but no CSV was generated
 
 - Confirm that `output_format` was included in the payload.
+- Check `export_warning` in the job output; it now indicates whether only the manifest was preserved or whether `keep_raw=true` is recommended for reprocessing.
 - Check `exported_files` and `export_warning` in the output panel.
 
 ### Port 8002 is unavailable
