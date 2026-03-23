@@ -22,6 +22,10 @@ This document records the implemented progress so far and the next technical foc
   - base: `start_year`, `end_year`
   - optional local refinement: `start_date`, `end_date`, `uf`
   - `keep_raw` defaulting to `false`
+- OpenDataSUS reliability diagnostics improved with:
+  - categorized client failures for connectivity, timeout, HTTP, configuration, and response format
+  - actionable hints attached to upstream failures
+  - datasource context for package lookup, endpoint, page, and resource offset when a request fails
 - removal of OpenDataSUS source aliases to reduce ambiguity
 - materialization of PySUS artifacts in local `raw/` folders
 - optional export in `csv`, `parquet`, and `sqlite` for PySUS and OpenDataSUS sources
@@ -42,6 +46,7 @@ This document records the implemented progress so far and the next technical foc
 - `output_dir` kept in the basic block before `output_format`
 - monitoring and output details in the dashboard
 - display of `exported_files` and `export_warning`
+- OpenDataSUS manifests now persist warning messages for troubleshooting and reprocessing guidance
 
 ## 2. Current Attention Points
 
