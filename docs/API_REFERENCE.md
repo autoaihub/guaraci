@@ -20,6 +20,8 @@ Example:
 
 Lists the registered sources.
 
+The response includes the manually curated sources and the OpenDataSUS DEMAS sources generated from the local Swagger catalog.
+
 Response:
 
 ```json
@@ -45,6 +47,7 @@ Parameter fields:
 - `name`
 - `type` (`string`, `integer`, `boolean`, `string_list`)
 - `description`
+- `phase` (`basico`, `coleta`, `refinamento`, `exportacao`, or `tecnica`)
 - `required`
 - `default`
 - `allowed_values`
@@ -201,6 +204,10 @@ curl -X POST http://localhost:8002/jobs \
 curl -X POST http://localhost:8002/jobs \
   -H "Content-Type: application/json" \
   -d '{"source":"doses_aplicadas_pni","params":{"start_year":2025,"end_year":2025,"uf":"SP","output_format":"csv","keep_raw":false}}'
+
+curl -X POST http://localhost:8002/jobs \
+  -H "Content-Type: application/json" \
+  -d '{"source":"cnes_estabelecimentos","params":{"codigo_uf":"35","status":"ATIVO","output_format":"csv"}}'
 ```
 
 ## 8. Common Errors
@@ -226,5 +233,7 @@ curl -X POST http://localhost:8002/jobs \
 OpenDataSUS notes:
 - `start_year` and `end_year` are the base filters.
 - `start_date` and `end_date` are optional refinements inside the selected year window.
+- Auto-generated DEMAS sources expose native Swagger parameters as source-specific schema fields.
+- DEMAS path parameters such as `codigo_cnes` are required when the endpoint path contains `{codigo_cnes}`.
 - `keep_raw=false` by default does not write `raw/*.jsonl`; `keep_raw=true` does.
 - `export_warning` may include truncation (`max_pages`) or export-preservation guidance.

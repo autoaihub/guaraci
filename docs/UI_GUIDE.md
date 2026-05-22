@@ -116,8 +116,9 @@ The UI log stream reflects job pipeline events, not only HTTP server logs.
 
 ### 8.2 OpenDataSUS
 
-- Available sources: `doses_aplicadas_pni` and `zikavirus`.
+- Available sources include `doses_aplicadas_pni`, `zikavirus`, and DEMAS sources generated from the local Swagger catalog.
 - Start with the native API filters `start_year` and `end_year`.
+- For auto-generated DEMAS sources, use the native source-specific fields shown in the basic block.
 - Set `output_format` if you need exported files.
 - `Advanced Filtering` contains local refinements and technical options such as:
   - `start_date`
@@ -128,6 +129,7 @@ The UI log stream reflects job pipeline events, not only HTTP server logs.
   - `max_pages`
   - `resource_id`
 - For `zikavirus`, `uf` is treated as a local refinement and stays in the advanced block.
+- Path-based sources such as `cnes_estabelecimentos_{codigo_cnes}` require the path parameter before the job can be created.
 - If the API returns HTML instead of JSON, switch `api_base_url` to a valid endpoint:
   - `https://apidadosabertos.saude.gov.br` (DEMAS)
   - `https://ckan-dadosabertos.saude.gov.br/api/3/action` (CKAN, when available)

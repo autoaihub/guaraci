@@ -2,7 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- OpenDataSUS sources `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, and `febre_amarela` elevated to first-class epidemiological sources with start/end year enforcement and local filtering
+- added support for `%d/%m/%Y` date parsing in OpenDataSUS datasource to support sources like `febre_amarela`
+
 ### Changed
+- OpenDataSUS generated DEMAS sources now pass declared Swagger query parameters and substitute required path parameters
+- `/sources/{source}/schema` now preserves the parameter `phase` field so the UI can group basic, export, refinement, and technical controls correctly
+- OpenDataSUS generated-source manifests now include `api_params` and endpoint query parameters for request traceability
 - OpenDataSUS client errors now distinguish connectivity, timeout, HTTP, configuration, and response-format failures with actionable hints
 - OpenDataSUS datasource failures now include CKAN/DEMAS execution context such as package resolution, endpoint, page, and resource offset when available
 - OpenDataSUS export warnings are more precise about preserved artifacts, and manifests now persist warning messages for troubleshooting
