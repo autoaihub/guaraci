@@ -87,6 +87,46 @@ class _FakeDemasZikavirusClient:
         return {"arboviroses_zikavirus": []}
 
 
+class _FakeDemasFebreAmarelaClient:
+    mode = "demas"
+    base_url = "https://apidadosabertos.saude.gov.br"
+
+    def demas_get(self, path: str, params):  # noqa: ANN001
+        if path != "/arboviroses/febre-amarela-humanos-primatas-nao-humanos":
+            return {"febre_amarela_humanos_primatas": []}
+        offset = int(params.get("offset", 0))
+        if offset == 0:
+            return {
+                "febre_amarela_humanos_primatas": [
+                    {"mun_lpi": "ALTO ALEGRE", "dt_is": "29/11/1994", "uf_lpi": "RR"},
+                    {"mun_lpi": "PACARAIMA", "dt_is": "19/02/1995", "uf_lpi": "RR"},
+                ]
+            }
+        if offset == 1:
+            return {
+                "febre_amarela_humanos_primatas": [
+                    {"mun_lpi": "AMARANTE", "dt_is": "01/04/1995", "uf_lpi": "MA"},
+                ]
+            }
+        return {"febre_amarela_humanos_primatas": []}
+
+
+class _FakeDemasGenericClient:
+    mode = "demas"
+    base_url = "https://apidadosabertos.saude.gov.br"
+
+    def __init__(self) -> None:
+        self.calls = []
+
+    def demas_get(self, path: str, params):  # noqa: ANN001
+        self.calls.append((path, dict(params)))
+        if path == "/cnes/estabelecimentos":
+            return {"cnes_estabelecimentos": [{"codigo_cnes": "123", "nome": "UBS"}]}
+        if path == "/cnes/estabelecimentos/123":
+            return {"cnes_estabelecimentos": [{"codigo_cnes": "123", "nome": "UBS"}]}
+        return {"items": []}
+
+
 def test_download_demas_filters_date_and_uf(tmp_path) -> None:  # noqa: ANN001
     datasource = OpenDataSUSDataSource(
         output_path=str(tmp_path),
@@ -113,10 +153,76 @@ def test_download_demas_filters_date_and_uf(tmp_path) -> None:  # noqa: ANN001
     manifest_path = tmp_path / "manifest.json"
     assert manifest_path.exists()
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    assert manifest["details"]["api_mode"] == "demas"
-    assert manifest["details"]["pages_scanned"] == 2
-    assert manifest["details"]["truncated"] is False
-    assert manifest["raw_file"] is None
+    assert manifest["request"]["filters"]["api_mode"] == "demas"
+    assert manifest["request"]["filters"]["pages_scanned"] == 2
+    assert manifest["request"]["filters"]["truncated"] is False
+    assert not manifest["artifacts"]["materialized_paths"]
+
+
+def test_download_generic_demas_source_passes_swagger_query_params(tmp_path) -> None:  # noqa: ANN001
+    client = _FakeDemasGenericClient()
+    datasource = OpenDataSUSDataSource(
+        output_path=str(tmp_path),
+        client=client,  # type: ignore[arg-type]
+    )
+
+    payload = datasource.download(
+        dataset="cnes/estabelecimentos",
+        codigo_uf="35",
+        status="ATIVO",
+        batch_size=10,
+        max_pages=1,
+        keep_raw=True,
+    )
+
+    assert payload["downloaded_count"] == 1
+    assert client.calls[0][0] == "/cnes/estabelecimentos"
+    assert client.calls[0][1]["codigo_uf"] == "35"
+    assert client.calls[0][1]["status"] == "ATIVO"
+    assert client.calls[0][1]["limit"] == 10
+    assert client.calls[0][1]["offset"] == 0
+    assert payload["api_params"] == {"codigo_uf": "35", "status": "ATIVO"}
+
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["request"]["filters"]["api_params"] == {"codigo_uf": "35", "status": "ATIVO"}
+    assert manifest["request"]["filters"]["endpoint_query_params"][0]["params"] == {
+        "codigo_uf": "35",
+        "status": "ATIVO",
+    }
+
+
+def test_download_generic_demas_source_substitutes_path_params(tmp_path) -> None:  # noqa: ANN001
+    client = _FakeDemasGenericClient()
+    datasource = OpenDataSUSDataSource(
+        output_path=str(tmp_path),
+        client=client,  # type: ignore[arg-type]
+    )
+
+    payload = datasource.download(
+        dataset="cnes/estabelecimentos/{codigo_cnes}",
+        codigo_cnes="123",
+        batch_size=10,
+        max_pages=1,
+        keep_raw=True,
+    )
+
+    assert payload["downloaded_count"] == 1
+    assert client.calls[0][0] == "/cnes/estabelecimentos/123"
+    assert "codigo_cnes" not in client.calls[0][1]
+
+
+def test_download_generic_demas_source_requires_path_params(tmp_path) -> None:  # noqa: ANN001
+    datasource = OpenDataSUSDataSource(
+        output_path=str(tmp_path),
+        client=_FakeDemasGenericClient(),  # type: ignore[arg-type]
+    )
+
+    with pytest.raises(ValueError, match="codigo_cnes"):
+        datasource.download(
+            dataset="cnes/estabelecimentos/{codigo_cnes}",
+            batch_size=10,
+            max_pages=1,
+        )
 
 
 def test_download_demas_marks_truncated_when_max_pages_is_reached(tmp_path) -> None:  # noqa: ANN001
@@ -140,7 +246,7 @@ def test_download_demas_marks_truncated_when_max_pages_is_reached(tmp_path) -> N
     assert "max_pages" in str(payload.get("export_warning", "")).lower()
 
     manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["details"]["truncated"] is True
+    assert manifest["request"]["filters"]["truncated"] is True
 
 
 def test_download_demas_mixed_types_does_not_break_job(tmp_path) -> None:  # noqa: ANN001
@@ -252,8 +358,32 @@ def test_download_zikavirus_filters_by_date_and_uf_code(tmp_path) -> None:  # no
     assert payload["downloaded_count"] == 1
     assert payload["documents_found"] == 1
     manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
-    endpoints = manifest.get("details", {}).get("endpoints", [])
+    endpoints = manifest.get("request", {}).get("filters", {}).get("endpoints", [])
     assert "/arboviroses/zikavirus" in endpoints
+
+
+def test_download_febre_amarela_filters_by_date_and_uf(tmp_path) -> None:  # noqa: ANN001
+    datasource = OpenDataSUSDataSource(
+        output_path=str(tmp_path),
+        client=_FakeDemasFebreAmarelaClient(),  # type: ignore[arg-type]
+    )
+
+    payload = datasource.download(
+        dataset="febre_amarela",
+        start_year=1994,
+        end_year=1995,
+        start_date="1994-11-01",
+        end_date="1994-12-31",
+        uf="RR",
+        batch_size=2,
+        max_pages=5,
+    )
+
+    assert payload["downloaded_count"] == 1
+    assert payload["documents_found"] == 1
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    endpoints = manifest.get("request", {}).get("filters", {}).get("endpoints", [])
+    assert "/arboviroses/febre-amarela-humanos-primatas-nao-humanos" in endpoints
 
 
 def test_download_demas_keep_raw_true_generates_jsonl(tmp_path) -> None:  # noqa: ANN001
