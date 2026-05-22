@@ -18,6 +18,7 @@ class SourceParameterSpec:
     name: str
     param_type: ParameterType
     description: str
+    phase: str = "coleta"
     required: bool = False
     default: Optional[object] = None
     allowed_values: Optional[Sequence[str]] = None
@@ -29,6 +30,7 @@ class SourceParameterSpec:
             "name": self.name,
             "type": self.param_type,
             "description": self.description,
+            "phase": self.phase,
             "required": self.required,
             "default": self.default,
             "allowed_values": list(self.allowed_values) if self.allowed_values else None,
@@ -113,20 +115,23 @@ class DownloadManifest:
     """Standardized manifest persisted by download-based sources."""
 
     source: str
-    results_url: str
-    filters: Dict[str, object]
-    documents_found: int
-    downloaded_files: List[str]
-    skipped_files: List[str]
-    extracted_dirs: List[str]
-    failed_urls: List[str]
+    results_url: Optional[str] = None
+    filters: Dict[str, object] = field(default_factory=dict)
+    documents_found: int = 0
+    downloaded_files: List[str] = field(default_factory=list)
+    skipped_files: List[str] = field(default_factory=list)
+    extracted_dirs: List[str] = field(default_factory=list)
+    failed_urls: List[str] = field(default_factory=list)
+    materialized_paths: List[str] = field(default_factory=list)
+    exported_files: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
     generated_at_utc: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    schema_version: str = "1.0"
+    schema_version: str = "1.1"
 
     def to_dict(self, include_legacy_fields: bool = True) -> Dict[str, object]:
         stats = {
             "documents_found": self.documents_found,
-            "downloaded_count": len(self.downloaded_files),
+            "downloaded_count": len(self.downloaded_files) or len(self.materialized_paths),
             "skipped_count": len(self.skipped_files),
             "failed_count": len(self.failed_urls),
         }
@@ -135,6 +140,8 @@ class DownloadManifest:
             "skipped_files": list(self.skipped_files),
             "extracted_dirs": list(self.extracted_dirs),
             "failed_urls": list(self.failed_urls),
+            "materialized_paths": list(self.materialized_paths),
+            "exported_files": list(self.exported_files),
         }
         payload: Dict[str, object] = {
             "manifest_schema_version": self.schema_version,
@@ -144,6 +151,7 @@ class DownloadManifest:
             "request": {"filters": dict(self.filters)},
             "stats": stats,
             "artifacts": artifacts,
+            "warnings": list(self.warnings),
         }
         if include_legacy_fields:
             payload.update(
@@ -155,6 +163,9 @@ class DownloadManifest:
                     "skipped_files": list(self.skipped_files),
                     "extracted_dirs": list(self.extracted_dirs),
                     "failed_urls": list(self.failed_urls),
+                    "materialized_paths": list(self.materialized_paths),
+                    "exported_files": list(self.exported_files),
+                    "warnings": list(self.warnings),
                 }
             )
         return payload

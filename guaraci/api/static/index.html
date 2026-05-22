@@ -1035,6 +1035,21 @@
       if (name === "output_dir") {
         return false;
       }
+      if (name === "output_format") {
+        return false;
+      }
+      const schema = currentSchema || {};
+      const source = String(schema.source || "");
+      const mode = String(schema.mode || "").toLowerCase();
+      if (mode.includes("opendatasus")) {
+        if (name === "start_date" || name === "end_date" || name === "keep_raw") {
+          return true;
+        }
+        if (source === "zikavirus" && name === "uf") {
+          return true;
+        }
+      }
+      
       const technical = new Set([
         "api_base_url",
         "batch_size",
@@ -1049,30 +1064,7 @@
         return true;
       }
 
-      const basic = new Set([
-        "dataset",
-        "output_format",
-        "start_year",
-        "end_year",
-        "diseases",
-        "groups",
-        "states",
-        "months",
-        "file_kinds",
-        "modules",
-        "uf"
-      ]);
-      if (name === "start_date" || name === "end_date") {
-        return true;
-      }
-      if (name === "uf" && currentSchema && currentSchema.source === "zikavirus") {
-        return true;
-      }
-      if (basic.has(name)) {
-        return false;
-      }
-
-      if (spec.required) {
+      if (spec.phase === "basico" || spec.phase === "coleta" || spec.phase === "refinamento") {
         return false;
       }
 

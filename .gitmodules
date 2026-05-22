@@ -1,0 +1,3 @@
+[submodule "vogel-stack"]
+	path = vogel-stack
+	url = https://github.com/LuisVogelDS/VogelStack

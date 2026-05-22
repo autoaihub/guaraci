@@ -7,11 +7,12 @@ import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+import re
 from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Sequence
 
 from loguru import logger
 
-from guaraci.core.contracts import SourceParameterSpec, validate_source_params
+from guaraci.core.contracts import DownloadManifest, SourceParameterSpec, validate_source_params
 from guaraci.core.results import JobResult
 from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
 from guaraci.opendatasus import OpenDataSUSDataSource
@@ -66,6 +67,7 @@ class GovBrDownloadSource:
         return [
             SourceParameterSpec(
                 name="output_dir",
+                        phase="tecnica",
                 param_type="string",
                 description="Output directory for downloaded files.",
                 required=False,
@@ -73,6 +75,7 @@ class GovBrDownloadSource:
             ),
             SourceParameterSpec(
                 name="results_url",
+                        phase="coleta",
                 param_type="string",
                 description="Custom results page URL for discovery.",
                 required=False,
@@ -80,6 +83,7 @@ class GovBrDownloadSource:
             ),
             SourceParameterSpec(
                 name="file_kinds",
+                        phase="coleta",
                 param_type="string_list",
                 description="Kinds of files to collect for the selected source.",
                 required=False,
@@ -88,6 +92,7 @@ class GovBrDownloadSource:
             ),
             SourceParameterSpec(
                 name="modules",
+                        phase="coleta",
                 param_type="string_list",
                 description="Functional modules to filter results.",
                 required=False,
@@ -96,6 +101,7 @@ class GovBrDownloadSource:
             ),
             SourceParameterSpec(
                 name="extract_archives",
+                        phase="tecnica",
                 param_type="boolean",
                 description="If true, extract ZIP files after download.",
                 required=False,
@@ -103,6 +109,7 @@ class GovBrDownloadSource:
             ),
             SourceParameterSpec(
                 name="overwrite",
+                        phase="tecnica",
                 param_type="boolean",
                 description="If true, overwrite existing local files.",
                 required=False,
@@ -110,6 +117,7 @@ class GovBrDownloadSource:
             ),
             SourceParameterSpec(
                 name="timeout",
+                        phase="tecnica",
                 param_type="integer",
                 description="HTTP timeout in seconds.",
                 required=False,
@@ -246,22 +254,28 @@ class PysusDownloadSource:
         if isinstance(payload, dict):
             if payload.get("output_dir") is None:
                 payload["output_dir"] = str(datasource.output_path)
-            if materialized_paths:
+            if materialized_paths or exported_files:
                 payload["materialized_paths"] = materialized_paths
+                payload["exported_files"] = exported_files
+                
+                warnings: List[str] = []
+                if not exported_files and requested_output_format:
+                    warnings.append("No processed file was exported. Check format and export filters.")
+                    payload["export_warning"] = warnings[0]
+                
                 payload["manifest_path"] = str(
                     self._write_manifest(
                         output_root=Path(datasource.output_path),
                         payload=payload,
                         materialized_paths=materialized_paths,
+                        exported_files=exported_files,
+                        download_kwargs=download_kwargs,
+                        postprocess_kwargs=postprocess_kwargs,
+                        warnings=warnings,
                         )
                     )
             if requested_output_format:
                 payload["output_format"] = requested_output_format
-                payload["exported_files"] = exported_files
-                if not exported_files:
-                    payload["export_warning"] = (
-                        "No processed file was exported. Check format and export filters."
-                    )
         return JobResult.from_payload(source=self.descriptor.source, payload=payload)
 
     def download(self, **kwargs: object) -> JobResult:
@@ -328,21 +342,28 @@ class PysusDownloadSource:
         output_root: Path,
         payload: Mapping[str, object],
         materialized_paths: Sequence[str],
+        exported_files: Sequence[str],
+        download_kwargs: Mapping[str, object],
+        postprocess_kwargs: Mapping[str, object],
+        warnings: Sequence[str],
     ) -> Path:
         manifest_path = output_root / "manifest.json"
-        manifest_payload = {
-            "source": self.descriptor.source,
-            "generated_at_utc": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-            "summary": {
-                "total_files": int(payload.get("total_files", 0)),
-                "successful_downloads": int(payload.get("successful_downloads", 0)),
-                "failed_downloads": len(payload.get("failed_downloads", [])),
-            },
-            "output_dir": str(output_root),
-            "materialized_paths": list(materialized_paths),
-        }
+        
+        request_filters = dict(download_kwargs)
+        request_filters.update(postprocess_kwargs)
+        
+        manifest = DownloadManifest(
+            source=self.descriptor.source,
+            filters=request_filters,
+            documents_found=int(payload.get("total_files", 0)),
+            downloaded_files=[],  # Pysus doesn't track raw files one-by-one by default
+            materialized_paths=list(materialized_paths),
+            exported_files=list(exported_files),
+            warnings=list(warnings),
+        )
+        
         manifest_path.write_text(
-            json.dumps(manifest_payload, ensure_ascii=False, indent=2),
+            json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
         return manifest_path
@@ -576,6 +597,13 @@ class OpenDataSUSDownloadSource:
     def validate_params(self, params: Mapping[str, object]) -> None:
         prepared = self._prepare_kwargs(params)
         validate_source_params(params=prepared, specs=self._params_schema, reject_unknown=True)
+        for name in self._required_path_params():
+            value = prepared.get(name)
+            if value is None or (isinstance(value, str) and not value.strip()):
+                raise ValueError(
+                    f"Parameter '{name}' is required for OpenDataSUS source "
+                    f"'{self.descriptor.source}'."
+                )
 
     def _prepare_kwargs(self, kwargs: Mapping[str, object]) -> Dict[str, object]:
         prepared = dict(kwargs)
@@ -599,6 +627,11 @@ class OpenDataSUSDownloadSource:
             prepared["progress_callback"] = progress_callback
         payload = datasource.download(**prepared)
         return JobResult.from_payload(source=self.descriptor.source, payload=payload)
+
+    def _required_path_params(self) -> List[str]:
+        if not self._fixed_dataset:
+            return []
+        return re.findall(r"{([^{}]+)}", self._fixed_dataset)
 
     def download(self, **kwargs: object) -> JobResult:
         return self._download(progress_callback=None, **kwargs)
@@ -630,7 +663,7 @@ class DownloadService:
         current_year = datetime.now().year
         last_year = current_year - 1
         uf_values = sorted(set(UF_DICT.values()))
-        return [
+        sources: List[DownloadSource] = [
             GovBrDownloadSource(
                 descriptor=SourceDescriptor(
                     source="snis",
@@ -657,6 +690,7 @@ class DownloadService:
                 params_schema=[
                     SourceParameterSpec(
                         name="output_dir",
+                        phase="tecnica",
                         param_type="string",
                         description="Output directory for downloaded files.",
                         required=False,
@@ -664,6 +698,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="output_format",
+                        phase="exportacao",
                         param_type="string",
                         description="Optional export format for processed datasets.",
                         required=False,
@@ -672,6 +707,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="start_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Ano inicial para consulta na API OpenDataSUS (endpoint anual).",
                         required=True,
@@ -681,6 +717,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="end_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Ano final para consulta na API OpenDataSUS (endpoint anual).",
                         required=True,
@@ -690,6 +727,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="uf",
+                        phase="refinamento",
                         param_type="string",
                         description="Filtro opcional por UF.",
                         required=False,
@@ -698,6 +736,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="start_date",
+                        phase="refinamento",
                         param_type="string",
                         description=(
                             "Refinamento opcional local: data inicial (YYYY-MM-DD) "
@@ -708,6 +747,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="end_date",
+                        phase="refinamento",
                         param_type="string",
                         description=(
                             "Refinamento opcional local: data final (YYYY-MM-DD) "
@@ -718,6 +758,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="keep_raw",
+                        phase="tecnica",
                         param_type="boolean",
                         description="Se true, salva snapshot bruto JSONL além da exportação.",
                         required=False,
@@ -725,6 +766,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="batch_size",
+                        phase="tecnica",
                         param_type="integer",
                         description="Page size for OpenDataSUS API pagination.",
                         required=False,
@@ -734,6 +776,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="max_pages",
+                        phase="tecnica",
                         param_type="integer",
                         description=(
                             "Maximum number of pages fetched per year in OpenDataSUS API. "
@@ -746,6 +789,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="resource_id",
+                        phase="tecnica",
                         param_type="string",
                         description=(
                             "Optional explicit resource id (CKAN mode). "
@@ -756,6 +800,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="api_base_url",
+                        phase="tecnica",
                         param_type="string",
                         description=(
                             "Optional OpenDataSUS API base URL override "
@@ -778,6 +823,7 @@ class DownloadService:
                 params_schema=[
                     SourceParameterSpec(
                         name="output_dir",
+                        phase="tecnica",
                         param_type="string",
                         description="Output directory for downloaded files.",
                         required=False,
@@ -785,6 +831,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="output_format",
+                        phase="exportacao",
                         param_type="string",
                         description="Optional export format for processed datasets.",
                         required=False,
@@ -793,6 +840,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="start_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Ano inicial para consulta na API OpenDataSUS.",
                         required=True,
@@ -802,6 +850,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="end_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Ano final para consulta na API OpenDataSUS.",
                         required=True,
@@ -811,6 +860,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="start_date",
+                        phase="refinamento",
                         param_type="string",
                         description=(
                             "Refinamento opcional local: data inicial (YYYY-MM-DD) "
@@ -821,6 +871,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="end_date",
+                        phase="refinamento",
                         param_type="string",
                         description=(
                             "Refinamento opcional local: data final (YYYY-MM-DD) "
@@ -831,6 +882,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="uf",
+                        phase="refinamento",
                         param_type="string",
                         description="Refinamento local opcional por UF.",
                         required=False,
@@ -839,6 +891,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="keep_raw",
+                        phase="tecnica",
                         param_type="boolean",
                         description="Se true, salva snapshot bruto JSONL além da exportação.",
                         required=False,
@@ -846,6 +899,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="batch_size",
+                        phase="tecnica",
                         param_type="integer",
                         description="Page size for OpenDataSUS API pagination.",
                         required=False,
@@ -855,6 +909,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="max_pages",
+                        phase="tecnica",
                         param_type="integer",
                         description=(
                             "Maximum number of pages fetched in OpenDataSUS API. "
@@ -867,6 +922,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="api_base_url",
+                        phase="tecnica",
                         param_type="string",
                         description=(
                             "Optional OpenDataSUS API base URL override "
@@ -879,6 +935,860 @@ class DownloadService:
                 fixed_dataset="zikavirus",
                 normalize_params=_normalize_opendatasus_params,
             ),
+            OpenDataSUSDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="febre_amarela",
+                    title="Arboviroses Febre Amarela",
+                    mode="opendatasus api",
+                ),
+                datasource_cls=OpenDataSUSDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano inicial para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(1994, last_year),
+                        minimum=1994,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(1994, last_year),
+                        minimum=1994,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data inicial (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data final (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        phase="refinamento",
+                        param_type="string",
+                        description="Refinamento local opcional por UF.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva snapshot bruto JSONL além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="batch_size",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="Page size for OpenDataSUS API pagination.",
+                        required=False,
+                        default=1000,
+                        minimum=1,
+                        maximum=1000,
+                    ),
+                    SourceParameterSpec(
+                        name="max_pages",
+                        phase="tecnica",
+                        param_type="integer",
+                        description=(
+                            "Maximum number of pages fetched in OpenDataSUS API. "
+                            "Increase for broader coverage in large periods."
+                        ),
+                        required=False,
+                        default=OpenDataSUSDataSource.DEFAULT_MAX_PAGES,
+                        minimum=1,
+                        maximum=200000,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description=(
+                            "Optional OpenDataSUS API base URL override "
+                            "(DEMAS: apidadosabertos.saude.gov.br)."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                fixed_dataset="febre_amarela",
+                normalize_params=_normalize_opendatasus_params,
+            ),
+            OpenDataSUSDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="dengue",
+                    title="Arboviroses Dengue",
+                    mode="opendatasus api",
+                ),
+                datasource_cls=OpenDataSUSDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano inicial para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data inicial (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data final (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        phase="refinamento",
+                        param_type="string",
+                        description="Refinamento local opcional por UF.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva snapshot bruto JSONL além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="batch_size",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="Page size for OpenDataSUS API pagination.",
+                        required=False,
+                        default=1000,
+                        minimum=1,
+                        maximum=1000,
+                    ),
+                    SourceParameterSpec(
+                        name="max_pages",
+                        phase="tecnica",
+                        param_type="integer",
+                        description=(
+                            "Maximum number of pages fetched in OpenDataSUS API. "
+                            "Increase for broader coverage in large periods."
+                        ),
+                        required=False,
+                        default=OpenDataSUSDataSource.DEFAULT_MAX_PAGES,
+                        minimum=1,
+                        maximum=200000,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description=(
+                            "Optional OpenDataSUS API base URL override "
+                            "(DEMAS: apidadosabertos.saude.gov.br)."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                fixed_dataset="dengue",
+                normalize_params=_normalize_opendatasus_params,
+            ),
+            OpenDataSUSDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="chikungunya",
+                    title="Arboviroses Chikungunya",
+                    mode="opendatasus api",
+                ),
+                datasource_cls=OpenDataSUSDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano inicial para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data inicial (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data final (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        phase="refinamento",
+                        param_type="string",
+                        description="Refinamento local opcional por UF.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva snapshot bruto JSONL além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="batch_size",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="Page size for OpenDataSUS API pagination.",
+                        required=False,
+                        default=1000,
+                        minimum=1,
+                        maximum=1000,
+                    ),
+                    SourceParameterSpec(
+                        name="max_pages",
+                        phase="tecnica",
+                        param_type="integer",
+                        description=(
+                            "Maximum number of pages fetched in OpenDataSUS API. "
+                            "Increase for broader coverage in large periods."
+                        ),
+                        required=False,
+                        default=OpenDataSUSDataSource.DEFAULT_MAX_PAGES,
+                        minimum=1,
+                        maximum=200000,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description=(
+                            "Optional OpenDataSUS API base URL override "
+                            "(DEMAS: apidadosabertos.saude.gov.br)."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                fixed_dataset="chikungunya",
+                normalize_params=_normalize_opendatasus_params,
+            ),
+            OpenDataSUSDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="srag_demas",
+                    title="SRAG (Vigilância Epidemiológica da Gripe)",
+                    mode="opendatasus api",
+                ),
+                datasource_cls=OpenDataSUSDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano inicial para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data inicial (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data final (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        phase="refinamento",
+                        param_type="string",
+                        description="Refinamento local opcional por UF.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva snapshot bruto JSONL além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="batch_size",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="Page size for OpenDataSUS API pagination.",
+                        required=False,
+                        default=1000,
+                        minimum=1,
+                        maximum=1000,
+                    ),
+                    SourceParameterSpec(
+                        name="max_pages",
+                        phase="tecnica",
+                        param_type="integer",
+                        description=(
+                            "Maximum number of pages fetched in OpenDataSUS API. "
+                            "Increase for broader coverage in large periods."
+                        ),
+                        required=False,
+                        default=OpenDataSUSDataSource.DEFAULT_MAX_PAGES,
+                        minimum=1,
+                        maximum=200000,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description=(
+                            "Optional OpenDataSUS API base URL override "
+                            "(DEMAS: apidadosabertos.saude.gov.br)."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                fixed_dataset="srag_demas",
+                normalize_params=_normalize_opendatasus_params,
+            ),
+            OpenDataSUSDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="sindrome_gripal_leve",
+                    title="Síndrome Gripal Leve",
+                    mode="opendatasus api",
+                ),
+                datasource_cls=OpenDataSUSDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano inicial para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data inicial (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data final (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        phase="refinamento",
+                        param_type="string",
+                        description="Refinamento local opcional por UF.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva snapshot bruto JSONL além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="batch_size",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="Page size for OpenDataSUS API pagination.",
+                        required=False,
+                        default=1000,
+                        minimum=1,
+                        maximum=1000,
+                    ),
+                    SourceParameterSpec(
+                        name="max_pages",
+                        phase="tecnica",
+                        param_type="integer",
+                        description=(
+                            "Maximum number of pages fetched in OpenDataSUS API. "
+                            "Increase for broader coverage in large periods."
+                        ),
+                        required=False,
+                        default=OpenDataSUSDataSource.DEFAULT_MAX_PAGES,
+                        minimum=1,
+                        maximum=200000,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description=(
+                            "Optional OpenDataSUS API base URL override "
+                            "(DEMAS: apidadosabertos.saude.gov.br)."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                fixed_dataset="sindrome_gripal_leve",
+                normalize_params=_normalize_opendatasus_params,
+            ),
+            OpenDataSUSDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="mpox",
+                    title="Mpox",
+                    mode="opendatasus api",
+                ),
+                datasource_cls=OpenDataSUSDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano inicial para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data inicial (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data final (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        phase="refinamento",
+                        param_type="string",
+                        description="Refinamento local opcional por UF.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva snapshot bruto JSONL além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="batch_size",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="Page size for OpenDataSUS API pagination.",
+                        required=False,
+                        default=1000,
+                        minimum=1,
+                        maximum=1000,
+                    ),
+                    SourceParameterSpec(
+                        name="max_pages",
+                        phase="tecnica",
+                        param_type="integer",
+                        description=(
+                            "Maximum number of pages fetched in OpenDataSUS API. "
+                            "Increase for broader coverage in large periods."
+                        ),
+                        required=False,
+                        default=OpenDataSUSDataSource.DEFAULT_MAX_PAGES,
+                        minimum=1,
+                        maximum=200000,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description=(
+                            "Optional OpenDataSUS API base URL override "
+                            "(DEMAS: apidadosabertos.saude.gov.br)."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                fixed_dataset="mpox",
+                normalize_params=_normalize_opendatasus_params,
+            ),
+            OpenDataSUSDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="esavi",
+                    title="ESAVI - Eventos Adversos Pós-Vacinação",
+                    mode="opendatasus api",
+                ),
+                datasource_cls=OpenDataSUSDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for processed datasets.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano inicial para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final para consulta na API OpenDataSUS.",
+                        required=True,
+                        default=max(2016, last_year),
+                        minimum=2016,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data inicial (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="refinamento",
+                        param_type="string",
+                        description=(
+                            "Refinamento opcional local: data final (YYYY-MM-DD) "
+                            "dentro do intervalo start_year/end_year."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="uf",
+                        phase="refinamento",
+                        param_type="string",
+                        description="Refinamento local opcional por UF.",
+                        required=False,
+                        default=None,
+                        allowed_values=uf_values,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva snapshot bruto JSONL além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="batch_size",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="Page size for OpenDataSUS API pagination.",
+                        required=False,
+                        default=1000,
+                        minimum=1,
+                        maximum=1000,
+                    ),
+                    SourceParameterSpec(
+                        name="max_pages",
+                        phase="tecnica",
+                        param_type="integer",
+                        description=(
+                            "Maximum number of pages fetched in OpenDataSUS API. "
+                            "Increase for broader coverage in large periods."
+                        ),
+                        required=False,
+                        default=OpenDataSUSDataSource.DEFAULT_MAX_PAGES,
+                        minimum=1,
+                        maximum=200000,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description=(
+                            "Optional OpenDataSUS API base URL override "
+                            "(DEMAS: apidadosabertos.saude.gov.br)."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                fixed_dataset="esavi",
+                normalize_params=_normalize_opendatasus_params,
+            ),
             PysusDownloadSource(
                 descriptor=SourceDescriptor(
                     source="sinan",
@@ -889,6 +1799,7 @@ class DownloadService:
                 params_schema=[
                     SourceParameterSpec(
                         name="output_dir",
+                        phase="tecnica",
                         param_type="string",
                         description="Output directory for downloaded files.",
                         required=False,
@@ -896,6 +1807,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="output_format",
+                        phase="exportacao",
                         param_type="string",
                         description="Optional export format for processed datasets.",
                         required=False,
@@ -904,6 +1816,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="start_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Starting year for file discovery.",
                         required=True,
@@ -913,6 +1826,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="end_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Ending year for file discovery.",
                         required=True,
@@ -922,6 +1836,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="diseases",
+                        phase="coleta",
                         param_type="string_list",
                         description="Disease code list to download.",
                         required=False,
@@ -930,6 +1845,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="uf",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional UF filter for exported dataset.",
                         required=False,
@@ -938,6 +1854,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="municipio",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional municipality name filter for export.",
                         required=False,
@@ -945,6 +1862,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="sexo",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional sex filter for export.",
                         required=False,
@@ -953,6 +1871,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="faixa_etaria",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional age-band code filter for export.",
                         required=False,
@@ -960,6 +1879,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="evolucao",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional case evolution filter for export.",
                         required=False,
@@ -967,6 +1887,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="classificacao",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional classification filter for export.",
                         required=False,
@@ -985,6 +1906,7 @@ class DownloadService:
                 params_schema=[
                     SourceParameterSpec(
                         name="output_dir",
+                        phase="tecnica",
                         param_type="string",
                         description="Output directory for downloaded files.",
                         required=False,
@@ -992,6 +1914,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="output_format",
+                        phase="exportacao",
                         param_type="string",
                         description="Optional export format for processed datasets.",
                         required=False,
@@ -1000,6 +1923,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="start_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Starting year for file discovery.",
                         required=True,
@@ -1009,6 +1933,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="end_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Ending year for file discovery.",
                         required=True,
@@ -1018,6 +1943,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="groups",
+                        phase="coleta",
                         param_type="string_list",
                         description="SIM groups to download.",
                         required=False,
@@ -1026,6 +1952,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="states",
+                        phase="coleta",
                         param_type="string_list",
                         description="UF filter list.",
                         required=False,
@@ -1034,6 +1961,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="uf",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional UF filter for exported dataset.",
                         required=False,
@@ -1042,6 +1970,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="municipio",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional municipality filter for export.",
                         required=False,
@@ -1049,6 +1978,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="sexo",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional sex filter for export.",
                         required=False,
@@ -1057,6 +1987,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="causa_basica",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional basic cause filter for export.",
                         required=False,
@@ -1064,6 +1995,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="ano_obito",
+                        phase="refinamento",
                         param_type="integer",
                         description="Optional year-of-death filter for export.",
                         required=False,
@@ -1084,6 +2016,7 @@ class DownloadService:
                 params_schema=[
                     SourceParameterSpec(
                         name="output_dir",
+                        phase="tecnica",
                         param_type="string",
                         description="Output directory for downloaded files.",
                         required=False,
@@ -1091,6 +2024,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="output_format",
+                        phase="exportacao",
                         param_type="string",
                         description="Optional export format for processed datasets.",
                         required=False,
@@ -1099,6 +2033,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="start_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Starting year for file discovery.",
                         required=True,
@@ -1108,6 +2043,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="end_year",
+                        phase="coleta",
                         param_type="integer",
                         description="Ending year for file discovery.",
                         required=True,
@@ -1117,6 +2053,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="groups",
+                        phase="coleta",
                         param_type="string_list",
                         description="SIH groups to download.",
                         required=False,
@@ -1125,6 +2062,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="states",
+                        phase="coleta",
                         param_type="string_list",
                         description="UF filter list.",
                         required=False,
@@ -1133,6 +2071,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="months",
+                        phase="coleta",
                         param_type="string_list",
                         description="Month list (1-12).",
                         required=False,
@@ -1141,6 +2080,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="uf",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional UF filter for exported dataset.",
                         required=False,
@@ -1149,6 +2089,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="municipio",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional municipality filter for export.",
                         required=False,
@@ -1156,6 +2097,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="sexo",
+                        phase="refinamento",
                         param_type="string",
                         description="Optional sex filter for export.",
                         required=False,
@@ -1164,6 +2106,7 @@ class DownloadService:
                     ),
                     SourceParameterSpec(
                         name="mes",
+                        phase="refinamento",
                         param_type="integer",
                         description="Optional month filter for export.",
                         required=False,
@@ -1175,6 +2118,16 @@ class DownloadService:
                 normalize_params=_normalize_sih_params,
             ),
         ]
+
+        # Append the auto-generated OpenDataSUS sources
+        from guaraci.services.opendatasus_registry import get_opendatasus_sources
+        existing_keys = {self._normalize_source_name(s.descriptor.source) for s in sources}
+        for auto_src in get_opendatasus_sources():
+            key = self._normalize_source_name(auto_src.descriptor.source)
+            if key not in existing_keys:
+                sources.append(auto_src)
+
+        return sources
 
     def register_source(self, source: DownloadSource, replace: bool = False) -> None:
         key = self._normalize_source_name(source.descriptor.source)
@@ -1349,6 +2302,35 @@ def _normalize_opendatasus_params(params: Dict[str, object]) -> Dict[str, object
     if isinstance(uf, str):
         cleaned_uf = uf.strip().upper()
         normalized["uf"] = cleaned_uf if cleaned_uf else None
+
+    uf_like_keys = {
+        "sg_uf",
+        "sg_uf_not",
+        "uf_notificacao",
+        "uf_residencia",
+        "uf_paciente",
+        "uf_estabelecimento",
+        "sigla_unidade_federacao",
+    }
+    for key, value in list(normalized.items()):
+        if key in {
+            "dataset",
+            "output_format",
+            "uf",
+            "start_date",
+            "end_date",
+            "resource_id",
+            "api_base_url",
+        }:
+            continue
+        if isinstance(value, str):
+            cleaned_value = value.strip()
+            if not cleaned_value:
+                normalized[key] = None
+            elif key in uf_like_keys:
+                normalized[key] = cleaned_value.upper()
+            else:
+                normalized[key] = cleaned_value
 
     for key in ("start_date", "end_date", "resource_id", "api_base_url"):
         value = normalized.get(key)

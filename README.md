@@ -9,7 +9,7 @@
 Guaraci is a platform for downloading and orchestrating Brazilian public data sources for scientific and technical workflows. The current project scope includes:
 - `SNIS` and `SINISA` (`gov.br` crawler)
 - `SINAN`, `SIM`, and `SIH` (PySUS/FTP DATASUS)
-- `OpenDataSUS` (`doses_aplicadas_pni` and `zikavirus`)
+- `OpenDataSUS` (`doses_aplicadas_pni`, `zikavirus`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, `febre_amarela`, and DEMAS sources generated from the local Swagger catalog)
 
 Current version: `0.4.1`
 
@@ -40,49 +40,35 @@ Current version: `0.4.1`
   Provides the web UI with schema-driven forms and job monitoring.
 
 Detailed documentation:
+- [Quickstart](docs/quickstart.md)
 - [Documentation index](docs/README.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [API reference](docs/API_REFERENCE.md)
 - [UI guide](docs/UI_GUIDE.md)
 - [Sources and filters](docs/SOURCES_AND_FILTERS.md)
 - [AI handoff for OpenDataSUS](docs/AI_HANDOFF_OPENDATASUS.md)
+- [Docker workflow](docs/DOCKER_WORKFLOW.md)
+- [Installation](docs/INSTALL.md)
 - `AGENTS.md`
 
 ## Quick Start
 
-### 1. Build the image
+→ **[docs/quickstart.md](docs/quickstart.md)** — guia completo de instalação e inicialização.
 
-```bash
-docker build -t guaraci .
-```
-
-### 2. Start the API and UI
-
-PowerShell on Windows:
+Resumo rápido:
 
 ```powershell
+# 1. Build
+docker build -t guaraci .
+
+# 2. Iniciar (Windows — abre o browser automaticamente)
 .\scripts\desktop\start-guaraci.ps1
+
+# 3. Health check
+Invoke-RestMethod http://localhost:8002/health
 ```
 
-Bash on Linux or macOS:
-
-```bash
-./scripts/desktop/start-guaraci.sh
-```
-
-Default launcher URL: `http://localhost:8002/`
-
-### 3. Check API health
-
-```bash
-curl http://localhost:8002/health
-```
-
-Expected response:
-
-```json
-{"status":"ok","version":"0.4.1"}
-```
+URL padrão: **http://localhost:8002/**
 
 ## Using the Web UI
 
@@ -163,8 +149,10 @@ High-level summary:
   Use `results_url`, `file_kinds`, `modules`, `extract_archives`, `overwrite`, and `timeout`.
 - `doses_aplicadas_pni`
   Base API query uses `start_year` and `end_year`; optional refinement uses `uf`, `start_date`, and `end_date`; advanced controls include `keep_raw`, `batch_size`, `max_pages`, `resource_id`, and `api_base_url`.
-- `zikavirus`
+- `zikavirus`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, and `febre_amarela`
   Base API query uses `start_year` and `end_year`; optional refinement uses `start_date`, `end_date`, and `uf`; advanced controls include `keep_raw`, `batch_size`, `max_pages`, and `api_base_url`.
+- Auto-generated OpenDataSUS DEMAS sources
+  Generated from `guaraci/opendatasus/utils/swagger.json`; native Swagger query/path parameters are exposed in the schema and passed to the API, while pagination, raw preservation, export, and output controls remain standardized.
 - `sinan`
   Collection uses `start_year`, `end_year`, and `diseases`; export filtering includes `output_format`, `uf`, `municipio`, `sexo`, `faixa_etaria`, `evolucao`, and `classificacao`.
 - `sim`
@@ -173,7 +161,7 @@ High-level summary:
   Collection uses `start_year`, `end_year`, `groups`, `states`, and `months`; export filtering includes `output_format`, `uf`, `municipio`, `sexo`, and `mes`.
 
 OpenDataSUS naming rule:
-- Use canonical source names only: `doses_aplicadas_pni` and `zikavirus`.
+- Use canonical source names returned by `GET /sources`; aliases are not supported.
 
 ## Output Structure
 

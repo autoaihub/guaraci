@@ -11,6 +11,7 @@ This document records the implemented progress so far and the next technical foc
 - OpenDataSUS with canonical sources:
   - `doses_aplicadas_pni`
   - `zikavirus`
+- OpenDataSUS DEMAS sources generated from the local Swagger catalog
 - legacy BigQuery SNIS flow isolated in `guaraci/snis/legacy/`
 
 ### 1.2 Service layer
@@ -47,6 +48,7 @@ This document records the implemented progress so far and the next technical foc
 - monitoring and output details in the dashboard
 - display of `exported_files` and `export_warning`
 - OpenDataSUS manifests now persist warning messages for troubleshooting and reprocessing guidance
+- generated OpenDataSUS sources now pass declared Swagger query parameters, enforce path parameters, and record API parameters in manifests
 
 ## 2. Current Attention Points
 
@@ -55,7 +57,7 @@ This document records the implemented progress so far and the next technical foc
    Risk: dependency and environment inconsistencies.
 2. UX across heterogeneous sources
    Crawler and PySUS sources have different semantics.
-   OpenDataSUS adds variation between native filters and local refinements.
+   OpenDataSUS adds variation between native filters, generated Swagger filters, and local refinements.
    The product still needs clearer language and filter grouping for non-technical users.
 3. External reliability
    FTP and web sources can fluctuate.
@@ -77,7 +79,7 @@ This document records the implemented progress so far and the next technical foc
   - collection
   - transformation
   - export
-- expanded OpenDataSUS integration for new datasets while keeping native basic filters per source
+- expanded OpenDataSUS integration for new datasets while keeping native basic filters per source and preserving generated-source traceability
 - manifest standardization across all sources
 
 ### 3.3 Long term

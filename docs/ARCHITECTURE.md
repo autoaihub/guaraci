@@ -37,7 +37,7 @@ Responsibilities:
 Adapter types:
 - `GovBrDownloadSource` for `gov.br` crawlers (`snis`, `sinisa`)
 - `PysusDownloadSource` for PySUS/FTP flows (`sinan`, `sim`, `sih`)
-- `OpenDataSUSDownloadSource` for the OpenDataSUS API (`doses_aplicadas_pni`, `zikavirus`)
+- `OpenDataSUSDownloadSource` for the OpenDataSUS API (`doses_aplicadas_pni`, `zikavirus`, and generated DEMAS sources)
 
 ### 3.2 `DownloadJobService`
 
@@ -133,6 +133,12 @@ These events feed:
   - optional local refinement: `start_date`, `end_date`, and `uf` when applicable
 - `keep_raw` is optional and defaults to `false`
 - Optional export uses `csv`, `parquet`, or `sqlite` within the same jobs/UI flow
+- Generated DEMAS sources are registered from `guaraci/services/opendatasus_registry.py`
+- For generated DEMAS sources:
+  - Swagger query parameters are accepted only when declared in the source schema
+  - Swagger path parameters are required and substituted into endpoint paths
+  - `limit` and `offset` stay internal and are controlled by `batch_size` and pagination
+  - API parameters used for the request are persisted in the manifest metadata
 - Error handling is contextual:
   - connectivity, timeout, HTTP, configuration, and response-format failures are differentiated in OpenDataSUS client errors
   - datasource-raised errors include endpoint, page, package, or resource context when the failure happened mid-flow

@@ -159,7 +159,7 @@ def test_build_manifest_includes_standard_schema():
         state=state,
     )
 
-    assert manifest["manifest_schema_version"] == "1.0"
+    assert manifest["manifest_schema_version"] == "1.1"
     assert manifest["source"] == "sinisa"
     assert manifest["stats"]["documents_found"] == 2
     assert manifest["artifacts"]["downloaded_files"] == ["raw/a.zip"]

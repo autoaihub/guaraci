@@ -33,6 +33,21 @@ class _DummyDownloadService:
             raise RuntimeError("simulated error")
         return JobResult(source=source, documents_found=1, downloaded_count=1)
 
+class _NonRetryableError(RuntimeError):
+    def __init__(self, msg: str) -> None:
+        self.retryable = False
+        super().__init__(msg)
+
+class _NonRetryableDownloadService:
+    def list_sources(self):
+        return [SourceDescriptor(source="snis", title="SNIS", mode="mock")]
+
+    def validate_source_params(self, source: str, params):  # noqa: ANN001
+        pass
+
+    def run(self, source: str, **kwargs):  # noqa: ANN003
+        raise _NonRetryableError("simulated non-retryable error")
+
 
 class _OpenDataSUSDummyDownloadService:
     def list_sources(self):
@@ -422,6 +437,20 @@ def test_retry_rejects_non_retryable_status() -> None:
 
     with pytest.raises(ValueError):
         service.retry_job(completed.job_id)
+
+
+def test_retry_rejects_non_retryable_error_flag() -> None:
+    service = DownloadJobService(download_service=_NonRetryableDownloadService())
+
+    failed = service.create_job(source="snis", params={})
+    failed = service.wait_for_job(failed.job_id, timeout_seconds=2.0)
+    
+    assert failed.status == "failed"
+    assert failed.error == "simulated non-retryable error"
+    assert failed.error_retryable is False
+
+    with pytest.raises(ValueError, match="non-retryable error"):
+        service.retry_job(failed.job_id)
 
 
 def test_job_marks_failed_when_result_payload_is_failed() -> None:

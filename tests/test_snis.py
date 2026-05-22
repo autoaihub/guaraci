@@ -128,4 +128,4 @@ def test_snis_download_returns_job_result(monkeypatch, tmp_path):
     assert result.status == "success"
     assert result["manifest_path"] == str(tmp_path / "manifest.json")
     assert captured_manifest["source"] == "snis"
-    assert captured_manifest["manifest_schema_version"] == "1.0"
+    assert captured_manifest["manifest_schema_version"] == "1.1"

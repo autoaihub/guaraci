@@ -29,6 +29,8 @@ docker build -t guaraci .
 - `guaraci/snis/`: crawler sources (`snis`, `sinisa`) and legacy BigQuery code in `legacy/`
 - `guaraci/datasus/`: PySUS sources (`sinan`, `sim`, `sih`)
 - `guaraci/services/`: download orchestration and asynchronous jobs
+- `guaraci/services/opendatasus_registry.py`: generated OpenDataSUS DEMAS source registry
+- `scripts/scaffold_opendatasus.py`: helper for regenerating OpenDataSUS source blocks from the local Swagger catalog
 - `guaraci/api/`: FastAPI and static web UI
 - `guaraci/cli/`: per-source CLIs
 
@@ -82,6 +84,25 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest tests/test_services.py
 
 Run the datasource-specific tests and related coverage.
 
+### If you changed OpenDataSUS generated sources
+
+```bash
+docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
+  tests/test_opendatasus_swagger_catalog.py \
+  tests/test_opendatasus_generated_registry.py \
+  tests/test_opendatasus_datasource.py \
+  tests/test_services.py \
+  tests/test_api.py -q
+```
+
+For a low-volume live smoke check against the official DEMAS API:
+
+```bash
+docker run --rm -v "$(pwd):/app" guaraci python scripts/smoke_opendatasus_sources.py --allow-failures
+```
+
+Path-based endpoints require representative IDs. Provide them with `--samples` when available.
+
 ## Documentation Rules
 
 Always update docs when a change affects:
@@ -95,8 +116,9 @@ Main files:
 - `README.md`
 - `CHANGELOG.md`
 - `AGENTS.md`
-- `INSTALL.md`
-- `DOCKER_WORKFLOW.md`
+- `docs/quickstart.md`
+- `docs/INSTALL.md`
+- `docs/DOCKER_WORKFLOW.md`
 - `docs/ARCHITECTURE.md`
 - `docs/API_REFERENCE.md`
 - `docs/UI_GUIDE.md`

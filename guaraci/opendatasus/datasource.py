@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Optional
+from urllib.parse import quote
 
 import polars as pl
 
+from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
 from guaraci.opendatasus.client import OpenDataSUSClient, OpenDataSUSClientError
 from guaraci.opendatasus.utils.swagger_catalog import (
@@ -65,6 +68,69 @@ class OpenDataSUSDataSource(DataSource):
             demas_static_path="/arboviroses/zikavirus",
             ckan_supported=False,
         ),
+        "dengue": OpenDataSUSDatasetSpec(
+            package_id="arboviroses-dengue",
+            preferred_resource_terms=("dengue", "arboviroses"),
+            date_column="dt_notific",
+            uf_column="sg_uf_not",
+            demas_strategy="static",
+            demas_static_path="/arboviroses/dengue",
+            ckan_supported=False,
+        ),
+        "chikungunya": OpenDataSUSDatasetSpec(
+            package_id="arboviroses-chikungunya",
+            preferred_resource_terms=("chikungunya", "arboviroses"),
+            date_column="dt_notific",
+            uf_column="sg_uf_not",
+            demas_strategy="static",
+            demas_static_path="/arboviroses/chikungunya",
+            ckan_supported=False,
+        ),
+        "sindrome_gripal_leve": OpenDataSUSDatasetSpec(
+            package_id="notificacoes-de-sindrome-gripal-leve",
+            preferred_resource_terms=("gripe", "sindrome gripal", "leve"),
+            date_column="dt_notific", # Padrão para vigilância
+            uf_column="uf",
+            demas_strategy="yearly_suffix",
+            demas_static_path="/vigilancia-e-meio-ambiente/notificacoes-de-sindrome-gripal-leve",
+            ckan_supported=False,
+        ),
+        "srag_demas": OpenDataSUSDatasetSpec(
+            package_id="srag-demas",
+            preferred_resource_terms=("srag", "hospitalizacao", "respiratoria"),
+            date_column="dt_notific",
+            uf_column="sg_uf",
+            demas_strategy="block_ranges",
+            demas_static_path="/vigilancia-e-meio-ambiente/srag",
+            ckan_supported=False,
+        ),
+        "febre_amarela": OpenDataSUSDatasetSpec(
+            package_id="arboviroses-febre-amarela",
+            preferred_resource_terms=("febre", "amarela", "arboviroses", "humanos"),
+            date_column="dt_is",
+            uf_column="uf_lpi",
+            demas_strategy="static",
+            demas_static_path="/arboviroses/febre-amarela-humanos-primatas-nao-humanos",
+            ckan_supported=False,
+        ),
+        "mpox": OpenDataSUSDatasetSpec(
+            package_id="mpox",
+            preferred_resource_terms=("mpox", "variola"),
+            date_column="dt_notific",
+            uf_column="sg_uf_not",
+            demas_strategy="static",
+            demas_static_path="/vigilancia-e-meio-ambiente/mpox",
+            ckan_supported=False,
+        ),
+        "esavi": OpenDataSUSDatasetSpec(
+            package_id="esavi",
+            preferred_resource_terms=("esavi", "eventos adversos"),
+            date_column="data_notificacao",
+            uf_column="nome_estado",
+            demas_strategy="static",
+            demas_static_path="/vacinacao/esavi",
+            ckan_supported=False,
+        ),
     }
 
     def __init__(
@@ -95,16 +161,29 @@ class OpenDataSUSDataSource(DataSource):
         max_pages: int = DEFAULT_MAX_PAGES,
         keep_raw: bool = False,
         progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
+        **api_params: object,
     ) -> Dict[str, object]:
         """Download records from one configured OpenDataSUS dataset."""
 
         dataset_key = dataset.strip().lower()
         spec = self.DATASET_SPECS.get(dataset_key)
+        demas_api_params = self._normalize_demas_api_params(api_params)
+
+        # ------------------------------------------------------------------
+        # Generic fallback: if the dataset is not in DATASET_SPECS, try to
+        # resolve it as a DEMAS static-path endpoint from the Swagger catalog.
+        # This enables the ~75 auto-registered sources to work without manual
+        # OpenDataSUSDatasetSpec declarations.
+        # ------------------------------------------------------------------
         if spec is None:
-            supported = ", ".join(sorted(self.DATASET_SPECS))
-            raise ValueError(
-                f"Unsupported OpenDataSUS dataset '{dataset}'. Supported: {supported}"
-            )
+            generic_spec = self._try_build_generic_spec(dataset_key)
+            if generic_spec is None:
+                supported = ", ".join(sorted(self.DATASET_SPECS))
+                raise ValueError(
+                    f"Unsupported OpenDataSUS dataset '{dataset}'. "
+                    f"No matching Swagger path found. Known specs: {supported}"
+                )
+            spec = generic_spec
 
         start_year_value, end_year_value = self._normalize_year_window(
             start_year=start_year,
@@ -150,6 +229,7 @@ class OpenDataSUSDataSource(DataSource):
                 requested_format=requested_format,
                 resource_id=resource_id,
                 keep_raw=keep_raw_value,
+                api_params=demas_api_params,
                 client=client,
                 progress_callback=progress_callback,
             )
@@ -438,6 +518,7 @@ class OpenDataSUSDataSource(DataSource):
         resource_id: Optional[str],
         keep_raw: bool,
         client: OpenDataSUSClient,
+        api_params: Mapping[str, object],
         progress_callback: Optional[Callable[[Dict[str, object]], None]],
     ) -> Dict[str, object]:
         endpoints = self._resolve_demas_endpoints(
@@ -445,6 +526,7 @@ class OpenDataSUSDataSource(DataSource):
             dataset=dataset,
             start_year=start_year,
             end_year=end_year,
+            api_params=api_params,
         )
         years = list(range(start_year, end_year + 1))
         page_size = min(max(1, int(batch_size)), 1000)
@@ -602,6 +684,11 @@ class OpenDataSUSDataSource(DataSource):
                 "max_pages": max_pages_per_year,
                 "batch_size": page_size,
                 "truncated": truncated,
+                "api_params": dict(api_params),
+                "endpoint_query_params": [
+                    {"path": item.path, "params": dict(item.query_params)}
+                    for item in endpoints
+                ],
             },
         )
 
@@ -640,6 +727,7 @@ class OpenDataSUSDataSource(DataSource):
             "keep_raw": keep_raw,
             "output_format": requested_format,
             "exported_files": exported_files,
+            "api_params": dict(api_params),
         }
         export_warning = self._combine_warnings(warnings)
         if export_warning:
@@ -653,6 +741,7 @@ class OpenDataSUSDataSource(DataSource):
         dataset: str,
         start_year: int,
         end_year: int,
+        api_params: Mapping[str, object],
     ) -> List[DemasEndpointPlan]:
         if spec.demas_strategy == "pni_yearly":
             by_year = {item.year: item for item in self._demas_catalog}
@@ -665,18 +754,78 @@ class OpenDataSUSDataSource(DataSource):
                             path=from_catalog.path,
                             label=f"{dataset}_year_{year}",
                             uf_params=from_catalog.uf_params,
-                            query_params={},
+                            query_params=self._build_endpoint_query_params(
+                                from_catalog.path,
+                                api_params=api_params,
+                            ),
                         )
                     )
                     continue
+                fallback_path = f"/vacinacao/doses-aplicadas-pni-{year}"
                 selected.append(
                     DemasEndpointPlan(
-                        path=f"/vacinacao/doses-aplicadas-pni-{year}",
+                        path=fallback_path,
                         label=f"{dataset}_year_{year}",
                         uf_params=self._fallback_uf_params_for_year(year),
-                        query_params={},
+                        query_params=self._build_endpoint_query_params(
+                            fallback_path,
+                            api_params=api_params,
+                        ),
                     )
                 )
+            return selected
+
+        if spec.demas_strategy == "yearly_suffix":
+            selected: List[DemasEndpointPlan] = []
+            base_path = str(spec.demas_static_path or "").strip()
+            for year in range(start_year, end_year + 1):
+                path = f"{base_path}-{year}"
+                params = self._demas_get_params_by_path.get(path, ())
+                uf_params = tuple(
+                    item for item in params if item in self._candidate_uf_param_names()
+                )
+                selected.append(
+                    DemasEndpointPlan(
+                        path=self._resolve_path_template(path, api_params=api_params),
+                        label=f"{dataset}_year_{year}",
+                        uf_params=uf_params,
+                        query_params=self._build_endpoint_query_params(
+                            path,
+                            api_params=api_params,
+                        ),
+                    )
+                )
+            return selected
+
+        if spec.demas_strategy == "block_ranges":
+            # Specialized for SRAG blocks: 2009-2012, 2013-2018, 2019-2026
+            blocks = [
+                (2009, 2012, "2009-2012"),
+                (2013, 2018, "2013-2018"),
+                (2019, 2026, "2019-2026"),
+            ]
+            selected: List[DemasEndpointPlan] = []
+            base_path = str(spec.demas_static_path or "").strip()
+            
+            # Find which blocks overlap with [start_year, end_year]
+            for b_start, b_end, b_label in blocks:
+                if max(start_year, b_start) <= min(end_year, b_end):
+                    path = f"{base_path}-{b_label}"
+                    params = self._demas_get_params_by_path.get(path, ())
+                    uf_params = tuple(
+                        item for item in params if item in self._candidate_uf_param_names()
+                    )
+                    selected.append(
+                        DemasEndpointPlan(
+                            path=self._resolve_path_template(path, api_params=api_params),
+                            label=f"{dataset}_block_{b_label}",
+                            uf_params=uf_params,
+                            query_params=self._build_endpoint_query_params(
+                                path,
+                                api_params=api_params,
+                            ),
+                        )
+                    )
             return selected
 
         path = str(spec.demas_static_path or "").strip()
@@ -686,18 +835,151 @@ class OpenDataSUSDataSource(DataSource):
         uf_params = tuple(
             item for item in params if item in self._candidate_uf_param_names()
         )
+        endpoint_path = self._resolve_path_template(path, api_params=api_params)
+        query_params = self._build_endpoint_query_params(path, api_params=api_params)
         if "nu_ano" in params:
+            if "nu_ano" in query_params:
+                return [
+                    DemasEndpointPlan(
+                        path=endpoint_path,
+                        label=dataset,
+                        uf_params=uf_params,
+                        query_params=query_params,
+                    )
+                ]
             return [
                 DemasEndpointPlan(
-                    path=path,
+                    path=endpoint_path,
                     label=f"{dataset}_year_{year}",
                     uf_params=uf_params,
-                    query_params={"nu_ano": year},
+                    query_params={**query_params, "nu_ano": year},
                 )
                 for year in range(start_year, end_year + 1)
             ]
 
-        return [DemasEndpointPlan(path=path, label=dataset, uf_params=uf_params, query_params={})]
+        return [
+            DemasEndpointPlan(
+                path=endpoint_path,
+                label=dataset,
+                uf_params=uf_params,
+                query_params=query_params,
+            )
+        ]
+
+    def _build_endpoint_query_params(
+        self,
+        path_template: str,
+        *,
+        api_params: Mapping[str, object],
+    ) -> Dict[str, object]:
+        swagger_params = set(self._demas_get_params_by_path.get(path_template, ()))
+        path_params = set(self._extract_path_param_names(path_template))
+        ignored = {"limit", "offset"} | path_params
+        query: Dict[str, object] = {}
+        for key, value in api_params.items():
+            if key in ignored:
+                continue
+            if swagger_params and key not in swagger_params:
+                continue
+            if value is None:
+                continue
+            if isinstance(value, str) and not value.strip():
+                continue
+            query[key] = value
+        return query
+
+    def _resolve_path_template(
+        self,
+        path_template: str,
+        *,
+        api_params: Mapping[str, object],
+    ) -> str:
+        path = path_template if path_template.startswith("/") else f"/{path_template}"
+        for name in self._extract_path_param_names(path):
+            value = api_params.get(name)
+            if value is None or (isinstance(value, str) and not value.strip()):
+                raise ValueError(
+                    f"Parameter '{name}' is required for OpenDataSUS endpoint '{path_template}'."
+                )
+            path = path.replace("{" + name + "}", quote(str(value).strip(), safe=""))
+        return path
+
+    @staticmethod
+    def _extract_path_param_names(path_template: str) -> tuple[str, ...]:
+        return tuple(re.findall(r"{([^{}]+)}", path_template))
+
+    @staticmethod
+    def _normalize_demas_api_params(api_params: Mapping[str, object]) -> Dict[str, object]:
+        normalized: Dict[str, object] = {}
+        for key, value in api_params.items():
+            if value is None:
+                continue
+            clean_key = str(key).strip()
+            if not clean_key:
+                continue
+            if isinstance(value, str):
+                cleaned = value.strip()
+                if not cleaned:
+                    continue
+                if clean_key in OpenDataSUSDataSource._candidate_uf_param_names():
+                    cleaned = cleaned.upper()
+                normalized[clean_key] = cleaned
+                continue
+            normalized[clean_key] = value
+        return normalized
+
+    def _try_build_generic_spec(self, dataset_key: str) -> Optional[OpenDataSUSDatasetSpec]:
+        """Try to build a generic spec by matching the dataset key to a Swagger path.
+
+        The dataset key typically mirrors the API path with slashes replaced by
+        underscores (e.g. ``"cnes/estabelecimentos"`` or
+        ``"cnes_estabelecimentos"``).  We attempt multiple candidate paths and
+        return a static-endpoint spec if one matches.
+        """
+
+        # Build candidate paths from the dataset key.
+        # The registry uses the raw path as fixed_dataset (e.g. "cnes/estabelecimentos")
+        # and the source name uses underscores (e.g. "cnes_estabelecimentos").
+        candidates: list[str] = []
+
+        # Candidate 1: treat the dataset key itself as the path (e.g. "cnes/estabelecimentos")
+        raw_path = "/" + dataset_key.lstrip("/")
+        candidates.append(raw_path)
+
+        # Candidate 2: replace underscores with hyphens and slashes
+        # e.g. "sisagua_vigilancia_parametros_basicos" -> try common patterns
+        hyphenated = "/" + dataset_key.replace("_", "-")
+        candidates.append(hyphenated)
+
+        # Candidate 3: try splitting at the first underscore -> "sisagua/vigilancia-parametros-basicos"
+        parts = dataset_key.split("_", 1)
+        if len(parts) == 2:
+            candidates.append(f"/{parts[0]}/{parts[1].replace('_', '-')}")
+
+        # Candidate 4: try splitting at the second underscore for deeper nesting
+        # e.g. "saude_indigena_siasi_modulo_saude_bucal_ficha3"
+        # -> "/saude-indigena/siasi-modulo-saude-bucal-ficha3"
+        parts2 = dataset_key.split("_", 2)
+        if len(parts2) == 3:
+            prefix = f"{parts2[0]}-{parts2[1]}"
+            suffix = parts2[2].replace("_", "-")
+            candidates.append(f"/{prefix}/{suffix}")
+
+        known_paths = set(self._demas_get_params_by_path.keys())
+
+        for candidate in candidates:
+            if candidate in known_paths:
+                return OpenDataSUSDatasetSpec(
+                    package_id=f"generic-{dataset_key}",
+                    preferred_resource_terms=(dataset_key,),
+                    date_column="",    # no local date filtering for generic sources
+                    uf_column="",      # UF is handled via API query params
+                    demas_strategy="static",
+                    demas_static_path=candidate,
+                    ckan_supported=False,
+                )
+
+        return None
 
     @staticmethod
     def _fallback_uf_params_for_year(year: int) -> tuple[str, ...]:
@@ -782,6 +1064,7 @@ class OpenDataSUSDataSource(DataSource):
             "dt_sin_pri",
             "dt_invest",
             "dt_digita",
+            "dt_is",
         ]
         for key in candidates:
             raw_value = row.get(key)
@@ -793,6 +1076,10 @@ class OpenDataSUSDataSource(DataSource):
             candidate = text[:10]
             try:
                 return datetime.strptime(candidate, "%Y-%m-%d").date()
+            except ValueError:
+                pass
+            try:
+                return datetime.strptime(candidate, "%d/%m/%Y").date()
             except ValueError:
                 continue
         return None
@@ -809,6 +1096,7 @@ class OpenDataSUSDataSource(DataSource):
             "sg_uf_not",
             "sg_uf",
             "sg_uf_resi",
+            "uf_lpi",
         ]
         numeric_to_uf = {
             "11": "RO",
@@ -955,7 +1243,8 @@ class OpenDataSUSDataSource(DataSource):
     ) -> str:
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         uf_suffix = uf or "ALL"
-        return f"{dataset}_{start.strftime('%Y%m%d')}_{end.strftime('%Y%m%d')}_{uf_suffix}_{timestamp}"
+        safe_dataset = dataset.replace("/", "_")
+        return f"{safe_dataset}_{start.strftime('%Y%m%d')}_{end.strftime('%Y%m%d')}_{uf_suffix}_{timestamp}"
 
     def _write_raw_snapshot(self, *, stem: str, records: List[Dict[str, object]]) -> Path:
         raw_dir = self.output_path / "raw"
@@ -990,37 +1279,41 @@ class OpenDataSUSDataSource(DataSource):
         extra_metadata: Optional[Mapping[str, object]] = None,
     ) -> Path:
         manifest_path = self.output_path / "manifest.json"
-        payload = {
-            "source": dataset,
+        
+        request_filters = {
             "dataset": dataset,
             "resource_id": resource_id,
-            "generated_at_utc": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-            "request": {
-                "start_year": start_year,
-                "end_year": end_year,
-                "start_date": start.isoformat() if start else None,
-                "end_date": end.isoformat() if end else None,
-                "query_start_date": effective_start.isoformat(),
-                "query_end_date": effective_end.isoformat(),
-                "uf": uf,
-                "keep_raw": keep_raw,
-            },
-            "summary": {
-                "documents_found": total_records,
-                "downloaded_count": records_downloaded,
-                "failed_count": 0,
-            },
-            "api_base_url": api_base_url,
-            "output_dir": str(self.output_path),
-            "raw_file": str(raw_path) if raw_path else None,
+            "start_year": start_year,
+            "end_year": end_year,
+            "start_date": start.isoformat() if start else None,
+            "end_date": end.isoformat() if end else None,
+            "query_start_date": effective_start.isoformat(),
+            "query_end_date": effective_end.isoformat(),
+            "uf": uf,
+            "keep_raw": keep_raw,
             "output_format": output_format,
-            "exported_files": list(exported_files),
-            "warnings": list(warnings or []),
+            "api_base_url": api_base_url,
         }
+        
         if extra_metadata:
-            payload["details"] = dict(extra_metadata)
+            request_filters.update(extra_metadata)
+            
+        materialized_paths = []
+        if raw_path:
+            materialized_paths.append(str(raw_path))
+
+        manifest = DownloadManifest(
+            source=dataset,
+            filters=request_filters,
+            documents_found=total_records,
+            downloaded_files=[],  # tracked as bulk materialized paths
+            materialized_paths=materialized_paths,
+            exported_files=list(exported_files),
+            warnings=list(warnings or []),
+        )
+        
         manifest_path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2),
+            json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
         return manifest_path

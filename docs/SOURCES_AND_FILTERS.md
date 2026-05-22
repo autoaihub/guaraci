@@ -17,6 +17,14 @@ The UI shows these parameters in one flow, but they still represent different st
 - `sinisa` (`gov.br crawl`)
 - `doses_aplicadas_pni` (`opendatasus api`)
 - `zikavirus` (`opendatasus api`)
+- `febre_amarela` (`opendatasus api`)
+- `mpox` (`opendatasus api`)
+- `esavi` (`opendatasus api`)
+- `dengue` (`opendatasus api`)
+- `chikungunya` (`opendatasus api`)
+- `srag_demas` (`opendatasus api`)
+- `sindrome_gripal_leve` (`opendatasus api`)
+- OpenDataSUS DEMAS sources generated from `guaraci/opendatasus/utils/swagger.json`
 - `sinan` (`pysus ftp`)
 - `sim` (`pysus ftp`)
 - `sih` (`pysus ftp`)
@@ -59,7 +67,7 @@ Uses the same base schema as SNIS.
 | `resource_id` | string | download | Optional CKAN resource override |
 | `api_base_url` | string | download | Optional API base override |
 
-### 3.4 OpenDataSUS (`zikavirus`)
+### 3.4 OpenDataSUS Epidemiological Sources (`zikavirus`, `febre_amarela`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -81,7 +89,36 @@ OpenDataSUS notes:
 - `max_pages` may generate an `export_warning` if the query was truncated before exhausting remote pages.
 - If export fails with `keep_raw=false`, the warning advises re-running with `keep_raw=true` to preserve a raw snapshot.
 
-### 3.5 SINAN (`sinan`)
+### 3.5 Auto-generated OpenDataSUS DEMAS sources
+
+These sources are generated from the local DEMAS Swagger catalog.
+
+Examples:
+- `cnes_estabelecimentos`
+- `cnes_estabelecimentos_{codigo_cnes}`
+- `sisagua_vigilancia_parametros_basicos`
+- `sindrome_gripal_leve`
+- `srag_demas`
+
+Common standardized parameters:
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `keep_raw` | boolean | tecnica | Save `raw/*.jsonl`, default `false` |
+| `batch_size` | integer | tecnica | DEMAS pagination size |
+| `max_pages` | integer | tecnica | Page limit for controlling volume and runtime |
+| `api_base_url` | string | tecnica | Optional DEMAS base URL override |
+
+Source-specific parameters:
+- Native Swagger query parameters are exposed as `basico` fields and passed to DEMAS as query parameters.
+- Native Swagger path parameters are exposed as required `basico` fields and substituted into paths such as `/cnes/estabelecimentos/{codigo_cnes}`.
+- `limit` and `offset` are not exposed to users; Guaraci controls them through `batch_size` and pagination.
+- Unknown parameters are rejected by the standard schema validation path.
+- Contract tests verify every generated source against the local Swagger catalog; live upstream availability can be checked with `scripts/smoke_opendatasus_sources.py`.
+
+### 3.6 SINAN (`sinan`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -101,7 +138,7 @@ Notes:
 - The standalone `ano` field was removed from the jobs/UI schema.
 - The jobs/UI temporal window is defined by `start_year` and `end_year`.
 
-### 3.6 SIM (`sim`)
+### 3.7 SIM (`sim`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -117,7 +154,7 @@ Notes:
 | `causa_basica` | string | export | Basic cause of death |
 | `ano_obito` | integer | export | Year of death |
 
-### 3.7 SIH (`sih`)
+### 3.8 SIH (`sih`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
