@@ -117,8 +117,6 @@ Main files:
 - `CHANGELOG.md`
 - `AGENTS.md`
 - `docs/quickstart.md`
-- `docs/INSTALL.md`
-- `docs/DOCKER_WORKFLOW.md`
 - `docs/ARCHITECTURE.md`
 - `docs/API_REFERENCE.md`
 - `docs/UI_GUIDE.md`

@@ -252,11 +252,9 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
 
 ## Additional Documentation
 
-- `INSTALL.md`
-- `DOCKER_WORKFLOW.md`
-- `CONTRIBUTING.md`
-- `IMPROVEMENTS.md`
-- `CHANGELOG.md`
+- [Documentation Index](docs/README.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CHANGELOG.md](CHANGELOG.md)
 
 ## License
 

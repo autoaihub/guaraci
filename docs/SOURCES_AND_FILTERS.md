@@ -198,3 +198,7 @@ It is not the recommended primary path for current SNIS usage.
 2. Set `output_format` only when you need a final exported dataset.
 3. For crawler sources, combine `modules` and `file_kinds` to reduce noise.
 4. Monitor `export_warning` to detect empty exports.
+
+
+---
+? [Índice da documentação](README.md) · [Voltar ao projeto](../README.md)

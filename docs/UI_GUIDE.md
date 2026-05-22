@@ -162,3 +162,7 @@ The UI log stream reflects job pipeline events, not only HTTP server logs.
 
 - Check `GET /health` and `GET /sources`.
 - Verify that the API and container are running.
+
+
+---
+? [Índice da documentação](README.md) · [Voltar ao projeto](../README.md)

@@ -237,3 +237,7 @@ OpenDataSUS notes:
 - DEMAS path parameters such as `codigo_cnes` are required when the endpoint path contains `{codigo_cnes}`.
 - `keep_raw=false` by default does not write `raw/*.jsonl`; `keep_raw=true` does.
 - `export_warning` may include truncation (`max_pages`) or export-preservation guidance.
+
+
+---
+? [Índice da documentação](README.md) · [Voltar ao projeto](../README.md)

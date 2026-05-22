@@ -50,3 +50,7 @@ Quando a operação falhar, a fonte primária de diagnóstico será buscar os ra
 - Ao expandir fontes, filtros intrínsecos de API sempre devem estar no topo do formulário (ex: `ano`, `doença`).
 - Refinamentos ou opções de engenharia (como blocagem de paginação de API ou logs brutos como `keep_raw`) **devem ficar sob Filtros Avançados**, preservando o objetivo principal do projeto de priorizar UX limpa.
 - O operador final nunca deve precisar inspecionar as estruturas internas de `guaraci` ou descobrir o destino sozinho: o path resultante (privilegiando *Host Path*, como Desktop) é mandatório na exibição final da operação.
+
+
+---
+? [�ndice da documenta��o](README.md) � [Voltar ao projeto](../README.md)

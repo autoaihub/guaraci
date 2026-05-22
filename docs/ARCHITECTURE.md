@@ -184,3 +184,7 @@ To add a new source:
 - Local Python without Docker remains WIP.
 - Availability depends on external source stability, including web and FTP systems.
 - The UX still evolves around differences between crawler-based and tabular sources.
+
+
+---
+? [Índice da documentação](README.md) · [Voltar ao projeto](../README.md)

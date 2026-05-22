@@ -31,3 +31,7 @@ Fase fundacional do projeto, saindo de scripts isolados para um m√≥dulo oper√°ve
 
 ### 0.1.x - Legado / Experimental
 - Trabalhos locais focados em BigQuery ou downloads puramente manuais, atualmente deprecados ou externalizados.
+
+
+---
+? [Õndice da documentaÁ„o](README.md) ∑ [Voltar ao projeto](../README.md)
