@@ -41,7 +41,7 @@ guaraci sinan filter --uf SP --sexo M --input dengue.csv --output filtered.csv
 ```
 """
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 __author__ = (
     "Luis Felipe Vogel Lopes, "
     "Pedro Guilherme dos Reis Teixeira, "

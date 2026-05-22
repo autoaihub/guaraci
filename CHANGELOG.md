@@ -1,18 +1,34 @@
 # Changelog
 
-## [Unreleased]
+## [0.5.0] - 2026-05-22
 
 ### Added
 - OpenDataSUS sources `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, and `febre_amarela` elevated to first-class epidemiological sources with start/end year enforcement and local filtering
-- added support for `%d/%m/%Y` date parsing in OpenDataSUS datasource to support sources like `febre_amarela`
+- Auto-generated DEMAS source registry from local Swagger catalog (`guaraci/services/opendatasus_registry.py`)
+- Generic DEMAS download path with query parameter passthrough and path parameter substitution
+- `phase` field on `SourceParameterSpec` and `SourceParamResponse` for schema-driven UI grouping
+- `error_retryable` flag on `DownloadJob` with non-retryable retry guard
+- `DownloadManifest` v1.1 with `materialized_paths`, `exported_files`, `warnings`, and `request.filters` layout
+- Support for `%d/%m/%Y` date parsing in OpenDataSUS datasource for sources like `febre_amarela`
+- Developer scripts: `scripts/scaffold_opendatasus.py` and `scripts/smoke_opendatasus_sources.py`
+- Contract tests for generated registry against Swagger catalog (`tests/test_opendatasus_generated_registry.py`)
+- Documentation: `docs/quickstart.md`, `docs/operacao.md`, `docs/versionamento.md`
 
 ### Changed
+- Project version updated to `0.5.0`
+- Manifest schema version bumped from `1.0` to `1.1` (fields now optional, new layout)
 - OpenDataSUS generated DEMAS sources now pass declared Swagger query parameters and substitute required path parameters
 - `/sources/{source}/schema` now preserves the parameter `phase` field so the UI can group basic, export, refinement, and technical controls correctly
+- UI now uses phase-based filter grouping instead of hardcoded field lists
 - OpenDataSUS generated-source manifests now include `api_params` and endpoint query parameters for request traceability
 - OpenDataSUS client errors now distinguish connectivity, timeout, HTTP, configuration, and response-format failures with actionable hints
 - OpenDataSUS datasource failures now include CKAN/DEMAS execution context such as package resolution, endpoint, page, and resource offset when available
 - OpenDataSUS export warnings are more precise about preserved artifacts, and manifests now persist warning messages for troubleshooting
+- Documentation reorganized: `DOCKER_WORKFLOW.md`, `IMPROVEMENTS.md`, `INSTALL.md` moved to `docs/`
+- `docs/README.md` rewritten with structured sections
+
+### Fixed
+- SINAN lazy-load guard to prevent redundant initialization
 
 ## [0.4.1] - 2026-02-24
 

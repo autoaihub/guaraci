@@ -11,7 +11,7 @@ Returns API status and version.
 Example:
 
 ```json
-{"status":"ok","version":"0.4.1"}
+{"status":"ok","version":"0.5.0"}
 ```
 
 ## 2. Sources

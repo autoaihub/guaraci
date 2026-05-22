@@ -2,9 +2,9 @@
 
 This document is the single-source context handoff for future AI-agent conversations in the Guaraci repository.
 
-## 1. Current State (`0.4.1`)
+## 1. Current State (`0.5.0`)
 
-- Project: `Guaraci` `0.4.1`
+- Project: `Guaraci` `0.5.0`
 - Official workflow: **Docker-first**
 - Local Python without Docker: **WIP** and not officially supported
 - Sources currently registered in the jobs/UI pipeline:
@@ -121,7 +121,7 @@ Use the block below when starting a new maintenance conversation:
 I want to evolve OpenDataSUS support in the Guaraci project while keeping compatibility with the current workflow.
 
 Context:
-- Current version: 0.4.1
+- Current version: 0.5.0
 - Official workflow: Docker-first
 - Current OpenDataSUS sources: doses_aplicadas_pni, zikavirus
 - Current OpenDataSUS contract:

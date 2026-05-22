@@ -69,7 +69,7 @@ Invoke-RestMethod http://localhost:8002/sources
 
 Resposta esperada do health:
 ```json
-{"status": "ok", "version": "0.4.1"}
+{"status": "ok", "version": "0.5.0"}
 ```
 
 ---

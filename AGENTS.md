@@ -4,7 +4,7 @@ Este arquivo define direcionamento tecnico para agentes de IA que atuam neste re
 
 ## 1) Contexto do projeto
 
-- Versao atual: `0.4.1`
+- Versao atual: `0.5.0`
 - Caminho suportado oficialmente: **Docker-first**
 - Execucao Python local sem Docker: **WIP** (nao tratar como caminho principal)
 
