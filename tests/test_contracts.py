@@ -71,7 +71,7 @@ def test_download_manifest_contains_standard_and_legacy_fields() -> None:
         failed_urls=[],
     ).to_dict(include_legacy_fields=True)
 
-    assert manifest["manifest_schema_version"] == "1.0"
+    assert manifest["manifest_schema_version"] == "1.1"
     assert manifest["source"] == "snis"
     assert manifest["results_url"] == "https://example.org/snis"
     assert manifest["stats"]["documents_found"] == 3

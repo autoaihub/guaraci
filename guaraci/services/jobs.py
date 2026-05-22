@@ -33,6 +33,7 @@ class DownloadJob:
     finished_at: Optional[str] = None
     result: Optional[JobResult] = None
     error: Optional[str] = None
+    error_retryable: bool = True
     cancel_requested: bool = False
     attempt: int = 1
     retry_of: Optional[str] = None
@@ -58,6 +59,7 @@ class DownloadJob:
             "finished_at": self.finished_at,
             "result": self.result.to_dict() if self.result else None,
             "error": self.error,
+            "error_retryable": self.error_retryable,
             "cancel_requested": self.cancel_requested,
             "attempt": self.attempt,
             "retry_of": self.retry_of,
@@ -156,6 +158,7 @@ class DownloadJobService:
             job.cancel_requested = True
             job.status = "cancel_requested"
             job.error = "Cancellation requested by user."
+            job.error_retryable = True
             self._append_event_locked(
                 job,
                 level="warning",
@@ -175,6 +178,11 @@ class DownloadJobService:
             raise ValueError(
                 f"Cannot retry job '{job_id}' with status '{previous.status}'. "
                 f"Retry allowed only for: {', '.join(sorted(self.RETRYABLE_STATES))}."
+            )
+        
+        if not previous.error_retryable:
+            raise ValueError(
+                f"Job '{job_id}' failed with a non-retryable error. Check parameters or configuration before trying again."
             )
 
         params = dict(previous.params)
@@ -386,6 +394,10 @@ class DownloadJobService:
                         job.finished_at = self._utcnow()
                         job.progress = 100.0
                         job.error = str(exc)
+                        if hasattr(exc, "retryable"):
+                            job.error_retryable = bool(getattr(exc, "retryable", True))
+                        else:
+                            job.error_retryable = True
                         self._append_event_locked(
                             job,
                             level="error",
@@ -614,6 +626,7 @@ class DownloadJobService:
         job.progress = 100.0
         job.result = None
         job.error = message
+        job.error_retryable = True
         job.eta_seconds = None
 
     def _get_source_semaphore(self, source: str) -> threading.Semaphore:
@@ -711,6 +724,7 @@ class DownloadJobService:
             finished_at=job.finished_at,
             result=job.result,
             error=job.error,
+            error_retryable=job.error_retryable,
             cancel_requested=job.cancel_requested,
             attempt=job.attempt,
             retry_of=job.retry_of,

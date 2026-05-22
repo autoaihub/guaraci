@@ -32,6 +32,7 @@ class SourceParamResponse(BaseModel):
     name: str
     type: str
     description: str
+    phase: str = "coleta"
     required: bool
     default: Optional[object] = None
     allowed_values: Optional[List[str]] = None
