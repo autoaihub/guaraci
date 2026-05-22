@@ -65,6 +65,9 @@ class SinanDataSource(DataSource):
     @property
     def sinan(self):
         """Lazy loading of SINAN instance."""
+        if self._sinan_instance is not None:
+            return self._sinan_instance
+
         if not PYSUS_AVAILABLE:
             raise ImportError(
                 "PySUS is required for SINAN functionality. "
