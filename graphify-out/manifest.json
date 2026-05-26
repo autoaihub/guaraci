@@ -1,0 +1,370 @@
+{
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\__init__.py": {
+    "mtime": 1775134588.9680712,
+    "hash": "20fd05778817388564c209a1d2f0a82e"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\api\\main.py": {
+    "mtime": 1775134588.969546,
+    "hash": "cc581e619baf42fd3248293b0f25eaca"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\api\\__init__.py": {
+    "mtime": 1775134588.9680712,
+    "hash": "572a2d50de227f55e456f36232b951d8"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\cli\\main.py": {
+    "mtime": 1775134588.9713376,
+    "hash": "013ab555d7cdf81740d1a7d6505b7e30"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\cli\\sih_cli.py": {
+    "mtime": 1763728936.7481308,
+    "hash": "aa5a98e70e34807c6336766d6cb0a077"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\cli\\sim_cli.py": {
+    "mtime": 1763728936.7481308,
+    "hash": "70517da9d8fc44223973fe97a6efced5"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\cli\\sinan_cli.py": {
+    "mtime": 1761572980.6217675,
+    "hash": "4776bb6a1cb1a9ff24e543f8c4b1f912"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\cli\\snis_cli.py": {
+    "mtime": 1775134588.9720728,
+    "hash": "0ae1cc80a8b2cd3cb0d3fb24b1e6988a"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\cli\\__init__.py": {
+    "mtime": 1761307349.5980854,
+    "hash": "9266280817a7db1ad4dba9ead043c392"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\core\\config.py": {
+    "mtime": 1775134588.973447,
+    "hash": "9f5700cebb03a0c9de17e5b54ef256b8"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\core\\contracts.py": {
+    "mtime": 1777555839.504031,
+    "hash": "1909f79b5bf64c7e10a650eb85ab7a29"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\core\\datasource.py": {
+    "mtime": 1775134588.9754727,
+    "hash": "891c0d25bcdba848e148d1e982ca5177"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\core\\logging.py": {
+    "mtime": 1761501819.3956625,
+    "hash": "c01c94994506e49cd000a2e3a505ad6c"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\core\\results.py": {
+    "mtime": 1775134588.9754727,
+    "hash": "7b2fe4fe72971bb2e15b5304cae4a144"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\core\\__init__.py": {
+    "mtime": 1775134588.9720728,
+    "hash": "6ebf2913d19a0c62995d516e24882558"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\datasus\\sih.py": {
+    "mtime": 1763728936.749356,
+    "hash": "0afadbc2646eb0d84b31baa1f0f46298"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\datasus\\sim.py": {
+    "mtime": 1775134588.9769545,
+    "hash": "2159f8d98642e4d82783b3eb069e2e85"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\datasus\\sinan.py": {
+    "mtime": 1775134588.9774463,
+    "hash": "31a6921a8f5a375dca74932ba53dc7de"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\datasus\\__init__.py": {
+    "mtime": 1763728936.749356,
+    "hash": "4b456d684e0679c21b2c8a775832937c"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\opendatasus\\client.py": {
+    "mtime": 1775134588.9781399,
+    "hash": "1908d25e9e87a2a8dece709ae11addda"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\opendatasus\\datasource.py": {
+    "mtime": 1777980929.4310381,
+    "hash": "ebb2f521c90c13cac408173091497344"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\opendatasus\\__init__.py": {
+    "mtime": 1775134588.9781399,
+    "hash": "1c4f22de2119262405bf9d0c67683a6a"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\opendatasus\\utils\\swagger_catalog.py": {
+    "mtime": 1775134588.9832263,
+    "hash": "f0fbb877ebbcbc773f26f53e6f2f33eb"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\opendatasus\\utils\\__init__.py": {
+    "mtime": 1775134588.9821632,
+    "hash": "ba6012bee4baa809c88ab1679f3c339c"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\services\\downloads.py": {
+    "mtime": 1777560777.0110583,
+    "hash": "e5bac0486830563e19ba2fee889db23c"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\services\\jobs.py": {
+    "mtime": 1777403071.7042832,
+    "hash": "4022220da1ef1340b673a6ec92af95a0"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\services\\opendatasus_registry.py": {
+    "mtime": 1777981489.026963,
+    "hash": "092f0c54c0380501f420abc96605b27b"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\services\\__init__.py": {
+    "mtime": 1775134588.9832263,
+    "hash": "d4b245640cb44c076d001742f78997a2"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\snis\\sinisa.py": {
+    "mtime": 1775134588.987243,
+    "hash": "41196f00893d85094bc38e873d0c4465"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\snis\\snis.py": {
+    "mtime": 1775134588.9882524,
+    "hash": "3f8f9ef079a7ef33e2c52c07f44d2690"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\snis\\__init__.py": {
+    "mtime": 1775134588.986237,
+    "hash": "ca958ddb7bc4ca3e639b5513fa08f62a"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\snis\\legacy\\bigquery.py": {
+    "mtime": 1775134588.987243,
+    "hash": "fa3ced51f36446594288af2f0ab03e7d"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\snis\\legacy\\__init__.py": {
+    "mtime": 1775134588.986237,
+    "hash": "68da4d8d3e2198d0fe45cf2d1fbf79f4"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\utils\\mapping.py": {
+    "mtime": 1761502287.6432211,
+    "hash": "1057b796ba72ec0c7a71ab89239cbe85"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\utils\\__init__.py": {
+    "mtime": 1761307324.8874302,
+    "hash": "c62446125d6381ebc9e121bfac2bbdb3"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\scripts\\scaffold_opendatasus.py": {
+    "mtime": 1777981461.1774738,
+    "hash": "5e78b7a20431a635824a7ef70aeacf5d"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\scripts\\desktop\\launcher.ps1": {
+    "mtime": 1775134588.9928315,
+    "hash": "d4ad1dd24766edd9b5424eb3e94b97af"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\scripts\\desktop\\start-guaraci.ps1": {
+    "mtime": 1775134588.9938467,
+    "hash": "be7507512f6c2f6c12fbc74c92c6584d"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\scripts\\desktop\\status-guaraci.ps1": {
+    "mtime": 1775134588.9951878,
+    "hash": "63914a1f88e03cd44550fe358fffdf87"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\scripts\\desktop\\stop-guaraci.ps1": {
+    "mtime": 1775134588.9961874,
+    "hash": "1a38900e2b61bc226fff87864759f6cb"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_api.py": {
+    "mtime": 1775134588.9986343,
+    "hash": "3ea527f71b4e20c906a83aef25a097ad"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_config.py": {
+    "mtime": 1775134589.0000522,
+    "hash": "ec2d01d62389026c35ff2e7df54e124b"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_contracts.py": {
+    "mtime": 1777555973.7720587,
+    "hash": "9ab679a0db6153750c3b649eec1bb6ae"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_install.py": {
+    "mtime": 1775134589.00216,
+    "hash": "908ab06855c8c27b1443994ea36af956"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_jobs.py": {
+    "mtime": 1777403167.4780488,
+    "hash": "afe6992da92c5d05c7b59e9da15ecb81"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_opendatasus_client.py": {
+    "mtime": 1775134589.0032806,
+    "hash": "4a79eb198ad12279034a6e64da999039"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_opendatasus_datasource.py": {
+    "mtime": 1777555937.05459,
+    "hash": "e9b90011586524230f099174def53c63"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_opendatasus_swagger_catalog.py": {
+    "mtime": 1775134589.005266,
+    "hash": "b9a1a055233ec180004d1464706a2c41"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_pysus.py": {
+    "mtime": 1775134589.0063286,
+    "hash": "9e8165c9b7dc5d60be52a829ee9be7ca"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_results.py": {
+    "mtime": 1775134589.0063286,
+    "hash": "b31117af50b050973bc8b6925cd60da0"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_services.py": {
+    "mtime": 1777560828.3769386,
+    "hash": "c6692d7c1f054980c099b37ce127499f"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_sinan_datasource.py": {
+    "mtime": 1775134589.0083463,
+    "hash": "35b629b80c47729d0f3224ab5230e31d"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_sinisa.py": {
+    "mtime": 1777555980.1333356,
+    "hash": "b2867e555b7c4e4596cb7a1eee1af324"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_snis.py": {
+    "mtime": 1777555981.25254,
+    "hash": "23c171a971d64317a7e51793673108f9"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_snis_legacy.py": {
+    "mtime": 1775134589.009442,
+    "hash": "ff1c898d915ddf17376abc8cdcc872ee"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_utils.py": {
+    "mtime": 1761307560.9459236,
+    "hash": "0ede414c2a89f4cf76979a4da81417ae"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\test_versioning.py": {
+    "mtime": 1775134589.010926,
+    "hash": "4c6df6cb6e13b51cb7f8ec7eba946559"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\tests\\__init__.py": {
+    "mtime": 1761307547.002234,
+    "hash": "894ab808f9577309f4aced4cd2be38a6"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\AGENTS.md": {
+    "mtime": 1775134588.9534414,
+    "hash": "daa6fe6082ed8f9f55d91bedbbbb9421"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\CHANGELOG.md": {
+    "mtime": 1775134588.9534414,
+    "hash": "11397aedff8c9c1ce1747ce7e94a4479"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\CONTRIBUTING.md": {
+    "mtime": 1777980227.3750865,
+    "hash": "b7a9a6aa41d61465b1f9d47c58b26957"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docker-compose.yml": {
+    "mtime": 1775134588.962039,
+    "hash": "4f3dc4868506552679638fbc268ad26c"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\README.md": {
+    "mtime": 1777980216.2436285,
+    "hash": "fc58c287871481b7f8f53007395a2cd0"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\requirements.txt": {
+    "mtime": 1775134588.990253,
+    "hash": "22c65f04bb56a85a2d3b2cb48acf0d7a"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\TERMS_OF_USE.md": {
+    "mtime": 1775134588.9608922,
+    "hash": "271238423d72025cf1937c253f9e499e"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\AI_HANDOFF_OPENDATASUS.md": {
+    "mtime": 1775134588.963723,
+    "hash": "f9a7517da5512adb99b4729b327390b0"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\API_REFERENCE.md": {
+    "mtime": 1775134588.9652271,
+    "hash": "18483de09358572d0522ced1b9637f40"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\ARCHITECTURE.md": {
+    "mtime": 1775134588.9652271,
+    "hash": "5c8fa9f1f8e032ed97a4acdebb6c846f"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\DOCKER_WORKFLOW.md": {
+    "mtime": 1775134588.957371,
+    "hash": "f49022d9e9f8657c643d1e19841965df"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\IMPROVEMENTS.md": {
+    "mtime": 1775134588.9583795,
+    "hash": "ad7702313f7fd645bfc4708f075be2b4"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\INSTALL.md": {
+    "mtime": 1775134588.9583795,
+    "hash": "6ac34090396dada6380ab36ff0ca18e2"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\operacao.md": {
+    "mtime": 1777383960.4564674,
+    "hash": "bec99fc898a52dbdf423f67e1c92801c"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\quickstart.md": {
+    "mtime": 1777980180.2923932,
+    "hash": "128b6b3b6a0b7cb27cf76a41f85a7314"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\README.md": {
+    "mtime": 1777980245.6670513,
+    "hash": "4e2ab5ce19ddba7b618453005d4ab2ca"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\SOURCES_AND_FILTERS.md": {
+    "mtime": 1775134588.9665947,
+    "hash": "52769b21e221b499d59c00f2bc690091"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\UI_GUIDE.md": {
+    "mtime": 1775134588.9680712,
+    "hash": "e6030b17ebbbb34c11c21d723cbd7803"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\versionamento.md": {
+    "mtime": 1777383941.8534064,
+    "hash": "e0ac5fcae466eafc1dd8115216d53848"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\VOGEL_IMPROVEMENTS.md": {
+    "mtime": 1774273026.327854,
+    "hash": "adb916e6922875310ccdc092c68491f6"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\docs\\VOGEL_PROJECT_REVIEW.md": {
+    "mtime": 1774892938.4336622,
+    "hash": "da3b8c9881792ff7189ee21a2a39bf48"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\api\\static\\index.html": {
+    "mtime": 1777981438.3877187,
+    "hash": "61b4e5971c7f61aec653f8f5fe1d1ff8"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\opendatasus\\utils\\Source_examples\\Chikungunya.txt": {
+    "mtime": 1775134588.9799995,
+    "hash": "e7ede64df98639db0e57796680fd4e37"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\opendatasus\\utils\\Source_examples\\dengue.txt": {
+    "mtime": 1775134588.9815967,
+    "hash": "c8dd0c9a43d76af7ecb6c951dc66035c"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\guaraci\\opendatasus\\utils\\Source_examples\\FebreAmarela.txt": {
+    "mtime": 1775134588.9805365,
+    "hash": "fe238991bb8efd92048cf9fc8e536121"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\vogel-stack\\vogel-stack\\documentacao-e-versionamento.md": {
+    "mtime": 1779025862.809028,
+    "hash": "192bbcc5fcb82ec5bcff65c327d963a3"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\vogel-stack\\vogel-stack\\evolucao-produto.md": {
+    "mtime": 1779025862.8104298,
+    "hash": "ceb45c0e8b5e7f5a2ad64a5739467793"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\vogel-stack\\vogel-stack\\operacao-agentes.md": {
+    "mtime": 1779025862.8104298,
+    "hash": "75935f5169c70b2bad8c5da792e9d181"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\vogel-stack\\vogel-stack\\principios.md": {
+    "mtime": 1779025862.8104298,
+    "hash": "f060bcffa98e74238f9979f55cdc5127"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\vogel-stack\\vogel-stack\\README.md": {
+    "mtime": 1779025862.809028,
+    "hash": "03ffbe6fa9cc28d8c5cdf52b2507f1e6"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\vogel-stack\\vogel-stack\\registro-e-evidencias.md": {
+    "mtime": 1779025862.8104298,
+    "hash": "38f215804ba5f6ed399f13be8386a8a5"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\vogel-stack\\vogel-stack\\templates.md": {
+    "mtime": 1779025862.8104298,
+    "hash": "8c2449fe2639304800b9e75d0d7e8d6c"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\data\\sinisa\\raw\\copy_of_GLOSSARIO_INFORMACOES_SINISA_ESGOTO_LOCAIS.pdf": {
+    "mtime": 1771507221.0002513,
+    "hash": "fefea2ffc364abb0fe2c655e855f8c26"
+  },
+  "C:\\Users\\luisv\\Documents\\DS\\guaraci\\data\\sinisa\\raw\\GLOSSARIO_INFORMACOES_SINISA_AGUA_LOCAIS.pdf": {
+    "mtime": 1771507220.5808375,
+    "hash": "b0783b26b321581fad6ccc37446ea9d5"
+  }
+}

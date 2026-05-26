@@ -20,6 +20,8 @@ Execute uma única vez (ou quando houver atualização de dependências):
 docker build -t guaraci .
 ```
 
+> **Atenção (Dependências como PySUS):** Se você instalar dependências localmente via `pip install`, isso NÃO terá efeito dentro do Docker. Você precisará reconstruir a imagem Docker (`docker build -t guaraci .` ou `docker compose build --no-cache`) para garantir que bibliotecas como o **PySUS** estejam atualizadas e disponíveis.
+
 *Dica: Se suspeitar de cache quebrado após muitas mudanças, adicione `--no-cache`.*
 
 ## 3. Iniciar o Guaraci
@@ -56,7 +58,7 @@ docker run --rm -it -p 8002:8000 -v "$(pwd):/app" guaraci \
 ## 4. Verificar o Funcionamento
 
 ```powershell
-# Health check (esperado: {"status": "ok", "version": "0.5.0"})
+# Health check (esperado: {"status": "ok", "version": "0.5.1"})
 Invoke-RestMethod http://localhost:8002/health
 
 # Listar fontes disponíveis
@@ -91,6 +93,10 @@ Basta pressionar `Ctrl+C` no terminal.
 
 ### "Guaraci UI not found" ou UI sem dados
 **Solução:** Verifique se o volume está montado corretamente (`-v "${PWD}:/app"`) e se a pasta `data/` possui permissões de escrita.
+
+### "PySUS is required for SIH functionality"
+**Solução:** Essa mensagem ocorre se a imagem Docker não foi construída com a versão correta do PySUS ou se o volume do host está conflitando sem a instalação completa. Reconstrua a imagem Docker com `--no-cache`. Você pode verificar se o PySUS está acessível internamente via:
+`docker run --rm -it guaraci python -c "import pysus; print('PySUS OK')"`
 
 ### Container encerra imediatamente sem logs
 **Solução:** Se rodando manualmente, garanta que usou a flag `-it`. Um `docker run` vazio sem terminal interativo fecha imediatamente.

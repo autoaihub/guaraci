@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxml2-dev \
     libxslt1-dev \
     zlib1g-dev \
+    libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -51,5 +52,5 @@ CMD ["python", "-c", "import guaraci; print(f'Guaraci v{guaraci.__version__} rea
 
 # Labels for metadata
 LABEL maintainer="vogel@usp.br"
-LABEL version="0.4.1"
+LABEL version="0.5.1"
 LABEL description="Guaraci - Brazilian Public Data Integration Platform"

@@ -1,0 +1,12 @@
+.venv/
+venv/
+graphify-out/
+.obsidian/
+
+# Arquivos e caches do Guaraci
+*.db
+*.sqlite
+*.parquet
+*.csv
+logs/
+cache/

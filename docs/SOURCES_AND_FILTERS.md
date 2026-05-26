@@ -1,4 +1,4 @@
-# Sources and Filters
+Ôªø# Sources and Filters
 
 Reference document for the parameters exposed through the schema, API, and UI.
 
@@ -201,4 +201,5 @@ It is not the recommended primary path for current SNIS usage.
 
 
 ---
-? [Õndice da documentaÁ„o](README.md) ∑ [Voltar ao projeto](../README.md)
+? [√çndice da documenta√ß√£o](README.md) ¬∑ [Voltar ao projeto](../README.md)
+

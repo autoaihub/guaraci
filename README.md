@@ -11,7 +11,7 @@ Guaraci is a platform for downloading and orchestrating Brazilian public data so
 - `SINAN`, `SIM`, and `SIH` (PySUS/FTP DATASUS)
 - `OpenDataSUS` (`doses_aplicadas_pni`, `zikavirus`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, `febre_amarela`, and DEMAS sources generated from the local Swagger catalog)
 
-Current version: `0.5.0`
+Current version: `0.5.1`
 
 ## Project Status
 
@@ -247,7 +247,7 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
 
 ## Version and Immediate Roadmap
 
-- Current release line: `0.5.0`
+- Current release line: `0.5.1`
 - This release introduced auto-generated DEMAS sources, manifest schema v1.1, phase-driven UI, and expanded OpenDataSUS coverage.
 
 ## Additional Documentation
@@ -271,5 +271,5 @@ If you use Guaraci in research, technical reports, or derived software, cite the
 Recommended software citation for the current release:
 
 ```text
-Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.5.0) [Computer software]. https://github.com/autoaihub/guaraci
+Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.5.1) [Computer software]. https://github.com/autoaihub/guaraci
 ```

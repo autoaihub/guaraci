@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.1] - 2026-05-26
+
+### Fixed
+- PySUS 2.x Docker Linux integration by adding `libmagic1` system dependency to `Dockerfile`.
+- Confirmed PySUS 2.1.0 compatibility with Guaraci async client functions.
+
+### Changed
+- Project version updated to `0.5.1`
+
 ## [0.5.0] - 2026-05-22
 
 ### Added

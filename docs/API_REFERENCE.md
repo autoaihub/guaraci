@@ -11,7 +11,7 @@ Returns API status and version.
 Example:
 
 ```json
-{"status":"ok","version":"0.5.0"}
+{"status":"ok","version":"0.5.1"}
 ```
 
 ## 2. Sources
@@ -240,4 +240,4 @@ OpenDataSUS notes:
 
 
 ---
-? [Õndice da documentaÁ„o](README.md) ∑ [Voltar ao projeto](../README.md)
+? [√çndice da documenta√ß√£o](README.md) ¬∑ [Voltar ao projeto](../README.md)
