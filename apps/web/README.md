@@ -17,10 +17,7 @@ A nova UI:
   (sem JS hardcoded por fonte).
 - Separa filtros **básicos** (phase `basico`/`coleta`) e **avançados** automaticamente.
 - Usa componentes acessíveis (multi-select dropdown, date range com presets).
-- Reaproveita componentes do protótipo `HighchartsDB` (`CheckboxDropdown`,
-  `DateRangeDropdown`).
-- Tem uma aba **Visualização** com gráficos Highcharts (esqueleto) que lê o
-  histórico de jobs e mostra coletas por fonte / status / tempo.
+- Reaproveita componentes acessíveis (`CheckboxDropdown`, `DateRangeDropdown`).
 
 ## Como rodar (dev)
 
@@ -64,14 +61,12 @@ src/
   components/
     CheckboxDropdown.tsx   # multi-select com "Todos / Limpar"
     DateRangeDropdown.tsx  # date range com presets (1m/3m/12m)
-    HighchartsView.tsx     # wrapper de Highcharts.chart()
     JobStatus.tsx          # polling de status com barra de progresso
     SchemaField.tsx        # renderiza 1 campo a partir do SourceParam
     SchemaForm.tsx         # split básico/avançado + render do form
-    SourcePicker.tsx       # agrupa fontes por DataSUS/OpenDataSUS/Saneamento
+    SourcePicker.tsx       # busca e filtro de fontes
   pages/
     DownloadPage.tsx       # fluxo principal de coleta
-    DashboardPage.tsx      # visualização agregada de jobs (esqueleto)
   types.ts                 # tipos derivados do schema FastAPI
   App.tsx
   main.tsx
@@ -82,7 +77,6 @@ src/
 
 - Cobertura de todos os tipos de campo (lista de listas, datas, intervalos).
 - Tela de discovery/preview antes de submeter o job.
-- Visualização que lê os arquivos coletados (parquet/csv) e não só metadados.
 - Testes unitários (Vitest + Testing Library).
 - Servir o build do FastAPI quando estável; manter o `index.html` legacy
   até esta UI atender todos os fluxos.

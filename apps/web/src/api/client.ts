@@ -36,5 +36,4 @@ export const api = {
   getJob: (jobId: string) => request<JobStatus>(`/jobs/${encodeURIComponent(jobId)}`),
   cancelJob: (jobId: string) =>
     request<JobStatus>(`/jobs/${encodeURIComponent(jobId)}/cancel`, { method: "POST" }),
-  listJobs: (limit = 20) => request<JobStatus[]>(`/jobs?limit=${limit}`),
 };

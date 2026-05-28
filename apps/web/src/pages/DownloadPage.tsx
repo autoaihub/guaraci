@@ -55,12 +55,10 @@ export function DownloadPage() {
   }
 
   return (
-    <div className="page">
+    <>
       <header className="page-header">
-        <div>
-          <h1>Guaraci</h1>
-          <p>Coleta de dados públicos de saúde do Brasil.</p>
-        </div>
+        <h1>Guaraci</h1>
+        <p>Coleta de dados públicos de saúde do Brasil.</p>
       </header>
 
       {error ? <div className="notice notice-fail">{error}</div> : null}
@@ -102,7 +100,7 @@ export function DownloadPage() {
           />
         </section>
       ) : null}
-    </div>
+    </>
   );
 }
 
