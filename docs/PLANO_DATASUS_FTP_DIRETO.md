@@ -1,8 +1,8 @@
 # Plano: Conexão Direta ao DATASUS FTP (sem PySUS)
 
-Status: **plano** — nenhuma implementação foi feita. Este documento
-descreve a arquitetura proposta, riscos e fases. Aprovação explícita é
-necessária antes de iniciar a fase 1.
+Status: **fase 1 implementada (2026-05-28)**. Camada `guaraci/datasus/ftp/`
+disponível em paralelo ao caminho PySUS atual. Fase 2 (flag de backend em
+`SihDataSource`) aguarda autorização.
 
 Wikilinks: [[principios|Princípios Gerais]] (princípio 20, fonte
 primária), [[operacao-agentes|Operação de Agentes]] (handoff em
@@ -190,19 +190,27 @@ por mês que hoje só SIH tem).
 Cada fase é incremental, reversível e mantém o caminho PySUS
 funcionando até o fim.
 
-### Fase 0 — Aprovação e teste isolado (este documento)
-- Aprovação do plano por humano.
-- Criação de uma branch `feat/datasus-ftp-direto`.
+### Fase 0 — Aprovação e teste isolado (este documento) ✅
+- Aprovação do plano por humano. ✅ (2026-05-28)
+- Criação de uma branch `feat/datasus-ftp-direto`. ✅
 
-### Fase 1 — Camada `ftp/` paralela
-- Implementar `client.py`, `catalog.py`, `discovery.py`, `dbc.py`.
+### Fase 1 — Camada `ftp/` paralela ✅
+- Implementar `client.py`, `catalog.py`, `discovery.py`, `dbc.py`. ✅
 - Tests: smoke test contra FTP real (1 arquivo SP/2024-01),
   parsing de catalog com fixtures, decodificação DBC contra arquivo
-  fixo de regressão.
-- Nenhuma mudança em `SihDataSource` ainda.
+  fixo de regressão. ✅
+- Nenhuma mudança em `SihDataSource` ainda. ✅
 - Critério de saída: download de 1 arquivo via `ftp/` produz parquet
   idêntico ao PySUS (mesmo número de linhas, mesmo schema, mesmas
   primeiras 100 linhas após sort canônico).
+  - **Status (2026-05-28)**: smoke test
+    `tests/test_ftp_smoke.py::test_smoke_download_and_decode_rdsp2401`
+    baixou `RDSP2401.dbc` (~16,7 MB) e decodificou para `pl.DataFrame`
+    não-vazio com colunas UF. **Igualdade bit-exata vs PySUS ainda não
+    foi verificada** — `pysus==2.2.0` removeu o extra `[dbc]` e
+    refatorou o pipeline de conversão, então a comparação direta exige
+    pinar PySUS 2.1.x num venv separado. Recomendação: registrar como
+    pré-requisito da Fase 2 antes do flip da flag em produção.
 
 ### Fase 2 — Migração de `SihDataSource`
 - Adicionar flag interna `GUARACI_DATASUS_BACKEND=ftp|pysus` (default
@@ -246,15 +254,64 @@ funcionando até o fim.
 - **Cache distribuído de arquivos baixados** — discussão separada,
   ligada a `docs/operacao.md §5.2` (handoff em coletas pesadas).
 
-## 9. Próxima decisão necessária
+## 9. Decisões da fase 0 (registradas 2026-05-28)
 
-Antes da fase 1, o operador humano precisa decidir:
+Decididas pelo operador após revisão deste plano:
 
-1. **Backend default no `pyproject.toml`**: começar com `aioftp` ou
-   primeiro validar com `asyncio.to_thread(ftplib)` da stdlib?
-2. **Opção A (`pyreaddbc`) ou B (decoder nativo) em `dbc.py`?**
-3. **Janela de execução**: alinhar com qual release? (Sugestão: 0.6.0
-   pós-empacotamento de launchers desktop.)
+1. **Backend FTP da fase 1**: `asyncio.to_thread(ftplib)` da stdlib.
+   - Motivação: o smoke test em `scripts/discover_sih_rd.py` já comprova
+     que `ftplib` funciona contra o DATASUS sem ajustes. Adicionar
+     `aioftp` na fase 1 mistura validação de protocolo com validação de
+     dependência nova.
+   - Critério para migrar para `aioftp` em fase posterior: se o pool de
+     N conexões serializadas em threads encontrar contention real (perfil
+     mostrar tempo em GIL > tempo em rede) ou se o DATASUS aceitar mais
+     conexões simultâneas do que threads práticas no event loop.
 
-Essas decisões devem ser registradas em `docs/versionamento.md` antes
-de qualquer código novo entrar.
+2. **Decoder DBC**: **Opção A** — `pyreaddbc` promovido a dependência
+   direta.
+   - Motivação: já é dependência transitiva comprovadamente funcional,
+     trata corner cases históricos (1992–1997) que um decoder nativo
+     novo precisaria aprender. Reduz risco da fase 1 sem nos prender ao
+     PySUS — `pyreaddbc` é um pacote isolado, pequeno, mantido.
+   - Critério para reconsiderar Opção B: se `pyreaddbc` for arquivado
+     pelo mantenedor ou se aparecerem regressões em release nova.
+
+3. **Janela de execução**: alinhar com release **0.6.0**.
+   - Fase 1 (scaffold paralelo) pode rodar antes do corte da 0.6.0 sem
+     bloquear features.
+   - Fase 2 (flag de backend em SIH) entra como feature opt-in da 0.6.0.
+   - Fase 4 (flip default para FTP) só após 0.6.0 sair com a flag opt-in
+     validada em produção.
+
+Essas decisões serão refletidas em `docs/versionamento.md` quando a
+fase 1 começar.
+
+## 10. Execução da fase 1 (2026-05-28)
+
+Pacote `guaraci/datasus/ftp/` entregue na branch
+`feat/datasus-ftp-direto`:
+
+| Arquivo                                       | Linhas | Função                                                      |
+|-----------------------------------------------|--------|-------------------------------------------------------------|
+| `guaraci/datasus/ftp/__init__.py`             | 42     | Exports públicos da camada                                  |
+| `guaraci/datasus/ftp/client.py`               | 215    | `DatasusFtpClient` async sobre `ftplib` via `to_thread`     |
+| `guaraci/datasus/ftp/catalog.py`              | 150    | `FileRecord` + regex de parsing SIH/SIM/SINAN               |
+| `guaraci/datasus/ftp/discovery.py`            | 120    | `discover_sih(...)` filtrado e ordenado                     |
+| `guaraci/datasus/ftp/dbc.py`                  | 75     | Façade `pyreaddbc.dbc2dbf` + `dbfread.DBF` → `pl.DataFrame` |
+
+Cobertura de testes — 52 testes, todos verdes:
+
+- `tests/test_ftp_catalog.py` (38 testes) — parsing de basenames válidos
+  e inválidos para os 3 sistemas; igualdade JSON; imutabilidade.
+- `tests/test_ftp_discovery.py` (8 testes) — filtros, traversal seletiva
+  por janela de anos, ordenação canônica, enriquecimento com SIZE.
+- `tests/test_ftp_dbc.py` (4 testes) — DBC→DBF→records→Polars com fakes
+  de `pyreaddbc`/`dbfread`; fallback pandas; erro útil quando o arquivo
+  não existe.
+- `tests/test_ftp_smoke.py` (2 testes, opt-in via `GUARACI_FTP_SMOKE=1`)
+  — `RDSP2401.dbc` real: conectar/NLST/SIZE e fim-a-fim (download +
+  decode).
+
+`pyproject.toml`: `pyreaddbc>=2.0.0` promovido a dependência direta dos
+extras `datasus` e `full`. Caminho PySUS legado intacto.
