@@ -13,6 +13,12 @@ Este documento condensa o modelo de operação diária do **Guaraci**, definindo
 ## 2. Pré-requisitos e Limites Conhecidos
 
 - **Ambiente Mínimo**: Motor Docker rodando. No Windows, o PowerShell é a interface padronizada para os *launchers* visuais.
+- **Fontes Primárias Suportadas** (em linha com o princípio 20 do `vogel-stack`):
+  - **DATASUS FTP** (`ftp.datasus.gov.br`) — SIH, SIM, SINAN, hoje via PySUS.
+  - **OpenDataSUS API** (`opendatasus.saude.gov.br`) — PNI, ZikaVirus, SRAG, dengue, chikungunya, mpox, ESAVI, febre amarela e demais endpoints DEMAS.
+  - **gov.br SNIS/SINISA** — crawler dedicado para os módulos de saneamento.
+
+  Bases curadas de terceiros (Base dos Dados/BigQuery, microdatasus, PCDaS/Fiocruz) **não são usadas como fonte de dados** no Guaraci, mesmo quando oferecem SQL, filtros server-side ou interface mais conveniente. O Guaraci se posiciona como integrador direto da fonte oficial — o intermediário adiciona delay de curadoria e introduz dependência operacional sobre terceiros. Quando uma fonte oficial não está acessível diretamente (ex.: dados muito antigos), o uso de intermediário deve ser registrado como limitação conhecida e não como caminho default.
 - **Limitações e Comportamentos Conhecidos**:
   - Algumas fontes legadas governamentais como FTPs do DATASUS (PySUS) podem sofrer instabilidade inerente de upstream (quedas de conexão, timeout ou falha de disco em nuvem pública). O projeto adota `retries` assíncronos no job worker para acomodar essas oscilações.
   - Grandes volumes de dados OpenDataSUS podem consumir memória extensa ou levar minutos. A interface expõe _previews_ por este motivo explícito.
@@ -65,4 +71,4 @@ Antes do sync, o agente ou operador deve confirmar:
 
 Essa regra evita que o repositorio pai registre apenas `sync: <maquina> <data>` sem preservar o significado operacional da entrega.
 ---
-? [�ndice da documenta��o](README.md) � [Voltar ao projeto](../README.md)
+? [�ndice da documenta��o](README.md) � [Voltar ao projeto](../README.md)

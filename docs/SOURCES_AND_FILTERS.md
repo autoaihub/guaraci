@@ -13,24 +13,33 @@ The UI shows these parameters in one flow, but they still represent different st
 
 ## 2. Supported Sources
 
-- `snis` (`gov.br crawl`)
-- `sinisa` (`gov.br crawl`)
-- `doses_aplicadas_pni` (`opendatasus api`)
-- `zikavirus` (`opendatasus api`)
-- `febre_amarela` (`opendatasus api`)
-- `mpox` (`opendatasus api`)
-- `esavi` (`opendatasus api`)
-- `dengue` (`opendatasus api`)
-- `chikungunya` (`opendatasus api`)
-- `srag_demas` (`opendatasus api`)
-- `sindrome_gripal_leve` (`opendatasus api`)
+All sources are integrated directly from the official primary publisher
+(see principle 20 in the `vogel-stack`). Curated third-party mirrors
+(Base dos Dados, microdatasus, PCDaS) are not used as sources even when
+they expose more convenient query layers.
+
+- `snis` (`gov.br crawl`) — primary: `app4.mdr.gov.br/serieHistorica/`
+- `sinisa` (`gov.br crawl`) — primary: gov.br SINISA pages
+- `doses_aplicadas_pni` (`opendatasus api`) — primary: `opendatasus.saude.gov.br`
+- `zikavirus` (`opendatasus api`) — same
+- `febre_amarela` (`opendatasus api`) — same
+- `mpox` (`opendatasus api`) — same
+- `esavi` (`opendatasus api`) — same
+- `dengue` (`opendatasus api`) — same
+- `chikungunya` (`opendatasus api`) — same
+- `srag_demas` (`opendatasus api`) — same
+- `sindrome_gripal_leve` (`opendatasus api`) — same
 - OpenDataSUS DEMAS sources generated from `guaraci/opendatasus/utils/swagger.json`
-- `sinan` (`pysus ftp`)
-- `sim` (`pysus ftp`)
-- `sih` (`pysus ftp`)
+- `sinan` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINAN/`
+- `sim` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIM/`
+- `sih` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIHSUS/`
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
+- The `mode` field on `GET /sources` describes the transport, not the
+  publisher. `pysus ftp` means "DATASUS FTP, fetched through PySUS"; the
+  fetch layer may change (see `docs/PLANO_DATASUS_FTP_DIRETO.md`) without
+  altering the source identity.
 
 ## 3. Parameters by Source
 
