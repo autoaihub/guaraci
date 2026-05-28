@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use Guaraci in research, technical reports, or derived software, please cite it using the metadata below."
 title: "Guaraci"
 type: software
-version: "0.5.1"
+version: "0.5.2"
 date-released: 2026-02-24
 license: MIT
 abstract: "Brazilian public data integration platform for scientific research."

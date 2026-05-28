@@ -23,11 +23,18 @@ from guaraci.utils.mapping import apply_uf_mapping_polars
 try:
     import pysus
     from pysus.api.client import PySUS
+    from pysus.api.ftp.client import FTP as PySUSFtpClient
+    from pysus.api.ftp.databases import SIH as PySUSFtpSIH
+    from pysus.api.ftp.models import File as PySUSFtpFile
     PYSUS_AVAILABLE = True
 except ImportError as exc:  # pragma: no cover - handled at runtime
     import logging
     logging.getLogger(__name__).warning(f"PySUS não está disponível ou falhou ao importar: {exc}")
     PYSUS_AVAILABLE = False
+    PySUS = None  # type: ignore[assignment]
+    PySUSFtpClient = None  # type: ignore[assignment]
+    PySUSFtpSIH = None  # type: ignore[assignment]
+    PySUSFtpFile = None  # type: ignore[assignment]
 
 
 class SihDataSource(DataSource):
@@ -35,8 +42,8 @@ class SihDataSource(DataSource):
     SIH data source backed by PySUS 2.x.
     """
 
-    DEFAULT_GROUPS: List[str] = ["RD"]
     ALL_GROUPS: List[str] = ["RD", "RJ", "ER", "SP", "CH", "CM"]
+    DEFAULT_GROUPS: List[str] = ALL_GROUPS.copy()
 
     def __init__(self, output_path: Optional[str] = None):
         super().__init__(name="sih", output_path=output_path)
@@ -78,7 +85,7 @@ class SihDataSource(DataSource):
         years = list(range(start_year, end_year + 1))
 
         if groups is None or not groups:
-            groups = self.DEFAULT_GROUPS.copy()
+            groups = self.ALL_GROUPS.copy()
         else:
             unknown = {g for g in groups if g.upper() not in self.ALL_GROUPS}
             if unknown:
@@ -94,25 +101,60 @@ class SihDataSource(DataSource):
 
         logger.info(f"Starting SIH download: {start_year}-{end_year}")
 
+        async def _discover_files() -> List[Any]:
+            if PySUSFtpClient is None or PySUSFtpSIH is None or PySUSFtpFile is None:
+                raise ImportError("PySUS FTP support is required for SIH downloads.")
+
+            ftp_client = PySUSFtpClient()
+            await ftp_client.connect()
+            try:
+                dataset = PySUSFtpSIH(client=ftp_client)
+                discovered = await dataset._fetch_content()
+            finally:
+                await ftp_client.close()
+
+            selected_groups = set(groups)
+            selected_states = {s.upper() for s in states} if states else None
+            selected_months = set(month_values) if month_values else None
+
+            files_to_download = []
+            for file_record in discovered:
+                if not isinstance(file_record, PySUSFtpFile):
+                    continue
+                group_obj = getattr(file_record, "group", None)
+                group_name = str(getattr(group_obj, "name", "") or "").upper()
+                state_name = str(getattr(file_record, "state", "") or "").upper()
+                year_value = getattr(file_record, "year", None)
+                month_value = getattr(file_record, "month", None)
+
+                if group_name not in selected_groups:
+                    continue
+                if selected_states is not None and state_name not in selected_states:
+                    continue
+                if year_value not in years:
+                    continue
+                if selected_months is not None and month_value not in selected_months:
+                    continue
+                files_to_download.append(file_record)
+
+            files_to_download.sort(
+                key=lambda item: (
+                    str(getattr(getattr(item, "group", None), "name", "") or ""),
+                    str(getattr(item, "state", "") or ""),
+                    int(getattr(item, "year", 0) or 0),
+                    int(getattr(item, "month", 0) or 0),
+                    str(getattr(item, "basename", item)),
+                )
+            )
+            return files_to_download
+
         async def _fetch():
             successful = 0
             failed_downloads = []
             
+            files_to_download = await _discover_files()
+
             async with PySUS() as client:
-                files_to_download = []
-                for g in groups:
-                    _states = states if states else [None]
-                    _months = month_values if month_values else [None]
-                    for y in years:
-                        for m in _months:
-                            for s in _states:
-                                try:
-                                    res = await client.query(dataset="sih", group=g, state=s, year=y, month=m)
-                                    if res:
-                                        files_to_download.extend(res)
-                                except Exception as exc:
-                                    logger.error(f"Failed to query SIH {g} {s} {y} {m}: {exc}")
-                
                 total_files = len(files_to_download)
                 if total_files == 0:
                     logger.warning("No SIH files found for the specified criteria")
@@ -130,7 +172,7 @@ class SihDataSource(DataSource):
                         g_name = "UNKNOWN"
 
                     try:
-                        downloaded = await client.download(file_record)
+                        downloaded = await client.download_to_parquet(file_record)
                         self.data[g_name].append(str(downloaded.path))
                         successful += 1
                     except Exception as exc:
@@ -162,6 +204,132 @@ class SihDataSource(DataSource):
         except Exception as exc:
             logger.error(f"SIH download process failed: {exc}")
             raise
+
+    def discover(
+        self,
+        start_year: int,
+        end_year: int,
+        groups: Optional[List[str]] = None,
+        states: Optional[List[str]] = None,
+        months: Optional[List[int]] = None,
+    ) -> Dict[str, Any]:
+        if not PYSUS_AVAILABLE:
+            raise ImportError("PySUS is required for SIH functionality.")
+
+        current_year = datetime.datetime.now().year
+        if end_year >= current_year:
+            end_year = current_year - 1
+        if start_year > end_year:
+            raise ValueError(f"Start year ({start_year}) cannot be greater than end year ({end_year})")
+
+        selected_groups = groups or self.ALL_GROUPS.copy()
+        selected_groups = [g.upper() for g in selected_groups]
+        unknown = {g for g in selected_groups if g not in self.ALL_GROUPS}
+        if unknown:
+            raise ValueError(f"Unknown SIH group(s): {', '.join(sorted(unknown))}")
+
+        selected_months: Optional[List[int]] = None
+        if months:
+            invalid = [m for m in months if m < 1 or m > 12]
+            if invalid:
+                raise ValueError(f"Invalid month values: {invalid}. Expected 1–12.")
+            selected_months = months
+
+        years = list(range(start_year, end_year + 1))
+
+        async def _discover() -> List[Any]:
+            if PySUSFtpClient is None or PySUSFtpSIH is None or PySUSFtpFile is None:
+                raise ImportError("PySUS FTP support is required for SIH discovery.")
+            ftp_client = PySUSFtpClient()
+            await ftp_client.connect()
+            try:
+                dataset = PySUSFtpSIH(client=ftp_client)
+                discovered = await dataset._fetch_content()
+            finally:
+                await ftp_client.close()
+
+            state_filter = {s.upper() for s in states} if states else None
+            month_filter = set(selected_months) if selected_months else None
+            group_filter = set(selected_groups)
+            selected: List[Any] = []
+            for file_record in discovered:
+                if not isinstance(file_record, PySUSFtpFile):
+                    continue
+                group_name = str(getattr(getattr(file_record, "group", None), "name", "") or "").upper()
+                state_name = str(getattr(file_record, "state", "") or "").upper()
+                if group_name not in group_filter:
+                    continue
+                if state_filter is not None and state_name not in state_filter:
+                    continue
+                if getattr(file_record, "year", None) not in years:
+                    continue
+                if month_filter is not None and getattr(file_record, "month", None) not in month_filter:
+                    continue
+                selected.append(file_record)
+            selected.sort(
+                key=lambda item: (
+                    str(getattr(getattr(item, "group", None), "name", "") or ""),
+                    str(getattr(item, "state", "") or ""),
+                    int(getattr(item, "year", 0) or 0),
+                    int(getattr(item, "month", 0) or 0),
+                    str(getattr(item, "basename", item)),
+                )
+            )
+            return selected
+
+        try:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop and loop.is_running():
+                import nest_asyncio
+                nest_asyncio.apply()
+                files = loop.run_until_complete(_discover())
+            else:
+                files = asyncio.run(_discover())
+        except Exception as exc:
+            logger.error(f"SIH discovery failed: {exc}")
+            raise
+
+        by_group: Dict[str, int] = defaultdict(int)
+        by_state: Dict[str, int] = defaultdict(int)
+        total_size = 0
+        sample: List[Dict[str, Any]] = []
+        for file_record in files:
+            group_name = str(getattr(getattr(file_record, "group", None), "name", "") or "")
+            state_name = str(getattr(file_record, "state", "") or "")
+            by_group[group_name] += 1
+            by_state[state_name] += 1
+            total_size += int(getattr(file_record, "size", 0) or 0)
+            if len(sample) < 10:
+                sample.append(
+                    {
+                        "name": str(getattr(file_record, "basename", file_record)),
+                        "group": group_name,
+                        "state": state_name,
+                        "year": getattr(file_record, "year", None),
+                        "month": getattr(file_record, "month", None),
+                        "size_bytes": int(getattr(file_record, "size", 0) or 0),
+                    }
+                )
+
+        return {
+            "source": "sih",
+            "documents_found": len(files),
+            "total_size_bytes": total_size,
+            "by_group": dict(sorted(by_group.items())),
+            "by_state": dict(sorted(by_state.items())),
+            "sample": sample,
+            "filters": {
+                "start_year": start_year,
+                "end_year": end_year,
+                "groups": selected_groups,
+                "states": states,
+                "months": selected_months,
+            },
+        }
 
     def _load_as_polars(self, group: str) -> pl.DataFrame:
         if group not in self.data:

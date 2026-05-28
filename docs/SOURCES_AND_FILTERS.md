@@ -162,16 +162,22 @@ Notes:
 | `output_format` | string | export | `csv`, `parquet`, `sqlite` |
 | `start_year` | integer | download | Initial year |
 | `end_year` | integer | download | Final year |
-| `groups` | string_list | download | SIH groups |
+| `groups` | string_list | download | SIH groups; leave empty to include all groups |
 | `states` | string_list | download | Collection states |
-| `months` | string_list | download | Collection months (`1-12`) |
+| `months` | string_list | download | Collection months (`1-12`); leave empty to include all months |
 | `uf` | string | export | State filter in the final dataset |
 | `municipio` | string | export | Text filter |
 | `sexo` | string | export | `M` or `F` |
-| `mes` | integer | export | Month in the final dataset |
 
 Note:
 - `ano` is not part of the SIH jobs/UI schema.
+- `mes` is not part of the SIH jobs/UI schema; use the collection-level
+  `months` field when month selection is needed.
+- SIH discovery uses the PySUS FTP catalog. Broad selections such as all states,
+  all months, and multiple years can resolve to thousands of DBC files and many
+  gigabytes before export filtering is applied.
+- Use `POST /sources/sih/discovery` to inspect file count, estimated byte size,
+  grouping, and a sample before creating large SIH jobs.
 
 ## 4. UI and API Versus Direct CLI
 

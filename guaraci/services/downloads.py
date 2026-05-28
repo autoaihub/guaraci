@@ -386,7 +386,7 @@ class PysusDownloadSource:
         elif source == "sim":
             post_keys |= {"uf", "municipio", "sexo", "causa_basica", "ano_obito"}
         elif source == "sih":
-            post_keys |= {"uf", "municipio", "sexo", "mes"}
+            post_keys |= {"uf", "municipio", "sexo"}
 
         download_kwargs = {
             key: value for key, value in params.items() if key not in post_keys
@@ -499,7 +499,7 @@ class PysusDownloadSource:
         download_kwargs: Mapping[str, object],
         postprocess_kwargs: Mapping[str, object],
     ) -> List[str]:
-        groups = list(download_kwargs.get("groups") or getattr(datasource, "DEFAULT_GROUPS", []))
+        groups = list(download_kwargs.get("groups") or getattr(datasource, "ALL_GROUPS", getattr(datasource, "DEFAULT_GROUPS", [])))
         start_year = int(download_kwargs.get("start_year", datetime.now().year))
         end_year = int(download_kwargs.get("end_year", start_year))
         filter_kwargs = self._compact_filter_kwargs(
@@ -545,7 +545,7 @@ class PysusDownloadSource:
         end_year = int(download_kwargs.get("end_year", start_year))
         filter_kwargs = self._compact_filter_kwargs(
             postprocess_kwargs,
-            ["uf", "municipio", "sexo", "mes"],
+            ["uf", "municipio", "sexo"],
         )
         exported: List[str] = []
         for group in groups:
@@ -2055,9 +2055,9 @@ class DownloadService:
                         name="groups",
                         phase="coleta",
                         param_type="string_list",
-                        description="SIH groups to download.",
+                        description="SIH groups to download. Leave empty to include all groups.",
                         required=False,
-                        default=list(SihDataSource.DEFAULT_GROUPS),
+                        default=None,
                         allowed_values=list(SihDataSource.ALL_GROUPS),
                     ),
                     SourceParameterSpec(
@@ -2073,7 +2073,7 @@ class DownloadService:
                         name="months",
                         phase="coleta",
                         param_type="string_list",
-                        description="Month list (1-12).",
+                        description="Month list (1-12). Leave empty to include all months.",
                         required=False,
                         default=None,
                         allowed_values=[str(item) for item in range(1, 13)],
@@ -2103,16 +2103,6 @@ class DownloadService:
                         required=False,
                         default=None,
                         allowed_values=["M", "F"],
-                    ),
-                    SourceParameterSpec(
-                        name="mes",
-                        phase="refinamento",
-                        param_type="integer",
-                        description="Optional month filter for export.",
-                        required=False,
-                        default=None,
-                        minimum=1,
-                        maximum=12,
                     ),
                 ],
                 normalize_params=_normalize_sih_params,
@@ -2188,6 +2178,24 @@ class DownloadService:
             if callable(download_with_progress):
                 return download_with_progress(progress_callback=progress_callback, **kwargs)
         return selected.download(**kwargs)
+
+    def discover(self, source: str, **kwargs: object) -> Dict[str, object]:
+        self.validate_source_params(source=source, params=kwargs)
+        if source != "sih":
+            raise ValueError(f"Discovery is not supported for source '{source}'.")
+
+        prepared = _normalize_sih_params(dict(kwargs))
+        output_dir = prepared.pop("output_dir", None)
+        download_kwargs, _ = PysusDownloadSource._split_download_and_postprocess_kwargs(
+            PysusDownloadSource(
+                descriptor=SourceDescriptor(source="sih", title="SIH", mode="pysus ftp"),
+                datasource_cls=SihDataSource,
+                params_schema=[],
+            ),
+            prepared,
+        )
+        datasource = SihDataSource(output_path=output_dir)
+        return dict(datasource.discover(**download_kwargs))
 
     def download_snis(
         self,

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.2] - 2026-05-28
+
+### Entradas principais
+- Updated `vogel-stack` submodule to VogelStack commit `d54e529`, including the automatic-commit workflow rule and nested-vault README wikilinks.
+- Documented Guaraci's closing protocol for generic sync commits in `AGENTS.md`, `docs/versionamento.md`, and `docs/operacao.md`.
+- Published the submodule README wikilink adaptation while keeping the new upstream Graphify discovery section.
+- Fixed SIH discovery to use the PySUS FTP catalog directly and require `pysus[dbc]` for DBC-to-Parquet conversion in Docker builds.
+- Added SIH discovery preflight and made empty SIH `groups`/`months` selections mean unfiltered; removed redundant SIH `mes` from the jobs/UI schema.
+
+### Estado
+- Verification: documentation diff reviewed locally; SIH runtime verification is listed below.
+- SIH verification: FTP discovery was checked against the JP filter set without downloading the full dataset, and focused unit tests were run locally.
+- Still unsupported: local Python execution without Docker remains WIP.
+- Operational note: `vogel-stack` commit `d54e529` was pushed before syncing/pushing the Guaraci parent repository.
+
 ## [0.5.1] - 2026-05-26
 
 ### Fixed

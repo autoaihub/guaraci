@@ -52,5 +52,5 @@ CMD ["python", "-c", "import guaraci; print(f'Guaraci v{guaraci.__version__} rea
 
 # Labels for metadata
 LABEL maintainer="vogel@usp.br"
-LABEL version="0.5.1"
+LABEL version="0.5.2"
 LABEL description="Guaraci - Brazilian Public Data Integration Platform"

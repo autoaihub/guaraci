@@ -58,7 +58,7 @@ docker run --rm -it -p 8002:8000 -v "$(pwd):/app" guaraci \
 ## 4. Verificar o Funcionamento
 
 ```powershell
-# Health check (esperado: {"status": "ok", "version": "0.5.1"})
+# Health check (esperado: {"status": "ok", "version": "0.5.2"})
 Invoke-RestMethod http://localhost:8002/health
 
 # Listar fontes disponíveis

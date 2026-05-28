@@ -94,6 +94,53 @@ def test_source_schema_endpoint_not_found(client: TestClient, monkeypatch) -> No
     assert response.status_code == 404
 
 
+def test_source_discovery_endpoint(client: TestClient, monkeypatch) -> None:
+    def fake_discover(source: str, **kwargs):  # noqa: ANN003
+        assert source == "sih"
+        assert kwargs["months"] == ["1"]
+        return {
+            "source": "sih",
+            "documents_found": 1,
+            "total_size_bytes": 237472,
+            "by_group": {"RD": 1},
+            "by_state": {"AC": 1},
+            "sample": [{"name": "RDAC1901.dbc"}],
+            "filters": kwargs,
+        }
+
+    monkeypatch.setattr(api_main.download_service, "discover", fake_discover)
+
+    response = client.post(
+        "/sources/sih/discovery",
+        json={
+            "params": {
+                "start_year": 2019,
+                "end_year": 2019,
+                "groups": ["RD"],
+                "states": ["AC"],
+                "months": ["1"],
+            }
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["documents_found"] == 1
+    assert payload["total_size_bytes"] == 237472
+    assert payload["sample"][0]["name"] == "RDAC1901.dbc"
+
+
+def test_source_discovery_endpoint_returns_bad_request(client: TestClient, monkeypatch) -> None:
+    def fake_discover(source: str, **kwargs):  # noqa: ARG001, ANN003
+        raise ValueError("Discovery is not supported")
+
+    monkeypatch.setattr(api_main.download_service, "discover", fake_discover)
+
+    response = client.post("/sources/snis/discovery", json={"params": {}})
+
+    assert response.status_code == 400
+
+
 def test_source_schema_endpoint_sinan_contains_expected_fields(client: TestClient) -> None:
     response = client.get("/sources/sinan/schema")
 
@@ -104,6 +151,20 @@ def test_source_schema_endpoint_sinan_contains_expected_fields(client: TestClien
     assert payload["mode"] == "pysus ftp"
     assert {"start_year", "end_year", "diseases", "output_format"} <= names
     assert "ano" not in names
+
+
+def test_source_schema_endpoint_sih_uses_empty_selection_as_unfiltered(client: TestClient) -> None:
+    response = client.get("/sources/sih/schema")
+
+    assert response.status_code == 200
+    payload = response.json()
+    specs = {item["name"]: item for item in payload["params"]}
+    assert {"groups", "months"} <= set(specs)
+    assert specs["groups"]["default"] is None
+    assert specs["months"]["default"] is None
+    assert "Leave empty" in specs["groups"]["description"]
+    assert "Leave empty" in specs["months"]["description"]
+    assert "mes" not in specs
 
 
 def test_source_schema_endpoint_doses_aplicadas_pni_contains_expected_fields(client: TestClient) -> None:

@@ -244,6 +244,61 @@ def test_run_sih_normalizes_months_to_integer_list(monkeypatch) -> None:
     assert result["received_months"] == [1, 2, 3]
 
 
+def test_sih_schema_leaves_groups_and_months_unselected_by_default() -> None:
+    service = DownloadService()
+    schema = service.get_source_schema("sih")
+    specs = {item["name"]: item for item in schema["params"]}
+
+    assert specs["groups"]["default"] is None
+    assert specs["months"]["default"] is None
+    assert "mes" not in specs
+
+
+def test_discover_sih_normalizes_and_excludes_export_params(monkeypatch) -> None:
+    class DummySihDataSource:
+        DEFAULT_GROUPS = ["RD"]
+        ALL_GROUPS = ["RD", "RJ"]
+
+        def __init__(self, output_path=None):  # noqa: ANN001
+            self.output_path = output_path
+
+        def discover(self, **kwargs):  # noqa: ANN003
+            return {
+                "source": "sih",
+                "documents_found": 1,
+                "total_size_bytes": 123,
+                "received": kwargs,
+                "output_path": self.output_path,
+            }
+
+    from guaraci.services import downloads as mod
+
+    monkeypatch.setattr(mod, "SihDataSource", DummySihDataSource)
+
+    service = DownloadService()
+    discovery = service.discover(
+        "sih",
+        output_dir="/downloads/sih",
+        output_format="csv",
+        start_year=2021,
+        end_year=2021,
+        groups=["RD"],
+        states=["SP"],
+        months=["1"],
+        uf="SP",
+    )
+
+    assert discovery["documents_found"] == 1
+    assert discovery["output_path"] == "/downloads/sih"
+    assert discovery["received"] == {
+        "start_year": 2021,
+        "end_year": 2021,
+        "groups": ["RD"],
+        "states": ["SP"],
+        "months": [1],
+    }
+
+
 def test_run_doses_aplicadas_pni_injects_dataset_and_normalizes_uf(monkeypatch) -> None:
     class DummyOpenDataSUSDataSource:
         DEFAULT_DATASET = "doses_aplicadas_pni"

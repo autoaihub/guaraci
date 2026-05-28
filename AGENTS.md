@@ -53,6 +53,8 @@ Regra de nomenclatura:
 4. Rodar os testes relevantes em Docker.
 5. Atualizar documentacao impactada.
 6. Registrar em `IMPROVEMENTS.md` apenas direcoes oficiais do projeto, nao backlog pessoal local.
+7. Se a entrega for finalizada por sync automatico com mensagem generica, registrar o significado funcional no topo de `CHANGELOG.md` antes do sync.
+8. Se `vogel-stack` for atualizado, garantir que o commit do submodule ja existe no remoto antes de sincronizar o repositorio pai.
 
 ## 7) Uso eficiente de creditos e execucao local
 
@@ -102,6 +104,7 @@ Regra de nomenclatura:
 3. Verificar se a mudanca exigira atualizacao de documentacao.
 4. Confirmar se a mudanca altera testes, artefatos ou comportamento de output.
 5. Garantir que nao ha segredo, caminho local pessoal ou arquivo temporario sendo introduzido em codigo ou docs.
+6. Confirmar se ha submodule envolvido e se o ponteiro novo sera publicavel por quem clonar o repositorio pai.
 
 ## 11) Checklist para novas fontes ou evolucoes relevantes
 

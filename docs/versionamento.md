@@ -3,8 +3,21 @@
 ## PolÃ­tica de versionamento
 
 - **Quando atualizar versÃ£o**: A versÃ£o do Guaraci deve ser incrementada em mudanÃ§as arquiteturais significativas (ex: introduÃ§Ã£o do modelo de Jobs), adiÃ§Ã£o de novas fontes substanciais (ex: OpenDataSUS, DATASUS) ou em quebras de contrato de integraÃ§Ã£o/schema. O modelo segue os princÃ­pios de SemVer de forma pragmÃ¡tica para a API e arquitetura interna.
-- **Papel do README**: O `README.md` age como a porta de entrada. Ele DEVE refletir estritamente a versÃ£o `tag` atual de produÃ§Ã£o do repositÃ³rio (atualmente `0.5.1`) e documentar as features presentes nela. NÃ£o deve conter promessas de backlog futuro tratadas como jÃ¡ prontas.
+- **Papel do README**: O `README.md` age como a porta de entrada. Ele DEVE refletir estritamente a versÃ£o `tag` atual de produÃ§Ã£o do repositÃ³rio (atualmente `0.5.2`) e documentar as features presentes nela. NÃ£o deve conter promessas de backlog futuro tratadas como jÃ¡ prontas.
 - **Papel do Changelog**: O `CHANGELOG.md` concentra o detalhamento tÃ©cnico e histÃ³rico oficial das mudanÃ§as separadas por data, contendo entradas sobre `Added`, `Changed` e `Fixed`. O changelog nÃ£o Ã© um log do git; Ã© um documento legÃ­vel para humanos e focado em valor de produto e estabilidade da API.
+
+## Workflows com commit automatico
+
+Quando o Guaraci for sincronizado por script que executa `git add -A`, `git commit` e `git push` com mensagem generica, como `sync: <maquina> <data>`, o `CHANGELOG.md` passa a ser o registro funcional da entrega.
+
+Nessas rodadas, a entrada no topo do changelog deve ser criada antes do sync e deve registrar:
+
+- arquivos de documentacao, codigo ou submodules tocados;
+- efeito observavel da mudanca para usuarios, operadores ou agentes;
+- verificacoes executadas;
+- o que continua sem suporte oficial ou fora do escopo.
+
+Como este repositorio usa o submodule `vogel-stack`, o commit novo dentro do submodule precisa existir no remoto antes do sync do Guaraci. Caso contrario, o repositorio pai pode apontar para um commit que outros clones ainda nao conseguem buscar.
 
 ## HistÃ³rico de VersÃµes e Fases do Produto
 

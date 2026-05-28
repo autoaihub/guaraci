@@ -52,5 +52,17 @@ Quando a operação falhar, a fonte primária de diagnóstico será buscar os ra
 - O operador final nunca deve precisar inspecionar as estruturas internas de `guaraci` ou descobrir o destino sozinho: o path resultante (privilegiando *Host Path*, como Desktop) é mandatório na exibição final da operação.
 
 
+## 7. Encerramento com Sync Automatico
+
+Quando a rodada for finalizada por script de sincronizacao com commit automatico e mensagem generica, o historico legivel da entrega deve estar no `CHANGELOG.md`, nao no `git log`.
+
+Antes do sync, o agente ou operador deve confirmar:
+
+- existe uma entrada nova no topo do `CHANGELOG.md`;
+- a entrada lista arquivos tocados, efeito observavel, verificacoes executadas e limitacoes que permanecem;
+- mudancas de contrato tambem foram refletidas em docs de arquitetura, API, fontes, UI ou handoff quando aplicavel;
+- se o submodule `vogel-stack` foi atualizado, o commit correspondente ja foi publicado no remoto do submodule antes do push do Guaraci.
+
+Essa regra evita que o repositorio pai registre apenas `sync: <maquina> <data>` sem preservar o significado operacional da entrega.
 ---
 ? [�ndice da documenta��o](README.md) � [Voltar ao projeto](../README.md)

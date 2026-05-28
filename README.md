@@ -11,7 +11,7 @@ Guaraci is a platform for downloading and orchestrating Brazilian public data so
 - `SINAN`, `SIM`, and `SIH` (PySUS/FTP DATASUS)
 - `OpenDataSUS` (`doses_aplicadas_pni`, `zikavirus`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, `febre_amarela`, and DEMAS sources generated from the local Swagger catalog)
 
-Current version: `0.5.1`
+Current version: `0.5.2`
 
 ## Project Status
 
@@ -92,6 +92,7 @@ Base URL from the launcher: `http://localhost:8002`
 - `GET /health`
 - `GET /sources`
 - `GET /sources/{source}/schema`
+- `POST /sources/{source}/discovery`
 - `POST /jobs`
 - `GET /jobs`
 - `GET /jobs/{job_id}`
@@ -158,7 +159,9 @@ High-level summary:
 - `sim`
   Collection uses `start_year`, `end_year`, `groups`, and `states`; export filtering includes `output_format`, `uf`, `municipio`, `sexo`, `causa_basica`, and `ano_obito`.
 - `sih`
-  Collection uses `start_year`, `end_year`, `groups`, `states`, and `months`; export filtering includes `output_format`, `uf`, `municipio`, `sexo`, and `mes`.
+  Collection uses `start_year`, `end_year`, `groups`, `states`, and `months`; export filtering includes `output_format`, `uf`, `municipio`, and `sexo`.
+  Leaving `groups`, `states`, or `months` empty means no collection filter for that field.
+  SIH uses the PySUS FTP catalog and DBC-to-Parquet conversion, so Docker builds install the `pysus[dbc]` extra.
 
 OpenDataSUS naming rule:
 - Use canonical source names returned by `GET /sources`; aliases are not supported.
@@ -247,8 +250,8 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
 
 ## Version and Immediate Roadmap
 
-- Current release line: `0.5.1`
-- This release introduced auto-generated DEMAS sources, manifest schema v1.1, phase-driven UI, and expanded OpenDataSUS coverage.
+- Current release line: `0.5.2`
+- This release fixes SIH FTP discovery, adds preflight discovery for SIH jobs, and clarifies empty SIH selections as unfiltered.
 
 ## Additional Documentation
 
@@ -271,5 +274,5 @@ If you use Guaraci in research, technical reports, or derived software, cite the
 Recommended software citation for the current release:
 
 ```text
-Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.5.1) [Computer software]. https://github.com/autoaihub/guaraci
+Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.5.2) [Computer software]. https://github.com/autoaihub/guaraci
 ```

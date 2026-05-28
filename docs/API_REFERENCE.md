@@ -11,7 +11,7 @@ Returns API status and version.
 Example:
 
 ```json
-{"status":"ok","version":"0.5.1"}
+{"status":"ok","version":"0.5.2"}
 ```
 
 ## 2. Sources
@@ -53,6 +53,27 @@ Parameter fields:
 - `allowed_values`
 - `minimum`
 - `maximum`
+
+### `POST /sources/{source}/discovery`
+
+Runs source discovery without downloading files. Currently supported for `sih`.
+
+Body:
+
+```json
+{
+  "params": {
+    "start_year": 2019,
+    "end_year": 2019,
+    "groups": ["RD"],
+    "states": ["AC"],
+    "months": ["1"]
+  }
+}
+```
+
+Response fields include `documents_found`, `total_size_bytes`, `by_group`,
+`by_state`, and a small `sample` list. Use this before creating broad SIH jobs.
 
 ## 3. Jobs
 

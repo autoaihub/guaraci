@@ -72,6 +72,20 @@ class JobCreateRequest(BaseModel):
     params: Dict[str, object] = Field(default_factory=dict)
 
 
+class SourceDiscoveryRequest(BaseModel):
+    params: Dict[str, object] = Field(default_factory=dict)
+
+
+class SourceDiscoveryResponse(BaseModel):
+    source: str
+    documents_found: int
+    total_size_bytes: int
+    by_group: Dict[str, int] = Field(default_factory=dict)
+    by_state: Dict[str, int] = Field(default_factory=dict)
+    sample: List[Dict[str, object]] = Field(default_factory=list)
+    filters: Dict[str, object] = Field(default_factory=dict)
+
+
 class JobStatusResponse(BaseModel):
     job_id: str
     source: str
@@ -160,6 +174,17 @@ def get_source_schema(source: str) -> SourceSchemaResponse:
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return SourceSchemaResponse(**schema)
+
+
+@app.post("/sources/{source}/discovery", response_model=SourceDiscoveryResponse)
+def discover_source(source: str, payload: SourceDiscoveryRequest) -> SourceDiscoveryResponse:
+    try:
+        discovery = download_service.discover(source, **payload.params)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except ImportError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return SourceDiscoveryResponse(**discovery)
 
 
 @app.post("/downloads/snis", response_model=DownloadResponse)
