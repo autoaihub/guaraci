@@ -1,8 +1,10 @@
 # Plano: Conexão Direta ao DATASUS FTP (sem PySUS)
 
-Status: **fase 1 implementada (2026-05-28)**. Camada `guaraci/datasus/ftp/`
-disponível em paralelo ao caminho PySUS atual. Fase 2 (flag de backend em
-`SihDataSource`) aguarda autorização.
+Status: **fases 1 e 2 implementadas (2026-05-28)**. Camada
+`guaraci/datasus/ftp/` disponível em paralelo ao caminho PySUS;
+`SihDataSource` chaveia via env `GUARACI_DATASUS_BACKEND={pysus|ftp}`
+(default `pysus`). Fase 3 (refatoração de SIM/SINAN) e Fase 4 (flip
+default) aguardam.
 
 Wikilinks: [[principios|Princípios Gerais]] (princípio 20, fonte
 primária), [[operacao-agentes|Operação de Agentes]] (handoff em
@@ -212,13 +214,19 @@ funcionando até o fim.
     pinar PySUS 2.1.x num venv separado. Recomendação: registrar como
     pré-requisito da Fase 2 antes do flip da flag em produção.
 
-### Fase 2 — Migração de `SihDataSource`
+### Fase 2 — Migração de `SihDataSource` ✅
 - Adicionar flag interna `GUARACI_DATASUS_BACKEND=ftp|pysus` (default
-  `pysus`).
-- `SihDataSource` consulta a flag e delega para a camada correta.
-- Cobertura paralela: mesma suite de tests roda nos dois backends.
+  `pysus`). ✅
+- `SihDataSource` consulta a flag e delega para a camada correta. ✅
+- Cobertura paralela: mesma suite de tests roda nos dois backends. ✅
+  - PySUS path: `tests/test_sih_datasource.py` (default, sem mudanças).
+  - FTP path: `tests/test_sih_backend_ftp.py` (orquestrador com fakes)
+    e `tests/test_sih_backend_switch.py` (dispatch via env var).
 - Critério de saída: jobs reais via UI rodam com `backend=ftp` sem
   regressão funcional por 1 semana operacional.
+  - **Status (2026-05-28)**: 16 testes da fase 2 verdes, suite cheia
+    275 passed. Validação operacional em produção ainda **pendente** —
+    é o gating real para a Fase 4 (flip default).
 
 ### Fase 3 — Migração de `SimDataSource` e `SinanDataSource`
 - Refatorar para herdarem de `BaseFtpDataSource`.
@@ -315,3 +323,42 @@ Cobertura de testes — 52 testes, todos verdes:
 
 `pyproject.toml`: `pyreaddbc>=2.0.0` promovido a dependência direta dos
 extras `datasus` e `full`. Caminho PySUS legado intacto.
+
+## 11. Execução da fase 2 (2026-05-28)
+
+`SihDataSource` agora delega para o backend escolhido por env:
+
+- `GUARACI_DATASUS_BACKEND=pysus` (default) — caminho legado intacto.
+- `GUARACI_DATASUS_BACKEND=ftp` — novo caminho via
+  `guaraci/datasus/ftp/sih_backend.py`.
+
+Refator no `guaraci/datasus/sih.py`:
+
+| Antes                              | Depois                                              |
+|------------------------------------|-----------------------------------------------------|
+| `download()` com PySUS inline      | `download()` valida + dispacha por backend          |
+| `discover()` com PySUS inline      | `discover()` valida + dispacha por backend          |
+| —                                  | `_download_via_pysus()` (caminho legado preservado) |
+| —                                  | `_discover_via_pysus()` (caminho legado preservado) |
+| —                                  | `_download_via_ftp()` (delega para sih_backend)     |
+| —                                  | `_discover_via_ftp()` (delega para sih_backend)     |
+| —                                  | `_ftp_cache_dir()` honra `GUARACI_FTP_CACHE_DIR`    |
+
+Novo módulo `guaraci/datasus/ftp/sih_backend.py` (~190 linhas):
+
+- `discover_sih_summary(...)` — preflight com payload no formato esperado
+  pela API (`source`, `documents_found`, `by_group`, `by_state`,
+  `sample`, `filters`).
+- `download_sih(...)` — discover → download `.dbc` → decode →
+  `write_parquet` → cleanup do `.dbc`. Idempotente (pula arquivos que
+  já existem como `.parquet` no cache). Retorna `paths_by_group` para
+  `SihDataSource` popular `self.data`.
+
+Cobertura nova (16 testes, todos verdes):
+
+- `tests/test_sih_backend_ftp.py` (6) — fluxo completo, idempotência,
+  falha por arquivo, progress callback.
+- `tests/test_sih_backend_switch.py` (10) — leitura da env var, valor
+  inválido cai no default, dispatch correto em download() e discover(),
+  validação preservada (groups/months), clamp do ano corrente,
+  filtros do payload, cache dir custom vs default.

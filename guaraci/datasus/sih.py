@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import os
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Literal
@@ -35,6 +36,27 @@ except ImportError as exc:  # pragma: no cover - handled at runtime
     PySUSFtpClient = None  # type: ignore[assignment]
     PySUSFtpSIH = None  # type: ignore[assignment]
     PySUSFtpFile = None  # type: ignore[assignment]
+
+
+# --- Backend selection -------------------------------------------------------
+#
+# Phase 2 of docs/PLANO_DATASUS_FTP_DIRETO.md: SihDataSource picks between
+# the legacy PySUS path and the new direct-FTP layer based on the env var
+# ``GUARACI_DATASUS_BACKEND``. Default is ``pysus`` until phase 4 flips it.
+
+_BACKEND_FTP = "ftp"
+_BACKEND_PYSUS = "pysus"
+_VALID_BACKENDS = {_BACKEND_FTP, _BACKEND_PYSUS}
+
+
+def _get_datasus_backend(default: str = _BACKEND_PYSUS) -> str:
+    raw = os.environ.get("GUARACI_DATASUS_BACKEND", default).strip().lower()
+    if raw not in _VALID_BACKENDS:
+        logger.warning(
+            f"Unknown GUARACI_DATASUS_BACKEND={raw!r}; falling back to {default!r}"
+        )
+        return default
+    return raw
 
 
 class SihDataSource(DataSource):
@@ -71,8 +93,7 @@ class SihDataSource(DataSource):
         months: Optional[List[int]] = None,
         progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Dict[str, Any]:
-        if not PYSUS_AVAILABLE:
-            raise ImportError("PySUS is required for SIH functionality.")
+        backend = _get_datasus_backend()
 
         current_year = datetime.datetime.now().year
         if end_year >= current_year:
@@ -85,12 +106,12 @@ class SihDataSource(DataSource):
         years = list(range(start_year, end_year + 1))
 
         if groups is None or not groups:
-            groups = self.ALL_GROUPS.copy()
+            normalized_groups = self.ALL_GROUPS.copy()
         else:
             unknown = {g for g in groups if g.upper() not in self.ALL_GROUPS}
             if unknown:
                 raise ValueError(f"Unknown SIH group(s): {', '.join(sorted(unknown))}")
-            groups = [g.upper() for g in groups]
+            normalized_groups = [g.upper() for g in groups]
 
         month_values: Optional[List[int]] = None
         if months:
@@ -99,7 +120,36 @@ class SihDataSource(DataSource):
                 raise ValueError(f"Invalid month values: {invalid}. Expected 1–12.")
             month_values = months
 
-        logger.info(f"Starting SIH download: {start_year}-{end_year}")
+        logger.info(f"Starting SIH download: {start_year}-{end_year} (backend={backend})")
+
+        if backend == _BACKEND_FTP:
+            return self._download_via_ftp(
+                years=years,
+                groups=normalized_groups,
+                states=states,
+                months=month_values,
+                progress_callback=progress_callback,
+            )
+
+        return self._download_via_pysus(
+            years=years,
+            groups=normalized_groups,
+            states=states,
+            month_values=month_values,
+            progress_callback=progress_callback,
+        )
+
+    def _download_via_pysus(
+        self,
+        *,
+        years: List[int],
+        groups: List[str],
+        states: Optional[List[str]],
+        month_values: Optional[List[int]],
+        progress_callback: Optional[Callable[[int, int], None]],
+    ) -> Dict[str, Any]:
+        if not PYSUS_AVAILABLE:
+            raise ImportError("PySUS is required for the 'pysus' backend.")
 
         async def _discover_files() -> List[Any]:
             if PySUSFtpClient is None or PySUSFtpSIH is None or PySUSFtpFile is None:
@@ -194,7 +244,7 @@ class SihDataSource(DataSource):
                 loop = asyncio.get_running_loop()
             except RuntimeError:
                 loop = None
-                
+
             if loop and loop.is_running():
                 import nest_asyncio
                 nest_asyncio.apply()
@@ -205,6 +255,49 @@ class SihDataSource(DataSource):
             logger.error(f"SIH download process failed: {exc}")
             raise
 
+    def _download_via_ftp(
+        self,
+        *,
+        years: List[int],
+        groups: List[str],
+        states: Optional[List[str]],
+        months: Optional[List[int]],
+        progress_callback: Optional[Callable[[int, int], None]],
+    ) -> Dict[str, Any]:
+        """Direct FTP backend (phase 2 of PLANO_DATASUS_FTP_DIRETO)."""
+        from guaraci.datasus.ftp import sih_backend as ftp_sih
+
+        cache_dir = self._ftp_cache_dir()
+        try:
+            result = ftp_sih.download_sih(
+                years=years,
+                groups=groups,
+                states=states,
+                months=months,
+                cache_dir=cache_dir,
+                progress_callback=progress_callback,
+            )
+        except Exception as exc:
+            logger.error(f"SIH FTP download process failed: {exc}")
+            raise
+
+        paths_by_group: Dict[str, List[str]] = result.pop("paths_by_group", {})
+        for group, paths in paths_by_group.items():
+            self.data[group].extend(paths)
+        return result
+
+    def _ftp_cache_dir(self) -> Path:
+        """Where the FTP backend stores .dbc downloads and the .parquet output.
+
+        Honours ``GUARACI_FTP_CACHE_DIR`` when set so tests and users can
+        point the cache at a tmp directory without touching the user-facing
+        export folder.
+        """
+        explicit = os.environ.get("GUARACI_FTP_CACHE_DIR")
+        path = Path(explicit) if explicit else Path(self.output_path) / ".cache_ftp"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
     def discover(
         self,
         start_year: int,
@@ -213,8 +306,7 @@ class SihDataSource(DataSource):
         states: Optional[List[str]] = None,
         months: Optional[List[int]] = None,
     ) -> Dict[str, Any]:
-        if not PYSUS_AVAILABLE:
-            raise ImportError("PySUS is required for SIH functionality.")
+        backend = _get_datasus_backend()
 
         current_year = datetime.datetime.now().year
         if end_year >= current_year:
@@ -236,6 +328,38 @@ class SihDataSource(DataSource):
             selected_months = months
 
         years = list(range(start_year, end_year + 1))
+
+        if backend == _BACKEND_FTP:
+            return self._discover_via_ftp(
+                start_year=start_year,
+                end_year=end_year,
+                years=years,
+                groups=selected_groups,
+                states=states,
+                months=selected_months,
+            )
+
+        return self._discover_via_pysus(
+            start_year=start_year,
+            end_year=end_year,
+            years=years,
+            selected_groups=selected_groups,
+            states=states,
+            selected_months=selected_months,
+        )
+
+    def _discover_via_pysus(
+        self,
+        *,
+        start_year: int,
+        end_year: int,
+        years: List[int],
+        selected_groups: List[str],
+        states: Optional[List[str]],
+        selected_months: Optional[List[int]],
+    ) -> Dict[str, Any]:
+        if not PYSUS_AVAILABLE:
+            raise ImportError("PySUS is required for the 'pysus' backend.")
 
         async def _discover() -> List[Any]:
             if PySUSFtpClient is None or PySUSFtpSIH is None or PySUSFtpFile is None:
@@ -330,6 +454,40 @@ class SihDataSource(DataSource):
                 "months": selected_months,
             },
         }
+
+    def _discover_via_ftp(
+        self,
+        *,
+        start_year: int,
+        end_year: int,
+        years: List[int],
+        groups: List[str],
+        states: Optional[List[str]],
+        months: Optional[List[int]],
+    ) -> Dict[str, Any]:
+        """Direct FTP backend preflight (phase 2 of PLANO_DATASUS_FTP_DIRETO)."""
+        from guaraci.datasus.ftp import sih_backend as ftp_sih
+
+        try:
+            payload = ftp_sih.discover_sih_summary(
+                years=years,
+                groups=groups,
+                states=states,
+                months=months,
+            )
+        except Exception as exc:
+            logger.error(f"SIH FTP discovery failed: {exc}")
+            raise
+
+        # Anchor the start/end_year to the request, not just the matches.
+        payload["filters"] = {
+            "start_year": start_year,
+            "end_year": end_year,
+            "groups": groups,
+            "states": states,
+            "months": months,
+        }
+        return payload
 
     def _load_as_polars(self, group: str) -> pl.DataFrame:
         if group not in self.data:
