@@ -171,3 +171,10 @@ Thumbs.db
 *.temp
 
 guaraci-sa.json
+
+# One-off / sandbox scripts (not part of the platform)
+# Use this for ad-hoc research pipelines, decoder probes, smoke tests,
+# etc. Anything in here is considered disposable — promote to scripts/
+# proper if it ever becomes reusable.
+scripts/oneoff/
+
