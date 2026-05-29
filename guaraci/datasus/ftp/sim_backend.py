@@ -1,22 +1,9 @@
-"""High-level SIH orchestration over the direct FTP layer.
+"""High-level SIM orchestration over the direct FTP layer.
 
-Bridge between the public contract of :class:`guaraci.datasus.sih.SihDataSource`
-and the FTP primitives. The download/decode/cache tail and the summary
-shaping are shared with SIM and SINAN via
-:mod:`guaraci.datasus.ftp.orchestration`; this module only owns SIH's
-discovery wiring.
-
-Both entry points are **sync** — they own the asyncio loop internally, so
-they can be called from the existing sync API of ``SihDataSource``
-without leaking ``async`` into the caller:
-
-- :func:`discover_sih_summary` mirrors :meth:`SihDataSource.discover`
-  (preflight, no downloads).
-- :func:`download_sih`         mirrors :meth:`SihDataSource.download`
-  (discover → download .dbc → decode → write .parquet).
-
-Both accept injectable ``client_factory`` and ``dbc_reader`` so tests can
-exercise the wiring without touching the network.
+Phase 3 of ``docs/PLANO_DATASUS_FTP_DIRETO.md``. Mirrors
+:mod:`guaraci.datasus.ftp.sih_backend` but for SIM, whose discovery has a
+state dimension and no month dimension. The download/decode/cache tail is
+shared via :mod:`guaraci.datasus.ftp.orchestration`.
 """
 
 from __future__ import annotations
@@ -27,7 +14,7 @@ from typing import Any, Dict, List, Optional, Sequence
 from guaraci.datasus.ftp import dbc
 from guaraci.datasus.ftp.catalog import FileRecord
 from guaraci.datasus.ftp.client import DatasusFtpClient
-from guaraci.datasus.ftp.discovery import discover_sih as _discover_sih_async
+from guaraci.datasus.ftp.discovery import discover_sim as _discover_sim_async
 from guaraci.datasus.ftp.orchestration import (
     ClientFactory,
     DbcReader,
@@ -37,29 +24,23 @@ from guaraci.datasus.ftp.orchestration import (
 )
 
 
-def discover_sih_summary(
+def discover_sim_summary(
     *,
     years: Sequence[int],
     groups: Optional[Sequence[str]] = None,
     states: Optional[Sequence[str]] = None,
-    months: Optional[Sequence[int]] = None,
     fetch_sizes: bool = True,
     client_factory: ClientFactory = DatasusFtpClient,
 ) -> Dict[str, Any]:
-    """Preflight discovery payload, shaped like :meth:`SihDataSource.discover`.
-
-    Connects, lists, optionally fetches ``SIZE`` for each match, and
-    returns the canonical summary the API serializes back to the UI.
-    """
+    """Preflight SIM discovery payload (preflight, no downloads)."""
 
     async def _impl() -> List[FileRecord]:
         async with client_factory() as client:
-            return await _discover_sih_async(
+            return await _discover_sim_async(
                 client,
                 years=years,
                 groups=groups,
                 states=states,
-                months=months,
                 fetch_sizes=fetch_sizes,
             )
 
@@ -68,46 +49,42 @@ def discover_sih_summary(
     year_list = sorted({int(y) for y in years})
     return build_summary(
         records,
-        source="sih",
+        source="sim",
         filters={
             "start_year": year_list[0] if year_list else None,
             "end_year": year_list[-1] if year_list else None,
             "groups": list(groups) if groups else None,
             "states": list(states) if states else None,
-            "months": list(months) if months else None,
         },
     )
 
 
-def download_sih(
+def download_sim(
     *,
     years: Sequence[int],
     groups: Sequence[str],
     states: Optional[Sequence[str]] = None,
-    months: Optional[Sequence[int]] = None,
     cache_dir: Path,
     progress_callback: Optional[Any] = None,
     client_factory: ClientFactory = DatasusFtpClient,
     dbc_reader: DbcReader = dbc.read,
 ) -> Dict[str, Any]:
-    """Discover, download, decode and persist a SIH window as parquet.
+    """Discover, download, decode and persist a SIM window as parquet.
 
-    See :func:`guaraci.datasus.ftp.orchestration.download_records` for the
-    idempotency and partial-failure semantics. Returns
-    ``{successful_downloads, failed_downloads, total_files,
-    paths_by_group}``.
+    Returns ``{successful_downloads, failed_downloads, total_files,
+    paths_by_group}``; see
+    :func:`guaraci.datasus.ftp.orchestration.download_records`.
     """
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     async def _impl() -> Dict[str, Any]:
         async with client_factory() as client:
-            records = await _discover_sih_async(
+            records = await _discover_sim_async(
                 client,
                 years=years,
                 groups=groups,
                 states=states,
-                months=months,
             )
             return await download_records(
                 client,

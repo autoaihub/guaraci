@@ -19,6 +19,10 @@ from tqdm import tqdm
 from loguru import logger
 
 from guaraci.core.datasource import DataSource
+from guaraci.datasus.backend import (
+    BACKEND_FTP as _BACKEND_FTP,
+    get_datasus_backend as _get_datasus_backend,
+)
 from guaraci.utils.mapping import UF_DICT
 
 try:
@@ -71,8 +75,7 @@ class SinanDataSource(DataSource):
         diseases: Optional[List[str]] = None,
         progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Dict[str, Any]:
-        if not PYSUS_AVAILABLE:
-            raise ImportError("PySUS is required for SINAN functionality.")
+        backend = _get_datasus_backend()
 
         if diseases is None:
             diseases = self.NEGLECTED_DISEASES.copy()
@@ -81,19 +84,42 @@ class SinanDataSource(DataSource):
         if end_year >= current_year:
             logger.warning(f"End year {end_year} adjusted to {current_year - 1} (current year - 1)")
             end_year = current_year - 1
-            
+
         if start_year > end_year:
             raise ValueError(f"Start year ({start_year}) cannot be greater than end year ({end_year})")
 
         years = list(range(start_year, end_year + 1))
-        
-        logger.info(f"Starting SINAN download: {start_year}-{end_year}")
+
+        logger.info(f"Starting SINAN download: {start_year}-{end_year} (backend={backend})")
         logger.info(f"Diseases: {', '.join([f'{d} ({self.DISEASE_NAMES.get(d, d)})' for d in diseases])}")
+
+        if backend == _BACKEND_FTP:
+            return self._download_via_ftp(
+                years=years,
+                diseases=diseases,
+                progress_callback=progress_callback,
+            )
+
+        return self._download_via_pysus(
+            years=years,
+            diseases=diseases,
+            progress_callback=progress_callback,
+        )
+
+    def _download_via_pysus(
+        self,
+        *,
+        years: List[int],
+        diseases: List[str],
+        progress_callback: Optional[Callable[[int, int], None]],
+    ) -> Dict[str, Any]:
+        if not PYSUS_AVAILABLE:
+            raise ImportError("PySUS is required for the 'pysus' backend.")
 
         async def _fetch():
             successful = 0
             failed_downloads = []
-            
+
             async with PySUS() as client:
                 files_to_download = []
                 for g in diseases:
@@ -154,6 +180,45 @@ class SinanDataSource(DataSource):
         except Exception as exc:
             logger.error(f"SINAN download process failed: {exc}")
             raise
+
+    def _download_via_ftp(
+        self,
+        *,
+        years: List[int],
+        diseases: List[str],
+        progress_callback: Optional[Callable[[int, int], None]],
+    ) -> Dict[str, Any]:
+        """Direct FTP backend (phase 3 of PLANO_DATASUS_FTP_DIRETO)."""
+        from guaraci.datasus.ftp import sinan_backend as ftp_sinan
+
+        cache_dir = self._ftp_cache_dir()
+        try:
+            result = ftp_sinan.download_sinan(
+                years=years,
+                diseases=diseases,
+                cache_dir=cache_dir,
+                progress_callback=progress_callback,
+            )
+        except Exception as exc:
+            logger.error(f"SINAN FTP download process failed: {exc}")
+            raise
+
+        paths_by_group: Dict[str, List[str]] = result.pop("paths_by_group", {})
+        for disease, paths in paths_by_group.items():
+            self.data[disease].extend(paths)
+        return result
+
+    def _ftp_cache_dir(self) -> Path:
+        """Where the FTP backend stores .dbc downloads and the .parquet output.
+
+        Honours ``GUARACI_FTP_CACHE_DIR`` when set so tests and users can
+        point the cache at a tmp directory without touching the user-facing
+        export folder.
+        """
+        explicit = os.environ.get("GUARACI_FTP_CACHE_DIR")
+        path = Path(explicit) if explicit else Path(self.output_path) / ".cache_ftp"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
     def _load_as_polars(self, disease: str) -> pl.DataFrame:
         if disease not in self.data:

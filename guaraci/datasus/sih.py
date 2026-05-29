@@ -42,21 +42,14 @@ except ImportError as exc:  # pragma: no cover - handled at runtime
 #
 # Phase 2 of docs/PLANO_DATASUS_FTP_DIRETO.md: SihDataSource picks between
 # the legacy PySUS path and the new direct-FTP layer based on the env var
-# ``GUARACI_DATASUS_BACKEND``. Default is ``pysus`` until phase 4 flips it.
+# ``GUARACI_DATASUS_BACKEND``. The shared selector lives in
+# ``guaraci.datasus.backend`` (phase 3 generalised it to SIM/SINAN too).
 
-_BACKEND_FTP = "ftp"
-_BACKEND_PYSUS = "pysus"
-_VALID_BACKENDS = {_BACKEND_FTP, _BACKEND_PYSUS}
-
-
-def _get_datasus_backend(default: str = _BACKEND_PYSUS) -> str:
-    raw = os.environ.get("GUARACI_DATASUS_BACKEND", default).strip().lower()
-    if raw not in _VALID_BACKENDS:
-        logger.warning(
-            f"Unknown GUARACI_DATASUS_BACKEND={raw!r}; falling back to {default!r}"
-        )
-        return default
-    return raw
+from guaraci.datasus.backend import (  # noqa: E402
+    BACKEND_FTP as _BACKEND_FTP,
+    BACKEND_PYSUS as _BACKEND_PYSUS,
+    get_datasus_backend as _get_datasus_backend,
+)
 
 
 class SihDataSource(DataSource):

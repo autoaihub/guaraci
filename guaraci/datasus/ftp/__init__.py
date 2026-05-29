@@ -26,7 +26,13 @@ from guaraci.datasus.ftp.client import DatasusFtpClient, FtpEntry
 from guaraci.datasus.ftp.discovery import (
     SIH_CURRENT_PATH,
     SIH_LEGACY_PATH,
+    SIM_CID9_PATH,
+    SIM_CID10_PATH,
+    SINAN_FINAIS_PATH,
+    SINAN_PRELIM_PATH,
     discover_sih,
+    discover_sim,
+    discover_sinan,
 )
 
 __all__ = [
@@ -35,8 +41,14 @@ __all__ = [
     "FtpEntry",
     "SIH_CURRENT_PATH",
     "SIH_LEGACY_PATH",
+    "SIM_CID9_PATH",
+    "SIM_CID10_PATH",
+    "SINAN_FINAIS_PATH",
+    "SINAN_PRELIM_PATH",
     "System",
     "discover_sih",
+    "discover_sim",
+    "discover_sinan",
     "parse",
     "parse_sih",
     "parse_sim",
