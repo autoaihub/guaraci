@@ -12,9 +12,10 @@ from __future__ import annotations
 from guaraci.datasus import backend
 
 
-def test_default_backend_value_is_pysus_in_phase_3() -> None:
-    # Phase 4 (PLANO_DATASUS_FTP_DIRETO §6) flips this to BACKEND_FTP.
-    assert backend.DEFAULT_BACKEND == backend.BACKEND_PYSUS
+def test_default_backend_value_is_ftp_after_phase_4() -> None:
+    # Phase 4 (PLANO_DATASUS_FTP_DIRETO §6) flipped the default to the
+    # direct-FTP layer; PySUS stays opt-in via GUARACI_DATASUS_BACKEND=pysus.
+    assert backend.DEFAULT_BACKEND == backend.BACKEND_FTP
 
 
 def test_get_returns_default_when_env_unset(monkeypatch) -> None:

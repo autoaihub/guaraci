@@ -6,7 +6,8 @@ on the ``GUARACI_DATASUS_BACKEND`` env var. Phase 3 generalises the same
 switch to SIM and SINAN, so the selector lives here in a dependency-free
 leaf module that every source can import without risking an import cycle.
 
-Phase 4 flips :data:`DEFAULT_BACKEND` from ``pysus`` to ``ftp``.
+Phase 4 flipped :data:`DEFAULT_BACKEND` to ``ftp``; the legacy PySUS path
+stays reachable for one release via ``GUARACI_DATASUS_BACKEND=pysus``.
 """
 
 from __future__ import annotations
@@ -19,10 +20,10 @@ BACKEND_FTP = "ftp"
 BACKEND_PYSUS = "pysus"
 VALID_BACKENDS = {BACKEND_FTP, BACKEND_PYSUS}
 
-# Phase 3 keeps the legacy default; Phase 4 (PLANO_DATASUS_FTP_DIRETO §6)
-# flips this to ``BACKEND_FTP``. The PySUS path then stays reachable for
-# one release via ``GUARACI_DATASUS_BACKEND=pysus``.
-DEFAULT_BACKEND = BACKEND_PYSUS
+# Phase 4 (PLANO_DATASUS_FTP_DIRETO §6): the direct-FTP layer is the default.
+# The legacy PySUS path stays reachable for one release via
+# ``GUARACI_DATASUS_BACKEND=pysus`` (and the ``datasus-legacy`` extra).
+DEFAULT_BACKEND = BACKEND_FTP
 
 _ENV_VAR = "GUARACI_DATASUS_BACKEND"
 

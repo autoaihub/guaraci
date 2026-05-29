@@ -82,19 +82,20 @@ def fake_ftp_backend(monkeypatch):
     return calls
 
 
-def test_default_backend_is_pysus(monkeypatch) -> None:
+def test_default_backend_is_ftp(monkeypatch) -> None:
+    # Phase 4 flipped the default to the direct-FTP layer.
     monkeypatch.delenv("GUARACI_DATASUS_BACKEND", raising=False)
-    assert sih_module._get_datasus_backend() == "pysus"
-
-
-def test_backend_ftp_selected_via_env_var(monkeypatch) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     assert sih_module._get_datasus_backend() == "ftp"
+
+
+def test_backend_pysus_selected_via_env_var(monkeypatch) -> None:
+    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "pysus")
+    assert sih_module._get_datasus_backend() == "pysus"
 
 
 def test_unknown_backend_falls_back_to_default(monkeypatch) -> None:
     monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "nonsense")
-    assert sih_module._get_datasus_backend() == "pysus"
+    assert sih_module._get_datasus_backend() == "ftp"
 
 
 def test_download_with_ftp_backend_delegates_to_ftp_orchestrator(

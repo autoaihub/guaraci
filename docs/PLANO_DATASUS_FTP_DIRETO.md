@@ -1,10 +1,21 @@
 # Plano: Conexão Direta ao DATASUS FTP (sem PySUS)
 
-Status: **fases 1 e 2 implementadas (2026-05-28)**. Camada
-`guaraci/datasus/ftp/` disponível em paralelo ao caminho PySUS;
-`SihDataSource` chaveia via env `GUARACI_DATASUS_BACKEND={pysus|ftp}`
-(default `pysus`). Fase 3 (refatoração de SIM/SINAN) e Fase 4 (flip
-default) aguardam.
+Status: **fases 1 a 4 implementadas (2026-05-28)**. Camada
+`guaraci/datasus/ftp/` é agora o caminho padrão das três fontes DATASUS;
+`SihDataSource`, `SimDataSource` e `SinanDataSource` chaveiam via env
+`GUARACI_DATASUS_BACKEND={ftp|pysus}` (**default `ftp`** desde a fase 4).
+O caminho PySUS legado continua instalável por 1 release via o extra
+`datasus-legacy` e selecionável via `GUARACI_DATASUS_BACKEND=pysus`.
+Só a Fase 5 (remoção do legado) aguarda.
+
+> **Atenção — gates formais ainda não cumpridos.** O flip de default da
+> Fase 4 foi autorizado pelo operador, mas os dois critérios de saída
+> originais permanecem **pendentes**: (a) igualdade bit-exata vs PySUS em
+> arquivo de referência (§ Fase 1) e (b) 1 semana de validação operacional
+> em produção com `backend=ftp` (§ Fase 2). O flip é reversível numa única
+> variável — `GUARACI_DATASUS_BACKEND=pysus` — enquanto o extra
+> `datasus-legacy` existir. Reverter o default exige apenas trocar
+> `DEFAULT_BACKEND` em `guaraci/datasus/backend.py`.
 
 Wikilinks: [[principios|Princípios Gerais]] (princípio 20, fonte
 primária), [[operacao-agentes|Operação de Agentes]] (handoff em
@@ -178,7 +189,7 @@ por mês que hoje só SIH tem).
 
 | Dimensão                 | PySUS (atual)                          | FTP direto (proposta)                  |
 |--------------------------|----------------------------------------|----------------------------------------|
-| Dependências adicionadas | ~20 pacotes (`pysus[dbc]` + transitivos)| ~2 pacotes (`aioftp`, `pyreaddbc`)     |
+| Dependências adicionadas | ~20 pacotes (`pysus[dbc]` + transitivos)| 2 pacotes (`pyreaddbc`, `dbfread`); FTP via `ftplib` da stdlib |
 | Tamanho do env (`uv sync`)| ~280 MB                                | ~30 MB (estimativa)                    |
 | Controle sobre retries   | Indireto (config do PySUS)             | Direto (config do projeto)             |
 | Auditoria do que é baixado| Logs do PySUS                          | Logs do próprio Guaraci                |
@@ -228,14 +239,26 @@ funcionando até o fim.
     275 passed. Validação operacional em produção ainda **pendente** —
     é o gating real para a Fase 4 (flip default).
 
-### Fase 3 — Migração de `SimDataSource` e `SinanDataSource`
-- Refatorar para herdarem de `BaseFtpDataSource`.
-- Mesma flag, mesmos critérios.
+### Fase 3 — Migração de `SimDataSource` e `SinanDataSource` ✅
+- Rotear SIM/SINAN pelo backend FTP atrás da mesma flag. ✅
+  - **Nota de implementação**: em vez da herança de `BaseFtpDataSource`
+    esboçada em §3.5, seguiu-se o padrão já validado em SIH — módulos
+    `guaraci/datasus/ftp/sim_backend.py` e `sinan_backend.py` + dispatch
+    por env no `download()` de cada fonte. Menos refator, mesma cobertura.
+- Mesma flag, mesmos critérios. ✅
+- Seletor compartilhado extraído para `guaraci/datasus/backend.py` (leaf
+  sem dependências) para que as três fontes consultem o mesmo contrato. ✅
 
-### Fase 4 — Default flip
-- `GUARACI_DATASUS_BACKEND=ftp` vira default.
-- `pysus[dbc]` sai do extra `datasus` em `pyproject.toml`.
-- Caminho legado permanece disponível por 1 release via flag explícita.
+### Fase 4 — Default flip ✅
+- `GUARACI_DATASUS_BACKEND=ftp` vira default
+  (`DEFAULT_BACKEND = BACKEND_FTP` em `guaraci/datasus/backend.py`). ✅
+- `pysus[dbc]` sai do extra `datasus` em `pyproject.toml`; o extra passa a
+  declarar apenas `pyreaddbc` + `dbfread`. ✅
+- Caminho legado permanece disponível por 1 release via o novo extra
+  `datasus-legacy` (`pysus>=2.2.0`) e a flag `GUARACI_DATASUS_BACKEND=pysus`. ✅
+- **Gates de saída ainda pendentes** (ver alerta no topo): igualdade
+  bit-exata e validação operacional de 1 semana não foram cumpridas; o flip
+  foi autorizado mesmo assim, com reversão de uma variável.
 
 ### Fase 5 — Remoção do legado
 - Remoção do código PySUS-specific após 2 releases sem reclamação.
@@ -362,3 +385,87 @@ Cobertura nova (16 testes, todos verdes):
   inválido cai no default, dispatch correto em download() e discover(),
   validação preservada (groups/months), clamp do ano corrente,
   filtros do payload, cache dir custom vs default.
+
+## 12. Execução da fase 3 (2026-05-28)
+
+SIM e SINAN passam a rotear pelo backend FTP atrás da mesma flag. Em vez
+da herança de `BaseFtpDataSource` esboçada em §3.5, o "tail" comum (loop
+asyncio, download → decode → parquet → cleanup, idempotência, formato do
+summary) foi extraído para um módulo síncrono compartilhado, deixando os
+três `*_backend` finos. O seletor de backend também saiu de dentro do SIH
+para um leaf sem dependências consultado pelas três fontes.
+
+| Arquivo                                       | Linhas | Função                                                              |
+|-----------------------------------------------|--------|---------------------------------------------------------------------|
+| `guaraci/datasus/backend.py`                  | 43     | Seletor compartilhado `get_datasus_backend()` + constantes          |
+| `guaraci/datasus/ftp/orchestration.py`        | 154    | Tail comum: `run_coro`, `download_records`, `safe_unlink`, `build_summary` |
+| `guaraci/datasus/ftp/sim_backend.py`          | 97     | `discover_sim_summary(...)` + `download_sim(...)`                    |
+| `guaraci/datasus/ftp/sinan_backend.py`        | 97     | `discover_sinan_summary(...)` + `download_sinan(...)` (dedup FINAIS/PRELIM) |
+| `guaraci/datasus/ftp/discovery.py` (+)        | 236    | Acrescido de `discover_sim(...)` e `discover_sinan(...)`            |
+
+`sih_backend.py` (fase 2) foi refatorado para reusar `orchestration.py`;
+`sim.py` e `sinan.py` ganharam dispatch por env espelhando o SIH.
+Descoberta segue exposta só no SIH na camada de serviço — SIM/SINAN
+precisam apenas do dispatch de `download()`.
+
+Dedup SINAN: `discover_sinan` varre FINAIS + PRELIM e, em colisão de
+basename, **FINAIS vence** (`seen = {r.basename for r in finais}`;
+`finais + [r for r in prelim if r.basename not in seen]`) — mantém o
+download idempotente e deixa PRELIM preencher só as lacunas.
+
+Cobertura nova — 44 testes, todos verdes:
+
+- `tests/test_datasus_backend.py` (7) — contrato do seletor compartilhado
+  num único lugar: valor default (`ftp` pós-fase 4), env-unset → default,
+  ftp/pysus via env, valor desconhecido → default, case-insensitive +
+  trim, arg `default` explícito honrado.
+- `tests/test_ftp_discovery.py` (+12, total 20) — discovery SIM (filtro
+  ano/grupo/UF, visita só o dir do grupo pedido, sem grupos visita CID9 +
+  CID10, ordenação, enriquecimento SIZE, vazio sem anos) e SINAN (filtro
+  ano/doença, varre FINAIS + PRELIM, FINAIS vence em duplicata, ordenação,
+  sem grupos retorna tudo, vazio sem anos).
+- `tests/test_sim_backend_ftp.py` (6) — fluxo completo, idempotência,
+  falha por arquivo, progress callback, formato do summary.
+- `tests/test_sinan_backend_ftp.py` (6) — idem; `by_state == {}` (SINAN
+  é nacional, sem recorte por UF).
+- `tests/test_sim_backend_switch.py` (7) — wiring via env, dispatch,
+  default de grupos = `CID10`, validação de grupo, clamp do ano corrente,
+  cache dir custom vs default.
+- `tests/test_sinan_backend_switch.py` (6) — idem, com default de doenças
+  = `SinanDataSource.NEGLECTED_DISEASES` (SINAN não valida lista de doenças).
+
+## 13. Execução da fase 4 (2026-05-28)
+
+Flip do default para o caminho direto-FTP, reversível numa variável.
+
+Mudança comportamental única em `guaraci/datasus/backend.py`:
+`DEFAULT_BACKEND = BACKEND_PYSUS` → `DEFAULT_BACKEND = BACKEND_FTP`. As
+três fontes herdam o novo default automaticamente por consultarem o leaf.
+
+Reorganização de extras em `pyproject.toml` (versão segue `0.5.2`):
+
+| Extra            | Antes                          | Depois                                  |
+|------------------|--------------------------------|-----------------------------------------|
+| `datasus`        | `pyreaddbc`, `dbfread`, `pysus[dbc]` | `pyreaddbc`, `dbfread` (enxuto)   |
+| `datasus-legacy` | —                              | `pysus>=2.2.0` (novo; escape hatch)     |
+| `full`           | `pysus[dbc]>=2.1.0`            | `pysus>=2.2.0` (extra `[dbc]` obsoleto removido) |
+
+`pysus[dbc]` foi descontinuado upstream (o `[dbc]` virou base no PySUS
+2.2.0, e pedir o extra dispara warning no `uv lock`); por isso o pin
+passou a `pysus>=2.2.0`. `dbfread` é declarado explicitamente no extra
+enxuto porque `guaraci/datasus/ftp/dbc.py` importa `dbfread.DBF`
+diretamente.
+
+Ajustes de teste para o novo default (sem mudar a lógica testada):
+
+| Arquivo                          | Ajuste                                                              |
+|----------------------------------|--------------------------------------------------------------------|
+| `tests/test_sih_datasource.py`   | Fixture autouse fixa `GUARACI_DATASUS_BACKEND=pysus` (testa o legado) |
+| `tests/test_sih_backend_switch.py`| Default agora `ftp`; novo teste do escape hatch `=pysus`           |
+| `tests/test_datasus_backend.py`  | Asserção do valor default vira `BACKEND_FTP`                        |
+
+**Gates formais ainda pendentes** (ver alerta no topo do documento):
+igualdade bit-exata vs PySUS e 1 semana de validação operacional não
+foram cumpridas. O flip foi autorizado mesmo assim; rollback =
+`GUARACI_DATASUS_BACKEND=pysus` (enquanto o extra `datasus-legacy`
+existir) ou reverter `DEFAULT_BACKEND`.

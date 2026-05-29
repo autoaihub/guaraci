@@ -44,9 +44,18 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Default DATASUS backend since phase 4 (PLANO_DATASUS_FTP_DIRETO §6): a
+# direct anonymous-FTP connection to ftp.datasus.gov.br. Decodes .dbc via
+# pyreaddbc (-> .dbf) + dbfread (-> records); no PySUS, ~2 deps instead of
+# the ~20 PySUS pulled in transitively.
 datasus = [
-    "pysus[dbc]>=2.1.0",
-    "pyreaddbc>=2.0.0"
+    "pyreaddbc>=2.0.0",
+    "dbfread>=2.0.7"
+]
+# Legacy PySUS backend, opt-in via GUARACI_DATASUS_BACKEND=pysus. Kept for
+# one release to ease rollback; scheduled for removal in a future version.
+datasus-legacy = [
+    "pysus>=2.2.0"
 ]
 api = [
     "fastapi>=0.104.0",
@@ -65,8 +74,9 @@ dev = [
     "pre-commit>=3.5.0"
 ]
 full = [
-    "pysus[dbc]>=2.1.0",
     "pyreaddbc>=2.0.0",
+    "dbfread>=2.0.7",
+    "pysus>=2.2.0",
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "httpx>=0.25.0",

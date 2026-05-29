@@ -15,6 +15,17 @@
 - Still unsupported: local Python execution without Docker remains WIP.
 - Operational note: `vogel-stack` commit `d54e529` was pushed before syncing/pushing the Guaraci parent repository.
 
+### DATASUS: direct-FTP backend (PLANO_DATASUS_FTP_DIRETO phases 1-4)
+- Added a direct DATASUS FTP layer under `guaraci/datasus/ftp/` (`client`, `catalog`, `discovery`, `dbc`, shared `orchestration`, and per-source `sih_backend`/`sim_backend`/`sinan_backend`) built on stdlib `ftplib` + `pyreaddbc`/`dbfread`, replacing the ~20 transitive dependencies of `pysus[dbc]` with 2 packages while keeping the same primary source (`ftp.datasus.gov.br`).
+- SIH, SIM, and SINAN now select their backend via `GUARACI_DATASUS_BACKEND={ftp|pysus}`, resolved by the shared dependency-free selector `guaraci/datasus/backend.py`.
+- **Default backend flipped to `ftp`** (phase 4): the `datasus` extra now installs only `pyreaddbc` + `dbfread`. The legacy PySUS path stays installable for one release via the new `datasus-legacy` extra and selectable via `GUARACI_DATASUS_BACKEND=pysus`. This supersedes the earlier same-version note above about requiring `pysus[dbc]` in Docker builds.
+- Bumped the PySUS pin to `pysus>=2.2.0` (the obsolete `[dbc]` extra was folded into the base package upstream and now warns on `uv lock`).
+- API/CLI/UI contracts unchanged: the `mode` descriptor for SIH/SIM/SINAN remains `pysus ftp` and the parquet output schema is identical.
+
+### Estado (direct-FTP migration)
+- Tests: full suite 319 passed, 3 skipped (opt-in live FTP smoke + Docker-specific). The two failures in `tests/test_sinan_datasource.py` (`test_sinan_download_uses_single_worker`, `test_download_file_safe_closes_ftp_singleton`) are pre-existing — they reference `ThreadPoolExecutor`/`_download_file_safe`, already absent from `sinan.py` before this branch — and are unrelated to this migration; flagged for separate cleanup.
+- Gates pendentes: bit-exact parity vs PySUS and 1 week of opt-in production validation were NOT met before the default flip; the flip was authorized anyway and is reversible via a single env var (`GUARACI_DATASUS_BACKEND=pysus`) or by reverting `DEFAULT_BACKEND` in `guaraci/datasus/backend.py`.
+
 ## [0.5.1] - 2026-05-26
 
 ### Fixed

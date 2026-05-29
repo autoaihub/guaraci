@@ -161,7 +161,7 @@ High-level summary:
 - `sih`
   Collection uses `start_year`, `end_year`, `groups`, `states`, and `months`; export filtering includes `output_format`, `uf`, `municipio`, and `sexo`.
   Leaving `groups`, `states`, or `months` empty means no collection filter for that field.
-  SIH uses the PySUS FTP catalog and DBC-to-Parquet conversion, so Docker builds install the `pysus[dbc]` extra.
+  SIH, SIM, and SINAN connect directly to the DATASUS FTP server by default (DBC-to-Parquet via `pyreaddbc`/`dbfread`), so the `datasus` extra is enough; the legacy PySUS backend stays opt-in for one release via `GUARACI_DATASUS_BACKEND=pysus` and the `datasus-legacy` extra.
 
 OpenDataSUS naming rule:
 - Use canonical source names returned by `GET /sources`; aliases are not supported.

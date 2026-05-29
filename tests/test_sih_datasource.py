@@ -1,8 +1,22 @@
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 from guaraci.datasus import sih as sih_module
 from guaraci.datasus.sih import SihDataSource
+
+
+@pytest.fixture(autouse=True)
+def _force_pysus_backend(monkeypatch):
+    """Pin the legacy PySUS backend for this module.
+
+    Phase 4 (PLANO_DATASUS_FTP_DIRETO §6) made ``ftp`` the default, so the
+    tests below — which stub the PySUS catalog/download symbols — must opt
+    back into the legacy path. The FTP path has its own coverage in
+    ``test_sih_backend_ftp.py`` / ``test_sih_backend_switch.py``.
+    """
+    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "pysus")
 
 
 class _DummyFtpFile:
