@@ -15,7 +15,7 @@ from loguru import logger
 from guaraci.core.contracts import DownloadManifest, SourceParameterSpec, validate_source_params
 from guaraci.core.results import JobResult
 from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
-from guaraci.nasa import NasaPowerDataSource
+from guaraci.nasa import NasaFirmsDataSource, NasaPowerDataSource
 from guaraci.opendatasus import OpenDataSUSDataSource
 from guaraci.snis import SinisaDataSource, SnisDataSource
 from guaraci.utils.mapping import UF_DICT
@@ -2296,6 +2296,112 @@ class DownloadService:
                 ],
                 normalize_params=_normalize_nasa_power_params,
             ),
+            NasaDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="nasa_firms",
+                    title="NASA FIRMS (Focos de Incêndio)",
+                    mode="nasa firms api",
+                ),
+                datasource_cls=NasaFirmsDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for the detections.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="coleta",
+                        param_type="string",
+                        description="Data inicial (YYYY-MM-DD).",
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Data final (YYYY-MM-DD). Janelas longas são "
+                            "fatiadas em blocos de até 10 dias."
+                        ),
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="product",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Produto de satélite FIRMS, a 'source' da API (NRT = "
+                            "quase tempo real; SP = processamento padrão/arquivo)."
+                        ),
+                        required=False,
+                        default=NasaFirmsDataSource.DEFAULT_PRODUCT,
+                        allowed_values=list(NasaFirmsDataSource.VALID_PRODUCTS),
+                    ),
+                    SourceParameterSpec(
+                        name="country",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Código ISO de 3 letras do país (padrão BRA). "
+                            "Ignorado quando 'area' é informado."
+                        ),
+                        required=False,
+                        default=NasaFirmsDataSource.DEFAULT_COUNTRY,
+                    ),
+                    SourceParameterSpec(
+                        name="area",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Caixa delimitadora opcional 'oeste,sul,leste,norte' "
+                            "ou 'world'; tem precedência sobre 'country'."
+                        ),
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva o CSV bruto além da exportação.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="timeout",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="HTTP timeout in seconds.",
+                        required=False,
+                        default=NasaFirmsDataSource.DEFAULT_TIMEOUT,
+                        minimum=1,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Optional NASA FIRMS API base URL override.",
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                normalize_params=_normalize_nasa_firms_params,
+            ),
         ]
 
         # Append the auto-generated OpenDataSUS sources
@@ -2595,6 +2701,58 @@ def _normalize_nasa_power_params(params: Dict[str, object]) -> Dict[str, object]
 
     # Empty/invalid timeout is dropped so the datasource default applies; a
     # None timeout would break the int() coercion in the client resolver.
+    timeout = normalized.get("timeout")
+    if isinstance(timeout, str):
+        stripped = timeout.strip()
+        if stripped:
+            normalized["timeout"] = int(stripped)
+        else:
+            normalized.pop("timeout", None)
+    elif isinstance(timeout, bool):
+        normalized.pop("timeout", None)
+    elif isinstance(timeout, (int, float)):
+        normalized["timeout"] = int(timeout)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
+
+
+def _normalize_nasa_firms_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+
+    product = normalized.get("product")
+    if isinstance(product, str):
+        cleaned = product.strip().upper()
+        if cleaned:
+            normalized["product"] = cleaned
+
+    country = normalized.get("country")
+    if isinstance(country, str):
+        cleaned = country.strip().upper()
+        if cleaned:
+            normalized["country"] = cleaned
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    for key in ("area", "start_date", "end_date", "api_base_url"):
+        value = normalized.get(key)
+        if isinstance(value, str):
+            cleaned = value.strip()
+            normalized[key] = cleaned if cleaned else None
+
+    # Empty/invalid timeout is dropped so the datasource default applies.
     timeout = normalized.get("timeout")
     if isinstance(timeout, str):
         stripped = timeout.strip()

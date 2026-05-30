@@ -12,7 +12,7 @@ import json
 import socket
 from typing import Any, Dict, Mapping, Sequence
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 
@@ -277,3 +277,189 @@ class NasaPowerClient:
             if detail:
                 return str(detail)
         return raw.strip()
+
+
+class NasaFirmsClientError(RuntimeError):
+    """Raised when NASA FIRMS API operations fail."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        category: str = "api_error",
+        retryable: bool = False,
+        hint: str | None = None,
+    ) -> None:
+        self.message = str(message).strip()
+        self.category = category
+        self.retryable = retryable
+        self.hint = str(hint).strip() if hint else None
+        super().__init__(self._compose_message())
+
+    def _compose_message(self) -> str:
+        if not self.hint:
+            return self.message
+        return f"{self.message} Hint: {self.hint}"
+
+    def with_context(self, context: str) -> "NasaFirmsClientError":
+        context_text = str(context).strip()
+        if not context_text:
+            return self
+        return NasaFirmsClientError(
+            f"{context_text}. {self.message}",
+            category=self.category,
+            retryable=self.retryable,
+            hint=self.hint,
+        )
+
+
+class NasaFirmsClient:
+    """Minimal client for the NASA FIRMS active-fire CSV endpoints.
+
+    FIRMS requires a free ``MAP_KEY`` that is embedded in the request path. The
+    key is treated as a secret: it is never logged or echoed, and any error
+    message derived from the request URL has the key redacted.
+    """
+
+    DEFAULT_BASE_URL = "https://firms.modaps.eosdis.nasa.gov"
+
+    def __init__(
+        self,
+        *,
+        base_url: str | None = None,
+        timeout_seconds: int = 120,
+    ) -> None:
+        selected_url = (base_url or self.DEFAULT_BASE_URL).strip().rstrip("/")
+        if not selected_url:
+            raise ValueError("NASA FIRMS base URL cannot be empty.")
+        self.base_url = selected_url
+        self.timeout_seconds = max(1, int(timeout_seconds))
+
+    def fetch_area_csv(
+        self,
+        *,
+        map_key: str,
+        source: str,
+        area: str,
+        day_range: int,
+        date: str,
+    ) -> str:
+        """Fetch an area (bounding-box or ``world``) CSV extract."""
+        url = (
+            f"{self.base_url}/api/area/csv/{quote(map_key, safe='')}/"
+            f"{quote(source, safe='')}/{quote(area, safe='')}/"
+            f"{int(day_range)}/{quote(date, safe='')}"
+        )
+        return self._request_text(url, secret=map_key)
+
+    def fetch_country_csv(
+        self,
+        *,
+        map_key: str,
+        source: str,
+        country: str,
+        day_range: int,
+        date: str,
+    ) -> str:
+        """Fetch a country-code CSV extract (for example ``BRA``)."""
+        url = (
+            f"{self.base_url}/api/country/csv/{quote(map_key, safe='')}/"
+            f"{quote(source, safe='')}/{quote(country, safe='')}/"
+            f"{int(day_range)}/{quote(date, safe='')}"
+        )
+        return self._request_text(url, secret=map_key)
+
+    def _request_text(self, url: str, *, secret: str) -> str:
+        request = Request(
+            url,
+            headers={
+                "Accept": "text/csv",
+                "User-Agent": "guaraci/0.5.2",
+            },
+        )
+        try:
+            with urlopen(request, timeout=self.timeout_seconds) as response:
+                raw_bytes = response.read()
+        except HTTPError as exc:
+            message = self._redact(self._extract_http_error_message(exc), secret)
+            category, retryable, hint = self._classify_http_error(exc.code)
+            raise NasaFirmsClientError(
+                f"NASA FIRMS request failed ({exc.code}): {message}",
+                category=category,
+                retryable=retryable,
+                hint=hint,
+            ) from exc
+        except URLError as exc:
+            category, hint = self._classify_url_error_reason(exc.reason)
+            raise NasaFirmsClientError(
+                f"Could not connect to NASA FIRMS endpoint '{self.base_url}': "
+                f"{self._redact(str(exc.reason), secret)}",
+                category=category,
+                retryable=True,
+                hint=hint,
+            ) from exc
+        except (TimeoutError, socket.timeout) as exc:
+            raise NasaFirmsClientError(
+                f"NASA FIRMS request timed out after {self.timeout_seconds} seconds",
+                category="timeout",
+                retryable=True,
+                hint="Retry with a narrower date window if the service is slow.",
+            ) from exc
+
+        try:
+            return raw_bytes.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            return raw_bytes.decode("utf-8", errors="replace")
+
+    @staticmethod
+    def _redact(text: str, secret: str) -> str:
+        if secret and secret in text:
+            return text.replace(secret, "***")
+        return text
+
+    @staticmethod
+    def _classify_http_error(code: int) -> tuple[str, bool, str]:
+        if code in {400, 401, 403}:
+            return (
+                "configuration",
+                False,
+                "Check the MAP_KEY (GUARACI_FIRMS_MAP_KEY), source, and area or "
+                "country code.",
+            )
+        if code == 404:
+            return (
+                "configuration",
+                False,
+                "Check the base URL, source product, and endpoint family.",
+            )
+        if code in {408, 429} or 500 <= code <= 599:
+            return (
+                "http_error",
+                True,
+                "Retry later; FIRMS rate-limits MAP_KEYs and may be busy.",
+            )
+        return (
+            "http_error",
+            False,
+            "Check request parameters and endpoint compatibility before retrying.",
+        )
+
+    @staticmethod
+    def _classify_url_error_reason(reason: object) -> tuple[str, str]:
+        if isinstance(reason, (TimeoutError, socket.timeout)):
+            return (
+                "timeout",
+                "Retry with a narrower date window if the service remains slow.",
+            )
+        return (
+            "connectivity",
+            "Check internet access, DNS resolution, and firewall/proxy rules.",
+        )
+
+    @staticmethod
+    def _extract_http_error_message(exc: HTTPError) -> str:
+        try:
+            raw = exc.read().decode("utf-8")
+        except Exception:
+            return "unknown error"
+        return raw.strip() or "unknown error"

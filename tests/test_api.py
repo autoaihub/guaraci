@@ -52,6 +52,7 @@ def test_sources_endpoint(client: TestClient) -> None:
     assert "sim" in names
     assert "sih" in names
     assert "nasa_power" in names
+    assert "nasa_firms" in names
 
 
 def test_nasa_power_schema_endpoint(client: TestClient) -> None:
@@ -63,6 +64,19 @@ def test_nasa_power_schema_endpoint(client: TestClient) -> None:
     assert payload["mode"] == "nasa power api"
     names = {item["name"] for item in payload["params"]}
     assert {"latitude", "longitude", "start_date", "end_date", "parameters"} <= names
+
+
+def test_nasa_firms_schema_endpoint(client: TestClient) -> None:
+    response = client.get("/sources/nasa_firms/schema")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["source"] == "nasa_firms"
+    assert payload["mode"] == "nasa firms api"
+    names = {item["name"] for item in payload["params"]}
+    assert {"start_date", "end_date", "product", "country"} <= names
+    # The MAP_KEY must never be exposed as a job parameter.
+    assert "map_key" not in names
 
 
 def test_source_schema_endpoint(client: TestClient, monkeypatch) -> None:
