@@ -35,6 +35,8 @@ they expose more convenient query layers.
 - `sih` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIHSUS/`
 - `nasa_power` (`nasa power api`) — primary: `power.larc.nasa.gov` (NASA POWER,
   global meteorological/solar series; no third-party mirror involved)
+- `nasa_firms` (`nasa firms api`) — primary: `firms.modaps.eosdis.nasa.gov`
+  (NASA FIRMS active-fire detections; requires a free MAP_KEY)
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -221,6 +223,36 @@ NASA POWER notes:
   (commonly `-999`) and converted to null.
 - Like OpenDataSUS, leaving both `output_format` empty and `keep_raw=false`
   produces only a manifest and emits an `export_warning`.
+
+### 3.10 NASA FIRMS (`nasa_firms`)
+
+Active-fire / thermal-anomaly detections from the NASA FIRMS CSV API.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_date` | string | coleta | Window start (`YYYY-MM-DD`) |
+| `end_date` | string | coleta | Window end (`YYYY-MM-DD`); long windows are chunked into <=10-day requests |
+| `product` | string | coleta | FIRMS source product: `VIIRS_SNPP_NRT` (default), `VIIRS_NOAA20_NRT`, `VIIRS_NOAA21_NRT`, `MODIS_NRT`, `VIIRS_SNPP_SP`, `MODIS_SP` |
+| `country` | string | coleta | 3-letter ISO country code (default `BRA`); ignored when `area` is set |
+| `area` | string | coleta | Optional bounding box `west,south,east,north` or `world`; overrides `country` |
+| `keep_raw` | boolean | tecnica | Save the raw CSV; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional FIRMS base URL override |
+
+NASA FIRMS notes:
+- **MAP_KEY is required and is a credential.** It is read only from the
+  `GUARACI_FIRMS_MAP_KEY` environment variable — never a job parameter (which
+  would be persisted to disk) and never written to the manifest. Get a free key
+  at `https://firms.modaps.eosdis.nasa.gov/api/map_key/`.
+- The user-facing field is named `product` (not `source`) to avoid colliding
+  with the `DownloadService.run` `source` argument; it maps to the FIRMS API's
+  "source" path segment.
+- Output is the FIRMS CSV columns (which differ between MODIS and VIIRS) plus a
+  `firms_product` column recording the selected product.
+- `NRT` products are near-real-time; `SP` products are standard-processing
+  (archive) and lag by a longer interval.
 
 ## 4. UI and API Versus Direct CLI
 

@@ -32,6 +32,33 @@
 - The curated `parameters` allow-list is a subset of the full POWER catalogue,
   chosen for public-health/environmental cross-analysis and validated live.
 
+### Added — NASA FIRMS active-fire source (`nasa_firms`)
+- `NasaFirmsClient` (in `guaraci/nasa/client.py`) and `NasaFirmsDataSource`
+  (`guaraci/nasa/firms.py`) integrating the NASA FIRMS active-fire CSV API
+  (`firms.modaps.eosdis.nasa.gov`) directly. No new runtime dependency.
+- Registered the `nasa_firms` source (`mode = "nasa firms api"`) via the shared
+  `NasaDownloadSource` adapter + `_normalize_nasa_firms_params`. Schema:
+  `start_date`, `end_date`, `product` (FIRMS source product; curated
+  allow-list), `country` (ISO3, default `BRA`), `area` (optional bounding-box
+  override), `keep_raw`, `timeout`, `api_base_url`, `output_dir`,
+  `output_format`.
+- The `[start_date, end_date]` window is chunked into consecutive <=10-day
+  FIRMS requests; each CSV is parsed generically (robust to MODIS vs VIIRS
+  columns), concatenated, and tagged with a `firms_product` provenance column.
+- **Security:** the FIRMS `MAP_KEY` is read only from the
+  `GUARACI_FIRMS_MAP_KEY` environment variable — never a job parameter (job
+  params are persisted to disk) and never written to the manifest; it is also
+  redacted from client error messages.
+- The user-facing parameter is named `product` (not `source`) to avoid
+  colliding with `DownloadService.run(source, **params)`.
+- Tests: `tests/test_nasa_firms_client.py`, `tests/test_nasa_firms_datasource.py`,
+  `tests/test_nasa_firms_service.py`, plus a FIRMS schema check in
+  `tests/test_api.py` (29 new tests).
+- Docs: `README.md`, `docs/ARCHITECTURE.md` (§1, §3.1, §7.5),
+  `docs/SOURCES_AND_FILTERS.md` (§2, §3.10).
+- Live-unvalidated pending a free MAP_KEY (mock-tested only); endpoint paths and
+  CSV handling follow the documented FIRMS API.
+
 ## [0.5.2] - 2026-05-28
 
 ### Entradas principais

@@ -11,6 +11,7 @@ Guaraci is a platform for downloading and orchestrating Brazilian public data so
 - `SINAN`, `SIM`, and `SIH` (PySUS/FTP DATASUS)
 - `OpenDataSUS` (`doses_aplicadas_pni`, `zikavirus`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, `febre_amarela`, and DEMAS sources generated from the local Swagger catalog)
 - `NASA POWER` (`nasa_power`) — global climate/meteorological series from `power.larc.nasa.gov`
+- `NASA FIRMS` (`nasa_firms`) — active-fire detections from `firms.modaps.eosdis.nasa.gov` (requires a free MAP_KEY)
 
 Current version: `0.5.2`
 
@@ -165,6 +166,8 @@ High-level summary:
   SIH, SIM, and SINAN connect directly to the DATASUS FTP server by default (DBC-to-Parquet via `pyreaddbc`/`dbfread`), so the `datasus` extra is enough; the legacy PySUS backend stays opt-in for one release via `GUARACI_DATASUS_BACKEND=pysus` and the `datasus-legacy` extra.
 - `nasa_power`
   Single-point climate series from the NASA POWER API. Collection uses `latitude`, `longitude`, `start_date`, `end_date`, `parameters`, and `temporal` (`daily`/`monthly`); technical controls include `community`, `keep_raw`, `timeout`, and `api_base_url`; optional export uses `csv`, `parquet`, or `sqlite`. No authentication or extra dependency required.
+- `nasa_firms`
+  Active-fire detections from the NASA FIRMS API. Collection uses `start_date`, `end_date`, `product` (FIRMS source product), and `country` (default `BRA`) or an optional `area` bounding box; long windows are chunked into 10-day requests. Requires a free MAP_KEY supplied via the `GUARACI_FIRMS_MAP_KEY` environment variable (never a job parameter); optional export uses `csv`, `parquet`, or `sqlite`.
 
 OpenDataSUS naming rule:
 - Use canonical source names returned by `GET /sources`; aliases are not supported.

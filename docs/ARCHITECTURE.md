@@ -6,7 +6,7 @@ Guaraci uses a layered architecture:
 
 1. `datasources`
    Implement data source-specific download and read logic.
-   Examples: `SnisDataSource`, `SinisaDataSource`, `SinanDataSource`, `SimDataSource`, `SihDataSource`, `OpenDataSUSDataSource`, and `NasaPowerDataSource`.
+   Examples: `SnisDataSource`, `SinisaDataSource`, `SinanDataSource`, `SimDataSource`, `SihDataSource`, `OpenDataSUSDataSource`, `NasaPowerDataSource`, and `NasaFirmsDataSource`.
 2. `services/downloads`
    Registers supported sources, declares source parameter schemas, validates and normalizes input, and adapts source results to `JobResult`.
 3. `services/jobs`
@@ -38,7 +38,7 @@ Adapter types:
 - `GovBrDownloadSource` for `gov.br` crawlers (`snis`, `sinisa`)
 - `PysusDownloadSource` for PySUS/FTP flows (`sinan`, `sim`, `sih`)
 - `OpenDataSUSDownloadSource` for the OpenDataSUS API (`doses_aplicadas_pni`, `zikavirus`, and generated DEMAS sources)
-- `NasaDownloadSource` for NASA APIs (`nasa_power`)
+- `NasaDownloadSource` for NASA APIs (`nasa_power`, `nasa_firms`)
 
 ### 3.2 `DownloadJobService`
 
@@ -162,6 +162,22 @@ These events feed:
 - Error handling mirrors OpenDataSUS: connectivity, timeout, HTTP,
   configuration, and response-format failures are differentiated, and the
   manifest persists warnings (empty window, export issues, upstream messages)
+
+### 7.5 NASA FIRMS source (`nasa_firms`)
+
+- Query the NASA FIRMS active-fire CSV endpoints through an isolated client
+  (`guaraci/nasa/client.py`); base: `https://firms.modaps.eosdis.nasa.gov`
+- Chunk the `[start_date, end_date]` window into consecutive <=10-day requests
+  (the FIRMS per-request day-range limit) and concatenate the results
+- Parse each CSV generically (robust to MODIS vs VIIRS column sets) and add a
+  `firms_product` provenance column
+- Select by `country` (ISO3, default `BRA`) or an optional `area` bounding box
+  that overrides the country
+- Credential handling: the FIRMS `MAP_KEY` is read only from the
+  `GUARACI_FIRMS_MAP_KEY` environment variable (never a job parameter, never
+  persisted to the manifest); it is also redacted from client error messages
+- `keep_raw` writes the raw CSV; optional export uses `csv`, `parquet`, or
+  `sqlite` within the same jobs/UI flow
 
 ## 8. Persistence and Recovery
 
