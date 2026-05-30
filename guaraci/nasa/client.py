@@ -379,7 +379,7 @@ class NasaFirmsClient:
         )
         try:
             with urlopen(request, timeout=self.timeout_seconds) as response:
-                raw_bytes = response.read()
+                raw_bytes: bytes = response.read()
         except HTTPError as exc:
             message = self._redact(self._extract_http_error_message(exc), secret)
             category, retryable, hint = self._classify_http_error(exc.code)
