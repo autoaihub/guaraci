@@ -33,6 +33,18 @@ they expose more convenient query layers.
 - `sinan` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINAN/`
 - `sim` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIM/`
 - `sih` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIHSUS/`
+- `sinasc` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINASC/`
+- `sia` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIASUS/`
+- `cnes` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/CNES/`
+- `pni` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/PNI/` (histórico SI-PNI; `.DBF`)
+- `ciha` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/CIHA/`
+- `cih` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/CIH/` (legado 2008–2010)
+- `siscan` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SISCAN/`
+- `sisprenatal` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SISPRENATAL/`
+- `resp` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/RESP/`
+- `pce` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/PCE/`
+- `painel_oncologia` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/painel_oncologia/`
+- The eleven `datasus ftp` systems above connect directly via stdlib `ftplib` (phase 5 of `docs/PLANO_DATASUS_FTP_DIRETO.md`). Collection params: `start_year`/`end_year`, plus `groups` for multi-group systems (SIA, CNES, SISCAN, PNI) and `states` for state-level systems. `CMD` and `ANS` are intentionally not integrated (see the plan).
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.

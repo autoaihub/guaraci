@@ -8,7 +8,8 @@
 
 Guaraci is a platform for downloading and orchestrating Brazilian public data sources for scientific and technical workflows. The current project scope includes:
 - `SNIS` and `SINISA` (`gov.br` crawler)
-- `SINAN`, `SIM`, and `SIH` (PySUS/FTP DATASUS)
+- `SINAN`, `SIM`, and `SIH` (DATASUS direct FTP by default; PySUS legacy opt-in)
+- `SINASC`, `SIA`, `CNES`, `PNI`, `CIHA`, `CIH`, `SISCAN`, `SISPRENATAL`, `RESP`, `PCE`, `painel_oncologia` (DATASUS direct FTP)
 - `OpenDataSUS` (`doses_aplicadas_pni`, `zikavirus`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, `febre_amarela`, and DEMAS sources generated from the local Swagger catalog)
 
 Current version: `0.5.2`
