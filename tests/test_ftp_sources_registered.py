@@ -78,3 +78,36 @@ def test_validate_rejects_unknown_param(service) -> None:
         service.validate_source_params(
             "sinasc", {"start_year": 2020, "end_year": 2020, "bogus": 1}
         )
+
+
+def test_discover_dispatches_into_ftp_datasource(service, monkeypatch) -> None:
+    captured: dict = {}
+
+    def fake_discover_summary(spec, **kwargs):
+        captured["spec"] = spec.name
+        captured["kwargs"] = kwargs
+        return {
+            "source": spec.name,
+            "documents_found": 3,
+            "total_size_bytes": 0,
+            "by_group": {"PA": 3},
+            "by_state": {"SP": 3},
+            "sample": [],
+            "filters": {},
+        }
+
+    monkeypatch.setattr(
+        ftp_source_mod.generic_backend, "discover_summary", fake_discover_summary
+    )
+
+    result = service.discover("sia", start_year=2024, end_year=2024, groups=["PA"], states=["SP"])
+
+    assert captured["spec"] == "sia"
+    assert captured["kwargs"]["fetch_sizes"] is False  # preflight stays cheap
+    assert result["documents_found"] == 3
+    assert result["filters"]["start_year"] == 2024
+
+
+def test_discover_still_rejects_non_ftp_unsupported_source(service) -> None:
+    with pytest.raises(ValueError, match="not supported"):
+        service.discover("sinan", start_year=2020, end_year=2020)

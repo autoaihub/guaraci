@@ -58,3 +58,16 @@ def test_download_rejects_unknown_source() -> None:
     result = CliRunner().invoke(datasus, ["download", "nope", "2020", "2020"])
     assert result.exit_code != 0
     assert "Unknown source" in result.output
+
+
+def test_discover_command(monkeypatch) -> None:
+    class FakeService:
+        def discover(self, source, **kwargs):
+            assert source == "sia"
+            return {"documents_found": 5, "by_group": {"PA": 5}, "by_state": {"SP": 5}}
+
+    monkeypatch.setattr("guaraci.services.downloads.DownloadService", FakeService)
+
+    result = CliRunner().invoke(datasus, ["discover", "sia", "2024", "2024"])
+    assert result.exit_code == 0, result.output
+    assert "files" in result.output

@@ -2227,7 +2227,24 @@ class DownloadService:
 
     def discover(self, source: str, **kwargs: object) -> Dict[str, object]:
         self.validate_source_params(source=source, params=kwargs)
-        if source != "sih":
+        key = self._normalize_source_name(source)
+
+        if key in _FTP_SOURCE_NAMES:
+            prepared = _normalize_ftp_params(dict(kwargs))
+            output_dir = prepared.pop("output_dir", None)
+            prepared.pop("output_format", None)
+            spec = ftp_specs.get_spec(key)
+            datasource = FtpDataSource(spec, output_path=output_dir)
+            return dict(
+                datasource.discover(
+                    start_year=int(prepared["start_year"]),
+                    end_year=int(prepared["end_year"]),
+                    groups=prepared.get("groups"),  # type: ignore[arg-type]
+                    states=prepared.get("states"),  # type: ignore[arg-type]
+                )
+            )
+
+        if key != "sih":
             raise ValueError(f"Discovery is not supported for source '{source}'.")
 
         prepared = _normalize_sih_params(dict(kwargs))

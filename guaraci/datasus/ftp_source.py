@@ -81,16 +81,21 @@ class FtpDataSource(DataSource):
         end_year: int,
         groups: Optional[List[str]] = None,
         states: Optional[List[str]] = None,
+        fetch_sizes: bool = False,
     ) -> Dict[str, Any]:
         years = self._resolve_years(start_year, end_year)
         norm_groups = self._normalize_groups(groups)
         norm_states = list(states) if (states and self.spec.has_state) else None
 
+        # fetch_sizes defaults to False: one SIZE round-trip per file would
+        # be thousands of calls on large systems (e.g. SIA). The file count
+        # plus by_group/by_state breakdown is the cheap preflight signal.
         summary = generic_backend.discover_summary(
             self.spec,
             years=years,
             groups=norm_groups,
             states=norm_states,
+            fetch_sizes=fetch_sizes,
         )
         # Anchor the echoed filters to the request's own range.
         filters: Dict[str, Any] = {

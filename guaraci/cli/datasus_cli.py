@@ -88,5 +88,43 @@ def download(
     console.print(payload)
 
 
+@datasus.command()
+@click.argument("source")
+@click.argument("start_year", type=int)
+@click.argument("end_year", type=int)
+@click.option("--groups", "-g", multiple=True, help="Group codes (only for multi-group systems).")
+@click.option("--states", "-s", multiple=True, help="UF filter (only for state-level systems).")
+def discover(
+    source: str,
+    start_year: int,
+    end_year: int,
+    groups: Tuple[str, ...],
+    states: Tuple[str, ...],
+) -> None:
+    """Preflight a SOURCE window: count files per group/UF, no download."""
+    from guaraci.services.downloads import DownloadService
+
+    if source.strip().lower() not in specs.SPECS:
+        raise click.BadParameter(
+            f"Unknown source '{source}'. Known: {', '.join(sorted(specs.SPECS))}"
+        )
+
+    kwargs: dict = {"start_year": start_year, "end_year": end_year}
+    if groups:
+        kwargs["groups"] = list(groups)
+    if states:
+        kwargs["states"] = list(states)
+
+    summary = DownloadService().discover(source.strip().lower(), **kwargs)
+    console.print(
+        f"[bold]{source}[/bold] {start_year}-{end_year}: "
+        f"[cyan]{summary.get('documents_found', 0)}[/cyan] files"
+    )
+    if summary.get("by_group"):
+        console.print(f"  by group: {summary['by_group']}")
+    if summary.get("by_state"):
+        console.print(f"  by state: {summary['by_state']}")
+
+
 if __name__ == "__main__":
     datasus()
