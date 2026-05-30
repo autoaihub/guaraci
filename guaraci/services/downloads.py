@@ -15,6 +15,7 @@ from loguru import logger
 from guaraci.core.contracts import DownloadManifest, SourceParameterSpec, validate_source_params
 from guaraci.core.results import JobResult
 from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
+from guaraci.nasa import NasaPowerDataSource
 from guaraci.opendatasus import OpenDataSUSDataSource
 from guaraci.snis import SinisaDataSource, SnisDataSource
 from guaraci.utils.mapping import UF_DICT
@@ -632,6 +633,62 @@ class OpenDataSUSDownloadSource:
         if not self._fixed_dataset:
             return []
         return re.findall(r"{([^{}]+)}", self._fixed_dataset)
+
+    def download(self, **kwargs: object) -> JobResult:
+        return self._download(progress_callback=None, **kwargs)
+
+    def download_with_progress(
+        self,
+        progress_callback: Callable[[Dict[str, object]], None],
+        **kwargs: object,
+    ) -> JobResult:
+        return self._download(progress_callback=progress_callback, **kwargs)
+
+
+class NasaDownloadSource:
+    """Adapter for NASA API-backed datasources (POWER and future products)."""
+
+    def __init__(
+        self,
+        descriptor: SourceDescriptor,
+        datasource_cls: Callable[..., Any],
+        params_schema: Sequence[SourceParameterSpec],
+        normalize_params: Optional[Callable[[Dict[str, object]], Dict[str, object]]] = None,
+    ) -> None:
+        self.descriptor = descriptor
+        self._datasource_cls = datasource_cls
+        self._params_schema = list(params_schema)
+        self._normalize_params = normalize_params
+
+    def params_schema(self) -> List[SourceParameterSpec]:
+        return list(self._params_schema)
+
+    def validate_params(self, params: Mapping[str, object]) -> None:
+        prepared = self._prepare_kwargs(params)
+        validate_source_params(
+            params=prepared, specs=self._params_schema, reject_unknown=True
+        )
+
+    def _prepare_kwargs(self, kwargs: Mapping[str, object]) -> Dict[str, object]:
+        prepared = dict(kwargs)
+        if self._normalize_params is not None:
+            prepared = self._normalize_params(prepared)
+        return prepared
+
+    def _download(
+        self,
+        *,
+        progress_callback: Optional[Callable[[Dict[str, object]], None]],
+        **kwargs: object,
+    ) -> JobResult:
+        output_dir = kwargs.get("output_dir")
+        datasource = self._datasource_cls(output_path=output_dir)
+        prepared = self._prepare_kwargs(dict(kwargs))
+        prepared.pop("output_dir", None)
+        if progress_callback is not None:
+            prepared["progress_callback"] = progress_callback
+        payload = datasource.download(**prepared)
+        return JobResult.from_payload(source=self.descriptor.source, payload=payload)
 
     def download(self, **kwargs: object) -> JobResult:
         return self._download(progress_callback=None, **kwargs)
@@ -2107,6 +2164,138 @@ class DownloadService:
                 ],
                 normalize_params=_normalize_sih_params,
             ),
+            NasaDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="nasa_power",
+                    title="NASA POWER (Clima)",
+                    mode="nasa power api",
+                ),
+                datasource_cls=NasaPowerDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for the climate series.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="latitude",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Latitude do ponto (-90 a 90, decimal). "
+                            "Ex.: -23.55 para São Paulo."
+                        ),
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="longitude",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Longitude do ponto (-180 a 180, decimal). "
+                            "Ex.: -46.63 para São Paulo."
+                        ),
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Data inicial (YYYY-MM-DD). Cobertura diária do "
+                            "POWER desde 1981."
+                        ),
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="coleta",
+                        param_type="string",
+                        description="Data final (YYYY-MM-DD).",
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="parameters",
+                        phase="coleta",
+                        param_type="string_list",
+                        description="Variáveis climáticas NASA POWER a coletar.",
+                        required=False,
+                        default=list(NasaPowerDataSource.DEFAULT_PARAMETERS),
+                        allowed_values=list(
+                            NasaPowerDataSource.SUPPORTED_PARAMETERS.keys()
+                        ),
+                    ),
+                    SourceParameterSpec(
+                        name="temporal",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Resolução temporal: daily (diário) ou "
+                            "monthly (mensal)."
+                        ),
+                        required=False,
+                        default=NasaPowerDataSource.DEFAULT_TEMPORAL,
+                        allowed_values=list(NasaPowerDataSource.VALID_TEMPORAL),
+                    ),
+                    SourceParameterSpec(
+                        name="community",
+                        phase="tecnica",
+                        param_type="string",
+                        description=(
+                            "Comunidade POWER: AG (agroclima), "
+                            "RE (energia renovável), SB (edificações)."
+                        ),
+                        required=False,
+                        default=NasaPowerDataSource.DEFAULT_COMMUNITY,
+                        allowed_values=list(NasaPowerDataSource.VALID_COMMUNITIES),
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description=(
+                            "Se true, salva o JSON bruto da resposta além "
+                            "da exportação."
+                        ),
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="timeout",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="HTTP timeout in seconds.",
+                        required=False,
+                        default=NasaPowerDataSource.DEFAULT_TIMEOUT,
+                        minimum=1,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Optional NASA POWER API base URL override.",
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                normalize_params=_normalize_nasa_power_params,
+            ),
         ]
 
         # Append the auto-generated OpenDataSUS sources
@@ -2358,6 +2547,65 @@ def _normalize_opendatasus_params(params: Dict[str, object]) -> Dict[str, object
             normalized[key] = int(stripped)
             continue
         normalized[key] = int(value)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
+
+
+def _normalize_nasa_power_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+
+    parameters = normalized.get("parameters")
+    if isinstance(parameters, list):
+        normalized["parameters"] = [
+            str(item).strip().upper() for item in parameters if str(item).strip()
+        ]
+
+    temporal = normalized.get("temporal")
+    if isinstance(temporal, str):
+        cleaned = temporal.strip().lower()
+        if cleaned:
+            normalized["temporal"] = cleaned
+
+    community = normalized.get("community")
+    if isinstance(community, str):
+        cleaned = community.strip().upper()
+        if cleaned:
+            normalized["community"] = cleaned
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    for key in ("latitude", "longitude", "start_date", "end_date", "api_base_url"):
+        value = normalized.get(key)
+        if isinstance(value, str):
+            cleaned = value.strip()
+            normalized[key] = cleaned if cleaned else None
+
+    # Empty/invalid timeout is dropped so the datasource default applies; a
+    # None timeout would break the int() coercion in the client resolver.
+    timeout = normalized.get("timeout")
+    if isinstance(timeout, str):
+        stripped = timeout.strip()
+        if stripped:
+            normalized["timeout"] = int(stripped)
+        else:
+            normalized.pop("timeout", None)
+    elif isinstance(timeout, bool):
+        normalized.pop("timeout", None)
+    elif isinstance(timeout, (int, float)):
+        normalized["timeout"] = int(timeout)
 
     keep_raw = normalized.get("keep_raw")
     if isinstance(keep_raw, str):

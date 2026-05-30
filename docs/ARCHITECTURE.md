@@ -6,7 +6,7 @@ Guaraci uses a layered architecture:
 
 1. `datasources`
    Implement data source-specific download and read logic.
-   Examples: `SnisDataSource`, `SinisaDataSource`, `SinanDataSource`, `SimDataSource`, `SihDataSource`, and `OpenDataSUSDataSource`.
+   Examples: `SnisDataSource`, `SinisaDataSource`, `SinanDataSource`, `SimDataSource`, `SihDataSource`, `OpenDataSUSDataSource`, and `NasaPowerDataSource`.
 2. `services/downloads`
    Registers supported sources, declares source parameter schemas, validates and normalizes input, and adapts source results to `JobResult`.
 3. `services/jobs`
@@ -38,6 +38,7 @@ Adapter types:
 - `GovBrDownloadSource` for `gov.br` crawlers (`snis`, `sinisa`)
 - `PysusDownloadSource` for PySUS/FTP flows (`sinan`, `sim`, `sih`)
 - `OpenDataSUSDownloadSource` for the OpenDataSUS API (`doses_aplicadas_pni`, `zikavirus`, and generated DEMAS sources)
+- `NasaDownloadSource` for NASA APIs (`nasa_power`)
 
 ### 3.2 `DownloadJobService`
 
@@ -144,6 +145,24 @@ These events feed:
   - datasource-raised errors include endpoint, page, package, or resource context when the failure happened mid-flow
   - manifests persist warning messages such as truncation or export issues
 
+### 7.4 NASA sources (`nasa_power`)
+
+- Query the NASA POWER API through an isolated, keyless HTTP client
+  (`guaraci/nasa/client.py`); base: `https://power.larc.nasa.gov`
+- Fetch one geographic point (`latitude`/`longitude`) over a date window at
+  `daily` or `monthly` resolution
+- Parse `properties.parameter.<VAR>.<period>` into a tidy wide table: one row
+  per period, one column per requested variable, with derived `date`/`year`/
+  `month`/`day` columns
+- Read the missing-data sentinel from `header.fill_value` and convert matching
+  values to null
+- Preserve POWER's monthly annual aggregate losslessly as `month=13`
+- `keep_raw` writes the raw JSON response; optional export uses `csv`,
+  `parquet`, or `sqlite` within the same jobs/UI flow
+- Error handling mirrors OpenDataSUS: connectivity, timeout, HTTP,
+  configuration, and response-format failures are differentiated, and the
+  manifest persists warnings (empty window, export issues, upstream messages)
+
 ## 8. Persistence and Recovery
 
 Jobs are persisted as JSON.
@@ -187,4 +206,4 @@ To add a new source:
 
 
 ---
-? [Índice da documentação](README.md) · [Voltar ao projeto](../README.md)
+? [ï¿½ndice da documentaï¿½ï¿½o](README.md) ï¿½ [Voltar ao projeto](../README.md)

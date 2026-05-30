@@ -10,6 +10,7 @@ Guaraci is a platform for downloading and orchestrating Brazilian public data so
 - `SNIS` and `SINISA` (`gov.br` crawler)
 - `SINAN`, `SIM`, and `SIH` (PySUS/FTP DATASUS)
 - `OpenDataSUS` (`doses_aplicadas_pni`, `zikavirus`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, `febre_amarela`, and DEMAS sources generated from the local Swagger catalog)
+- `NASA POWER` (`nasa_power`) — global climate/meteorological series from `power.larc.nasa.gov`
 
 Current version: `0.5.2`
 
@@ -162,6 +163,8 @@ High-level summary:
   Collection uses `start_year`, `end_year`, `groups`, `states`, and `months`; export filtering includes `output_format`, `uf`, `municipio`, and `sexo`.
   Leaving `groups`, `states`, or `months` empty means no collection filter for that field.
   SIH, SIM, and SINAN connect directly to the DATASUS FTP server by default (DBC-to-Parquet via `pyreaddbc`/`dbfread`), so the `datasus` extra is enough; the legacy PySUS backend stays opt-in for one release via `GUARACI_DATASUS_BACKEND=pysus` and the `datasus-legacy` extra.
+- `nasa_power`
+  Single-point climate series from the NASA POWER API. Collection uses `latitude`, `longitude`, `start_date`, `end_date`, `parameters`, and `temporal` (`daily`/`monthly`); technical controls include `community`, `keep_raw`, `timeout`, and `api_base_url`; optional export uses `csv`, `parquet`, or `sqlite`. No authentication or extra dependency required.
 
 OpenDataSUS naming rule:
 - Use canonical source names returned by `GET /sources`; aliases are not supported.

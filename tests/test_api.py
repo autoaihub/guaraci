@@ -51,6 +51,18 @@ def test_sources_endpoint(client: TestClient) -> None:
     assert "sinan" in names
     assert "sim" in names
     assert "sih" in names
+    assert "nasa_power" in names
+
+
+def test_nasa_power_schema_endpoint(client: TestClient) -> None:
+    response = client.get("/sources/nasa_power/schema")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["source"] == "nasa_power"
+    assert payload["mode"] == "nasa power api"
+    names = {item["name"] for item in payload["params"]}
+    assert {"latitude", "longitude", "start_date", "end_date", "parameters"} <= names
 
 
 def test_source_schema_endpoint(client: TestClient, monkeypatch) -> None:

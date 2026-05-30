@@ -1,5 +1,37 @@
 # Changelog
 
+## [Unreleased]
+
+### Added — NASA POWER climate source (`nasa_power`)
+- New `guaraci/nasa/` package integrating the NASA POWER API directly
+  (`power.larc.nasa.gov`, no authentication), honoring the primary-source
+  principle: `NasaPowerClient` (stdlib `urllib`, OpenDataSUS-style error
+  taxonomy) and `NasaPowerDataSource` (single-point daily/monthly series).
+- Registered the `nasa_power` source (`mode = "nasa power api"`) through a new
+  `NasaDownloadSource` adapter in `guaraci/services/downloads.py`, with a
+  schema-driven parameter set (`latitude`, `longitude`, `start_date`,
+  `end_date`, `parameters`, `temporal`, `community`, `keep_raw`, `timeout`,
+  `api_base_url`, `output_dir`, `output_format`) and `_normalize_nasa_power_params`.
+- Output is a tidy wide table (one row per period, one column per POWER
+  variable) with derived `period`/`date`/`year`/`month`/`day` and point
+  columns; the `header.fill_value` sentinel is converted to null and POWER's
+  monthly annual aggregate is preserved losslessly as `month=13`.
+- Exports to `csv`/`parquet`/`sqlite`, writes a standard `DownloadManifest`,
+  and emits `download_start`/`file_completed`/`download_complete` progress
+  events compatible with `DownloadJobService`.
+- Tests: `tests/test_nasa_power_client.py`, `tests/test_nasa_power_datasource.py`,
+  `tests/test_nasa_power_service.py`, plus a NASA POWER schema check in
+  `tests/test_api.py` (39 new datasource/client/service tests).
+- Docs: `README.md`, `docs/ARCHITECTURE.md` (§3.1, §7.4),
+  `docs/SOURCES_AND_FILTERS.md` (§2, §3.9).
+
+### Notes
+- No new runtime dependency: the client uses only the standard library.
+- `latitude`/`longitude` are the native point inputs; municipality-centroid
+  lookup is deferred as future work (needs an IBGE coordinate dataset).
+- The curated `parameters` allow-list is a subset of the full POWER catalogue,
+  chosen for public-health/environmental cross-analysis and validated live.
+
 ## [0.5.2] - 2026-05-28
 
 ### Entradas principais

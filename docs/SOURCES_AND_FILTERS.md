@@ -33,6 +33,8 @@ they expose more convenient query layers.
 - `sinan` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINAN/`
 - `sim` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIM/`
 - `sih` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIHSUS/`
+- `nasa_power` (`nasa power api`) — primary: `power.larc.nasa.gov` (NASA POWER,
+  global meteorological/solar series; no third-party mirror involved)
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -187,6 +189,38 @@ Note:
   gigabytes before export filtering is applied.
 - Use `POST /sources/sih/discovery` to inspect file count, estimated byte size,
   grouping, and a sample before creating large SIH jobs.
+
+### 3.9 NASA POWER (`nasa_power`)
+
+Single-point climate series from the NASA POWER API (no authentication).
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `latitude` | string | coleta | Point latitude, decimal degrees (`-90` to `90`); e.g. `-23.55` |
+| `longitude` | string | coleta | Point longitude, decimal degrees (`-180` to `180`); e.g. `-46.63` |
+| `start_date` | string | coleta | Window start (`YYYY-MM-DD`); POWER daily coverage starts in 1981 |
+| `end_date` | string | coleta | Window end (`YYYY-MM-DD`) |
+| `parameters` | string_list | coleta | POWER variable codes (curated list, e.g. `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`, `WS2M`, `ALLSKY_SFC_SW_DWN`) |
+| `temporal` | string | coleta | `daily` (default) or `monthly` |
+| `community` | string | tecnica | `AG` (default), `RE`, or `SB` |
+| `keep_raw` | boolean | tecnica | Save the raw JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional POWER base URL override |
+
+NASA POWER notes:
+- Latitude/longitude are the native point inputs; municipality-centroid lookup
+  is intentionally left as future work (it would require an IBGE coordinate
+  dataset, itself a separate primary-source integration).
+- Output is a tidy wide table: one row per period, one column per variable,
+  plus derived `period`, `date`, `year`, `month`, `day`, and point columns.
+- For `monthly`, POWER's annual aggregate is preserved as `month=13` (no
+  `date`); filter `month <= 12` for strictly monthly observations.
+- The missing-data sentinel is read from the response `header.fill_value`
+  (commonly `-999`) and converted to null.
+- Like OpenDataSUS, leaving both `output_format` empty and `keep_raw=false`
+  produces only a manifest and emits an `export_warning`.
 
 ## 4. UI and API Versus Direct CLI
 
