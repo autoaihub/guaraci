@@ -186,6 +186,59 @@ async def discover_sinan(
     return filtered
 
 
+async def discover_spec(
+    client: _FtpListing,
+    spec,
+    *,
+    years: Sequence[int],
+    groups: Optional[Sequence[str]] = None,
+    states: Optional[Sequence[str]] = None,
+    fetch_sizes: bool = False,
+) -> list[FileRecord]:
+    """Generic discovery driven by a :class:`~guaraci.datasus.ftp.specs.SystemSpec`.
+
+    Phase 5. Handles both layouts: ``spec.group_dirs`` (one directory per
+    group — CNES, SISCAN; only the requested groups' dirs are listed) and
+    ``spec.roots`` (flat directories whose files encode the group in the
+    filename — SIA, SINASC, …). ``spec`` is duck-typed to avoid importing
+    the specs module here.
+    """
+    year_set = {int(y) for y in years}
+    if not year_set:
+        return []
+
+    group_set = {g.upper() for g in groups} if groups else None
+    state_set = (
+        {s.upper() for s in states} if (states and spec.has_state) else None
+    )
+
+    group_dirs = getattr(spec, "group_dirs", ()) or ()
+    if group_dirs:
+        directories = [
+            d for g, d in group_dirs if group_set is None or g.upper() in group_set
+        ]
+    else:
+        directories = list(spec.roots)
+
+    discovered: list[FileRecord] = []
+    for directory in directories:
+        discovered.extend(await _list_and_parse(client, directory, spec.parse))
+
+    filtered = [
+        rec
+        for rec in discovered
+        if _matches(rec, year_set, group_set, state_set, None)
+    ]
+
+    if fetch_sizes:
+        filtered = await _attach_sizes(client, filtered)
+
+    filtered.sort(
+        key=lambda r: (r.group, r.state or "", r.year, r.month or 0, r.basename)
+    )
+    return filtered
+
+
 def _matches(
     rec: FileRecord,
     years: set[int],

@@ -23,19 +23,14 @@ PathLike = Union[str, Path]
 
 
 def read(path: PathLike, *, encoding: str = "latin-1") -> pl.DataFrame:
-    """Decode a DBC file and return a :class:`polars.DataFrame`.
+    """Decode a DBC (or plain DBF) file into a :class:`polars.DataFrame`.
 
-    The pipeline is ``DBC → DBF (temp file) → records → Polars``. The
-    intermediate ``.dbf`` is deleted before this function returns.
+    For ``.dbc`` the pipeline is ``DBC → DBF (temp file) → records →
+    Polars`` (the intermediate ``.dbf`` is deleted before returning). For
+    ``.dbf`` inputs — some systems such as PNI distribute uncompressed DBF
+    directly — the ``pyreaddbc`` decompression step is skipped and the file
+    is read in place.
     """
-    try:
-        from pyreaddbc import dbc2dbf
-    except ImportError as exc:  # pragma: no cover - dep guard
-        raise ImportError(
-            "pyreaddbc is required for DBC decoding. "
-            "Install with: pip install 'guaraci[datasus]'"
-        ) from exc
-
     try:
         from dbfread import DBF
     except ImportError as exc:  # pragma: no cover - dep guard
@@ -48,17 +43,31 @@ def read(path: PathLike, *, encoding: str = "latin-1") -> pl.DataFrame:
     if not src.exists():
         raise FileNotFoundError(src)
 
-    with tempfile.TemporaryDirectory(prefix="guaraci_dbc_") as tmp:
-        dbf_path = Path(tmp) / (src.stem + ".dbf")
-        dbc2dbf(str(src), str(dbf_path))
-        records = list(
+    def _records_from_dbf(dbf_file: PathLike) -> list:
+        return list(
             DBF(
-                str(dbf_path),
+                str(dbf_file),
                 encoding=encoding,
                 char_decode_errors="ignore",
                 lowernames=False,
             )
         )
+
+    if src.suffix.lower() == ".dbf":
+        records = _records_from_dbf(src)
+    else:
+        try:
+            from pyreaddbc import dbc2dbf
+        except ImportError as exc:  # pragma: no cover - dep guard
+            raise ImportError(
+                "pyreaddbc is required for DBC decoding. "
+                "Install with: pip install 'guaraci[datasus]'"
+            ) from exc
+
+        with tempfile.TemporaryDirectory(prefix="guaraci_dbc_") as tmp:
+            dbf_path = Path(tmp) / (src.stem + ".dbf")
+            dbc2dbf(str(src), str(dbf_path))
+            records = _records_from_dbf(dbf_path)
 
     if not records:
         return pl.DataFrame()

@@ -26,6 +26,19 @@ class System(str, Enum):
     SIH = "SIH"
     SIM = "SIM"
     SINAN = "SINAN"
+    # Phase 5 (PLANO_DATASUS_FTP_DIRETO): remaining DATASUS microdata systems,
+    # all reached through the spec-driven generic engine in ``specs.py``.
+    SINASC = "SINASC"
+    SIA = "SIA"
+    CNES = "CNES"
+    PNI = "PNI"
+    CIHA = "CIHA"
+    CIH = "CIH"
+    SISCAN = "SISCAN"
+    SISPRENATAL = "SISPRENATAL"
+    RESP = "RESP"
+    PCE = "PCE"
+    PAINEL_ONCOLOGIA = "PAINEL_ONCOLOGIA"
 
 
 @dataclass(frozen=True)
