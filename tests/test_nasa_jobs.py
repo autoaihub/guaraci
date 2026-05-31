@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from guaraci.nasa import firms as firms_mod
+from guaraci.nasa import gpm as gpm_mod
 from guaraci.nasa import power as power_mod
 from guaraci.services.downloads import DownloadService
 from guaraci.services.jobs import DownloadJobService
@@ -117,4 +118,66 @@ def test_nasa_firms_job_fails_without_map_key(tmp_path: Path, monkeypatch) -> No
     finished = service.wait_for_job(job.job_id, timeout_seconds=5.0)
 
     # A missing MAP_KEY surfaces as a clean job failure, not a crash.
+    assert finished.status == "failed"
+
+
+class _FakeGesDiscClient:
+    base_url = "https://gpm1.gesdisc.eosdis.nasa.gov"
+
+    def __init__(self, *, token: str, base_url: str | None = None, timeout_seconds: int = 120) -> None:
+        if base_url:
+            self.base_url = base_url
+
+    def fetch_ascii(self, dataset_path: str, constraint: str) -> str:
+        return (
+            "Dataset: g.nc4\n"
+            "precipitation.precipitation[precipitation.time=0]"
+            "[precipitation.lon=-46.65], 4.72\n"
+            "precipitation.lat, -23.55\n"
+        )
+
+
+def test_nasa_gpm_job_completes(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(gpm_mod, "NasaGesDiscClient", _FakeGesDiscClient)
+    monkeypatch.setenv("GUARACI_EARTHDATA_TOKEN", "ENVTOKEN")
+    service = DownloadJobService(download_service=DownloadService())
+
+    job = service.create_job(
+        source="nasa_gpm",
+        params={
+            "output_dir": str(tmp_path),
+            "latitude": "-23.55",
+            "longitude": "-46.63",
+            "start_date": "2024-01-01",
+            "end_date": "2024-01-02",
+            "variable": "precipitation",
+            "output_format": "csv",
+        },
+    )
+    finished = service.wait_for_job(job.job_id, timeout_seconds=5.0)
+
+    assert finished.status == "completed"
+    assert finished.result is not None
+    assert finished.result.source == "nasa_gpm"
+    assert finished.result.downloaded_count == 2
+
+
+def test_nasa_gpm_job_fails_without_token(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(gpm_mod, "NasaGesDiscClient", _FakeGesDiscClient)
+    monkeypatch.delenv("GUARACI_EARTHDATA_TOKEN", raising=False)
+    service = DownloadJobService(download_service=DownloadService())
+
+    job = service.create_job(
+        source="nasa_gpm",
+        params={
+            "output_dir": str(tmp_path),
+            "latitude": "-23.55",
+            "longitude": "-46.63",
+            "start_date": "2024-01-01",
+            "end_date": "2024-01-02",
+        },
+    )
+    finished = service.wait_for_job(job.job_id, timeout_seconds=5.0)
+
+    # A missing Earthdata token surfaces as a clean job failure, not a crash.
     assert finished.status == "failed"

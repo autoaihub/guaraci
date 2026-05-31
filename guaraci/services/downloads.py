@@ -15,7 +15,11 @@ from loguru import logger
 from guaraci.core.contracts import DownloadManifest, SourceParameterSpec, validate_source_params
 from guaraci.core.results import JobResult
 from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
-from guaraci.nasa import NasaFirmsDataSource, NasaPowerDataSource
+from guaraci.nasa import (
+    NasaFirmsDataSource,
+    NasaGpmDataSource,
+    NasaPowerDataSource,
+)
 from guaraci.opendatasus import OpenDataSUSDataSource
 from guaraci.snis import SinisaDataSource, SnisDataSource
 from guaraci.utils.mapping import UF_DICT
@@ -2402,6 +2406,118 @@ class DownloadService:
                 ],
                 normalize_params=_normalize_nasa_firms_params,
             ),
+            NasaDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="nasa_gpm",
+                    title="NASA GPM IMERG (Precipitação)",
+                    mode="nasa gpm api",
+                ),
+                datasource_cls=NasaGpmDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for the series.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="latitude",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Latitude do ponto (-90 a 90, decimal). "
+                            "Ex.: -23.55 para São Paulo."
+                        ),
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="longitude",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Longitude do ponto (-180 a 180, decimal). "
+                            "Ex.: -46.63 para São Paulo."
+                        ),
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="start_date",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Data inicial (YYYY-MM-DD). Uma requisição OPeNDAP "
+                            "por dia; janela limitada a ~1 ano."
+                        ),
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="end_date",
+                        phase="coleta",
+                        param_type="string",
+                        description="Data final (YYYY-MM-DD).",
+                        required=True,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="variable",
+                        phase="coleta",
+                        param_type="string",
+                        description="Variável IMERG (diária GPM_3IMERGDF V07).",
+                        required=False,
+                        default=NasaGpmDataSource.DEFAULT_VARIABLE,
+                        allowed_values=list(NasaGpmDataSource.VALID_VARIABLES),
+                    ),
+                    SourceParameterSpec(
+                        name="product",
+                        phase="coleta",
+                        param_type="string",
+                        description="Produto temporal IMERG (apenas 'daily' por ora).",
+                        required=False,
+                        default=NasaGpmDataSource.DEFAULT_PRODUCT,
+                        allowed_values=list(NasaGpmDataSource.VALID_PRODUCTS),
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva as respostas OPeNDAP brutas.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="timeout",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="HTTP timeout in seconds.",
+                        required=False,
+                        default=NasaGpmDataSource.DEFAULT_TIMEOUT,
+                        minimum=1,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Optional GES DISC OPeNDAP base URL override.",
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                normalize_params=_normalize_nasa_gpm_params,
+            ),
         ]
 
         # Append the auto-generated OpenDataSUS sources
@@ -2747,6 +2863,58 @@ def _normalize_nasa_firms_params(params: Dict[str, object]) -> Dict[str, object]
         normalized["output_format"] = cleaned if cleaned else None
 
     for key in ("area", "start_date", "end_date", "api_base_url"):
+        value = normalized.get(key)
+        if isinstance(value, str):
+            cleaned = value.strip()
+            normalized[key] = cleaned if cleaned else None
+
+    # Empty/invalid timeout is dropped so the datasource default applies.
+    timeout = normalized.get("timeout")
+    if isinstance(timeout, str):
+        stripped = timeout.strip()
+        if stripped:
+            normalized["timeout"] = int(stripped)
+        else:
+            normalized.pop("timeout", None)
+    elif isinstance(timeout, bool):
+        normalized.pop("timeout", None)
+    elif isinstance(timeout, (int, float)):
+        normalized["timeout"] = int(timeout)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
+
+
+def _normalize_nasa_gpm_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+
+    product = normalized.get("product")
+    if isinstance(product, str):
+        cleaned = product.strip().lower()
+        if cleaned:
+            normalized["product"] = cleaned
+
+    variable = normalized.get("variable")
+    if isinstance(variable, str):
+        cleaned = variable.strip()
+        if cleaned:
+            normalized["variable"] = cleaned
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    for key in ("latitude", "longitude", "start_date", "end_date", "api_base_url"):
         value = normalized.get(key)
         if isinstance(value, str):
             cleaned = value.strip()

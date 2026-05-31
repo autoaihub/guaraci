@@ -53,6 +53,7 @@ def test_sources_endpoint(client: TestClient) -> None:
     assert "sih" in names
     assert "nasa_power" in names
     assert "nasa_firms" in names
+    assert "nasa_gpm" in names
 
 
 def test_nasa_power_schema_endpoint(client: TestClient) -> None:
@@ -77,6 +78,19 @@ def test_nasa_firms_schema_endpoint(client: TestClient) -> None:
     assert {"start_date", "end_date", "product", "country"} <= names
     # The MAP_KEY must never be exposed as a job parameter.
     assert "map_key" not in names
+
+
+def test_nasa_gpm_schema_endpoint(client: TestClient) -> None:
+    response = client.get("/sources/nasa_gpm/schema")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["source"] == "nasa_gpm"
+    assert payload["mode"] == "nasa gpm api"
+    names = {item["name"] for item in payload["params"]}
+    assert {"latitude", "longitude", "start_date", "end_date", "variable"} <= names
+    # The Earthdata token must never be exposed as a job parameter.
+    assert "token" not in names
 
 
 def test_source_schema_endpoint(client: TestClient, monkeypatch) -> None:

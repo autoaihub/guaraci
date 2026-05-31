@@ -8,12 +8,20 @@ retryable / hint) so the jobs layer can classify failures consistently.
 
 from __future__ import annotations
 
+import http.cookiejar
 import json
 import socket
-from typing import Any, Dict, Mapping, Sequence
+from http.client import HTTPMessage
+from typing import IO, Any, Dict, Mapping, Sequence
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
-from urllib.request import Request, urlopen
+from urllib.request import (
+    HTTPCookieProcessor,
+    HTTPRedirectHandler,
+    Request,
+    build_opener,
+    urlopen,
+)
 
 
 class NasaPowerClientError(RuntimeError):
@@ -463,3 +471,182 @@ class NasaFirmsClient:
         except Exception:
             return "unknown error"
         return raw.strip() or "unknown error"
+
+
+class NasaGesDiscClientError(RuntimeError):
+    """Raised when NASA GES DISC OPeNDAP operations fail."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        category: str = "api_error",
+        retryable: bool = False,
+        hint: str | None = None,
+    ) -> None:
+        self.message = str(message).strip()
+        self.category = category
+        self.retryable = retryable
+        self.hint = str(hint).strip() if hint else None
+        super().__init__(self._compose_message())
+
+    def _compose_message(self) -> str:
+        if not self.hint:
+            return self.message
+        return f"{self.message} Hint: {self.hint}"
+
+    def with_context(self, context: str) -> "NasaGesDiscClientError":
+        context_text = str(context).strip()
+        if not context_text:
+            return self
+        return NasaGesDiscClientError(
+            f"{context_text}. {self.message}",
+            category=self.category,
+            retryable=self.retryable,
+            hint=self.hint,
+        )
+
+
+class _KeepAuthRedirectHandler(HTTPRedirectHandler):
+    """Redirect handler that re-attaches the EDL bearer token.
+
+    urllib drops the ``Authorization`` header on cross-host redirects, which
+    breaks the Earthdata URS OAuth handoff. Re-adding it on each redirect lets
+    the bearer token survive the GES DISC -> URS -> GES DISC chain.
+    """
+
+    def __init__(self, token: str) -> None:
+        super().__init__()
+        self._token = token
+
+    def redirect_request(
+        self,
+        req: Request,
+        fp: IO[bytes],
+        code: int,
+        msg: str,
+        headers: HTTPMessage,
+        newurl: str,
+    ) -> Request | None:
+        new = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if new is not None:
+            new.add_header("Authorization", f"Bearer {self._token}")
+        return new
+
+
+class NasaGesDiscClient:
+    """Client for GES DISC OPeNDAP point subsetting (NASA POWER-style series).
+
+    Uses an Earthdata Login bearer token (a secret), an OPeNDAP ``.ascii``
+    constraint to extract a single grid cell (no HDF5/NetCDF parsing, no heavy
+    dependency), and a redirect-preserving opener for the URS OAuth handoff.
+    """
+
+    DEFAULT_BASE_URL = "https://gpm1.gesdisc.eosdis.nasa.gov"
+
+    def __init__(
+        self,
+        *,
+        token: str,
+        base_url: str | None = None,
+        timeout_seconds: int = 120,
+    ) -> None:
+        clean = str(token).strip()
+        if not clean:
+            raise ValueError("NASA GES DISC bearer token cannot be empty.")
+        self._token = clean
+        selected_url = (base_url or self.DEFAULT_BASE_URL).strip().rstrip("/")
+        if not selected_url:
+            raise ValueError("NASA GES DISC base URL cannot be empty.")
+        self.base_url = selected_url
+        self.timeout_seconds = max(1, int(timeout_seconds))
+        self._opener = build_opener(
+            _KeepAuthRedirectHandler(self._token),
+            HTTPCookieProcessor(http.cookiejar.CookieJar()),
+        )
+
+    def fetch_ascii(self, dataset_path: str, constraint: str) -> str:
+        """Fetch an OPeNDAP ``.ascii`` subset for one dataset granule.
+
+        ``dataset_path`` is the OPeNDAP path of the granule (without the
+        response suffix); ``constraint`` is the projection such as
+        ``precipitation[0][1333][664]``.
+        """
+        path = "/" + dataset_path.lstrip("/")
+        url = f"{self.base_url}{path}.ascii?{constraint}"
+        request = Request(
+            url,
+            headers={
+                "Authorization": f"Bearer {self._token}",
+                "Accept": "text/plain",
+                "User-Agent": "guaraci/0.5.2",
+            },
+        )
+        try:
+            with self._opener.open(request, timeout=self.timeout_seconds) as response:
+                raw: bytes = response.read()
+        except HTTPError as exc:
+            category, retryable, hint = self._classify_http_error(exc.code)
+            raise NasaGesDiscClientError(
+                f"NASA GES DISC request failed ({exc.code}).",
+                category=category,
+                retryable=retryable,
+                hint=hint,
+            ) from exc
+        except URLError as exc:
+            raise NasaGesDiscClientError(
+                f"Could not connect to NASA GES DISC endpoint '{self.base_url}': "
+                f"{self._redact(str(exc.reason))}",
+                category="connectivity",
+                retryable=True,
+                hint="Check internet access, DNS, and firewall/proxy rules.",
+            ) from exc
+        except (TimeoutError, socket.timeout) as exc:
+            raise NasaGesDiscClientError(
+                f"NASA GES DISC request timed out after {self.timeout_seconds}s",
+                category="timeout",
+                retryable=True,
+                hint="Retry with a narrower date window if the service is slow.",
+            ) from exc
+
+        text = raw.decode("utf-8", errors="replace")
+        if not text.lstrip().lower().startswith("dataset:"):
+            snippet = self._redact(text.strip().replace("\n", " ")[:200])
+            raise NasaGesDiscClientError(
+                f"NASA GES DISC returned an unexpected (non-OPeNDAP) response: "
+                f"'{snippet}'.",
+                category="response_format",
+                hint=(
+                    "If this is an authorization page, authorize the 'NASA GESDISC "
+                    "DATA ARCHIVE' application in your Earthdata profile."
+                ),
+            )
+        return text
+
+    def _redact(self, text: str) -> str:
+        return text.replace(self._token, "***") if self._token else text
+
+    @staticmethod
+    def _classify_http_error(code: int) -> tuple[str, bool, str]:
+        if code in {401, 403}:
+            return (
+                "configuration",
+                False,
+                "Authorize the 'NASA GESDISC DATA ARCHIVE' application in your "
+                "Earthdata profile (urs.earthdata.nasa.gov -> Applications -> "
+                "Authorized Apps) and verify GUARACI_EARTHDATA_TOKEN is valid.",
+            )
+        if code == 404:
+            return (
+                "configuration",
+                False,
+                "Check the product, date, and granule path (the granule may not "
+                "exist for that date or version).",
+            )
+        if code in {408, 429} or 500 <= code <= 599:
+            return ("http_error", True, "Retry later; GES DISC may be busy.")
+        return (
+            "http_error",
+            False,
+            "Check request parameters and endpoint compatibility before retrying.",
+        )
