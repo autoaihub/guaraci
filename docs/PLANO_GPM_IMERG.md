@@ -1,13 +1,15 @@
 # PLANO: integração GPM IMERG (precipitação NASA) — proposta/ADR
 
-> Status: **NÃO IMPLEMENTADO — Phase 0 (reconhecimento) EXECUTADA com token Earthdata
-> em 2026-05-30; bloqueado na autenticação de DADOS (ver §9).** Contrato OPeNDAP
-> validado; falta destravar a sessão de auth de dados (earthaccess/.netrc) ou decidir
-> dependência. Documento no mesmo espírito de `PLANO_DATASUS_FTP_DIRETO.md`.
-> Autor: sessão autônoma de 2026-05-29/30 (após entregar `nasa_power` e `nasa_firms`).
+> Status: **IMPLEMENTADO (Caminho B leve, OPeNDAP) em 2026-05-31 — `nasa_gpm`.**
+> Sem dependência nova (stdlib). Contrato OPeNDAP validado ao vivo com token; o parser e
+> o pipeline têm testes. **Gate experimental restante:** acesso a DADOS exige que a conta
+> Earthdata autorize a aplicação **"NASA GESDISC DATA ARCHIVE"** (urs.earthdata.nasa.gov
+> → Applications → Authorized Apps). Sem isso, os dados retornam HTTP 401 limpo e
+> acionável, mesmo com token válido. Ver §9 para o histórico do reconhecimento.
+> Autor: sessão autônoma de 2026-05-29/31.
 
-> **LEIA A §9 PRIMEIRO** — tem os resultados reais dos probes com o token, que mudam o
-> plano: o gargalo não é mais "qual API", é a mecânica de auth de dados do GES DISC.
+> **§9 tem os resultados dos probes** que levaram à escolha do Caminho B (OPeNDAP leve)
+> sobre o Caminho A (HDF5 pesado, rejeitado) e a Giovanni API (500 NASA-side, rejeitada).
 
 ## 1. Contexto e objetivo
 
@@ -175,12 +177,27 @@ GES DISC**, que o token bearer + urllib puro não satisfaz. Caminhos para destra
 4. Caminho A (download do granule `.nc4` inteiro via `/data/` — que o Bearer **destrava**
    — + parsing NetCDF) continua **rejeitado** por exigir dep pesada (`xarray`/`netCDF4`).
 
-**Próximo passo concreto:** decidir entre (1) e (3). Com `earthaccess` aprovado, a
-implementação é rápida: o padrão OPeNDAP `.ascii` já está 100% mapeado acima; só falta a
-sessão de auth e o parser do ASCII de dados (capturar 1 resposta real de `.ascii?…` após
-destravar a sessão — exatamente o que faltou aqui). **Não implementei código GPM porque o
-caminho de dados não pôde ser validado de ponta a ponta com o token disponível, e enviar
-um parser/fetch não-validado seria baixa qualidade.**
+## 10. Implementação entregue (2026-05-31)
+
+Atualização sobre a "Conclusão" acima: não foi preciso `earthaccess`. Descobri que o
+**token bearer + um opener urllib que preserva o header `Authorization` no redirect URS**
+autentica os metadados, e que a gramática do OPeNDAP `.ascii` pôde ser **capturada de um
+Hyrax público** (test.opendap.org) — o que tornou o parser validável sem precisar de dados
+GES DISC reais. Implementei então o **Caminho B sem dependência nova**:
+
+- `NasaGesDiscClient` (`guaraci/nasa/client.py`) + `NasaGpmDataSource` (`guaraci/nasa/gpm.py`),
+  registrado como `nasa_gpm`. Uma requisição OPeNDAP `.ascii` por dia, parse da grade,
+  fill→null, export, manifest, eventos de progresso — no padrão `nasa_power`.
+- Token só por `GUARACI_EARTHDATA_TOKEN` (env), nunca em param/manifest, redigido em erros.
+- 30 testes (client/datasource/service/jobs/api); parser testado contra a gramática real.
+- **Gate experimental restante (externo, só o Luis resolve):** autorizar a aplicação
+  **"NASA GESDISC DATA ARCHIVE"** na conta Earthdata. Validei ao vivo que sem isso os dados
+  dão 401 (a mensagem de erro do client já instrui exatamente esse passo). Depois de
+  autorizar, a fonte deve funcionar end-to-end sem mudança de código — confirme a 1ª coleta
+  real e o valor de precipitação.
+
+Deixado para depois (não bloqueia o daily): produtos half-hourly/monthly; discovery
+dinâmico do sufixo de versão do granule (hoje fixo em `V07B`, com erro 404 claro se mudar).
 
 ---
 Referências: NASA Earthdata "Data Rods for Hydrology"; GES DISC Hydrology Data Rods;

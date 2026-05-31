@@ -12,6 +12,7 @@ Guaraci is a platform for downloading and orchestrating Brazilian public data so
 - `OpenDataSUS` (`doses_aplicadas_pni`, `zikavirus`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, `febre_amarela`, and DEMAS sources generated from the local Swagger catalog)
 - `NASA POWER` (`nasa_power`) — global climate/meteorological series from `power.larc.nasa.gov`
 - `NASA FIRMS` (`nasa_firms`) — active-fire detections from `firms.modaps.eosdis.nasa.gov` (requires a free MAP_KEY)
+- `NASA GPM IMERG` (`nasa_gpm`) — daily precipitation point series from GES DISC OPeNDAP (`gpm1.gesdisc.eosdis.nasa.gov`; requires an Earthdata token; experimental)
 
 Current version: `0.5.2`
 
@@ -168,6 +169,8 @@ High-level summary:
   Single-point climate series from the NASA POWER API. Collection uses `latitude`, `longitude`, `start_date`, `end_date`, `parameters`, and `temporal` (`daily`/`monthly`); technical controls include `community`, `keep_raw`, `timeout`, and `api_base_url`; optional export uses `csv`, `parquet`, or `sqlite`. No authentication or extra dependency required.
 - `nasa_firms`
   Active-fire detections from the NASA FIRMS API. Collection uses `start_date`, `end_date`, `product` (FIRMS source product), and `country` (default `BRA`) or an optional `area` bounding box; long windows are chunked into 10-day requests. Requires a free MAP_KEY supplied via the `GUARACI_FIRMS_MAP_KEY` environment variable (never a job parameter); optional export uses `csv`, `parquet`, or `sqlite`.
+- `nasa_gpm`
+  Daily GPM IMERG precipitation for a single point, via GES DISC OPeNDAP subsetting (no HDF5/NetCDF parsing, no extra dependency). Collection uses `latitude`, `longitude`, `start_date`, `end_date`, and `variable`; one request per day (window capped at ~1 year). Requires an Earthdata Login token via the `GUARACI_EARTHDATA_TOKEN` environment variable (never a job parameter) and the account must authorize the "NASA GESDISC DATA ARCHIVE" application. Experimental; optional export uses `csv`, `parquet`, or `sqlite`.
 
 OpenDataSUS naming rule:
 - Use canonical source names returned by `GET /sources`; aliases are not supported.

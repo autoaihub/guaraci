@@ -59,6 +59,36 @@
 - Live-unvalidated pending a free MAP_KEY (mock-tested only); endpoint paths and
   CSV handling follow the documented FIRMS API.
 
+### Added — NASA GPM IMERG precipitation source (`nasa_gpm`)
+- New `NasaGesDiscClient` (in `guaraci/nasa/client.py`) and `NasaGpmDataSource`
+  (`guaraci/nasa/gpm.py`) integrating GES DISC GPM IMERG daily precipitation via
+  **OPeNDAP point subsetting** — one grid cell per day through an `.ascii`
+  constraint, so it never downloads or parses HDF5/NetCDF and adds **no new
+  runtime dependency** (stdlib only), mirroring `nasa_power`'s point-series shape.
+- Registered the `nasa_gpm` source (`mode = "nasa gpm api"`) via the shared
+  `NasaDownloadSource` adapter + `_normalize_nasa_gpm_params`. Schema:
+  `latitude`, `longitude`, `start_date`, `end_date`, `variable` (curated IMERG
+  variables), `product` (`daily`), `keep_raw`, `timeout`, `api_base_url`,
+  `output_dir`, `output_format`. The window is capped at ~1 year (one request
+  per day).
+- The client preserves the EDL bearer token across the GES DISC -> URS OAuth
+  redirect (urllib drops `Authorization` cross-host by default), converts the
+  IMERG fill sentinel to null, and parses the OPeNDAP ASCII grid grammar.
+- **Security:** the Earthdata token is read only from the
+  `GUARACI_EARTHDATA_TOKEN` environment variable — never a job parameter (job
+  params are persisted to disk), never written to the manifest, and redacted
+  from client error messages.
+- **EXPERIMENTAL / live-data-unvalidated:** the OPeNDAP contract (endpoint,
+  granule naming, grid layout, index formula, ASCII grammar) was validated with
+  a real Earthdata token, but a successful *data* response also requires the
+  account to authorize the "NASA GESDISC DATA ARCHIVE" application at
+  urs.earthdata.nasa.gov; until then data returns a clean, actionable HTTP 401.
+  The parser/pipeline are covered by tests against the documented ASCII format.
+- Tests: `tests/test_nasa_gpm_client.py`, `tests/test_nasa_gpm_datasource.py`,
+  `tests/test_nasa_gpm_service.py`, plus jobs-integration and an API schema check
+  (30 new tests). Docs: `README.md`, `docs/ARCHITECTURE.md` (§3.1, §7.6),
+  `docs/SOURCES_AND_FILTERS.md` (§2, §3.11), `docs/PLANO_GPM_IMERG.md` (§9).
+
 ## [0.5.2] - 2026-05-28
 
 ### Entradas principais

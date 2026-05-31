@@ -6,7 +6,7 @@ Guaraci uses a layered architecture:
 
 1. `datasources`
    Implement data source-specific download and read logic.
-   Examples: `SnisDataSource`, `SinisaDataSource`, `SinanDataSource`, `SimDataSource`, `SihDataSource`, `OpenDataSUSDataSource`, `NasaPowerDataSource`, and `NasaFirmsDataSource`.
+   Examples: `SnisDataSource`, `SinisaDataSource`, `SinanDataSource`, `SimDataSource`, `SihDataSource`, `OpenDataSUSDataSource`, `NasaPowerDataSource`, `NasaFirmsDataSource`, and `NasaGpmDataSource`.
 2. `services/downloads`
    Registers supported sources, declares source parameter schemas, validates and normalizes input, and adapts source results to `JobResult`.
 3. `services/jobs`
@@ -38,7 +38,7 @@ Adapter types:
 - `GovBrDownloadSource` for `gov.br` crawlers (`snis`, `sinisa`)
 - `PysusDownloadSource` for PySUS/FTP flows (`sinan`, `sim`, `sih`)
 - `OpenDataSUSDownloadSource` for the OpenDataSUS API (`doses_aplicadas_pni`, `zikavirus`, and generated DEMAS sources)
-- `NasaDownloadSource` for NASA APIs (`nasa_power`, `nasa_firms`)
+- `NasaDownloadSource` for NASA APIs (`nasa_power`, `nasa_firms`, `nasa_gpm`)
 
 ### 3.2 `DownloadJobService`
 
@@ -178,6 +178,24 @@ These events feed:
   persisted to the manifest); it is also redacted from client error messages
 - `keep_raw` writes the raw CSV; optional export uses `csv`, `parquet`, or
   `sqlite` within the same jobs/UI flow
+
+### 7.6 NASA GPM IMERG source (`nasa_gpm`)
+
+- Extract a single grid cell of daily GPM IMERG precipitation per day from the
+  GES DISC OPeNDAP server (`gpm1.gesdisc.eosdis.nasa.gov`) using an `.ascii`
+  constraint — **no HDF5/NetCDF download or parsing, no heavy dependency**
+  (stdlib only), mirroring `nasa_power`'s point-series shape
+- One OPeNDAP request per day across the window (capped at ~1 year); the
+  OPeNDAP ASCII grid grammar is parsed to a tidy table and the IMERG fill
+  sentinel becomes null
+- `NasaGesDiscClient` preserves the Earthdata bearer token across the GES DISC
+  -> URS OAuth redirect (urllib drops `Authorization` cross-host by default)
+- Credential handling: the Earthdata token is read only from
+  `GUARACI_EARTHDATA_TOKEN` (never a job parameter, never in the manifest,
+  redacted from errors)
+- **Experimental:** data access also requires the account to authorize the
+  "NASA GESDISC DATA ARCHIVE" application in the Earthdata profile; until then
+  data requests return a clean, actionable HTTP 401 (see `PLANO_GPM_IMERG.md`)
 
 ## 8. Persistence and Recovery
 

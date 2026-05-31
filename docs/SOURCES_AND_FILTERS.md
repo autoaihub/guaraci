@@ -37,6 +37,9 @@ they expose more convenient query layers.
   global meteorological/solar series; no third-party mirror involved)
 - `nasa_firms` (`nasa firms api`) — primary: `firms.modaps.eosdis.nasa.gov`
   (NASA FIRMS active-fire detections; requires a free MAP_KEY)
+- `nasa_gpm` (`nasa gpm api`) — primary: `gpm1.gesdisc.eosdis.nasa.gov`
+  (NASA GPM IMERG daily precipitation via GES DISC OPeNDAP; requires an
+  Earthdata token; experimental)
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -253,6 +256,39 @@ NASA FIRMS notes:
   `firms_product` column recording the selected product.
 - `NRT` products are near-real-time; `SP` products are standard-processing
   (archive) and lag by a longer interval.
+
+### 3.11 NASA GPM IMERG (`nasa_gpm`)
+
+Daily GPM IMERG precipitation for a single point, via GES DISC OPeNDAP
+subsetting (no HDF5/NetCDF download or parsing; no extra dependency).
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `latitude` | string | coleta | Point latitude, decimal degrees (`-90` to `90`); e.g. `-23.55` |
+| `longitude` | string | coleta | Point longitude, decimal degrees (`-180` to `180`); e.g. `-46.63` |
+| `start_date` | string | coleta | Window start (`YYYY-MM-DD`); one request per day, window capped at ~1 year |
+| `end_date` | string | coleta | Window end (`YYYY-MM-DD`) |
+| `variable` | string | coleta | IMERG variable: `precipitation` (default), `MWprecipitation`, `randomError`, `precipitation_cnt` |
+| `product` | string | coleta | Temporal product; only `daily` (GPM_3IMERGDF V07) for now |
+| `keep_raw` | boolean | tecnica | Save the raw OPeNDAP ASCII responses; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional GES DISC OPeNDAP base URL override |
+
+NASA GPM notes:
+- **Earthdata token required and is a credential.** It is read only from the
+  `GUARACI_EARTHDATA_TOKEN` environment variable — never a job parameter and
+  never written to the manifest. Generate one at `https://urs.earthdata.nasa.gov`.
+- **The account must authorize the "NASA GESDISC DATA ARCHIVE" application**
+  (urs.earthdata.nasa.gov -> Applications -> Authorized Apps). Without it, data
+  requests return HTTP 401 even with a valid token. This is the current
+  experimental gate; the OPeNDAP contract itself is validated.
+- Output is a tidy table: `date`, `year`, `month`, `day`, `latitude`,
+  `longitude`, and the requested `variable`; the IMERG fill value becomes null.
+- Half-hourly and monthly products are not exposed yet (daily only); the
+  Giovanni time-series API was evaluated and rejected (server-side 500s) — see
+  `docs/PLANO_GPM_IMERG.md`.
 
 ## 4. UI and API Versus Direct CLI
 
