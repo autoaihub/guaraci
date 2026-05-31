@@ -115,6 +115,14 @@
 - Tests: full suite 319 passed, 3 skipped (opt-in live FTP smoke + Docker-specific). The two failures in `tests/test_sinan_datasource.py` (`test_sinan_download_uses_single_worker`, `test_download_file_safe_closes_ftp_singleton`) are pre-existing — they reference `ThreadPoolExecutor`/`_download_file_safe`, already absent from `sinan.py` before this branch — and are unrelated to this migration; flagged for separate cleanup.
 - Gates pendentes: bit-exact parity vs PySUS and 1 week of opt-in production validation were NOT met before the default flip; the flip was authorized anyway and is reversible via a single env var (`GUARACI_DATASUS_BACKEND=pysus`) or by reverting `DEFAULT_BACKEND` in `guaraci/datasus/backend.py`.
 
+### DATASUS: 11 more systems via direct FTP (PLANO_DATASUS_FTP_DIRETO phase 5)
+- Extended the direct-FTP integration beyond SIH/SIM/SINAN to eleven more DATASUS microdata systems: `sinasc`, `sia` (SIA-SUS ambulatorial), `cnes`, `pni` (historical SI-PNI), `ciha`, `cih`, `siscan`, `sisprenatal`, `resp`, `pce`, and `painel_oncologia`. All FTP-only (no PySUS legacy path).
+- New spec-driven engine: `guaraci/datasus/ftp/specs.py` (one `SystemSpec` per system — filename regex + FTP paths + dimension flags), a generic `discover_spec`, plain-`.DBF` decoding in `dbc.py` (PNI ships uncompressed DBF), and `generic_backend`. Paths and group sets (SIA's 14 groups, CNES's 13, PNI's CPNI/DPNI) were confirmed by live FTP recon, not guessed.
+- One generic `FtpDataSource` (parametrised by spec) plus registration of all eleven as platform sources (`mode = "datasus ftp"`), reachable via `/sources`, `/sources/{source}/schema`, `/jobs`, the UI, and a new generic `guaraci datasus` CLI (`list` / `download` / `discover`).
+- Discovery preflight extended to all eleven (file count + by-group/by-state, no download) via `POST /sources/{source}/discovery`, `DownloadService.discover()`, and `guaraci datasus discover` — important before pulling large systems like SIA. `fetch_sizes` is off by default so the preflight never issues thousands of `SIZE` round-trips.
+- Tests: ~70 offline tests (specs, discovery layouts/dispatch, DBF decode, generic backend, datasource, registry, CLI, API) plus an opt-in live smoke (`tests/test_ftp_smoke_phase5.py`, `GUARACI_FTP_SMOKE=1`) that downloads+decodes the oncology panel (`.dbc`) and PNI (`.DBF`) against the real server. Full suite is green; the previously-failing stale `tests/test_sinan_datasource.py` tests were rewritten to cover the current legacy path, and the new modules are mypy-clean.
+- Scope/exclusions: collection params only for now (no per-field export refinements yet); `CMD` (no accessible microdata on the FTP) and `ANS` (private-insurance, out of public-health-microdata scope) were deliberately excluded.
+
 ## [0.5.1] - 2026-05-26
 
 ### Fixed

@@ -15,6 +15,8 @@ from loguru import logger
 from guaraci.core.contracts import DownloadManifest, SourceParameterSpec, validate_source_params
 from guaraci.core.results import JobResult
 from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
+from guaraci.datasus.ftp import specs as ftp_specs
+from guaraci.datasus.ftp_source import FtpDataSource
 from guaraci.nasa import (
     NasaFirmsDataSource,
     NasaGpmDataSource,
@@ -441,6 +443,14 @@ class PysusDownloadSource:
                     postprocess_kwargs=postprocess_kwargs,
                 )
             )
+        elif source in _FTP_SOURCE_NAMES:
+            exported.extend(
+                self._export_ftp(
+                    datasource=datasource,
+                    output_format=output_format,
+                    download_kwargs=download_kwargs,
+                )
+            )
         return exported
 
     @staticmethod
@@ -577,6 +587,38 @@ class PysusDownloadSource:
                 )
                 continue
         return exported
+
+    def _export_ftp(
+        self,
+        *,
+        datasource: Any,
+        output_format: str,
+        download_kwargs: Mapping[str, object],
+    ) -> List[str]:
+        """Generic export for the phase-5 FTP sources.
+
+        These sources have no bespoke per-field refinement filters, so the
+        export simply combines every downloaded group into one frame and
+        writes a single file in the requested format.
+        """
+        start_year = int(download_kwargs.get("start_year", datetime.now().year))
+        end_year = int(download_kwargs.get("end_year", start_year))
+        try:
+            df = datasource.load_dataframe()
+            exported_path = datasource.export(
+                df,
+                format=output_format,
+                name=f"{self.descriptor.source}_{start_year}_{end_year}",
+            )
+            return [str(exported_path)] if exported_path is not None else []
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Failed to export {} to format '{}': {}",
+                self.descriptor.source,
+                output_format,
+                exc,
+            )
+            return []
 
 
 class OpenDataSUSDownloadSource:
@@ -2168,6 +2210,10 @@ class DownloadService:
                 ],
                 normalize_params=_normalize_sih_params,
             ),
+            *[
+                _build_ftp_source(spec, last_year=last_year, uf_values=uf_values)
+                for spec in ftp_specs.ALL_SPECS
+            ],
             NasaDownloadSource(
                 descriptor=SourceDescriptor(
                     source="nasa_power",
@@ -2592,7 +2638,24 @@ class DownloadService:
 
     def discover(self, source: str, **kwargs: object) -> Dict[str, object]:
         self.validate_source_params(source=source, params=kwargs)
-        if source != "sih":
+        key = self._normalize_source_name(source)
+
+        if key in _FTP_SOURCE_NAMES:
+            prepared = _normalize_ftp_params(dict(kwargs))
+            output_dir = prepared.pop("output_dir", None)
+            prepared.pop("output_format", None)
+            spec = ftp_specs.get_spec(key)
+            datasource = FtpDataSource(spec, output_path=output_dir)
+            return dict(
+                datasource.discover(
+                    start_year=int(prepared["start_year"]),
+                    end_year=int(prepared["end_year"]),
+                    groups=prepared.get("groups"),  # type: ignore[arg-type]
+                    states=prepared.get("states"),  # type: ignore[arg-type]
+                )
+            )
+
+        if key != "sih":
             raise ValueError(f"Discovery is not supported for source '{source}'.")
 
         prepared = _normalize_sih_params(dict(kwargs))
@@ -2667,6 +2730,107 @@ def _normalize_sinan_params(params: Dict[str, object]) -> Dict[str, object]:
     if isinstance(uf, str):
         normalized["uf"] = uf.strip().upper()
     return normalized
+
+
+_FTP_SOURCE_NAMES = frozenset(spec.name for spec in ftp_specs.ALL_SPECS)
+
+
+def _normalize_ftp_params(params: Dict[str, object]) -> Dict[str, object]:
+    """Normalise params for the phase-5 generic FTP DATASUS sources."""
+    normalized = dict(params)
+    for key in ("groups", "states"):
+        value = normalized.get(key)
+        if isinstance(value, list):
+            normalized[key] = [
+                str(item).strip().upper() for item in value if str(item).strip()
+            ]
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+    return normalized
+
+
+def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "PysusDownloadSource":
+    """Build a ``PysusDownloadSource`` adapter for one phase-5 FTP system spec.
+
+    The schema is derived from the spec's dimensions: every source exposes
+    ``start_year``/``end_year``; only systems with selectable groups expose
+    ``groups``; only state-level systems expose ``states``.
+    """
+    schema = [
+        SourceParameterSpec(
+            name="output_dir",
+            phase="tecnica",
+            param_type="string",
+            description="Output directory for downloaded files.",
+            required=False,
+            default=None,
+        ),
+        SourceParameterSpec(
+            name="output_format",
+            phase="exportacao",
+            param_type="string",
+            description="Optional export format for processed datasets.",
+            required=False,
+            default=None,
+            allowed_values=EXPORT_FORMAT_VALUES,
+        ),
+        SourceParameterSpec(
+            name="start_year",
+            phase="coleta",
+            param_type="integer",
+            description="Starting year for file discovery.",
+            required=True,
+            default=last_year,
+            minimum=spec.min_year,
+            maximum=last_year,
+        ),
+        SourceParameterSpec(
+            name="end_year",
+            phase="coleta",
+            param_type="integer",
+            description="Ending year for file discovery.",
+            required=True,
+            default=last_year,
+            minimum=spec.min_year,
+            maximum=last_year,
+        ),
+    ]
+    if spec.groups:
+        schema.append(
+            SourceParameterSpec(
+                name="groups",
+                phase="coleta",
+                param_type="string_list",
+                description=f"{spec.title} groups to download.",
+                required=False,
+                default=list(spec.default_groups),
+                allowed_values=list(spec.groups),
+            )
+        )
+    if spec.has_state:
+        schema.append(
+            SourceParameterSpec(
+                name="states",
+                phase="coleta",
+                param_type="string_list",
+                description="UF filter list.",
+                required=False,
+                default=None,
+                allowed_values=uf_values,
+            )
+        )
+
+    def _factory(output_path=None, _spec=spec):
+        return FtpDataSource(_spec, output_path=output_path)
+
+    return PysusDownloadSource(
+        descriptor=SourceDescriptor(source=spec.name, title=spec.title, mode="datasus ftp"),
+        datasource_cls=_factory,
+        params_schema=schema,
+        normalize_params=_normalize_ftp_params,
+    )
 
 
 def _normalize_sim_params(params: Dict[str, object]) -> Dict[str, object]:

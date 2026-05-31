@@ -103,4 +103,5 @@ def download(
                 progress_callback=progress_callback,
             )
 
-    return run_coro(_impl())
+    result: Dict[str, Any] = run_coro(_impl())
+    return result

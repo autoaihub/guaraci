@@ -469,3 +469,68 @@ igualdade bit-exata vs PySUS e 1 semana de validação operacional não
 foram cumpridas. O flip foi autorizado mesmo assim; rollback =
 `GUARACI_DATASUS_BACKEND=pysus` (enquanto o extra `datasus-legacy`
 existir) ou reverter `DEFAULT_BACKEND`.
+
+## 14. Execução da fase 5 — expansão de cobertura (2026-05-30)
+
+> **Nota de nomenclatura.** Esta "fase 5" é uma frente **nova**, autorizada
+> pelo operador ("integre isso tudo do ftp"): estende a conexão direta-FTP
+> para **além** de SIH/SIM/SINAN. É ortogonal à "Fase 5 — Remoção do legado"
+> do §6 (que continua pendente e seria melhor numerada como Fase 6). Código
+> e commits chamam esta expansão de `phase 5`.
+
+Recon ao vivo em `ftp.datasus.gov.br/dissemin/publicos/` (2026-05-30)
+mapeou 25 diretórios; os caminhos, padrões de nome e conjuntos de grupos
+(14 do SIA, 13 do CNES, CPNI/DPNI do PNI) foram **confirmados no servidor,
+não chutados**. Onze sistemas de microdados foram integrados:
+
+| source | Caminho FTP | Padrão | Dimensões |
+|--------|-------------|--------|-----------|
+| `sinasc` | `/SINASC/NOV/DNRES` | `DN<UF><AAAA>.dbc` | UF, anual |
+| `sia` | `/SIASUS/{199407_200712,200801_}/Dados` | `<GRP><UF><AAMM>.dbc` | 14 grupos, UF, mensal |
+| `cnes` | `/CNES/200508_/Dados/<GRP>` | `<GRP><UF><AAMM>.dbc` | 13 grupos (subdir), UF, mensal |
+| `pni` | `/PNI/DADOS` | `CPNI\|DPNI<UF><AA>.DBF` | 2 grupos, UF, anual, **.DBF** |
+| `ciha` | `/CIHA/201101_/Dados` | `CIHA<UF><AAMM>.dbc` | UF, mensal |
+| `cih` | `/CIH/200801_201012/Dados` | `CR<UF><AAMM>.dbc` | UF, mensal (legado) |
+| `siscan` | `/SISCAN/{SISCOLO4,SISMAMA}/Dados` | `CC\|CM<UF><AAMM>.dbc` | 2 grupos, UF, mensal |
+| `sisprenatal` | `/SISPRENATAL/201201_/Dados` | `PN<UF><AAMM>.dbc` | UF, mensal |
+| `resp` | `/RESP/DADOS` | `RESP<UF><AA>.dbc` | UF, anual |
+| `pce` | `/PCE/Dados` | `PCE<UF><AA>.dbc` | UF, anual |
+| `painel_oncologia` | `/painel_oncologia/Dados` | `POBR<AAAA>.dbc` | nacional, anual |
+
+**Excluídos** (registrado como decisão): `CMD` (diretório `Dados` vazio —
+sem microdados acessíveis via FTP) e `ANS` (saúde suplementar/privada,
+fora do escopo de microdados de saúde pública). `TABNET/TABWIN/TABDOS`,
+`IBGE`, `Pesquisas`, `Dados_Abertos` são ferramentas/denominadores, não
+microdados.
+
+Em vez de um módulo bespoke por sistema (como SIH/SIM/SINAN nas fases
+1–3), os onze viram **specs declarativas** consumidas por um motor
+genérico:
+
+| Arquivo | Função |
+|---------|--------|
+| `guaraci/datasus/ftp/specs.py` | `SystemSpec` (regex + paths + flags) + as 11 specs |
+| `guaraci/datasus/ftp/discovery.py` (+`discover_spec`) | discovery genérico (layout `roots` ou `group_dirs`) |
+| `guaraci/datasus/ftp/dbc.py` (+`.DBF`) | lê `.DBF` direto (PNI), pulando `pyreaddbc` |
+| `guaraci/datasus/ftp/generic_backend.py` | `discover_summary`/`download` por spec |
+| `guaraci/datasus/ftp_source.py` | `FtpDataSource(spec)` — DataSource único FTP-only |
+| `guaraci/services/downloads.py` (+`_build_ftp_source`) | registra os 11 (`mode="datasus ftp"`) |
+| `guaraci/cli/datasus_cli.py` | CLI genérico `guaraci datasus list\|download` |
+
+Os onze nascem **FTP-only** (não há legado PySUS a preservar, então sem
+flag de backend). Ficam acessíveis por `/sources`, `/sources/{source}/schema`,
+`/jobs`, UI e CLI. **56 testes** offline novos + um smoke de discovery ao
+vivo que confirmou todos os 11 specs contra o servidor (ex.: 27 arquivos
+UF para SINASC 2020, 324 = 27×12 para sistemas mensais, 1 arquivo nacional
+no painel de oncologia). Suíte cheia verde exceto as 2 falhas pré-existentes
+do `test_sinan_datasource.py`.
+
+**Escopo MVP**: apenas parâmetros de coleta (sem refinamentos de export
+por campo como `causa_basica` do SIM); o parquet bruto + manifesto são
+materializados e há export genérico para csv/parquet/sqlite. Refinamentos
+por campo, discovery via serviço para esses sources, e centróides
+municipais ficam como follow-up.
+
+**Branch/worktree**: feito em `feat/datasus-ftp-direto`. O trabalho NASA
+(POWER/FIRMS) do operador vive em `feat/nasa-clima`; para não tocar nessa
+working tree, a fase 5 foi finalizada via `git worktree` isolado.

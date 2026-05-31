@@ -8,7 +8,7 @@ phase-3 SIM/SINAN refactor can reuse.
 from __future__ import annotations
 
 import logging
-from typing import Awaitable, Callable, Iterable, Optional, Protocol, Sequence
+from typing import Any, Awaitable, Callable, Iterable, Optional, Protocol, Sequence
 
 from guaraci.datasus.ftp.catalog import (
     FileRecord,
@@ -188,7 +188,7 @@ async def discover_sinan(
 
 async def discover_spec(
     client: _FtpListing,
-    spec,
+    spec: Any,  # duck-typed SystemSpec; annotated Any to avoid an import cycle
     *,
     years: Sequence[int],
     groups: Optional[Sequence[str]] = None,

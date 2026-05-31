@@ -170,6 +170,43 @@ def test_source_discovery_endpoint(client: TestClient, monkeypatch) -> None:
     assert payload["sample"][0]["name"] == "RDAC1901.dbc"
 
 
+def test_source_discovery_endpoint_ftp_source(client: TestClient, monkeypatch) -> None:
+    """Exercise the real FTP service-discover branch (only the FTP backend faked)."""
+    from guaraci.datasus import ftp_source as ftp_source_mod
+
+    def fake_summary(spec, **kwargs):  # noqa: ANN003
+        assert spec.name == "sia"
+        assert kwargs["fetch_sizes"] is False
+        return {
+            "source": "sia",
+            "documents_found": 2,
+            "total_size_bytes": 0,
+            "by_group": {"PA": 2},
+            "by_state": {"SP": 2},
+            "sample": [],
+            "filters": {},
+        }
+
+    monkeypatch.setattr(ftp_source_mod.generic_backend, "discover_summary", fake_summary)
+
+    response = client.post(
+        "/sources/sia/discovery",
+        json={
+            "params": {
+                "start_year": 2024,
+                "end_year": 2024,
+                "groups": ["PA"],
+                "states": ["SP"],
+            }
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["documents_found"] == 2
+    assert payload["by_group"] == {"PA": 2}
+
+
 def test_source_discovery_endpoint_returns_bad_request(client: TestClient, monkeypatch) -> None:
     def fake_discover(source: str, **kwargs):  # noqa: ARG001, ANN003
         raise ValueError("Discovery is not supported")

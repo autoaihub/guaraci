@@ -13,6 +13,7 @@ from guaraci.cli.sinan_cli import sinan
 from guaraci.cli.sim_cli import sim
 from guaraci.cli.sih_cli import sih
 from guaraci.cli.snis_cli import snis
+from guaraci.cli.datasus_cli import datasus
 
 console = Console()
 
@@ -36,6 +37,7 @@ app.add_command(sinan)
 app.add_command(sim)
 app.add_command(sih)
 app.add_command(snis)
+app.add_command(datasus)
 
 
 @app.command()
@@ -49,6 +51,7 @@ def info():
     console.print("• [cyan]sim[/cyan]   - DATASUS mortality information system (SIM)")
     console.print("• [cyan]sih[/cyan]   - DATASUS hospital information system (SIH/SUS)")
     console.print("• [cyan]snis[/cyan]  - SNIS legado (BigQuery) e SINISA cru (gov.br)")
+    console.print("• [cyan]datasus[/cyan] - 11 sistemas DATASUS via FTP direto (SINASC, SIA, CNES, PNI, …)")
     console.print("• [cyan]api[/cyan]   - HTTP API (FastAPI) em guaraci.api.main:app")
     console.print()
     console.print("[bold]Quick Start:[/bold]")
