@@ -72,6 +72,20 @@ Regra de nomenclatura:
    - o usuario devolve a saida relevante
    - o agente interpreta e corrige
 
+### 7.1) Orcamento de tokens e alerta antecipado
+
+1. Antes de mergulhar numa tarefa, estimar o custo aproximado de tokens.
+2. Se a projecao passar de ~70k tokens, **avisar o usuario logo no inicio** (antes de comecar a executar), explicar o porque e oferecer recortes menores. O usuario decide se vale o gasto.
+3. Referencia de calibracao: tarefas bem escopadas (uma feature, um bug, um conjunto de edicoes) custam tipicamente 3k-10k tokens. Estouro muito acima disso quase sempre indica escopo grande demais OU atrito de ambiente (ver 7.2), nao trabalho util.
+4. Para reduzir o custo, o usuario pode: declarar a barra de aceitacao logo no pedido (ex.: "build verde basta, sem screenshot"), apontar os arquivos/caminhos relevantes, e fatiar entregas grandes.
+
+### 7.2) Resiliencia a instabilidade de runtime
+
+1. Se as ferramentas comecarem a falhar de forma intermitente (ex.: `ERR_DLOPEN_FAILED`, flush de chamadas duplicadas, saidas repetidas em bloco), **parar cedo e avisar o usuario** em vez de insistir.
+2. NAO re-disparar comandos pesados (build completo, `grep`/scan de pasta inteira, leitura de arquivos grandes) durante a instabilidade. Cada saida grande fica no contexto e e **re-cobrada em todo turno seguinte** — re-execucao cega multiplica o custo.
+3. Preferir buscas estreitas (arquivo ou linhas especificas) a varreduras de diretorio. Ex.: `grep` em `jobs.py` em vez da pasta `services/` inteira.
+4. Quando o usuario souber que o ambiente esta instavel, sinalizar — o agente muda a tatica e para de tentar furar a "janela" de execucao.
+
 ## 8) Convencoes para comandos PowerShell para o usuario
 
 1. Quando o usuario estiver em Windows ou interoperando com o repositorio local, preferir comandos em PowerShell para tarefas manuais.
