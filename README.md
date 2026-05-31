@@ -136,6 +136,13 @@ docker run --rm -it -v "$(pwd):/app" guaraci \
 # SIH
 docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.sih_cli download 2024 2025 --groups RJ --states RJ --months 1 --format csv
+
+# DATASUS direct-FTP systems (SINASC, SIA, CNES, PNI, CIHA, SISCAN, ...) — phase 5
+docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main datasus list
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.main datasus discover sia 2024 2024 --groups PA   # preflight, no download
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.main datasus download sinasc 2019 2020 --states SP --format parquet
 ```
 
 Note:

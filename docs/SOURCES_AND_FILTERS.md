@@ -45,6 +45,7 @@ they expose more convenient query layers.
 - `pce` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/PCE/`
 - `painel_oncologia` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/painel_oncologia/`
 - The eleven `datasus ftp` systems above connect directly via stdlib `ftplib` (phase 5 of `docs/PLANO_DATASUS_FTP_DIRETO.md`). Collection params: `start_year`/`end_year`, plus `groups` for multi-group systems (SIA, CNES, SISCAN, PNI) and `states` for state-level systems. `CMD` and `ANS` are intentionally not integrated (see the plan).
+- All eleven support discovery preflight (`POST /sources/{source}/discovery` or `guaraci datasus discover <source> <start> <end>`): it returns the file count broken down by group/UF without downloading — recommended before pulling large systems like SIA. File sizes are omitted by default to keep the preflight fast.
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
