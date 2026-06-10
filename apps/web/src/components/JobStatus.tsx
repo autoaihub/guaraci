@@ -48,7 +48,8 @@ export function JobStatusView({ jobId, onClose }: JobStatusViewProps) {
     return <div className="job-status">Carregando job {jobId}…</div>;
   }
 
-  const pct = Math.round((job.progress ?? 0) * 100);
+  // progress já vem em escala 0..100 do backend (guaraci/services/jobs.py).
+  const pct = Math.max(0, Math.min(100, Math.round(job.progress ?? 0)));
   const tone =
     job.status === "completed"
       ? "ok"

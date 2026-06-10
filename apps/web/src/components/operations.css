@@ -1,0 +1,298 @@
+/* Estilos do "console de operador": tira de status (saúde/versão/estado),
+   console de logs e histórico de jobs. Classes prefixadas `op-` para não
+   colidir com styles.css. Paleta alinhada à marca Guaraci (laranja #c84a02,
+   verde/teal #0a7a70, ok #1f7a1f, warn #8e5900, fail #a90033). */
+
+.op-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(23, 27, 32, 0.14);
+  border-radius: 12px;
+  background: #fff8ea;
+  box-shadow: 0 10px 28px rgba(23, 27, 32, 0.08);
+}
+
+.op-header__brand {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #53606d;
+  text-transform: uppercase;
+}
+
+.op-header__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.op-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(23, 27, 32, 0.14);
+  background: rgba(255, 255, 255, 0.74);
+  color: #53606d;
+}
+
+.op-pill--ok {
+  color: #1f7a1f;
+  background: #e8f6e8;
+  border-color: rgba(31, 122, 31, 0.3);
+}
+
+.op-pill--fail {
+  color: #a90033;
+  background: #fde8ef;
+  border-color: rgba(169, 0, 51, 0.3);
+}
+
+.op-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #8e5900;
+  flex: 0 0 auto;
+}
+
+.op-dot--ok {
+  background: #1f7a1f;
+}
+
+.op-dot--fail {
+  background: #a90033;
+}
+
+.op-dot--warn {
+  background: #8e5900;
+}
+
+.op-dot--info {
+  background: #0a7a70;
+}
+
+.op-version {
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 0.76rem;
+  color: #53606d;
+}
+
+/* ---- Console de logs ---- */
+
+.op-logs {
+  margin: 16px 0;
+}
+
+.op-logs__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.op-logs__bar h3,
+.op-jobs__bar h3 {
+  margin: 0;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #53606d;
+}
+
+.op-logs__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.op-logbox {
+  border: 1px solid rgba(23, 27, 32, 0.14);
+  border-radius: 12px;
+  background: #10161d;
+  color: #f5f7fa;
+  padding: 10px;
+  height: 220px;
+  overflow: auto;
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.op-logline {
+  display: block;
+}
+
+.op-logline__ts {
+  color: #7c8a99;
+}
+
+.op-logline--error {
+  color: #ff9aa2;
+}
+
+.op-logline--warning {
+  color: #ffd479;
+}
+
+.op-logline--info {
+  color: #cfe8e4;
+}
+
+/* ---- Histórico de jobs ---- */
+
+.op-jobs {
+  margin: 16px 0;
+}
+
+.op-jobs__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.op-table-wrap {
+  border: 1px solid rgba(23, 27, 32, 0.14);
+  border-radius: 12px;
+  overflow: auto;
+  max-height: 360px;
+  background: #fff;
+}
+
+.op-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.op-table th,
+.op-table td {
+  text-align: left;
+  padding: 7px 9px;
+  border-bottom: 1px solid rgba(23, 27, 32, 0.14);
+  vertical-align: top;
+}
+
+.op-table th {
+  position: sticky;
+  top: 0;
+  background: #fdf5e4;
+  color: #53606d;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.7rem;
+  z-index: 1;
+}
+
+.op-table tr.op-row--selected {
+  background: #fff4d5;
+}
+
+.op-mono {
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 0.76rem;
+  word-break: break-all;
+}
+
+.op-status--ok {
+  color: #1f7a1f;
+  font-weight: 700;
+}
+
+.op-status--fail {
+  color: #a90033;
+  font-weight: 700;
+}
+
+.op-status--warn {
+  color: #8e5900;
+  font-weight: 700;
+}
+
+.op-status--info {
+  color: #0a7a70;
+  font-weight: 700;
+}
+
+.op-btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 5px 9px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: #5a6673;
+  transition: background 0.12s ease;
+}
+
+.op-btn:hover {
+  background: #46505a;
+}
+
+.op-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.op-btn--accent {
+  background: #c84a02;
+}
+
+.op-btn--accent:hover {
+  background: #a53e00;
+}
+
+.op-btn--warn {
+  background: #8e5900;
+}
+
+.op-btn--warn:hover {
+  background: #724800;
+}
+
+.op-btn--ghost {
+  background: #2f3944;
+}
+
+.op-btn--ghost:hover {
+  background: #1f272f;
+}
+
+.op-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.op-empty {
+  padding: 14px;
+  color: #53606d;
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+.op-note {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background: #fff9e8;
+  border: 1px dashed rgba(23, 27, 32, 0.14);
+  font-size: 0.82rem;
+  color: #2b3844;
+  word-break: break-word;
+}
