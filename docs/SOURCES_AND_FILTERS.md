@@ -44,7 +44,7 @@ they expose more convenient query layers.
 - `resp` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/RESP/`
 - `pce` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/PCE/`
 - `painel_oncologia` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/painel_oncologia/`
-- The eleven `datasus ftp` systems above connect directly via stdlib `ftplib` (phase 5 of `docs/PLANO_DATASUS_FTP_DIRETO.md`). Collection params: `start_year`/`end_year`, plus `groups` for multi-group systems (SIA, CNES, SISCAN, PNI) and `states` for state-level systems. `CMD` and `ANS` are intentionally not integrated (see the plan).
+- The eleven `datasus ftp` systems above connect directly via stdlib `ftplib` (phase 5 of the direct-FTP migration). Collection params: `start_year`/`end_year`, plus `groups` for multi-group systems (SIA, CNES, SISCAN, PNI) and `states` for state-level systems. `CMD` and `ANS` are intentionally not integrated.
 - All eleven support discovery preflight (`POST /sources/{source}/discovery` or `guaraci datasus discover <source> <start> <end>`): it returns the file count broken down by group/UF without downloading — recommended before pulling large systems like SIA. File sizes are omitted by default to keep the preflight fast.
 - `nasa_power` (`nasa power api`) — primary: `power.larc.nasa.gov` (NASA POWER,
   global meteorological/solar series; no third-party mirror involved)
@@ -58,7 +58,7 @@ Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
 - The `mode` field on `GET /sources` describes the transport, not the
   publisher. `pysus ftp` means "DATASUS FTP, fetched through PySUS"; the
-  fetch layer may change (see `docs/PLANO_DATASUS_FTP_DIRETO.md`) without
+  fetch layer may change without
   altering the source identity.
 
 ## 3. Parameters by Source
@@ -300,8 +300,7 @@ NASA GPM notes:
 - Output is a tidy table: `date`, `year`, `month`, `day`, `latitude`,
   `longitude`, and the requested `variable`; the IMERG fill value becomes null.
 - Half-hourly and monthly products are not exposed yet (daily only); the
-  Giovanni time-series API was evaluated and rejected (server-side 500s) — see
-  `docs/PLANO_GPM_IMERG.md`.
+  Giovanni time-series API was evaluated and rejected (server-side 500s).
 
 ## 4. UI and API Versus Direct CLI
 

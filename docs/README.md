@@ -18,7 +18,6 @@
 ## Contexto para IA e Planejamento
 
 - [`AI_HANDOFF_OPENDATASUS.md`](AI_HANDOFF_OPENDATASUS.md): contexto atual do OpenDataSUS e runbook para agentes de IA.
-- [`VOGEL_REVIEW.md`](VOGEL_REVIEW.md): revisão arquitetural e plano de melhorias recomendadas pela VogelStack.
 - [`versionamento.md`](versionamento.md): política de versionamento e evolução das fases do produto.
 - [`../CHANGELOG.md`](../CHANGELOG.md): histórico de versões.
 - [`../AGENTS.md`](../AGENTS.md): diretrizes para agentes de IA que atuam neste repositório.

@@ -195,7 +195,7 @@ These events feed:
   redacted from errors)
 - **Experimental:** data access also requires the account to authorize the
   "NASA GESDISC DATA ARCHIVE" application in the Earthdata profile; until then
-  data requests return a clean, actionable HTTP 401 (see `PLANO_GPM_IMERG.md`)
+  data requests return a clean, actionable HTTP 401
 
 ## 8. Persistence and Recovery
 

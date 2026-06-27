@@ -353,6 +353,6 @@ s.addText([
 s.addNotes("Encerramento (0:30 + Q&A). Deixe o contato e os links visíveis durante as perguntas.");
 
 /* ---- write ---- */
-pres.writeFile({ fileName: "C:/Users/luisv/Documents/guaraci-apresentacao/Guaraci-AutoAI-Pandemics.pptx" })
+pres.writeFile({ fileName: "Guaraci-AutoAI-Pandemics.pptx" })
   .then(f => console.log("OK:", f))
   .catch(e => { console.error("ERR:", e); process.exit(1); });

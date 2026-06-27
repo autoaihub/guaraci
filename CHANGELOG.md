@@ -87,7 +87,7 @@
 - Tests: `tests/test_nasa_gpm_client.py`, `tests/test_nasa_gpm_datasource.py`,
   `tests/test_nasa_gpm_service.py`, plus jobs-integration and an API schema check
   (30 new tests). Docs: `README.md`, `docs/ARCHITECTURE.md` (§3.1, §7.6),
-  `docs/SOURCES_AND_FILTERS.md` (§2, §3.11), `docs/PLANO_GPM_IMERG.md` (§9).
+  `docs/SOURCES_AND_FILTERS.md` (§2, §3.11).
 
 ## [0.5.2] - 2026-05-28
 
@@ -104,7 +104,7 @@
 - Still unsupported: local Python execution without Docker remains WIP.
 - Operational note: `vogel-stack` commit `d54e529` was pushed before syncing/pushing the Guaraci parent repository.
 
-### DATASUS: direct-FTP backend (PLANO_DATASUS_FTP_DIRETO phases 1-4)
+### DATASUS: direct-FTP backend (phases 1-4)
 - Added a direct DATASUS FTP layer under `guaraci/datasus/ftp/` (`client`, `catalog`, `discovery`, `dbc`, shared `orchestration`, and per-source `sih_backend`/`sim_backend`/`sinan_backend`) built on stdlib `ftplib` + `pyreaddbc`/`dbfread`, replacing the ~20 transitive dependencies of `pysus[dbc]` with 2 packages while keeping the same primary source (`ftp.datasus.gov.br`).
 - SIH, SIM, and SINAN now select their backend via `GUARACI_DATASUS_BACKEND={ftp|pysus}`, resolved by the shared dependency-free selector `guaraci/datasus/backend.py`.
 - **Default backend flipped to `ftp`** (phase 4): the `datasus` extra now installs only `pyreaddbc` + `dbfread`. The legacy PySUS path stays installable for one release via the new `datasus-legacy` extra and selectable via `GUARACI_DATASUS_BACKEND=pysus`. This supersedes the earlier same-version note above about requiring `pysus[dbc]` in Docker builds.
@@ -115,7 +115,7 @@
 - Tests: full suite 319 passed, 3 skipped (opt-in live FTP smoke + Docker-specific). The two failures in `tests/test_sinan_datasource.py` (`test_sinan_download_uses_single_worker`, `test_download_file_safe_closes_ftp_singleton`) are pre-existing — they reference `ThreadPoolExecutor`/`_download_file_safe`, already absent from `sinan.py` before this branch — and are unrelated to this migration; flagged for separate cleanup.
 - Gates pendentes: bit-exact parity vs PySUS and 1 week of opt-in production validation were NOT met before the default flip; the flip was authorized anyway and is reversible via a single env var (`GUARACI_DATASUS_BACKEND=pysus`) or by reverting `DEFAULT_BACKEND` in `guaraci/datasus/backend.py`.
 
-### DATASUS: 11 more systems via direct FTP (PLANO_DATASUS_FTP_DIRETO phase 5)
+### DATASUS: 11 more systems via direct FTP (phase 5)
 - Extended the direct-FTP integration beyond SIH/SIM/SINAN to eleven more DATASUS microdata systems: `sinasc`, `sia` (SIA-SUS ambulatorial), `cnes`, `pni` (historical SI-PNI), `ciha`, `cih`, `siscan`, `sisprenatal`, `resp`, `pce`, and `painel_oncologia`. All FTP-only (no PySUS legacy path).
 - New spec-driven engine: `guaraci/datasus/ftp/specs.py` (one `SystemSpec` per system — filename regex + FTP paths + dimension flags), a generic `discover_spec`, plain-`.DBF` decoding in `dbc.py` (PNI ships uncompressed DBF), and `generic_backend`. Paths and group sets (SIA's 14 groups, CNES's 13, PNI's CPNI/DPNI) were confirmed by live FTP recon, not guessed.
 - One generic `FtpDataSource` (parametrised by spec) plus registration of all eleven as platform sources (`mode = "datasus ftp"`), reachable via `/sources`, `/sources/{source}/schema`, `/jobs`, the UI, and a new generic `guaraci datasus` CLI (`list` / `download` / `discover`).

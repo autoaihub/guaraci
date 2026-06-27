@@ -14,7 +14,7 @@ Este documento condensa o modelo de operação diária do **Guaraci**, definindo
 
 - **Ambiente Mínimo**: Motor Docker rodando. No Windows, o PowerShell é a interface padronizada para os *launchers* visuais.
 - **Fontes Primárias Suportadas** (em linha com o princípio 20 do `vogel-stack`):
-  - **DATASUS FTP** (`ftp.datasus.gov.br`) — SIH, SIM, SINAN. Desde a v0.5.2 (fase 4 do `docs/PLANO_DATASUS_FTP_DIRETO.md`) a conexão é **FTP direto** por padrão (`ftplib` + `pyreaddbc`/`dbfread`); o caminho PySUS legado segue selecionável por 1 release via `GUARACI_DATASUS_BACKEND=pysus` (extra `datasus-legacy`).
+  - **DATASUS FTP** (`ftp.datasus.gov.br`) — SIH, SIM, SINAN. Desde a v0.5.2 (fase 4 da migração para FTP direto) a conexão é **FTP direto** por padrão (`ftplib` + `pyreaddbc`/`dbfread`); o caminho PySUS legado segue selecionável por 1 release via `GUARACI_DATASUS_BACKEND=pysus` (extra `datasus-legacy`).
   - **OpenDataSUS API** (`opendatasus.saude.gov.br`) — PNI, ZikaVirus, SRAG, dengue, chikungunya, mpox, ESAVI, febre amarela e demais endpoints DEMAS.
   - **gov.br SNIS/SINISA** — crawler dedicado para os módulos de saneamento.
 
