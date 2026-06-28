@@ -151,6 +151,8 @@ docker run --rm -it -v "$(pwd):/app" guaraci \
 docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main fetch list
 docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main fetch schema nasa_power
 docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.main fetch discover sia --set start_year=2024 --set end_year=2024 --sizes   # preflight: file count + size, no download
+docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.main fetch run srag_demas --set start_year=2023 --set end_year=2023 --set uf=SP --format parquet -o ./out
 ```
 

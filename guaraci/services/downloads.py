@@ -2636,7 +2636,9 @@ class DownloadService:
                 return download_with_progress(progress_callback=progress_callback, **kwargs)
         return selected.download(**kwargs)
 
-    def discover(self, source: str, **kwargs: object) -> Dict[str, object]:
+    def discover(
+        self, source: str, *, fetch_sizes: bool = False, **kwargs: object
+    ) -> Dict[str, object]:
         self.validate_source_params(source=source, params=kwargs)
         key = self._normalize_source_name(source)
 
@@ -2652,6 +2654,7 @@ class DownloadService:
                     end_year=int(prepared["end_year"]),
                     groups=prepared.get("groups"),  # type: ignore[arg-type]
                     states=prepared.get("states"),  # type: ignore[arg-type]
+                    fetch_sizes=fetch_sizes,
                 )
             )
 

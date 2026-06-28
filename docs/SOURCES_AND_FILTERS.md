@@ -312,6 +312,9 @@ registered source (DATASUS FTP, OpenDataSUS, NASA, gov.br) from the terminal:
 - `guaraci fetch list` — every registered source.
 - `guaraci fetch schema <source>` — its parameters (name, type, required, default).
 - `guaraci fetch run <source> --set KEY=VALUE ... [--format csv|parquet|sqlite] [-o DIR]`.
+- `guaraci fetch discover <source> --set start_year=… --set end_year=… [--sizes]` —
+  preflight for DATASUS FTP sources: file count broken down by group/UF, plus the
+  total download size with `--sizes`, **without downloading**.
 
 `--set` values are coerced to the type declared by the schema; omit `--format`
 to download/collect without exporting. NASA credentials are read only from the

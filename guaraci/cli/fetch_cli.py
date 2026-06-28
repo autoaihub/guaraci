@@ -6,6 +6,7 @@ single command, with no per-source boilerplate::
 
     guaraci fetch list
     guaraci fetch schema nasa_power
+    guaraci fetch discover sia --set start_year=2024 --set end_year=2024 --sizes
     guaraci fetch run srag_demas --set start_year=2023 --set end_year=2023 \\
         --set uf=SP --format parquet --output-dir ./out
     guaraci fetch run nasa_power --set latitude=-23.55 --set longitude=-46.63 \\
@@ -194,3 +195,75 @@ def run_cmd(
         )
         console.print(f"[yellow]No exported dataset[/yellow] - {warning}")
     console.print(payload)
+
+
+def _human_bytes(value: object) -> str:
+    """Format a byte count as a human-readable string."""
+    try:
+        size = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return str(value)
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if size < 1024 or unit == "TB":
+            return f"{int(size)} B" if unit == "B" else f"{size:.1f} {unit}"
+        size /= 1024
+    return f"{size:.1f} TB"
+
+
+@fetch.command(name="discover")
+@click.argument("source")
+@click.option(
+    "--set",
+    "sets",
+    multiple=True,
+    metavar="KEY=VALUE",
+    help="Source parameter (repeatable), e.g. --set start_year=2024 --set end_year=2024.",
+)
+@click.option(
+    "--sizes",
+    "-S",
+    is_flag=True,
+    default=False,
+    help="Also estimate the total download size (slower: one SIZE call per file).",
+)
+def discover_cmd(source: str, sets: Tuple[str, ...], sizes: bool) -> None:
+    """Preflight SOURCE: count files (and optionally total size) WITHOUT downloading.
+
+    Only DATASUS FTP sources support discovery (sih, sim, sinan, sinasc, sia,
+    cnes, pni, ciha, cih, siscan, sisprenatal, resp, pce, painel_oncologia).
+    """
+    from guaraci.services.downloads import DownloadService
+
+    service = DownloadService()
+    canonical = source.strip().lower()
+    try:
+        schema_params = {
+            param["name"]: param
+            for param in service.get_source_schema(canonical)["params"]
+        }
+    except (KeyError, ValueError) as exc:
+        raise click.BadParameter(str(exc))
+
+    kwargs = _parse_sets(sets, schema_params)
+    try:
+        summary = service.discover(canonical, fetch_sizes=sizes, **kwargs)
+    except (ValueError, NotImplementedError) as exc:
+        raise click.BadParameter(str(exc))
+
+    count = summary.get("documents_found", summary.get("file_count", 0))
+    console.print(
+        f"[bold]{canonical}[/bold]: [cyan]{count}[/cyan] file(s) match (no download)"
+    )
+    total = summary.get("total_size_bytes")
+    if total is not None:
+        console.print(f"  total download size: [cyan]{_human_bytes(total)}[/cyan]")
+    elif sizes:
+        console.print("  total download size: [yellow]not reported[/yellow]")
+    if summary.get("by_group"):
+        console.print(f"  by group: {summary['by_group']}")
+    if summary.get("by_state"):
+        console.print(f"  by state: {summary['by_state']}")
+    if not sizes:
+        console.print(
+            "[dim]  tip: add --sizes to also estimate the total download size[/dim]"
+        )

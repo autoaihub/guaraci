@@ -4,13 +4,18 @@
 
 ### Added — generic `guaraci fetch` CLI (schema-driven, all sources)
 - New `guaraci/cli/fetch_cli.py` registering a `fetch` command group: `fetch list`
-  (every registered source), `fetch schema <source>` (its parameter schema), and
-  `fetch run <source> --set KEY=VALUE … [--format csv|parquet|sqlite] [-o DIR]`.
+  (every registered source), `fetch schema <source>` (its parameter schema),
+  `fetch run <source> --set KEY=VALUE … [--format csv|parquet|sqlite] [-o DIR]`,
+  and `fetch discover <source> --set … [--sizes]` (FTP preflight: file count by
+  group/UF, plus the total download size with `--sizes`, without downloading).
   It drives `DownloadService`, so OpenDataSUS, NASA and gov.br sources are now
   reachable from the CLI (previously only via the API/UI) with no per-source code.
   `--set` values are coerced to the schema-declared type; `--format` is optional
   (omit for download-only); NASA credentials stay environment-only. Tests:
   `tests/test_fetch_cli.py`.
+- `DownloadService.discover()` now accepts a keyword-only `fetch_sizes` flag and
+  forwards it to the FTP datasource, so the preflight can report the total
+  download size (backward-compatible; default `False`).
 
 ### Changed — legacy SNIS BigQuery deps moved to an optional `snis-legacy` extra
 - `google-cloud-bigquery` and `db-dtypes` moved out of the core dependencies (and

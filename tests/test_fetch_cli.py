@@ -145,3 +145,66 @@ def test_fetch_run_explicit_format_is_injected(monkeypatch):
     )
     assert result.exit_code == 0
     assert captured.get("output_format") == "parquet"
+
+
+def test_human_bytes():
+    from guaraci.cli.fetch_cli import _human_bytes
+
+    assert _human_bytes(512) == "512 B"
+    assert _human_bytes(1024) == "1.0 KB"
+    assert _human_bytes(1_572_864) == "1.5 MB"
+    assert _human_bytes(None) == "None"
+
+
+def test_fetch_discover_count_and_size(monkeypatch):
+    from guaraci.services import downloads as downloads_module
+
+    captured: dict = {}
+    monkeypatch.setattr(
+        downloads_module.DownloadService,
+        "get_source_schema",
+        lambda self, source: {
+            "source": source,
+            "title": source,
+            "mode": "datasus ftp",
+            "params": [
+                {"name": "start_year", "type": "integer"},
+                {"name": "end_year", "type": "integer"},
+                {"name": "groups", "type": "string_list"},
+            ],
+        },
+    )
+
+    def _discover(self, source, *, fetch_sizes=False, **kwargs):
+        captured["fetch_sizes"] = fetch_sizes
+        captured.update(kwargs)
+        return {"documents_found": 12, "total_size_bytes": 1_572_864, "by_group": {"PA": 12}}
+
+    monkeypatch.setattr(downloads_module.DownloadService, "discover", _discover)
+    result = CliRunner().invoke(
+        fetch,
+        ["discover", "sia", "--set", "start_year=2024", "--set", "end_year=2024", "--sizes"],
+    )
+    assert result.exit_code == 0
+    assert "12" in result.output
+    assert "1.5 MB" in result.output
+    assert captured["fetch_sizes"] is True
+    assert captured.get("start_year") == 2024
+
+
+def test_fetch_discover_unsupported_source(monkeypatch):
+    from guaraci.services import downloads as downloads_module
+
+    monkeypatch.setattr(
+        downloads_module.DownloadService,
+        "get_source_schema",
+        lambda self, source: {"source": source, "title": source, "mode": "nasa", "params": []},
+    )
+
+    def _discover(self, source, *, fetch_sizes=False, **kwargs):
+        raise ValueError(f"Discovery is not supported for source '{source}'.")
+
+    monkeypatch.setattr(downloads_module.DownloadService, "discover", _discover)
+    result = CliRunner().invoke(fetch, ["discover", "nasa_power"])
+    assert result.exit_code != 0
+    assert "not supported" in result.output.lower()
