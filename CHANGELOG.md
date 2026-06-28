@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Changed — DATASUS sources can now collect the in-progress current year
+- The DATASUS microdata sources (SIH, SIM, SINAN, and the 11 spec-driven FTP
+  systems) previously capped collection at the last complete year
+  (`current_year - 1`), in both the parameter schema (`maximum`) and the
+  runtime year resolution. They now accept the current year as well, so a
+  surveillance pipeline can pull the in-progress season (e.g. requesting
+  `end_year=2026` during 2026). Only genuinely future years are clamped, back
+  to the current year (was: silently reduced to `current_year - 1`).
+- Defaults are unchanged (`default=last_year`), so callers that don't override
+  the range still get the last complete year. Current-year data is logged as
+  potentially partial, reflecting the DATASUS publication lag (~2–3 months).
+- Other sources (NASA, OpenDataSUS, gov.br) already allowed the current year;
+  this aligns the DATASUS FTP layer with them.
+
 ## [0.6.0] - 2026-06-28
 
 ### Added — source validation + data dictionary (`fetch fields`)

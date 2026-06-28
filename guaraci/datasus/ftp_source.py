@@ -112,9 +112,16 @@ class FtpDataSource(DataSource):
 
     def _resolve_years(self, start_year: int, end_year: int) -> List[int]:
         current_year = datetime.datetime.now().year
-        if end_year >= current_year:
-            logger.warning(f"End year {end_year} adjusted to {current_year - 1}")
-            end_year = current_year - 1
+        if end_year > current_year:
+            logger.warning(
+                f"End year {end_year} is in the future; adjusted to {current_year}"
+            )
+            end_year = current_year
+        elif end_year == current_year:
+            logger.info(
+                f"Collecting current year ({current_year}); {self.spec.name} data may "
+                f"be partial due to DATASUS publication lag"
+            )
         if start_year < self.spec.min_year:
             logger.warning(
                 f"Start year {start_year} is before {self.spec.name} data begins "

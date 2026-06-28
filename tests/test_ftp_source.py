@@ -87,7 +87,9 @@ def test_national_spec_drops_states(fake_backend, tmp_path) -> None:
     assert fake_backend["download"]["states"] is None
 
 
-def test_resolve_years_clamps_end_to_last_year(fake_backend, tmp_path, monkeypatch) -> None:
+def test_resolve_years_allows_current_and_clamps_future(
+    fake_backend, tmp_path, monkeypatch
+) -> None:
     real_datetime = datetime.datetime
 
     class FrozenDateTime(real_datetime):
@@ -97,8 +99,14 @@ def test_resolve_years_clamps_end_to_last_year(fake_backend, tmp_path, monkeypat
 
     monkeypatch.setattr(ftp_source_mod.datetime, "datetime", FrozenDateTime)
     ds = FtpDataSource(specs.SINASC, output_path=str(tmp_path))
+
+    # The in-progress current year (2030) is collectable for surveillance.
     ds.download(start_year=2020, end_year=2030)
-    assert fake_backend["download"]["years"] == list(range(2020, 2030))
+    assert fake_backend["download"]["years"] == list(range(2020, 2031))
+
+    # Only genuinely future years (2031) are clamped back to the current year.
+    ds.download(start_year=2020, end_year=2031)
+    assert fake_backend["download"]["years"] == list(range(2020, 2031))
 
 
 def test_resolve_years_clamps_start_to_min_year(fake_backend, tmp_path) -> None:

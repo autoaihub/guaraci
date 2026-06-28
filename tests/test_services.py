@@ -72,6 +72,24 @@ def test_get_source_schema_returns_sinan_fields() -> None:
     assert "ano" not in names
 
 
+def test_datasus_source_schema_allows_current_year() -> None:
+    # Regression: the DATASUS microdata sources used to cap start/end year at
+    # the last complete year (current_year - 1), which rejected requests for
+    # the in-progress season. They now accept the current year; defaults stay
+    # at the last complete year, so collecting the current year is opt-in.
+    import datetime
+
+    current_year = datetime.datetime.now().year
+    service = DownloadService()
+
+    # SIH/SIM/SINAN (bespoke) plus a spec-driven FTP system (sinasc).
+    for source in ("sih", "sim", "sinan", "sinasc"):
+        specs = {item["name"]: item for item in service.get_source_schema(source)["params"]}
+        assert specs["start_year"]["maximum"] == current_year, source
+        assert specs["end_year"]["maximum"] == current_year, source
+        assert specs["end_year"]["default"] == current_year - 1, source
+
+
 def test_get_source_schema_returns_doses_aplicadas_pni_fields() -> None:
     service = DownloadService()
 

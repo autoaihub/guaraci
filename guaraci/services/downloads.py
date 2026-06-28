@@ -1925,7 +1925,7 @@ class DownloadService:
                         required=True,
                         default=last_year,
                         minimum=1990,
-                        maximum=last_year,
+                        maximum=current_year,
                     ),
                     SourceParameterSpec(
                         name="end_year",
@@ -1935,7 +1935,7 @@ class DownloadService:
                         required=True,
                         default=last_year,
                         minimum=1990,
-                        maximum=last_year,
+                        maximum=current_year,
                     ),
                     SourceParameterSpec(
                         name="diseases",
@@ -2032,7 +2032,7 @@ class DownloadService:
                         required=True,
                         default=last_year,
                         minimum=1979,
-                        maximum=last_year,
+                        maximum=current_year,
                     ),
                     SourceParameterSpec(
                         name="end_year",
@@ -2042,7 +2042,7 @@ class DownloadService:
                         required=True,
                         default=last_year,
                         minimum=1979,
-                        maximum=last_year,
+                        maximum=current_year,
                     ),
                     SourceParameterSpec(
                         name="groups",
@@ -2104,7 +2104,7 @@ class DownloadService:
                         required=False,
                         default=None,
                         minimum=1979,
-                        maximum=last_year,
+                        maximum=current_year,
                     ),
                 ],
                 normalize_params=_normalize_sim_params,
@@ -2142,7 +2142,7 @@ class DownloadService:
                         required=True,
                         default=last_year,
                         minimum=1979,
-                        maximum=last_year,
+                        maximum=current_year,
                     ),
                     SourceParameterSpec(
                         name="end_year",
@@ -2152,7 +2152,7 @@ class DownloadService:
                         required=True,
                         default=last_year,
                         minimum=1979,
-                        maximum=last_year,
+                        maximum=current_year,
                     ),
                     SourceParameterSpec(
                         name="groups",
@@ -2761,6 +2761,10 @@ def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "PysusDo
     ``start_year``/``end_year``; only systems with selectable groups expose
     ``groups``; only state-level systems expose ``states``.
     """
+    # The in-progress current year is collectable (partial); only genuinely
+    # future years are out of range. ``last_year`` is ``current_year - 1`` at
+    # the call site, so reconstruct ``current_year`` here for the schema cap.
+    current_year = last_year + 1
     schema = [
         SourceParameterSpec(
             name="output_dir",
@@ -2787,7 +2791,7 @@ def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "PysusDo
             required=True,
             default=last_year,
             minimum=spec.min_year,
-            maximum=last_year,
+            maximum=current_year,
         ),
         SourceParameterSpec(
             name="end_year",
@@ -2797,7 +2801,7 @@ def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "PysusDo
             required=True,
             default=last_year,
             minimum=spec.min_year,
-            maximum=last_year,
+            maximum=current_year,
         ),
     ]
     if spec.groups:

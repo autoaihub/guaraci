@@ -70,9 +70,14 @@ class SimDataSource(DataSource):
         backend = _get_datasus_backend()
 
         current_year = datetime.datetime.now().year
-        if end_year >= current_year:
-            logger.warning(f"End year {end_year} adjusted to {current_year - 1}")
-            end_year = current_year - 1
+        if end_year > current_year:
+            logger.warning(f"End year {end_year} is in the future; adjusted to {current_year}")
+            end_year = current_year
+        elif end_year == current_year:
+            logger.info(
+                f"Collecting current year ({current_year}); SIM data may be partial "
+                f"due to DATASUS publication lag"
+            )
 
         if start_year > end_year:
             raise ValueError(f"Start year ({start_year}) cannot be greater than end year ({end_year})")

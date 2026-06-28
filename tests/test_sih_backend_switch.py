@@ -143,13 +143,13 @@ def test_download_with_ftp_backend_validates_months(monkeypatch, tmp_path) -> No
         ds.download(start_year=2024, end_year=2024, months=[13])
 
 
-def test_download_with_ftp_backend_clamps_current_year(
+def test_download_with_ftp_backend_allows_current_clamps_future(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
     monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     monkeypatch.setenv("GUARACI_FTP_CACHE_DIR", str(tmp_path))
 
-    # Pretend "now" is well within the future to force the clamp.
+    # Freeze "now" so the current year is deterministic.
     import datetime as _dt
 
     real_datetime = _dt.datetime
@@ -162,11 +162,14 @@ def test_download_with_ftp_backend_clamps_current_year(
     monkeypatch.setattr(sih_module.datetime, "datetime", FrozenDateTime)
 
     ds = SihDataSource(output_path=str(tmp_path))
-    ds.download(start_year=2024, end_year=2030)
 
-    kw = fake_ftp_backend["download_kwargs"]
-    # 2030 must be clamped to 2029 (current_year - 1).
-    assert kw["years"] == list(range(2024, 2030))
+    # The in-progress current year (2030) is collectable.
+    ds.download(start_year=2024, end_year=2030)
+    assert fake_ftp_backend["download_kwargs"]["years"] == list(range(2024, 2031))
+
+    # Future years (2031) are clamped back to the current year (2030).
+    ds.download(start_year=2024, end_year=2031)
+    assert fake_ftp_backend["download_kwargs"]["years"] == list(range(2024, 2031))
 
 
 def test_discover_with_ftp_backend_delegates_and_anchors_filters(
