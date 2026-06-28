@@ -38,9 +38,7 @@ dependencies = [
     "click>=8.1.0",
     "rich>=13.7.0",
     "loguru>=0.5.1,<0.7.0",
-    "pandas>=1.5.0",
-    "google-cloud-bigquery>=3.11.0",
-    "db-dtypes>=1.2.0"
+    "pandas>=1.5.0"
 ]
 
 [project.optional-dependencies]
@@ -56,6 +54,12 @@ datasus = [
 # one release to ease rollback; scheduled for removal in a future version.
 datasus-legacy = [
     "pysus>=2.2.0"
+]
+# Legacy SNIS via Base dos Dados (BigQuery). Opt-in; the default SNIS path is the
+# gov.br crawler, so these heavy Google deps are not part of the core install.
+snis-legacy = [
+    "google-cloud-bigquery>=3.11.0",
+    "db-dtypes>=1.2.0"
 ]
 api = [
     "fastapi>=0.104.0",
@@ -77,6 +81,8 @@ full = [
     "pyreaddbc>=2.0.0",
     "dbfread>=2.0.7",
     "pysus>=2.2.0",
+    "google-cloud-bigquery>=3.11.0",
+    "db-dtypes>=1.2.0",
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "httpx>=0.25.0",

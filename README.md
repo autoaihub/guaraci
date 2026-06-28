@@ -146,6 +146,12 @@ docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.main datasus discover sia 2024 2024 --groups PA   # preflight, no download
 docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.main datasus download sinasc 2019 2020 --states SP --format parquet
+
+# Generic, schema-driven fetch for ANY registered source (OpenDataSUS, NASA, gov.br, DATASUS)
+docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main fetch list
+docker run --rm -it -v "$(pwd):/app" guaraci python -m guaraci.cli.main fetch schema nasa_power
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.main fetch run srag_demas --set start_year=2023 --set end_year=2023 --set uf=SP --format parquet -o ./out
 ```
 
 Note:

@@ -366,14 +366,18 @@ class SnisLegacyBigQueryDataSource(DataSource):
 
     @staticmethod
     def _read_sql(sql: str, billing_project_id: str) -> pd.DataFrame:
+        # INVARIANT: keep these google/db-dtypes imports function-local so that
+        # `import guaraci`, DownloadService(), the SNIS CLI, and the tests all
+        # work without the optional `snis-legacy` extra installed. Do not hoist
+        # them to module level.
         try:
             from google.cloud import bigquery  # type: ignore
             from google.oauth2 import service_account  # type: ignore
             from google.auth.exceptions import DefaultCredentialsError  # type: ignore
         except ImportError as exc:  # pragma: no cover - optional dependency
             raise ImportError(
-                "google-cloud-bigquery is required for SNIS BigQuery integration. "
-                "Install with: pip install google-cloud-bigquery"
+                "google-cloud-bigquery is required for the legacy SNIS BigQuery "
+                'integration. Install the optional extra: pip install "guaraci[snis-legacy]"'
             ) from exc
 
         credentials = None

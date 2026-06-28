@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added — generic `guaraci fetch` CLI (schema-driven, all sources)
+- New `guaraci/cli/fetch_cli.py` registering a `fetch` command group: `fetch list`
+  (every registered source), `fetch schema <source>` (its parameter schema), and
+  `fetch run <source> --set KEY=VALUE … [--format csv|parquet|sqlite] [-o DIR]`.
+  It drives `DownloadService`, so OpenDataSUS, NASA and gov.br sources are now
+  reachable from the CLI (previously only via the API/UI) with no per-source code.
+  `--set` values are coerced to the schema-declared type; `--format` is optional
+  (omit for download-only); NASA credentials stay environment-only. Tests:
+  `tests/test_fetch_cli.py`.
+
+### Changed — legacy SNIS BigQuery deps moved to an optional `snis-legacy` extra
+- `google-cloud-bigquery` and `db-dtypes` moved out of the core dependencies (and
+  out of `requirements.txt`) into a new optional extra `snis-legacy`, so
+  `pip install guaraci` / `guaraci[datasus]` no longer pulls the Google stack.
+  They are only needed for the legacy SNIS BigQuery path (`snis download-legacy`),
+  which imports them lazily and now points users to `pip install "guaraci[snis-legacy]"`.
+  The `full` extra still includes them.
+
 ### Added — NASA POWER climate source (`nasa_power`)
 - New `guaraci/nasa/` package integrating the NASA POWER API directly
   (`power.larc.nasa.gov`, no authentication), honoring the primary-source

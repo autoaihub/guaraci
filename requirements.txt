@@ -1,5 +1,7 @@
 # Guaraci Core Dependencies
-# (Optional extras: datasus -> pysus, api -> fastapi/uvicorn/httpx/aiofiles)
+# Optional extras (install via: pip install "guaraci[<extra>]"):
+#   datasus -> pyreaddbc/dbfread · api -> fastapi/uvicorn/httpx/aiofiles
+#   snis-legacy -> google-cloud-bigquery/db-dtypes (legacy SNIS BigQuery path only)
 
 polars>=0.20.0
 pyarrow>=14.0.0
@@ -10,5 +12,3 @@ pydantic-settings>=2.1.0
 click>=8.1.0
 rich>=13.7.0
 loguru>=0.6.0,<0.7.0
-google-cloud-bigquery>=3.11.0
-db-dtypes>=1.2.0

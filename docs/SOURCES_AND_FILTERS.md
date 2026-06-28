@@ -306,6 +306,17 @@ NASA GPM notes:
 
 The jobs UI and API strictly follow the `DownloadService` schema.
 
+The generic CLI group `guaraci fetch` is the schema-driven path to **any**
+registered source (DATASUS FTP, OpenDataSUS, NASA, gov.br) from the terminal:
+
+- `guaraci fetch list` — every registered source.
+- `guaraci fetch schema <source>` — its parameters (name, type, required, default).
+- `guaraci fetch run <source> --set KEY=VALUE ... [--format csv|parquet|sqlite] [-o DIR]`.
+
+`--set` values are coerced to the type declared by the schema; omit `--format`
+to download/collect without exporting. NASA credentials are read only from the
+environment (`GUARACI_FIRMS_MAP_KEY`, `GUARACI_EARTHDATA_TOKEN`), never as flags.
+
 The direct source CLIs (`sinan_cli`, `sim_cli`, `sih_cli`) may still expose historical options.
 Current example:
 - `sih_cli` still includes `--ano` for local dataframe filtering.
