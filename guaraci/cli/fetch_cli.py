@@ -19,6 +19,8 @@ never accepted as flags (they would be persisted to disk).
 """
 from __future__ import annotations
 
+import json
+from importlib import resources
 from typing import Any, Dict, Optional, Tuple
 
 import click
@@ -267,3 +269,50 @@ def discover_cmd(source: str, sets: Tuple[str, ...], sizes: bool) -> None:
         console.print(
             "[dim]  tip: add --sizes to also estimate the total download size[/dim]"
         )
+
+
+def _load_field_dictionary() -> Dict[str, Any]:
+    """Load the shipped per-source field dictionary (guaraci/data/field_dictionary.json)."""
+    try:
+        with resources.files("guaraci").joinpath("data", "field_dictionary.json").open(
+            "r", encoding="utf-8"
+        ) as fh:
+            return json.load(fh)
+    except (FileNotFoundError, ModuleNotFoundError, AttributeError, OSError):
+        return {}
+
+
+@fetch.command(name="fields")
+@click.argument("source")
+def fields_cmd(source: str) -> None:
+    """Show the known OUTPUT field names for SOURCE (from the data dictionary).
+
+    Fields come from a real sample captured by scripts/sample_sources.py and
+    shipped in guaraci/data/field_dictionary.json (point-in-time). For the live
+    filter parameters use 'guaraci fetch schema <source>'.
+    """
+    data = _load_field_dictionary()
+    if not data:
+        raise click.ClickException(
+            "field dictionary not found. Run scripts/sample_sources.py to generate "
+            "guaraci/data/field_dictionary.json."
+        )
+    canonical = source.strip().lower()
+    entry = data.get(canonical)
+    if entry is None:
+        raise click.BadParameter(
+            f"unknown source {source!r} (not in the field dictionary). "
+            "See 'guaraci fetch list'."
+        )
+    console.print(f"[bold]{canonical}[/bold] — status: {entry.get('status')}")
+    if entry.get("filters"):
+        console.print("  [dim]filters:[/dim] " + ", ".join(entry["filters"]))
+    fields = entry.get("fields")
+    if fields:
+        console.print(f"  [dim]fields ({len(fields)}):[/dim]")
+        console.print("    " + ", ".join(fields))
+    else:
+        note = entry.get("note") or (
+            "not sampled yet — run scripts/sample_sources.py to populate fields"
+        )
+        console.print(f"  [yellow]no fields captured[/yellow] — {note}")

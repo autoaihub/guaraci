@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added — source validation + data dictionary (`fetch fields`)
+- `scripts/sample_sources.py` samples each source with tiny windows to validate it
+  works and capture (a) filter parameters and (b) output field names. Results are
+  shipped as `guaraci/data/field_dictionary.json` + `docs/DATA_DICTIONARY.md` (88
+  sources cataloged; 19 field-sampled). New `guaraci fetch fields <source>` prints
+  the known output field names for a source.
+- Findings surfaced by the live sampling (flagged for follow-up): `pni`/`pce`/`siscan`
+  return empty with a `group=None` warning in `load_dataframe` (multi-group/national
+  load path); `mpox` returned an upstream DEMAS HTTP 500; NASA FIRMS/GPM need
+  credentials. The SIH field set was confirmed real (`DT_INTER`/`DT_SAIDA`/`MUNIC_RES`/
+  `DIAG_PRINC` present), validating the Monitoramento ingest column map.
+
 ### Added — generic `guaraci fetch` CLI (schema-driven, all sources)
 - New `guaraci/cli/fetch_cli.py` registering a `fetch` command group: `fetch list`
   (every registered source), `fetch schema <source>` (its parameter schema),

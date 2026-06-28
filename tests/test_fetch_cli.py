@@ -208,3 +208,14 @@ def test_fetch_discover_unsupported_source(monkeypatch):
     result = CliRunner().invoke(fetch, ["discover", "nasa_power"])
     assert result.exit_code != 0
     assert "not supported" in result.output.lower()
+
+
+def test_fetch_fields_known_source():
+    result = CliRunner().invoke(fetch, ["fields", "sih"])
+    assert result.exit_code == 0
+    assert "DT_INTER" in result.output  # SIH always carries the admission-date field
+
+
+def test_fetch_fields_unknown_source():
+    result = CliRunner().invoke(fetch, ["fields", "does_not_exist_xyz"])
+    assert result.exit_code != 0

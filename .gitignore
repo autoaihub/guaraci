@@ -142,7 +142,10 @@ cython_debug/
 .vscode/
 
 # Guaraci specific
-data/
+# Root-level DATASUS/download cache only (NOT guaraci/data package data).
+/data/
+# Generated sampling artifacts (curated copies live in docs/ + guaraci/data/).
+reports/
 *.db
 *.sqlite
 *.sqlite3

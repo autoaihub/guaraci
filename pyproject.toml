@@ -124,7 +124,7 @@ where = ["."]
 include = ["guaraci*"]
 
 [tool.setuptools.package-data]
-guaraci = ["py.typed", "config/*.yaml", "api/static/*.html"]
+guaraci = ["py.typed", "config/*.yaml", "api/static/*.html", "data/*.json"]
 
 [tool.black]
 line-length = 88
