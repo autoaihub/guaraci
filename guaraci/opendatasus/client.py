@@ -162,7 +162,7 @@ class OpenDataSUSClient:
             url,
             headers={
                 "Accept": "application/json",
-                "User-Agent": "guaraci/0.5.2",
+                "User-Agent": "guaraci/0.6.0",
             },
         )
         try:

@@ -77,7 +77,7 @@ s.addText([
   { text: "Luis Felipe Vogel Lopes", options: { bold: true, color: WHITE } },
   { text: "    nUSP 13730051    ·    vogel@usp.br", options: { color: TEAL_LT } },
 ], { x: 0.95, y: 6.35, w: 11, h: 0.4, fontFace: BODY, fontSize: 14, margin: 0 });
-s.addText("Universidade de São Paulo  ·  Guaraci v0.5.2", { x: 0.95, y: 6.78, w: 11, h: 0.35, fontFace: BODY, fontSize: 11, color: TEAL_LT, margin: 0 });
+s.addText("Universidade de São Paulo  ·  Guaraci v0.6.0", { x: 0.95, y: 6.78, w: 11, h: 0.35, fontFace: BODY, fontSize: 11, color: TEAL_LT, margin: 0 });
 s.addNotes("Abertura (0:30). Guaraci = o sol na mitologia tupi-guarani: a ideia é iluminar/centralizar dados públicos de saúde e ambiente. Eu sou o Luis, trabalho na camada de coleta de dados do AutoAI-Pandemics.");
 
 /* 2 · AUTOAI-PANDEMICS */
@@ -300,7 +300,7 @@ s.addNotes("Aplicações (1:30). Provavelmente o que o André quer: ideias de pr
 /* 13 · STACK & ESTADO */
 s = S(); s.background = { color: CREAM };
 contentHead(s, "Tecnologia", "Stack & estado");
-const stats = [["~80", "fontes integradas", 0.6], ["~480", "testes automatizados verdes", 4.65], ["v0.5.2", "estágio alpha", 8.7]];
+const stats = [["~80", "fontes integradas", 0.6], ["~480", "testes automatizados verdes", 4.65], ["v0.6.0", "estágio alpha", 8.7]];
 stats.forEach(([n, l, x]) => {
   card(s, x, 1.95, 3.78, 2.0);
   s.addText(n, { x: x + 0.25, y: 2.2, w: 3.3, h: 0.95, fontFace: HEAD, fontSize: 40, bold: true, color: GOLD, margin: 0, valign: "middle" });

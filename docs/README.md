@@ -9,6 +9,7 @@
 - [`ARCHITECTURE.md`](ARCHITECTURE.md): arquitetura interna e modelo de execução.
 - [`API_REFERENCE.md`](API_REFERENCE.md): referência dos endpoints HTTP.
 - [`SOURCES_AND_FILTERS.md`](SOURCES_AND_FILTERS.md): matriz de fontes, filtros e fases de execução.
+- [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md): dicionário por fonte — filtros + nomes de campo (amostragem real).
 - [`operacao.md`](operacao.md): modelo operacional, guardrails e diagnóstico.
 
 ## UI e UX
@@ -21,6 +22,11 @@
 - [`versionamento.md`](versionamento.md): política de versionamento e evolução das fases do produto.
 - [`../CHANGELOG.md`](../CHANGELOG.md): histórico de versões.
 - [`../AGENTS.md`](../AGENTS.md): diretrizes para agentes de IA que atuam neste repositório.
+- [`handoffs/_QUADRO.md`](handoffs/_QUADRO.md): quadro único de trabalho (backlog por prioridade, padrão Vogel Stack).
+
+## Artigo científico
+
+- [`artigo/for-author/`](artigo/for-author/): material para o artigo *Data in Brief* — dossiê técnico/histórico, rascunho por seção do template e dicionário de dados (inglês, para a redação).
 
 ## Legais e Contribuição
 

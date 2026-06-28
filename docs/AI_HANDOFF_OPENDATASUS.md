@@ -2,16 +2,16 @@
 
 This document is the single-source context handoff for future AI-agent conversations in the Guaraci repository.
 
-## 1. Current State (`0.5.2`)
+## 1. Current State (`0.6.0`)
 
-- Project: `Guaraci` `0.5.2`
+- Project: `Guaraci` `0.6.0`
 - Official workflow: **Docker-first**
 - Local Python without Docker: **WIP** and not officially supported
-- Sources currently registered in the jobs/UI pipeline:
+- Sources currently registered (88 total; see `docs/DATA_DICTIONARY.md` and `guaraci fetch list`):
   - `snis`, `sinisa` (`gov.br` crawler)
-  - `doses_aplicadas_pni`, `zikavirus` (`opendatasus api`)
-  - generated OpenDataSUS DEMAS sources from `guaraci/opendatasus/utils/swagger.json`
-  - `sinan`, `sim`, `sih` (`pysus ftp`)
+  - OpenDataSUS (`opendatasus api`): `doses_aplicadas_pni`, `zikavirus`, `dengue`, `chikungunya`, `febre_amarela`, `mpox`, `esavi`, `srag_demas`, `sindrome_gripal_leve` + ~60 generated DEMAS sources from `guaraci/opendatasus/utils/swagger.json`
+  - DATASUS direct FTP: `sinan`, `sim`, `sih` (`pysus ftp` label) + 11 systems — `sinasc`, `sia`, `cnes`, `pni`, `ciha`, `cih`, `siscan`, `sisprenatal`, `resp`, `pce`, `painel_oncologia` (`datasus ftp`)
+  - NASA: `nasa_power`, `nasa_firms`, `nasa_gpm`
 
 ## 2. Current OpenDataSUS Contract
 
@@ -121,7 +121,7 @@ Use the block below when starting a new maintenance conversation:
 I want to evolve OpenDataSUS support in the Guaraci project while keeping compatibility with the current workflow.
 
 Context:
-- Current version: 0.5.2
+- Current version: 0.6.0
 - Official workflow: Docker-first
 - Current OpenDataSUS sources: doses_aplicadas_pni, zikavirus
 - Current OpenDataSUS contract:

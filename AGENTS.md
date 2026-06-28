@@ -4,9 +4,10 @@ Este arquivo define direcionamento tecnico para agentes de IA que atuam neste re
 
 ## 1) Contexto do projeto
 
-- Versao atual: `0.5.1`
+- Versao atual: `0.6.0`
 - Caminho suportado oficialmente: **Docker-first**
 - Execucao Python local sem Docker: **WIP** (nao tratar como caminho principal)
+- Familia de operacao Vogel Stack: **leve** (sem Graphify/Obsidian versionado; `graphify-out/` e gitignored). Backlog unico em `docs/handoffs/_QUADRO.md`.
 
 ## 2) Principios obrigatorios do projeto
 
@@ -35,7 +36,7 @@ Este arquivo define direcionamento tecnico para agentes de IA que atuam neste re
 
 ## 5) OpenDataSUS (estado atual)
 
-- Fontes: `doses_aplicadas_pni`, `zikavirus`
+- Fontes OpenDataSUS: `doses_aplicadas_pni`, `zikavirus`, `dengue`, `chikungunya`, `febre_amarela`, `mpox`, `esavi`, `srag_demas`, `sindrome_gripal_leve` + ~60 fontes DEMAS geradas. (Catalogo completo das 88 fontes: `docs/DATA_DICTIONARY.md` / `guaraci fetch list`.)
 - Contrato atual:
   - base: `start_year`, `end_year`
   - refinamento opcional: `start_date`, `end_date`, `uf`
@@ -52,7 +53,7 @@ Regra de nomenclatura:
 3. Implementar a mudanca preservando contratos existentes.
 4. Rodar os testes relevantes em Docker.
 5. Atualizar documentacao impactada.
-6. Registrar em `IMPROVEMENTS.md` apenas direcoes oficiais do projeto, nao backlog pessoal local.
+6. Registrar o backlog no quadro unico `docs/handoffs/_QUADRO.md` (sem `IMPROVEMENTS.md`/`TODO` paralelo; spec longa vira doc proprio linkado).
 7. Se a entrega for finalizada por sync automatico com mensagem generica, registrar o significado funcional no topo de `CHANGELOG.md` antes do sync.
 8. Se `vogel-stack` for atualizado, garantir que o commit do submodule ja existe no remoto antes de sincronizar o repositorio pai.
 

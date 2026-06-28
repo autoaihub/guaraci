@@ -138,7 +138,7 @@ class NasaPowerClient:
             url,
             headers={
                 "Accept": "application/json",
-                "User-Agent": "guaraci/0.5.2",
+                "User-Agent": "guaraci/0.6.0",
             },
         )
         try:
@@ -382,7 +382,7 @@ class NasaFirmsClient:
             url,
             headers={
                 "Accept": "text/csv",
-                "User-Agent": "guaraci/0.5.2",
+                "User-Agent": "guaraci/0.6.0",
             },
         )
         try:
@@ -579,7 +579,7 @@ class NasaGesDiscClient:
             headers={
                 "Authorization": f"Bearer {self._token}",
                 "Accept": "text/plain",
-                "User-Agent": "guaraci/0.5.2",
+                "User-Agent": "guaraci/0.6.0",
             },
         )
         try:

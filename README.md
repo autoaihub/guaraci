@@ -15,7 +15,7 @@ Guaraci is a platform for downloading and orchestrating Brazilian public data so
 - `NASA FIRMS` (`nasa_firms`) — active-fire detections from `firms.modaps.eosdis.nasa.gov` (requires a free MAP_KEY)
 - `NASA GPM IMERG` (`nasa_gpm`) — daily precipitation point series from GES DISC OPeNDAP (`gpm1.gesdisc.eosdis.nasa.gov`; requires an Earthdata token; experimental)
 
-Current version: `0.5.2`
+Current version: `0.6.0`
 
 ## Project Status
 
@@ -275,8 +275,8 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
 
 ## Version and Immediate Roadmap
 
-- Current release line: `0.5.2`
-- This release fixes SIH FTP discovery, adds preflight discovery for SIH jobs, and clarifies empty SIH selections as unfiltered.
+- Current release line: `0.6.0`
+- This release adds the NASA sources (POWER, FIRMS, GPM), makes direct DATASUS FTP the default backend plus 11 additional FTP systems, introduces the generic schema-driven `guaraci fetch` CLI (`list`/`schema`/`run`/`discover`/`fields`), ships a per-source data dictionary ([docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md)), and moves the legacy SNIS BigQuery deps to the optional `snis-legacy` extra.
 
 ## Additional Documentation
 
@@ -299,5 +299,5 @@ If you use Guaraci in research, technical reports, or derived software, cite the
 Recommended software citation for the current release:
 
 ```text
-Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.5.2) [Computer software]. https://github.com/autoaihub/guaraci
+Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.6.0) [Computer software]. https://github.com/autoaihub/guaraci
 ```

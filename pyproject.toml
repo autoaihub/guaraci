@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "guaraci"
-version = "0.5.2"
+version = "0.6.0"
 description = "Brazilian public data integration platform for scientific research"
 readme = "README.md"
 license = {text = "MIT"}

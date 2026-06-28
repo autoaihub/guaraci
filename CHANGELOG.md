@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-28
+
 ### Added — source validation + data dictionary (`fetch fields`)
 - `scripts/sample_sources.py` samples each source with tiny windows to validate it
   works and capture (a) filter parameters and (b) output field names. Results are
