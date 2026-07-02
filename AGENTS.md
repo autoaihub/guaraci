@@ -7,7 +7,7 @@ Este arquivo define direcionamento tecnico para agentes de IA que atuam neste re
 - Versao atual: `0.6.0`
 - Caminho suportado oficialmente: **Docker-first**
 - Execucao Python local sem Docker: **WIP** (nao tratar como caminho principal)
-- Familia de operacao Vogel Stack: **leve** (sem Graphify/Obsidian versionado; `graphify-out/` e gitignored). Backlog unico em `docs/handoffs/_QUADRO.md`.
+- Familia de operacao Vogel Stack: **leve** (wikilinks + link checker + agente sob demanda). Backlog unico em `docs/handoffs/_QUADRO.md`.
 
 ## 2) Principios obrigatorios do projeto
 

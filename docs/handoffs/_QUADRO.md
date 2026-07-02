@@ -34,14 +34,13 @@ _Nada em aberto no momento — os bloqueios (validar `column_map` do SIH; amostr
 | Promover `run()`→`exported_files` a **contrato público documentado** | feedback de agente | Congela o seam que o Monitoramento consome; baixo custo, alto valor. |
 | Sweep de deprecations do Polars | feedback de agente | `df.groupby`→`group_by` em `sih.py:579`, `sim.py:320-322`, `sinan.py:357-361` (todos no `summary()`, fora do caminho de dados). |
 | `column_map` do SIH-RD como default **versionado + testado** no Guaraci | feedback de agente | Campos já validados (dicionário); falta um default/teste de regressão dentro do Guaraci. |
-| Declarar a **família de operação vogel-stack** = leve | conformidade | `graphify-out` removido (gitignored); declarar "leve" no `AGENTS.md`/ADR + adotar `check-wikilinks`/`check-quadro` (CI). |
+| Adotar os linters da vogel-stack em CI (`check-wikilinks`/`check-quadro`) | conformidade | Família leve já declarada no `AGENTS.md`; falta a GitHub Action. |
 | Empacotamento durável p/ submódulo (submódulo fixo × `pip install @ git+` × editable) | feedback de agente | Decidir só **depois** do Guaraci estabilizar; por ora, editable-install local serve. |
 | `downloads.py` (3113 linhas) — fatiar o registry repetitivo | feedback de agente | Otimização prematura: 90% é schema. Só se doer. |
 | Deletar branches stale (`feat/nasa-clima`, `feat/datasus-ftp-direto`) | higiene git | `main` é a viva; manter `archive/*`/`safety/*`. Aguarda ok. |
 
 ## 🗄️ Defasado (morto — mantido por memória)
 
-- `graphify-out/` versionado → removido; agora é artefato **local gitignored**.
 - Dezenas de `docs/handoff-*.md` → substituídos por **este quadro**; histórico em `../guaraci-archive/`.
 - Co-autoria do Claude nos commits → removida do histórico (reescrita + force-push, 27/06).
 
