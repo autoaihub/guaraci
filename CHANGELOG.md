@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — IBGE population connector (`ibge_populacao`)
+- New `guaraci/ibge/` source: population estimates by locality x year from the
+  IBGE SIDRA v3 aggregates API (table 6579 / variable 9324; keyless JSON, no
+  extra dependency — the denominator layer for turning DATASUS counts into
+  rates). Params: `start_year`, `end_year`, `level`
+  (municipio/uf/regiao/brasil), plus the standard `output_format`/`keep_raw`/
+  `timeout`. Tidy output: one row per (locality, year).
+- Registered in `DownloadService` (mode `ibge api`), so it is reachable from the
+  API, `guaraci fetch`, and the orchestrator (resolves as an annual `api_window`
+  from 2001). A year with no estimate (e.g. a census year) is skipped with a
+  warning instead of aborting the range. Tests: `tests/test_ibge.py` (10,
+  offline) + opt-in live smoke `tests/test_ibge_smoke.py` (`GUARACI_IBGE_SMOKE=1`).
+
 ### Added — bronze orchestrator (`guaraci orchestrate`)
 - New `guaraci/orchestrator/` package + `guaraci orchestrate` CLI that sweeps
   every registered source into a browsable **bronze** tree of raw CSVs at each

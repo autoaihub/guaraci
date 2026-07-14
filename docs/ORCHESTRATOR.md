@@ -135,11 +135,11 @@ Tunable via env: `GUARACI_BRONZE_ROOT`, `GUARACI_PYTHON`, `GUARACI_ORCH_MODE`
 - **A — raw vs processed view — RESOLVED (2026-07-13):** offer **both**, as two
   bronze tiers (`raw` + `refined`), not silver. Implemented (see
   [Two tiers](#two-tiers-raw--refined)).
-- **C — IBGE** is not yet a Guaraci source (only used internally for municipality
-  codes). Feasible to add via the public IBGE SIDRA/agregados JSON API (no auth),
-  fitting the existing DataSource + `api_window` shape — first candidate dataset:
-  population estimates by município × year (the denominator for health rates).
-  Pending confirmation of which dataset(s) to expose.
+- **C — IBGE — first dataset DONE (2026-07-14):** `ibge_populacao` (population
+  estimates by locality × year, SIDRA table 6579) is registered and sweeps as an
+  annual `api_window` from 2001. Validated live (Brazil 2021 = 213,317,639).
+  Additional IBGE datasets (nascidos, PIB municipal, area/density) can follow the
+  same pattern on request.
 
 ## Notes / follow-ups
 

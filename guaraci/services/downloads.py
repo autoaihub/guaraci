@@ -17,6 +17,7 @@ from guaraci.core.results import JobResult
 from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
 from guaraci.datasus.ftp import specs as ftp_specs
 from guaraci.datasus.ftp_source import FtpDataSource
+from guaraci.ibge import IbgePopulacaoDataSource
 from guaraci.nasa import (
     NasaFirmsDataSource,
     NasaGpmDataSource,
@@ -2564,6 +2565,93 @@ class DownloadService:
                 ],
                 normalize_params=_normalize_nasa_gpm_params,
             ),
+            NasaDownloadSource(
+                descriptor=SourceDescriptor(
+                    source="ibge_populacao",
+                    title="IBGE População Estimada",
+                    mode="ibge api",
+                ),
+                datasource_cls=IbgePopulacaoDataSource,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for the population table.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description=(
+                            "Ano inicial das estimativas de população "
+                            "(IBGE SIDRA tabela 6579, desde 2001)."
+                        ),
+                        required=False,
+                        default=last_year,
+                        minimum=2001,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final das estimativas de população.",
+                        required=False,
+                        default=last_year,
+                        minimum=2001,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="level",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Nível territorial: municipio, uf, regiao ou brasil."
+                        ),
+                        required=False,
+                        default=IbgePopulacaoDataSource.DEFAULT_LEVEL,
+                        allowed_values=["municipio", "uf", "regiao", "brasil"],
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva o JSON bruto da resposta.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="timeout",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="HTTP timeout in seconds.",
+                        required=False,
+                        default=IbgePopulacaoDataSource.DEFAULT_TIMEOUT,
+                        minimum=1,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Optional IBGE API base URL override.",
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                normalize_params=_normalize_ibge_params,
+            ),
         ]
 
         # Append the auto-generated OpenDataSUS sources
@@ -2950,6 +3038,47 @@ def _normalize_opendatasus_params(params: Dict[str, object]) -> Dict[str, object
             normalized["keep_raw"] = False
     elif keep_raw is not None:
         normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
+
+
+def _normalize_ibge_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+
+    level = normalized.get("level")
+    if isinstance(level, str):
+        cleaned = level.strip().lower()
+        if cleaned:
+            normalized["level"] = cleaned
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    api_base_url = normalized.get("api_base_url")
+    if isinstance(api_base_url, str):
+        normalized["api_base_url"] = api_base_url.strip() or None
+
+    for key in ("start_year", "end_year"):
+        value = normalized.get(key)
+        if isinstance(value, str) and value.strip():
+            try:
+                normalized[key] = int(value.strip())
+            except ValueError:
+                pass
+
+    # Empty/invalid timeout is dropped so the datasource default applies.
+    timeout = normalized.get("timeout")
+    if isinstance(timeout, str):
+        stripped = timeout.strip()
+        if stripped:
+            try:
+                normalized["timeout"] = int(stripped)
+            except ValueError:
+                normalized.pop("timeout", None)
+        else:
+            normalized.pop("timeout", None)
 
     return normalized
 
