@@ -2,18 +2,24 @@
 
 ## [Unreleased]
 
-### Added — IBGE population connector (`ibge_populacao`)
-- New `guaraci/ibge/` source: population estimates by locality x year from the
-  IBGE SIDRA v3 aggregates API (table 6579 / variable 9324; keyless JSON, no
-  extra dependency — the denominator layer for turning DATASUS counts into
-  rates). Params: `start_year`, `end_year`, `level`
-  (municipio/uf/regiao/brasil), plus the standard `output_format`/`keep_raw`/
-  `timeout`. Tidy output: one row per (locality, year).
-- Registered in `DownloadService` (mode `ibge api`), so it is reachable from the
-  API, `guaraci fetch`, and the orchestrator (resolves as an annual `api_window`
-  from 2001). A year with no estimate (e.g. a census year) is skipped with a
-  warning instead of aborting the range. Tests: `tests/test_ibge.py` (10,
-  offline) + opt-in live smoke `tests/test_ibge_smoke.py` (`GUARACI_IBGE_SMOKE=1`).
+### Added — IBGE connectors (SIDRA aggregates API, keyless JSON)
+- New `guaraci/ibge/` package with a shared `SidraAggregateSource` base (fetch
+  one year at a time, flatten `resultados -> series -> serie` into tidy rows,
+  export/manifest) and three curated sources — the denominator / socioeconomic
+  layers for turning DATASUS counts into rates:
+  - `ibge_populacao` — population estimates by locality x year (table 6579).
+  - `ibge_pib_municipios` — municipal GDP / PIB in R$ 1000 (table 5938, 2002+).
+  - `ibge_populacao_idade_sexo` — census population by sex and age (table 9514;
+    `sexo` and `faixa_etaria` params, default 5-year age groups by sex per UF).
+- Output is one row per (locality, year[, classification]); missing markers
+  (`-`, `..`) become null; a year with no data is skipped with a warning, not a
+  failure. The client decompresses gzip responses (the IBGE CDN sends them
+  intermittently) and supports SIDRA classification filters.
+- All three are registered in `DownloadService` (mode `ibge api`), reachable
+  from the API, `guaraci fetch`, and the orchestrator (annual `api_window`, with
+  per-table backfill floors: 2001 / 2002 / 2022). Tests: `tests/test_ibge.py`
+  (18, offline) + opt-in live smoke `tests/test_ibge_smoke.py`
+  (`GUARACI_IBGE_SMOKE=1`).
 
 ### Added — bronze orchestrator (`guaraci orchestrate`)
 - New `guaraci/orchestrator/` package + `guaraci orchestrate` CLI that sweeps

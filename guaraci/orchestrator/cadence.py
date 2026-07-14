@@ -80,8 +80,12 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             note="needs latitude/longitude - collect on demand, not swept",
         )
     elif name.startswith("ibge"):
-        # Annual IBGE estimates (SIDRA); population goes back to 2001.
-        profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, 2001)
+        # Annual IBGE (SIDRA); backfill floor differs per table.
+        ibge_floor = {
+            "ibge_pib_municipios": 2002,
+            "ibge_populacao_idade_sexo": 2022,  # census reference year
+        }.get(name, 2001)
+        profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
     elif "opendatasus" in mode_l or "demas" in mode_l:
         # Date-window API sources; min_year is read from the schema by the planner.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.WEEKLY, None)

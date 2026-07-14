@@ -14,7 +14,7 @@ Guaraci is a platform for downloading and orchestrating Brazilian public data so
 - `NASA POWER` (`nasa_power`) — global climate/meteorological series from `power.larc.nasa.gov`
 - `NASA FIRMS` (`nasa_firms`) — active-fire detections from `firms.modaps.eosdis.nasa.gov` (requires a free MAP_KEY)
 - `NASA GPM IMERG` (`nasa_gpm`) — daily precipitation point series from GES DISC OPeNDAP (`gpm1.gesdisc.eosdis.nasa.gov`; requires an Earthdata token; experimental)
-- `IBGE` (`ibge_populacao`) — population estimates by locality × year from the SIDRA aggregates API (`servicodados.ibge.gov.br`; keyless; the denominator for health rates)
+- `IBGE` (`ibge_populacao`, `ibge_pib_municipios`, `ibge_populacao_idade_sexo`) — population estimates, municipal GDP (PIB), and census population by sex and age, from the SIDRA aggregates API (`servicodados.ibge.gov.br`; keyless; the denominator/socioeconomic layers for health rates)
 
 Current version: `0.6.0`
 

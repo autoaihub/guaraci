@@ -135,11 +135,12 @@ Tunable via env: `GUARACI_BRONZE_ROOT`, `GUARACI_PYTHON`, `GUARACI_ORCH_MODE`
 - **A — raw vs processed view — RESOLVED (2026-07-13):** offer **both**, as two
   bronze tiers (`raw` + `refined`), not silver. Implemented (see
   [Two tiers](#two-tiers-raw--refined)).
-- **C — IBGE — first dataset DONE (2026-07-14):** `ibge_populacao` (population
-  estimates by locality × year, SIDRA table 6579) is registered and sweeps as an
-  annual `api_window` from 2001. Validated live (Brazil 2021 = 213,317,639).
-  Additional IBGE datasets (nascidos, PIB municipal, area/density) can follow the
-  same pattern on request.
+- **C — IBGE — DONE (2026-07-14):** three SIDRA sources registered and swept as
+  annual `api_window`s — `ibge_populacao` (estimates, table 6579, from 2001),
+  `ibge_pib_municipios` (municipal GDP, table 5938, from 2002) and
+  `ibge_populacao_idade_sexo` (census population by sex/age, table 9514, 2022).
+  All validated live. Further IBGE datasets can follow the same
+  `SidraAggregateSource` pattern on request.
 
 ## Notes / follow-ups
 

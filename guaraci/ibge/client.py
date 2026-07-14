@@ -7,9 +7,10 @@ so the jobs layer classifies failures consistently.
 """
 from __future__ import annotations
 
+import gzip
 import json
 import socket
-from typing import Any, List
+from typing import Any, List, Optional
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -57,12 +58,20 @@ class IbgeSidraClient:
         self.timeout_seconds = max(1, int(timeout_seconds))
 
     def aggregate(
-        self, *, table: str, variable: str, period: str, localities: str
+        self,
+        *,
+        table: str,
+        variable: str,
+        period: str,
+        localities: str,
+        classificacao: Optional[str] = None,
     ) -> List[Any]:
         """Fetch one aggregate table/variable for a period and locality filter.
 
         ``period`` is a SIDRA period token (``"2021"`` or ``"2019|2020"``);
-        ``localities`` is a level filter such as ``"N6[all]"`` (all municipalities).
+        ``localities`` is a level filter such as ``"N6[all]"`` (all municipalities);
+        ``classificacao`` is an optional SIDRA classification filter such as
+        ``"2[4,5]|287[93070,93084]"`` (sex Homens/Mulheres by 5-year age groups).
         Returns the raw JSON array SIDRA responds with.
         """
         url = (
@@ -71,6 +80,8 @@ class IbgeSidraClient:
             f"/variaveis/{quote(str(variable), safe='')}"
             f"?localidades={quote(str(localities), safe='[]|')}"
         )
+        if classificacao:
+            url += f"&classificacao={quote(str(classificacao), safe='[],|')}"
         payload = self._request_json(url)
         if not isinstance(payload, list):
             raise IbgeClientError(
@@ -88,6 +99,7 @@ class IbgeSidraClient:
         try:
             with urlopen(request, timeout=self.timeout_seconds) as response:
                 raw = response.read()
+                encoding = (response.headers.get("Content-Encoding") or "").lower()
         except HTTPError as exc:
             retryable = exc.code in {408, 429} or 500 <= exc.code <= 599
             raise IbgeClientError(
@@ -110,6 +122,14 @@ class IbgeSidraClient:
                 retryable=True,
                 hint="Retry later or narrow the request if the service is slow.",
             ) from exc
+
+        # The IBGE CDN intermittently gzips responses (even unsolicited), so
+        # decompress by header or by magic bytes before decoding.
+        if "gzip" in encoding or raw[:2] == b"\x1f\x8b":
+            try:
+                raw = gzip.decompress(raw)
+            except OSError:
+                pass
 
         try:
             return json.loads(raw.decode("utf-8-sig"))

@@ -6,9 +6,16 @@ exercised without a network. A live check lives in test_ibge_smoke (opt-in).
 """
 from __future__ import annotations
 
+import gzip
+
 import pytest
 
-from guaraci.ibge import IbgePopulacaoDataSource, IbgeSidraClient
+from guaraci.ibge import (
+    IbgePibMunicipiosDataSource,
+    IbgePopulacaoDataSource,
+    IbgePopulacaoIdadeSexoDataSource,
+    IbgeSidraClient,
+)
 from guaraci.ibge.client import IbgeClientError
 from guaraci.orchestrator.cadence import profile_for
 from guaraci.orchestrator.model import Kind
@@ -40,16 +47,19 @@ class FakeClient:
         self._raise_for = set(raise_for or ())
         self.calls = []
 
-    def aggregate(self, *, table, variable, period, localities):
-        self.calls.append({"table": table, "variable": variable, "period": period, "localities": localities})
+    def aggregate(self, *, table, variable, period, localities, classificacao=None):
+        self.calls.append(
+            {"table": table, "variable": variable, "period": period, "localities": localities, "classificacao": classificacao}
+        )
         if period in self._raise_for:
             raise IbgeClientError(f"no data for {period}", category="configuration")
         return self._by_period.get(period, _payload(period, ("3550308", "São Paulo - SP", "0")))
 
 
 class _FakeResp:
-    def __init__(self, data: bytes):
+    def __init__(self, data: bytes, encoding: str = ""):
         self._data = data
+        self.headers = {"Content-Encoding": encoding}
 
     def __enter__(self):
         return self
@@ -59,6 +69,33 @@ class _FakeResp:
 
     def read(self):
         return self._data
+
+
+def _classif_payload(period, *rows):
+    """SIDRA response split by Sexo (C2) + Idade (C287)."""
+    resultados = [
+        {
+            "classificacoes": [
+                {"id": "2", "nome": "Sexo", "categoria": {"c": sexo}},
+                {"id": "287", "nome": "Idade", "categoria": {"c": idade}},
+            ],
+            "series": [{"localidade": {"id": "35", "nome": "São Paulo"}, "serie": {period: value}}],
+        }
+        for (sexo, idade, value) in rows
+    ]
+    return [{"id": "93", "variavel": "População residente", "unidade": "Pessoas", "resultados": resultados}]
+
+
+class ClassifClient:
+    base_url = "https://fake.ibge"
+
+    def __init__(self, payload):
+        self._payload = payload
+        self.last = None
+
+    def aggregate(self, *, table, variable, period, localities, classificacao=None):
+        self.last = {"classificacao": classificacao, "localities": localities, "period": period}
+        return self._payload
 
 
 # --------------------------------------------------------------------------- #
@@ -176,3 +213,79 @@ def test_orchestrator_profile_and_backfill_years():
     assert profile.min_year == 2001 and profile.auto is True
     units = plan_backfill(profile, current_year=2003)
     assert [u.year for u in units] == [2001, 2002, 2003]
+
+
+# --------------------------------------------------------------------------- #
+# client robustness (gzip + classificacao)
+# --------------------------------------------------------------------------- #
+def test_client_decompresses_gzip(monkeypatch):
+    body = gzip.compress(b'[{"id":"9324","resultados":[]}]')
+    monkeypatch.setattr(
+        "guaraci.ibge.client.urlopen",
+        lambda req, timeout=None: _FakeResp(body, encoding="gzip"),
+    )
+    out = IbgeSidraClient().aggregate(table="6579", variable="9324", period="2021", localities="N6[all]")
+    assert out == [{"id": "9324", "resultados": []}]
+
+
+def test_client_puts_classificacao_in_url(monkeypatch):
+    captured = {}
+
+    def fake_urlopen(request, timeout=None):
+        captured["url"] = request.full_url
+        return _FakeResp(b"[]")
+
+    monkeypatch.setattr("guaraci.ibge.client.urlopen", fake_urlopen)
+    IbgeSidraClient().aggregate(
+        table="9514", variable="93", period="2022", localities="N3[all]",
+        classificacao="2[4,5]|287[93070]",
+    )
+    assert "classificacao=2" in captured["url"] and "287" in captured["url"]
+
+
+# --------------------------------------------------------------------------- #
+# ibge_pib_municipios
+# --------------------------------------------------------------------------- #
+def test_pib_registered_and_parses(tmp_path):
+    schema = DownloadService().get_source_schema("ibge_pib_municipios")
+    assert schema["mode"] == "ibge api"
+    client = FakeClient(by_period={"2021": _payload("2021", ("3550308", "SP", "836000000"))})
+    ds = IbgePibMunicipiosDataSource(output_path=str(tmp_path), client=client)
+    ds.download(start_year=2021, end_year=2021)
+    assert ds.load_dataframe()["valor"].to_list() == [836000000]
+
+
+def test_pib_profile_floor_2002():
+    assert profile_for("ibge_pib_municipios", "ibge api").min_year == 2002
+
+
+# --------------------------------------------------------------------------- #
+# ibge_populacao_idade_sexo (classifications)
+# --------------------------------------------------------------------------- #
+def test_idade_sexo_registered_with_classification_params():
+    names = {p["name"] for p in DownloadService().get_source_schema("ibge_populacao_idade_sexo")["params"]}
+    assert {"sexo", "faixa_etaria", "level"} <= names
+
+
+def test_idade_sexo_parses_classification_columns(tmp_path):
+    payload = _classif_payload("2022", ("Homens", "0 a 4 anos", "1000"), ("Mulheres", "0 a 4 anos", "950"))
+    client = ClassifClient(payload)
+    ds = IbgePopulacaoIdadeSexoDataSource(output_path=str(tmp_path), client=client)
+    ds.download(start_year=2022, end_year=2022, level="uf", sexo="ambos", faixa_etaria="quinquenal")
+    df = ds.load_dataframe()
+    assert {"sexo", "idade"} <= set(df.columns)
+    assert set(df["sexo"].to_list()) == {"Homens", "Mulheres"}
+    # ambos -> both sex codes; quinquenal -> the 5-year group ids
+    assert client.last["classificacao"].startswith("2[4,5]|287[93070")
+
+
+def test_idade_sexo_rejects_bad_options(tmp_path):
+    ds = IbgePopulacaoIdadeSexoDataSource(output_path=str(tmp_path), client=ClassifClient([]))
+    with pytest.raises(ValueError):
+        ds.download(start_year=2022, end_year=2022, sexo="alien")
+    with pytest.raises(ValueError):
+        ds.download(start_year=2022, end_year=2022, faixa_etaria="decadal")
+
+
+def test_idade_sexo_profile_floor_2022():
+    assert profile_for("ibge_populacao_idade_sexo", "ibge api").min_year == 2022
