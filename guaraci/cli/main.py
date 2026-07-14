@@ -15,6 +15,7 @@ from guaraci.cli.sih_cli import sih
 from guaraci.cli.snis_cli import snis
 from guaraci.cli.datasus_cli import datasus
 from guaraci.cli.fetch_cli import fetch
+from guaraci.cli.orchestrate_cli import orchestrate
 
 console = Console()
 
@@ -40,6 +41,7 @@ app.add_command(sih)
 app.add_command(snis)
 app.add_command(datasus)
 app.add_command(fetch)
+app.add_command(orchestrate)
 
 
 @app.command()
@@ -55,6 +57,7 @@ def info():
     console.print("• [cyan]snis[/cyan]  - SNIS legado (BigQuery) e SINISA cru (gov.br)")
     console.print("• [cyan]datasus[/cyan] - 11 sistemas DATASUS via FTP direto (SINASC, SIA, CNES, PNI, …)")
     console.print("• [cyan]fetch[/cyan]  - busca genérica schema-driven de QUALQUER fonte (OpenDataSUS, NASA, …)")
+    console.print("• [cyan]orchestrate[/cyan] - varre TODAS as fontes p/ a árvore bronze (backfill/update + ledger)")
     console.print("• [cyan]api[/cyan]   - HTTP API (FastAPI) em guaraci.api.main:app")
     console.print()
     console.print("[bold]Quick Start:[/bold]")

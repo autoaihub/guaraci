@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+### Added — bronze orchestrator (`guaraci orchestrate`)
+- New `guaraci/orchestrator/` package + `guaraci orchestrate` CLI that sweeps
+  every registered source into a browsable **bronze** tree of raw CSVs at each
+  source's **native granularity**, recording one row per partition in an
+  append-only CSV **ledger** (`<bronze_root>/_ledger.csv`). This is the
+  automation layer that feeds the Sabiá data lake.
+- Two bronze tiers, written from a single decode of each file: `raw` (the
+  official file as-is, native granularity) and `refined` (the same rows
+  repartitioned into the browsable `disease/year/month` tree — annual sources
+  split by their event date with an unknown-month bucket, monthly sources pass
+  through). `refined` is still bronze (a pure repartition, no harmonisation);
+  select with `--tier raw|refined|both` (default both).
+- Modes: `orchestrate backfill` (full history, "sair tudo"), `orchestrate
+  update` (incremental delta driven by the ledger, with a `src_size` volumetria
+  check so a grown current-year file is re-pulled), plus `plan` (dry-run),
+  `profiles` (resolved per-source kind/cadence) and `status` (read the ledger).
+- Each source resolves to a `SourceProfile` (kind + publication **cadence** +
+  backfill floor): SINAN/SIM/SIH + the 11 FTP systems discover at file level
+  (1 DATASUS file = 1 bronze CSV); OpenDataSUS sweeps by year; NASA is marked
+  on-demand (needs a lat/lon) and skipped by the sweep.
+- FTP materialisation downloads a source's whole batch over one connection
+  straight from each file's known path (no re-listing), reusing the idempotent
+  parquet cache, then writes each raw file out as its own CSV.
+- Thin cron entrypoints in `scripts/server/` (`orchestrate.sh` + `orchestrate.ps1`,
+  with a lock + per-day log). Docs: `docs/ORCHESTRATOR.md`. Tests:
+  `tests/test_orchestrator.py` (22, offline) + opt-in live smoke
+  `tests/test_orchestrator_smoke.py` (`GUARACI_FTP_SMOKE=1`).
+
 ### Changed — DATASUS sources can now collect the in-progress current year
 - The DATASUS microdata sources (SIH, SIM, SINAN, and the 11 spec-driven FTP
   systems) previously capped collection at the last complete year
