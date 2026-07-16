@@ -141,6 +141,11 @@ cython_debug/
 # VS Code
 .vscode/
 
+# Config e worktrees de ferramenta local de sessão — nunca versionar.
+# O repo não deve depender de nada daqui: como subir o front está em
+# apps/web/README.md.
+.claude/
+
 # Guaraci specific
 # Root-level DATASUS/download cache only (NOT guaraci/data package data).
 /data/
