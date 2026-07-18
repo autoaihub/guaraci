@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 88 sources cataloged; 19 sampled with real field names.
+- 91 sources cataloged; 22 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -190,6 +190,24 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+
+## ibge_pib_municipios
+
+- **Status:** ok (1 row sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `variavel_id`, `unidade`, `valor`
+
+## ibge_populacao
+
+- **Status:** ok (1 row sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `variavel_id`, `unidade`, `valor`
+
+## ibge_populacao_idade_sexo
+
+- **Status:** ok (42 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `sexo`, `faixa_etaria`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `sexo`, `idade`, `forma_de_declaracao_da_idade`, `variavel_id`, `unidade`, `valor`
 
 ## macrorregiao_e_regiao_de_saude_municipio
 

@@ -20,6 +20,10 @@
   per-table backfill floors: 2001 / 2002 / 2022). Tests: `tests/test_ibge.py`
   (18, offline) + opt-in live smoke `tests/test_ibge_smoke.py`
   (`GUARACI_IBGE_SMOKE=1`).
+- Docs: `README.md`, `docs/SOURCES_AND_FILTERS.md` (§2 + §3.12–3.14),
+  `docs/ARCHITECTURE.md` (§1, §3.1, §7.7), `docs/DATA_DICTIONARY.md` (three
+  `ibge_*` entries, live-sampled), `guaraci/data/field_dictionary.json`,
+  `docs/AI_HANDOFF_OPENDATASUS.md` (§1), `docs/operacao.md` (§2).
 
 ### Added — bronze orchestrator (`guaraci orchestrate`)
 - New `guaraci/orchestrator/` package + `guaraci orchestrate` CLI that sweeps

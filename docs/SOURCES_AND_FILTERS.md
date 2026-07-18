@@ -53,6 +53,13 @@ they expose more convenient query layers.
 - `nasa_gpm` (`nasa gpm api`) — primary: `gpm1.gesdisc.eosdis.nasa.gov`
   (NASA GPM IMERG daily precipitation via GES DISC OPeNDAP; requires an
   Earthdata token; experimental)
+- `ibge_populacao` (`ibge api`) — primary: `servicodados.ibge.gov.br/api/v3/agregados`
+  (IBGE SIDRA aggregates, keyless JSON; population estimates, table 6579)
+- `ibge_pib_municipios` (`ibge api`) — primary: same SIDRA API
+  (municipal GDP / PIB, table 5938)
+- `ibge_populacao_idade_sexo` (`ibge api`) — primary: same SIDRA API
+  (census population by sex and age, table 9514; denominator/socioeconomic
+  layers for health rates)
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -301,6 +308,69 @@ NASA GPM notes:
   `longitude`, and the requested `variable`; the IMERG fill value becomes null.
 - Half-hourly and monthly products are not exposed yet (daily only); the
   Giovanni time-series API was evaluated and rejected (server-side 500s).
+
+### 3.12 IBGE Population Estimates (`ibge_populacao`)
+
+Annual TCU population estimates by locality x year, from SIDRA aggregate table
+6579 (variable 9324). The keyless JSON aggregates API is swept one year at a time.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year; table 6579 covers `2001`+ |
+| `end_year` | integer | coleta | Final year |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+### 3.13 IBGE Municipal GDP / PIB (`ibge_pib_municipios`)
+
+Municipal GDP (PIB dos Municípios) from SIDRA table 5938 (variable 37), in
+R$ 1000. Same base schema and phases as `ibge_populacao`, with `start_year` /
+`end_year` covering `2002`+.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year; table 5938 covers `2002`+ |
+| `end_year` | integer | coleta | Final year |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+### 3.14 IBGE Census Population by Sex and Age (`ibge_populacao_idade_sexo`)
+
+Census population (2022 reference) from SIDRA table 9514 (variable 93), split by
+sex and age classification — the denominators for age-standardised rates. The
+default level is `uf` (municipal breakdown is a much larger extract).
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year; census reference is `2022` |
+| `end_year` | integer | coleta | Final year |
+| `level` | string | coleta | Territorial level: `uf` (default), `municipio`, `regiao`, `brasil` |
+| `sexo` | string | coleta | Sex slice: `ambos` (default), `homens`, `mulheres`, `total` |
+| `faixa_etaria` | string | coleta | Age slice: `quinquenal` (5-year groups, default), `total`, `todos` (all detailed ages) |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+IBGE notes:
+- Output is one tidy row per `(nivel, localidade_id, ano[, classification …])`:
+  `nivel, localidade_id, localidade_nome, ano, [<classif> …], variavel_id,
+  unidade, valor`. For `ibge_populacao_idade_sexo` the classification columns
+  are `sexo`, `idade`, and `forma_de_declaracao_da_idade`.
+- SIDRA missing markers (`-`, `..`, `...`, `x`) become null; a year with no data
+  is skipped with a warning, not a failure.
+- No credential is required (keyless API). Like OpenDataSUS and NASA, leaving
+  `output_format` empty and `keep_raw=false` produces only a manifest and emits
+  an `export_warning`.
 
 ## 4. UI and API Versus Direct CLI
 

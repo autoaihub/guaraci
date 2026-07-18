@@ -6,7 +6,7 @@ Guaraci uses a layered architecture:
 
 1. `datasources`
    Implement data source-specific download and read logic.
-   Examples: `SnisDataSource`, `SinisaDataSource`, `SinanDataSource`, `SimDataSource`, `SihDataSource`, `OpenDataSUSDataSource`, `NasaPowerDataSource`, `NasaFirmsDataSource`, and `NasaGpmDataSource`.
+   Examples: `SnisDataSource`, `SinisaDataSource`, `SinanDataSource`, `SimDataSource`, `SihDataSource`, `OpenDataSUSDataSource`, `NasaPowerDataSource`, `NasaFirmsDataSource`, `NasaGpmDataSource`, and the IBGE SIDRA datasources (`SidraAggregateSource` base with `IbgePopulacaoDataSource`, `IbgePibMunicipiosDataSource`, `IbgePopulacaoIdadeSexoDataSource`).
 2. `services/downloads`
    Registers supported sources, declares source parameter schemas, validates and normalizes input, and adapts source results to `JobResult`.
 3. `services/jobs`
@@ -38,7 +38,7 @@ Adapter types:
 - `GovBrDownloadSource` for `gov.br` crawlers (`snis`, `sinisa`)
 - `PysusDownloadSource` for PySUS/FTP flows (`sinan`, `sim`, `sih`)
 - `OpenDataSUSDownloadSource` for the OpenDataSUS API (`doses_aplicadas_pni`, `zikavirus`, and generated DEMAS sources)
-- `NasaDownloadSource` for NASA APIs (`nasa_power`, `nasa_firms`, `nasa_gpm`)
+- `NasaDownloadSource` for keyless/token HTTP APIs — NASA (`nasa_power`, `nasa_firms`, `nasa_gpm`) and IBGE SIDRA (`ibge_populacao`, `ibge_pib_municipios`, `ibge_populacao_idade_sexo`)
 
 ### 3.2 `DownloadJobService`
 
@@ -196,6 +196,30 @@ These events feed:
 - **Experimental:** data access also requires the account to authorize the
   "NASA GESDISC DATA ARCHIVE" application in the Earthdata profile; until then
   data requests return a clean, actionable HTTP 401
+
+### 7.7 IBGE SIDRA sources (`ibge_populacao`, `ibge_pib_municipios`, `ibge_populacao_idade_sexo`)
+
+- Query the IBGE SIDRA v3 aggregates API through an isolated, keyless HTTP
+  client (`guaraci/ibge/client.py`); base:
+  `https://servicodados.ibge.gov.br/api/v3/agregados`. `IbgeSidraClient`
+  decompresses gzip responses (the IBGE CDN sends them intermittently) and
+  mirrors the NASA/OpenDataSUS error taxonomy (category / retryable / hint)
+- A shared base (`SidraAggregateSource`, `guaraci/ibge/sidra.py`) sweeps one
+  year at a time and flattens the SIDRA `resultados -> series -> serie` nesting
+  into tidy rows: `nivel, localidade_id, localidade_nome, ano,
+  [<classification> …], variavel_id, unidade, valor`
+- Each concrete source is a thin subclass pinning a SIDRA table/variable:
+  `ibge_populacao` (6579/9324, estimates 2001+), `ibge_pib_municipios`
+  (5938/37, municipal GDP 2002+), `ibge_populacao_idade_sexo` (9514/93, census
+  2022). The last builds a SIDRA `classificacao` filter from the `sexo` and
+  `faixa_etaria` params (classification columns `sexo`, `idade`,
+  `forma_de_declaracao_da_idade`)
+- `level` selects the territorial aggregation (`municipio`/`uf`/`regiao`/`brasil`
+  → SIDRA `N6`/`N3`/`N2`/`N1`); SIDRA missing markers (`-`, `..`) become null and
+  a year with no data is skipped with a warning, not a failure
+- Registered via the generic `NasaDownloadSource` adapter (mode `ibge api`);
+  the orchestrator sweeps them as annual `api_window`s
+- No credential required (keyless API)
 
 ## 8. Persistence and Recovery
 

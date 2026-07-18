@@ -1213,6 +1213,80 @@
     "status": "error",
     "note": "OpenDataSUS DEMAS request failed for dataset 'mpox' at endpoint '/vigilancia-e-meio-ambiente/mpox' page 1. OpenDataSUS request failed (500): {\"message\": \"Internal Server Error\"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable."
   },
+  "ibge_populacao": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "status": "ok",
+    "rows_sampled": 1,
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ]
+  },
+  "ibge_pib_municipios": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "status": "ok",
+    "rows_sampled": 1,
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ]
+  },
+  "ibge_populacao_idade_sexo": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "sexo",
+      "faixa_etaria",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "status": "ok",
+    "rows_sampled": 42,
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "sexo",
+      "idade",
+      "forma_de_declaracao_da_idade",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ]
+  },
   "nasa_firms": {
     "filters": [
       "output_dir",

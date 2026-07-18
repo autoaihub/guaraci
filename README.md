@@ -155,6 +155,12 @@ docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.main fetch discover sia --set start_year=2024 --set end_year=2024 --sizes   # preflight: file count + size, no download
 docker run --rm -it -v "$(pwd):/app" guaraci \
   python -m guaraci.cli.main fetch run srag_demas --set start_year=2023 --set end_year=2023 --set uf=SP --format parquet -o ./out
+
+# IBGE SIDRA (keyless) — population estimates / municipal GDP / census by sex and age
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.main fetch run ibge_populacao --set start_year=2020 --set end_year=2022 --set level=uf --format parquet -o ./out
+docker run --rm -it -v "$(pwd):/app" guaraci \
+  python -m guaraci.cli.main fetch run ibge_populacao_idade_sexo --set start_year=2022 --set end_year=2022 --set level=uf --set sexo=ambos --set faixa_etaria=quinquenal --format parquet -o ./out
 ```
 
 Note:
@@ -188,6 +194,8 @@ High-level summary:
   Active-fire detections from the NASA FIRMS API. Collection uses `start_date`, `end_date`, `product` (FIRMS source product), and `country` (default `BRA`) or an optional `area` bounding box; long windows are chunked into 10-day requests. Requires a free MAP_KEY supplied via the `GUARACI_FIRMS_MAP_KEY` environment variable (never a job parameter); optional export uses `csv`, `parquet`, or `sqlite`.
 - `nasa_gpm`
   Daily GPM IMERG precipitation for a single point, via GES DISC OPeNDAP subsetting (no HDF5/NetCDF parsing, no extra dependency). Collection uses `latitude`, `longitude`, `start_date`, `end_date`, and `variable`; one request per day (window capped at ~1 year). Requires an Earthdata Login token via the `GUARACI_EARTHDATA_TOKEN` environment variable (never a job parameter) and the account must authorize the "NASA GESDISC DATA ARCHIVE" application. Experimental; optional export uses `csv`, `parquet`, or `sqlite`.
+- `ibge_populacao`, `ibge_pib_municipios`, and `ibge_populacao_idade_sexo`
+  Denominator / socioeconomic layers from the IBGE SIDRA aggregates API (keyless JSON). Collection uses `start_year`, `end_year`, and `level` (`municipio`/`uf`/`regiao`/`brasil`); `ibge_populacao_idade_sexo` adds `sexo` (`ambos`/`homens`/`mulheres`/`total`) and `faixa_etaria` (`quinquenal`/`total`/`todos`). Technical controls include `keep_raw`, `timeout`, and `api_base_url`; optional export uses `csv`, `parquet`, or `sqlite`. No authentication required.
 
 OpenDataSUS naming rule:
 - Use canonical source names returned by `GET /sources`; aliases are not supported.

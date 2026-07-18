@@ -11,7 +11,7 @@
 > **Drenagem:** ao concluir um item, registre a entrega no `CHANGELOG.md` e remova a linha
 > na próxima reconciliação. O quadro mostra o presente em aberto; o passado vive no changelog.
 >
-> **Última reconciliação:** 2026-06-28 — fontes: reunião AutoAI-Pandemics (24/06), feedback de agente (28/06), amostragem de fontes (28/06), memória do projeto.
+> **Última reconciliação:** 2026-07-18 — fontes: reunião AutoAI-Pandemics (24/06), feedback de agente (28/06), amostragem de fontes (28/06), memória do projeto. Conectores **IBGE SIDRA** (`ibge_populacao`, `ibge_pib_municipios`, `ibge_populacao_idade_sexo`) concluídos e documentados no padrão das demais fontes (SOURCES_AND_FILTERS, DATA_DICTIONARY live-sampled, ARCHITECTURE, field_dictionary, AI_HANDOFF, operacao) — drenados ao `CHANGELOG.md`.
 >
 > **Legenda:** 🔴 Prioridade · 🟡 Em andamento · ⚪ Pendente (backlog válido) · 🗄️ Defasado (morto, mantido por memória) · ✅ Concluído (transitório → changelog)
 
