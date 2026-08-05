@@ -10,29 +10,28 @@ from guaraci.opendatasus.client import OpenDataSUSClientError
 from guaraci.opendatasus.datasource import OpenDataSUSDataSource
 
 
+def _slice_rows(rows, params):  # noqa: ANN001
+    """Simula a paginação real do DEMAS: offset conta LINHAS, não páginas."""
+    offset = int(params.get("offset", 0))
+    limit = int(params.get("limit", len(rows)))
+    return rows[offset : offset + limit]
+
+
 class _FakeDemasClient:
     mode = "demas"
     base_url = "https://apidadosabertos.saude.gov.br"
 
+    ROWS = [
+        {"codigo_documento": "a", "data_vacina": "2025-01-10 00:00:00-03", "sigla_uf_estabelecimento": "SP"},
+        {"codigo_documento": "b", "data_vacina": "2025-02-01 00:00:00-03", "sigla_uf_estabelecimento": "SP"},
+        {"codigo_documento": "c", "data_vacina": "2025-01-20 00:00:00-03", "sigla_uf_estabelecimento": "RJ"},
+        {"codigo_documento": "d", "data_vacina": "2025-01-25 00:00:00-03", "sigla_uf_estabelecimento": "SP"},
+    ]
+
     def demas_get(self, path: str, params):  # noqa: ANN001
-        offset = int(params.get("offset", 0))
         if path != "/vacinacao/doses-aplicadas-pni-2025":
             return {"doses_aplicadas_pni": []}
-        if offset == 0:
-            return {
-                "doses_aplicadas_pni": [
-                    {"codigo_documento": "a", "data_vacina": "2025-01-10 00:00:00-03", "sigla_uf_estabelecimento": "SP"},
-                    {"codigo_documento": "b", "data_vacina": "2025-02-01 00:00:00-03", "sigla_uf_estabelecimento": "SP"},
-                ]
-            }
-        if offset == 1:
-            return {
-                "doses_aplicadas_pni": [
-                    {"codigo_documento": "c", "data_vacina": "2025-01-20 00:00:00-03", "sigla_uf_estabelecimento": "RJ"},
-                    {"codigo_documento": "d", "data_vacina": "2025-01-25 00:00:00-03", "sigla_uf_estabelecimento": "SP"},
-                ]
-            }
-        return {"doses_aplicadas_pni": []}
+        return {"doses_aplicadas_pni": _slice_rows(self.ROWS, params)}
 
 
 class _FakeDemasMixedTypeClient:
@@ -67,48 +66,32 @@ class _FakeDemasZikavirusClient:
     mode = "demas"
     base_url = "https://apidadosabertos.saude.gov.br"
 
+    ROWS = [
+        {"tp_not": "2", "dt_notific": "2016-01-05", "sg_uf_not": "35"},
+        {"tp_not": "2", "dt_notific": "2016-02-01", "sg_uf_not": "35"},
+        {"tp_not": "2", "dt_notific": "2016-01-12", "sg_uf_not": "29"},
+    ]
+
     def demas_get(self, path: str, params):  # noqa: ANN001
         if path != "/arboviroses/zikavirus":
             return {"arboviroses_zikavirus": []}
-        offset = int(params.get("offset", 0))
-        if offset == 0:
-            return {
-                "arboviroses_zikavirus": [
-                    {"tp_not": "2", "dt_notific": "2016-01-05", "sg_uf_not": "35"},
-                    {"tp_not": "2", "dt_notific": "2016-02-01", "sg_uf_not": "35"},
-                ]
-            }
-        if offset == 1:
-            return {
-                "arboviroses_zikavirus": [
-                    {"tp_not": "2", "dt_notific": "2016-01-12", "sg_uf_not": "29"},
-                ]
-            }
-        return {"arboviroses_zikavirus": []}
+        return {"arboviroses_zikavirus": _slice_rows(self.ROWS, params)}
 
 
 class _FakeDemasFebreAmarelaClient:
     mode = "demas"
     base_url = "https://apidadosabertos.saude.gov.br"
 
+    ROWS = [
+        {"mun_lpi": "ALTO ALEGRE", "dt_is": "29/11/1994", "uf_lpi": "RR"},
+        {"mun_lpi": "PACARAIMA", "dt_is": "19/02/1995", "uf_lpi": "RR"},
+        {"mun_lpi": "AMARANTE", "dt_is": "01/04/1995", "uf_lpi": "MA"},
+    ]
+
     def demas_get(self, path: str, params):  # noqa: ANN001
         if path != "/arboviroses/febre-amarela-humanos-primatas-nao-humanos":
             return {"febre_amarela_humanos_primatas": []}
-        offset = int(params.get("offset", 0))
-        if offset == 0:
-            return {
-                "febre_amarela_humanos_primatas": [
-                    {"mun_lpi": "ALTO ALEGRE", "dt_is": "29/11/1994", "uf_lpi": "RR"},
-                    {"mun_lpi": "PACARAIMA", "dt_is": "19/02/1995", "uf_lpi": "RR"},
-                ]
-            }
-        if offset == 1:
-            return {
-                "febre_amarela_humanos_primatas": [
-                    {"mun_lpi": "AMARANTE", "dt_is": "01/04/1995", "uf_lpi": "MA"},
-                ]
-            }
-        return {"febre_amarela_humanos_primatas": []}
+        return {"febre_amarela_humanos_primatas": _slice_rows(self.ROWS, params)}
 
 
 class _FakeDemasGenericClient:

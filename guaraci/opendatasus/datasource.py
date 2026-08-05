@@ -554,7 +554,11 @@ class OpenDataSUSDataSource(DataSource):
                 params.update(
                     {
                         "limit": page_size,
-                        "offset": page,
+                        # DEMAS offset conta LINHAS, não páginas (o swagger diz
+                        # "Número da página", mas limit=5&offset=1 sobrepõe 4 das
+                        # 5 linhas de offset=0). Avançar de 1 em 1 rebaixaria a
+                        # mesma janela e cobriria page_size vezes menos dados.
+                        "offset": page * page_size,
                     }
                 )
                 if uf and uf_param_name:
