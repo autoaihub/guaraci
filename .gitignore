@@ -192,3 +192,7 @@ docs/artigo/
 
 # Session handoffs are archived locally, not tracked in the public repo
 docs/handoff-*.md
+
+# Downloaded datasets (SIVEP/SINAN/etc). Multi-GB output of the platform,
+# never versioned — regenerate with the collectors.
+out/
