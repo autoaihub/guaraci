@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guaraci | Dados públicos do Brasil em um só lugar</title>
+  <meta name="description" content="O Guaraci reúne mais de 90 conjuntos de dados públicos brasileiros — saúde, população, saneamento, clima e território — direto das fontes oficiais, em um único ponto de acesso gratuito.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #f4a300;
+      --primary-light: #ffd56a;
+      --dark: #15231f;
+      --green: #244e3d;
+      --green-2: #39735b;
+      --soft: #f8f5ed;
+      --muted: #68736f;
+      --border: rgba(36,78,61,.14);
+      --gradient: linear-gradient(135deg, #f7b51d 0%, #e58d00 42%, #244e3d 100%);
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Heebo', sans-serif; color: var(--dark); background: #fff; }
+    h1,h2,h3,h4,h5,.navbar-brand { font-family: 'Nunito', sans-serif; }
+
+    .navbar { backdrop-filter: blur(14px); background: rgba(255,255,255,.94)!important; }
+    .brand-mark {
+      width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center;
+      background: var(--gradient); color: #fff; font-size: 1.5rem; box-shadow: 0 12px 30px rgba(229,141,0,.24);
+    }
+    .navbar-brand strong { font-size: 1.45rem; color: var(--dark); }
+    .nav-link { font-weight: 700; color: #43514c!important; }
+    .nav-link:hover { color: #c97700!important; }
+
+    .hero {
+      position: relative; min-height: 700px; overflow: hidden; display: flex; align-items: center;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(247,181,29,.34), transparent 28%),
+        radial-gradient(circle at 83% 20%, rgba(255,255,255,.12), transparent 24%),
+        linear-gradient(135deg, rgba(21,35,31,.98), rgba(36,78,61,.92));
+    }
+    .hero::before {
+      content:""; position:absolute; inset:0; opacity:.18;
+      background-image: radial-gradient(rgba(255,255,255,.75) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .hero::after {
+      content:""; position:absolute; left:-8%; right:-8%; bottom:-120px; height:220px;
+      background:#fff; transform:rotate(-4deg);
+    }
+    .hero-content { position:relative; z-index:2; padding:104px 0 150px; }
+    .hero-badge, .section-kicker {
+      display:inline-flex; align-items:center; gap:8px; border-radius:999px; font-weight:800;
+      letter-spacing:.05em; text-transform:uppercase; font-size:.77rem;
+    }
+    .hero-badge { padding:10px 16px; color:#fff; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.1); }
+    .hero h1 { color:#fff; font-size:clamp(2.9rem,6.6vw,5.6rem); line-height:.98; font-weight:900; letter-spacing:-.05em; }
+    .hero h1 span { color:var(--primary-light); }
+    .hero p { color:rgba(255,255,255,.84); font-size:1.18rem; max-width:760px; }
+    .btn-main { background:var(--primary); color:#17251f; border:0; font-weight:800; border-radius:999px; padding:15px 27px; transition:.2s ease; }
+    .btn-main:hover { background:#ffc33f; color:#17251f; transform:translateY(-2px); }
+    .btn-outline-soft { border:1px solid rgba(255,255,255,.45); color:#fff; font-weight:800; border-radius:999px; padding:14px 27px; }
+    .btn-outline-soft:hover { background:#fff; color:var(--dark); }
+
+    .hero-panel {
+      padding:22px; border-radius:30px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+      backdrop-filter:blur(16px); box-shadow:0 28px 80px rgba(0,0,0,.25);
+    }
+    .hero-mini { padding:16px 18px; border-radius:20px; background:rgba(255,255,255,.95); margin-bottom:12px; display:flex; align-items:center; gap:14px; }
+    .hero-mini:last-child { margin-bottom:0; }
+    .hero-mini i { font-size:1.7rem; color:#c97700; }
+    .hero-mini strong { display:block; font-family:'Nunito'; font-size:1.5rem; line-height:1; }
+    .hero-mini span { color:var(--muted); font-size:.9rem; }
+
+    section { padding:84px 0; }
+    .section-kicker { padding:8px 14px; color:#a96300; background:rgba(244,163,0,.12); }
+    .section-title { font-weight:900; letter-spacing:-.035em; font-size:clamp(2.1rem,4vw,3.4rem); }
+    .section-lead { color:var(--muted); font-size:1.08rem; max-width:820px; }
+
+    .metric-card, .benefit-card, .source-card, .area-card, .use-card, .who-card {
+      height:100%; background:#fff; border:1px solid var(--border); border-radius:28px; padding:28px;
+      box-shadow:0 18px 50px rgba(21,35,31,.07); transition:.25s ease;
+    }
+    .metric-card:hover,.benefit-card:hover,.source-card:hover,.area-card:hover,.use-card:hover,.who-card:hover { transform:translateY(-7px); box-shadow:0 28px 70px rgba(21,35,31,.13); }
+    .icon-box { width:58px; height:58px; border-radius:19px; display:grid; place-items:center; background:var(--gradient); color:#fff; font-size:1.55rem; margin-bottom:20px; }
+    .metric-number { font-family:'Nunito'; font-size:2.9rem; font-weight:900; line-height:1; }
+    .metric-label, .benefit-card p, .source-card p { color:var(--muted); }
+
+    /* Explainer problema -> solução */
+    .explain-col { background:var(--soft); border:1px solid var(--border); border-radius:28px; padding:30px; height:100%; }
+    .explain-col.solution { background:linear-gradient(160deg,#fff8ec,#fff); border-color:rgba(244,163,0,.3); }
+    .explain-list { list-style:none; padding:0; margin:14px 0 0; }
+    .explain-list li { display:flex; gap:12px; align-items:flex-start; padding:9px 0; color:#3d4a45; }
+    .explain-list li i { font-size:1.25rem; margin-top:1px; }
+    .explain-col.problem li i { color:#b04a3a; }
+    .explain-col.solution li i { color:#2f7d5b; }
+
+    .impact-band { background:var(--gradient); border-radius:36px; padding:42px; color:#fff; box-shadow:0 30px 80px rgba(229,141,0,.2); }
+    .impact-band p { color:rgba(255,255,255,.9); }
+
+    .soft-section { background:var(--soft); }
+    .benefit-card h4,.source-card h4 { font-weight:900; }
+    .benefit-card .icon-box { background:rgba(244,163,0,.13); color:#b36c00; }
+
+    /* Áreas */
+    .area-card { position:relative; overflow:hidden; }
+    .area-card .icon-box { margin-bottom:16px; }
+    .area-card h4 { font-weight:900; }
+    .area-card p { color:var(--muted); margin-bottom:12px; }
+    .area-count { font-family:'Nunito'; font-weight:900; color:#b36c00; font-size:.95rem; }
+
+    /* Bases detalhadas */
+    .source-card { position:relative; overflow:hidden; }
+    .source-card::after { content:""; position:absolute; width:150px; height:150px; border-radius:50%; right:-70px; top:-70px; background:rgba(244,163,0,.1); }
+    .source-tag { display:inline-flex; align-items:center; gap:7px; padding:7px 13px; border-radius:999px; background:#f7f2e7; color:#8f5b0c; font-weight:800; font-size:.78rem; margin-bottom:16px; }
+    .base-row { display:flex; gap:13px; align-items:flex-start; padding:11px 0; border-top:1px dashed var(--border); }
+    .base-row:first-of-type { border-top:0; }
+    .base-chip { flex:0 0 auto; min-width:74px; text-align:center; font-family:'Nunito'; font-weight:800; font-size:.8rem; color:#244e3d; background:#eef4f0; border:1px solid var(--border); border-radius:11px; padding:7px 9px; }
+    .base-desc { font-size:.95rem; color:#4e5d57; line-height:1.4; }
+    .base-desc b { color:var(--dark); }
+
+    /* Formas de uso */
+    .use-card { text-align:left; }
+    .use-card .icon-box { margin-bottom:18px; }
+    .use-card h4 { font-weight:900; }
+    .use-card p { color:var(--muted); margin-bottom:10px; }
+    .use-tag { display:inline-block; font-size:.76rem; font-weight:800; color:#2f7d5b; background:rgba(47,125,91,.1); border-radius:999px; padding:5px 12px; }
+
+    .steps-wrap { position:relative; }
+    .step-card { text-align:center; padding:22px; }
+    .step-number { width:74px; height:74px; margin:0 auto 20px; border-radius:24px; display:grid; place-items:center; font-family:'Nunito'; font-size:1.8rem; font-weight:900; color:#fff; background:var(--gradient); box-shadow:0 18px 40px rgba(229,141,0,.22); }
+    .step-card h4 { font-weight:900; }
+    .step-card p { color:var(--muted); }
+
+    /* Para quem é */
+    .who-card { text-align:center; padding:26px 20px; }
+    .who-card i { font-size:2rem; color:#c97700; }
+    .who-card h5 { font-weight:900; margin:12px 0 6px; }
+    .who-card p { color:var(--muted); font-size:.92rem; margin:0; }
+
+    .trust-band { border-radius:32px; border:1px solid var(--border); background:#fff; padding:34px; box-shadow:0 18px 50px rgba(21,35,31,.06); }
+    .trust-logo { font-family:'Nunito'; font-weight:900; color:#244e3d; font-size:1.05rem; padding:12px 16px; border-radius:14px; background:var(--soft); text-align:center; }
+
+    .cta { border-radius:38px; padding:50px; background:radial-gradient(circle at top right, rgba(244,163,0,.22), transparent 32%), #eef4f0; border:1px solid var(--border); }
+    footer { background:#13201c; color:rgba(255,255,255,.72); padding:34px 0; }
+    footer strong { color:#fff; }
+
+    @media(max-width:991px){
+      .hero { min-height:auto; }
+      .hero-content { padding:90px 0 145px; }
+      .hero-panel { margin-top:30px; }
+    }
+    @media(max-width:576px){
+      section { padding:60px 0; }
+      .impact-band,.cta { padding:30px 24px; }
+      .hero h1 { font-size:3rem; }
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light sticky-top shadow-sm">
+  <div class="container py-2">
+    <a class="navbar-brand d-flex align-items-center gap-3" href="#inicio">
+      <span class="brand-mark"><i class="bi bi-sun-fill"></i></span>
+      <strong>Guaraci</strong>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="menu">
+      <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+        <a class="nav-link" href="#o-que-e">O que é</a>
+        <a class="nav-link" href="#numeros">Em números</a>
+        <a class="nav-link" href="#bases">As bases</a>
+        <a class="nav-link" href="#como-usar">Como usar</a>
+        <a class="btn btn-main ms-lg-3" href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener">Acessar Guaraci</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header id="inicio" class="hero">
+  <div class="container hero-content">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-8">
+        <div class="hero-badge mb-4"><i class="bi bi-stars"></i> Dados públicos mais próximos de quem precisa</div>
+        <h1 class="mb-4">Muitas bases.<br><span>Um só caminho.</span></h1>
+        <p class="mb-4">O Guaraci reúne <strong>mais de 90 conjuntos de dados públicos</strong> do Brasil — saúde, população, saneamento, clima e território — direto das <strong>fontes oficiais</strong>, em um único lugar. Menos tempo procurando, mais tempo pesquisando, planejando e criando soluções para o país.</p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="#bases" class="btn btn-main">Conhecer as bases</a>
+          <a href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener" class="btn btn-outline-soft">Acesso gratuito <i class="bi bi-arrow-up-right ms-1"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-panel">
+          <div class="hero-mini"><i class="bi bi-database-fill-check"></i><div><strong>90+ conjuntos</strong><span>de dados públicos reunidos</span></div></div>
+          <div class="hero-mini"><i class="bi bi-diagram-3-fill"></i><div><strong>5 grandes áreas</strong><span>saúde, população, saneamento, clima e território</span></div></div>
+          <div class="hero-mini"><i class="bi bi-unlock-fill"></i><div><strong>100% gratuito</strong><span>para pesquisa, ensino, gestão e inovação</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- O QUE É: problema -> solução -->
+<section id="o-que-e">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-kicker"><i class="bi bi-question-circle-fill"></i> O que é o Guaraci</span>
+      <h2 class="section-title mt-3">Do dado espalhado à informação útil</h2>
+      <p class="section-lead mx-auto">Os dados públicos do Brasil existem — mas ficam espalhados em dezenas de portais, cada um com seu formato, senha e jeito de baixar. O Guaraci é a ponte que traz tudo isso para um só lugar, direto da fonte oficial.</p>
+    </div>
+    <div class="row g-4 align-items-stretch">
+      <div class="col-lg-6">
+        <div class="explain-col problem">
+          <span class="source-tag" style="background:#f6e7e4;color:#a5442f;"><i class="bi bi-exclamation-triangle-fill"></i> Sem o Guaraci</span>
+          <h4 class="fw-bold mb-1">Procurar dados dá trabalho</h4>
+          <ul class="explain-list">
+            <li><i class="bi bi-x-circle-fill"></i> Cada base fica em um portal diferente do governo.</li>
+            <li><i class="bi bi-x-circle-fill"></i> Formatos técnicos e difíceis de abrir (como arquivos <em>.dbc</em>).</li>
+            <li><i class="bi bi-x-circle-fill"></i> É preciso repetir o download estado por estado, ano por ano.</li>
+            <li><i class="bi bi-x-circle-fill"></i> Fácil pegar dado desatualizado ou de intermediários.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="explain-col solution">
+          <span class="source-tag"><i class="bi bi-sun-fill"></i> Com o Guaraci</span>
+          <h4 class="fw-bold mb-1">Tudo em um caminho só</h4>
+          <ul class="explain-list">
+            <li><i class="bi bi-check-circle-fill"></i> Um único ponto de acesso para 90+ conjuntos de dados.</li>
+            <li><i class="bi bi-check-circle-fill"></i> Já entregue pronto para usar (CSV, Parquet ou banco de dados).</li>
+            <li><i class="bi bi-check-circle-fill"></i> Você escolhe período, estado e recorte — ele baixa tudo.</li>
+            <li><i class="bi bi-check-circle-fill"></i> Sempre da <strong>fonte oficial</strong>, sem intermediários.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EM NÚMEROS -->
+<section id="numeros" class="soft-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-kicker"><i class="bi bi-bar-chart-fill"></i> Em números</span>
+      <h2 class="section-title mt-3">A dimensão do projeto</h2>
+      <p class="section-lead mx-auto">São mais de 90 conjuntos acessíveis, organizados a partir de cerca de 30 sistemas e fontes oficiais brasileiros e internacionais.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-database-fill"></i></div><div class="metric-number"><span class="count" data-to="90">0</span>+</div><div class="metric-label">conjuntos de dados públicos acessíveis em um único projeto</div></div></div>
+      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-diagram-3-fill"></i></div><div class="metric-number"><span class="count" data-to="30">0</span>+</div><div class="metric-label">sistemas e fontes oficiais integrados diretamente</div></div></div>
+      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-heart-pulse-fill"></i></div><div class="metric-number"><span class="count" data-to="14">0</span></div><div class="metric-label">sistemas de saúde do DATASUS (SUS) já conectados</div></div></div>
+      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-globe-americas"></i></div><div class="metric-number">Brasil</div><div class="metric-label">dados nacionais, estaduais e municipais — de todo o país</div></div></div>
+    </div>
+    <div class="impact-band mt-5">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-8"><h2 class="fw-bold mb-3">Informação pública com mais alcance</h2><p class="mb-0">O Guaraci reduz caminhos, organiza o acesso e ajuda pessoas e instituições a encontrarem dados que podem apoiar pesquisas, políticas públicas, ações de prevenção e decisões com maior impacto social.</p></div>
+        <div class="col-lg-4 text-lg-end"><a href="#bases" class="btn btn-light rounded-pill px-4 py-3 fw-bold">Ver as bases</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AS 5 ÁREAS -->
+<section id="areas">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-kicker"><i class="bi bi-grid-1x2-fill"></i> Cinco grandes áreas</span>
+      <h2 class="section-title mt-3">Um retrato amplo do Brasil</h2>
+      <p class="section-lead mx-auto">As fontes vão do nascimento ao cuidado em saúde, passando por população e economia, saneamento, clima e território.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-heart-pulse-fill"></i></div><h4>Saúde pública</h4><p>Doenças, internações, atendimentos, óbitos, nascimentos, vacinação, exames e unidades de saúde do SUS.</p><span class="area-count">14 sistemas do DATASUS</span></div></div>
+      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-shield-f-fill"></i></div><h4>Doenças e vigilância</h4><p>Dengue, chikungunya, zika, febre amarela, mpox, síndromes respiratórias e eventos pós-vacinação, em tempo mais recente.</p><span class="area-count">Dezenas de conjuntos OpenDataSUS</span></div></div>
+      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-people-fill"></i></div><h4>População e economia</h4><p>Estimativas de população, Censo por idade e sexo e PIB dos municípios — o contexto que dá sentido aos indicadores.</p><span class="area-count">3 fontes do IBGE</span></div></div>
+      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-cloud-drizzle-fill"></i></div><h4>Clima e ambiente</h4><p>Temperatura, chuva e focos de incêndio, para relacionar condições ambientais com saúde e qualidade de vida.</p><span class="area-count">3 fontes da NASA</span></div></div>
+      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-droplet-fill"></i></div><h4>Saneamento</h4><p>Informações nacionais de água, esgoto e serviços de saneamento — base para avaliar desigualdades e riscos.</p><span class="area-count">2 sistemas (gov.br)</span></div></div>
+      <div class="col-lg-4 col-md-6"><div class="area-card" style="background:var(--gradient);color:#fff;border:0;"><div class="icon-box" style="background:rgba(255,255,255,.18);"><i class="bi bi-geo-alt-fill"></i></div><h4>Território</h4><p class="text-white-50">Todas as áreas se cruzam por município, estado e região — permitindo comparar realidades locais em todo o Brasil.</p><span class="area-count" style="color:#fff;">Cobertura nacional</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- AS BASES DETALHADAS: o que cada uma faz -->
+<section id="bases" class="soft-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-kicker"><i class="bi bi-collection-fill"></i> As bases, uma a uma</span>
+      <h2 class="section-title mt-3">O que cada base faz — em português claro</h2>
+      <p class="section-lead mx-auto">Cada sigla esconde um tipo de informação. Veja o que você encontra em cada uma delas.</p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Saúde SUS -->
+      <div class="col-lg-6">
+        <div class="source-card">
+          <span class="source-tag"><i class="bi bi-hospital-fill"></i> Saúde do SUS &middot; DATASUS</span>
+          <div class="base-row"><span class="base-chip">SINAN</span><span class="base-desc"><b>Notificação de doenças</b> de acompanhamento obrigatório (dengue, hanseníase, chikungunya e outras).</span></div>
+          <div class="base-row"><span class="base-chip">SIM</span><span class="base-desc"><b>Mortalidade</b>: registros de óbitos e suas causas.</span></div>
+          <div class="base-row"><span class="base-chip">SIH</span><span class="base-desc"><b>Internações hospitalares</b> pelo SUS: quem foi internado, por quê e onde.</span></div>
+          <div class="base-row"><span class="base-chip">SINASC</span><span class="base-desc"><b>Nascidos vivos</b>: registros de nascimentos no país.</span></div>
+          <div class="base-row"><span class="base-chip">SIA</span><span class="base-desc"><b>Atendimentos ambulatoriais</b>: consultas, exames e procedimentos.</span></div>
+          <div class="base-row"><span class="base-chip">CNES</span><span class="base-desc"><b>Cadastro de estabelecimentos</b> de saúde: hospitais, postos, profissionais e equipamentos.</span></div>
+          <div class="base-row"><span class="base-chip">PNI</span><span class="base-desc"><b>Imunizações</b>: doses de vacinas aplicadas.</span></div>
+        </div>
+      </div>
+
+      <!-- Saúde SUS - parte 2 -->
+      <div class="col-lg-6">
+        <div class="source-card">
+          <span class="source-tag"><i class="bi bi-clipboard2-pulse-fill"></i> Saúde do SUS &middot; especializados</span>
+          <div class="base-row"><span class="base-chip">SISCAN</span><span class="base-desc"><b>Rastreamento de câncer</b>: exames de colo do útero e mama.</span></div>
+          <div class="base-row"><span class="base-chip">SISPRÉ&#8209;NATAL</span><span class="base-desc"><b>Pré-natal</b>: acompanhamento da saúde das gestantes.</span></div>
+          <div class="base-row"><span class="base-chip">RESP</span><span class="base-desc"><b>Emergências em saúde</b>: notificações ligadas a zika e síndromes associadas.</span></div>
+          <div class="base-row"><span class="base-chip">PCE</span><span class="base-desc"><b>Controle da esquistossomose</b>: dados do programa de combate à doença.</span></div>
+          <div class="base-row"><span class="base-chip">CIHA</span><span class="base-desc"><b>Comunicação de internação</b> hospitalar e ambulatorial.</span></div>
+          <div class="base-row"><span class="base-chip">Painel Onco</span><span class="base-desc"><b>Painel de oncologia</b>: produção de tratamentos contra o câncer.</span></div>
+        </div>
+      </div>
+
+      <!-- Vigilância -->
+      <div class="col-lg-6">
+        <div class="source-card">
+          <span class="source-tag"><i class="bi bi-shield-fill-check"></i> Doenças e vigilância &middot; OpenDataSUS</span>
+          <div class="base-row"><span class="base-chip">Dengue</span><span class="base-desc"><b>Arboviroses</b>: casos recentes de dengue, chikungunya e zika.</span></div>
+          <div class="base-row"><span class="base-chip">Febre&nbsp;amarela</span><span class="base-desc"><b>Febre amarela e mpox</b>: acompanhamento de emergências.</span></div>
+          <div class="base-row"><span class="base-chip">SRAG</span><span class="base-desc"><b>Síndrome respiratória aguda grave</b> e casos de síndrome gripal.</span></div>
+          <div class="base-row"><span class="base-chip">ESAVI</span><span class="base-desc"><b>Eventos após vacinação</b>: segurança das vacinas.</span></div>
+          <div class="base-row"><span class="base-chip">+ DEMAS</span><span class="base-desc">Dezenas de outros conjuntos oficiais gerados a partir do <b>catálogo aberto do Ministério da Saúde</b>.</span></div>
+        </div>
+      </div>
+
+      <!-- População / Clima / Saneamento -->
+      <div class="col-lg-6">
+        <div class="source-card">
+          <span class="source-tag"><i class="bi bi-globe2"></i> População, clima e saneamento</span>
+          <div class="base-row"><span class="base-chip">IBGE</span><span class="base-desc"><b>População e economia</b>: estimativas de população, Censo por idade e sexo e PIB dos municípios.</span></div>
+          <div class="base-row"><span class="base-chip">NASA&nbsp;POWER</span><span class="base-desc"><b>Clima</b>: temperatura, umidade, radiação solar e vento.</span></div>
+          <div class="base-row"><span class="base-chip">NASA&nbsp;GPM</span><span class="base-desc"><b>Chuva</b>: precipitação diária estimada por satélite.</span></div>
+          <div class="base-row"><span class="base-chip">NASA&nbsp;FIRMS</span><span class="base-desc"><b>Focos de incêndio</b>: pontos de calor detectados por satélite.</span></div>
+          <div class="base-row"><span class="base-chip">SNIS / SINISA</span><span class="base-desc"><b>Saneamento</b>: informações nacionais de água, esgoto e serviços.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center section-lead mx-auto mt-4" style="font-size:.98rem;">
+      <i class="bi bi-info-circle"></i> Somando os recortes disponíveis (por doença, sistema e catálogo), são <strong>mais de 90 conjuntos</strong> acessíveis pelo Guaraci.
+    </p>
+  </div>
+</section>
+
+<!-- COMO USAR -->
+<section id="como-usar">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-kicker"><i class="bi bi-compass-fill"></i> Como usar</span>
+      <h2 class="section-title mt-3">Três passos para chegar aos dados</h2>
+      <p class="section-lead mx-auto">O caminho é sempre o mesmo, não importa a base que você escolher.</p>
+    </div>
+    <div class="row g-4 steps-wrap mb-5">
+      <div class="col-lg-4"><div class="step-card"><div class="step-number">1</div><h4>Escolha o tema</h4><p>Selecione a base ou o assunto que deseja consultar — saúde, população, saneamento ou clima.</p></div></div>
+      <div class="col-lg-4"><div class="step-card"><div class="step-number">2</div><h4>Defina o recorte</h4><p>Informe período, estado, município e outros filtros para chegar exatamente ao conjunto que precisa.</p></div></div>
+      <div class="col-lg-4"><div class="step-card"><div class="step-number">3</div><h4>Receba os arquivos</h4><p>Acompanhe o download e receba os dados prontos para usar, reunidos em uma pasta sua.</p></div></div>
+    </div>
+
+    <div class="text-center mb-4">
+      <h3 class="fw-bold">Três formas de usar, para cada tipo de pessoa</h3>
+      <p class="section-lead mx-auto">Do usuário que só quer baixar um arquivo até o sistema que precisa integrar tudo automaticamente.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-4"><div class="use-card"><div class="icon-box"><i class="bi bi-window-desktop"></i></div><h4>Aplicativo no computador</h4><p>Uma tela simples para escolher a base, preencher os filtros e acompanhar o download — sem precisar saber programar.</p><span class="use-tag">Para quem quer praticidade</span></div></div>
+      <div class="col-lg-4"><div class="use-card"><div class="icon-box"><i class="bi bi-terminal-fill"></i></div><h4>Linha de comando</h4><p>Um comando único e direto para baixar qualquer base, ideal para quem automatiza tarefas ou repete coletas com frequência.</p><span class="use-tag">Para quem automatiza</span></div></div>
+      <div class="col-lg-4"><div class="use-card"><div class="icon-box"><i class="bi bi-hdd-network-fill"></i></div><h4>Integração (API)</h4><p>Uma interface para conectar o Guaraci a outros sistemas e alimentar plataformas de dados de forma contínua.</p><span class="use-tag">Para quem constrói sistemas</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PARA QUEM É -->
+<section id="publico" class="soft-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-kicker"><i class="bi bi-people-fill"></i> Para quem é</span>
+      <h2 class="section-title mt-3">Feito para diferentes públicos</h2>
+      <p class="section-lead mx-auto">A mesma iniciativa serve a quem pesquisa, ensina, gere serviços públicos ou desenvolve soluções.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-3 col-6"><div class="who-card"><i class="bi bi-mortarboard-fill"></i><h5>Pesquisadores</h5><p>Reúnem dados de várias fontes para estudos científicos com mais rapidez.</p></div></div>
+      <div class="col-lg-3 col-6"><div class="who-card"><i class="bi bi-bank2"></i><h5>Gestão pública</h5><p>Apoiam políticas, prevenção e decisões com informação organizada.</p></div></div>
+      <div class="col-lg-3 col-6"><div class="who-card"><i class="bi bi-book-half"></i><h5>Ensino</h5><p>Professores e estudantes usam dados reais em sala de aula e projetos.</p></div></div>
+      <div class="col-lg-3 col-6"><div class="who-card"><i class="bi bi-cpu-fill"></i><h5>Inovação</h5><p>Times de tecnologia constroem análises, painéis e produtos de dados.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONFIANÇA / FONTES -->
+<section id="fontes">
+  <div class="container">
+    <div class="trust-band">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-5">
+          <span class="section-kicker"><i class="bi bi-shield-check"></i> Fontes oficiais</span>
+          <h3 class="fw-bold mt-3 mb-2">Sempre direto de quem produz o dado</h3>
+          <p class="text-muted mb-0">O Guaraci se conecta às instituições que originam a informação — sem intermediários que podem atrasar ou alterar os dados. Assim você recebe o dado oficial, atualizado e rastreável.</p>
+        </div>
+        <div class="col-lg-7">
+          <div class="row g-3">
+            <div class="col-4"><div class="trust-logo">DATASUS<br><span class="fw-normal text-muted" style="font-size:.8rem;">Ministério da Saúde</span></div></div>
+            <div class="col-4"><div class="trust-logo">OpenDataSUS<br><span class="fw-normal text-muted" style="font-size:.8rem;">Dados abertos da saúde</span></div></div>
+            <div class="col-4"><div class="trust-logo">IBGE<br><span class="fw-normal text-muted" style="font-size:.8rem;">População e economia</span></div></div>
+            <div class="col-4"><div class="trust-logo">NASA<br><span class="fw-normal text-muted" style="font-size:.8rem;">Clima e ambiente</span></div></div>
+            <div class="col-4"><div class="trust-logo">gov.br<br><span class="fw-normal text-muted" style="font-size:.8rem;">Saneamento</span></div></div>
+            <div class="col-4"><div class="trust-logo">+ oficiais<br><span class="fw-normal text-muted" style="font-size:.8rem;">catálogo aberto</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section>
+  <div class="container">
+    <div class="cta text-center">
+      <span class="section-kicker"><i class="bi bi-sun-fill"></i> Guaraci</span>
+      <h2 class="section-title mt-3">Dados que iluminam decisões</h2>
+      <p class="section-lead mx-auto mb-4">Uma iniciativa aberta para ampliar o acesso à informação pública e apoiar soluções com impacto científico, social e territorial.</p>
+      <a href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener" class="btn btn-main">Acessar o projeto <i class="bi bi-arrow-up-right ms-1"></i></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+    <div><strong>Guaraci</strong> — Dados públicos em um só lugar.</div>
+    <div>AutoAI Hub • Acesso aberto</div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Contador animado ao entrar na tela
+  (function () {
+    var counters = document.querySelectorAll('.count');
+    if (!('IntersectionObserver' in window) || !counters.length) {
+      counters.forEach(function (el) { el.textContent = el.dataset.to; });
+      return;
+    }
+    var run = function (el) {
+      var target = parseInt(el.dataset.to, 10), start = null, dur = 1400;
+      var tick = function (t) {
+        if (!start) start = t;
+        var p = Math.min((t - start) / dur, 1);
+        el.textContent = Math.floor((0.5 - Math.cos(p * Math.PI) / 2) * target);
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { run(e.target); obs.unobserve(e.target); }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(function (el) { obs.observe(el); });
+  })();
+</script>
+</body>
+</html>
