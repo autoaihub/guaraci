@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Guaraci | Dados públicos do Brasil em um só lugar</title>
-  <meta name="description" content="O Guaraci reúne mais de 90 conjuntos de dados públicos brasileiros — saúde, população, saneamento, clima e território — direto das fontes oficiais, em um único ponto de acesso gratuito.">
+  <meta name="description" content="O Guaraci reúne 91 conjuntos de dados públicos brasileiros — saúde, população, clima, saneamento e território — direto das fontes oficiais, em um único ponto de acesso gratuito.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -81,14 +81,14 @@
     .section-title { font-weight:900; letter-spacing:-.035em; font-size:clamp(2.1rem,4vw,3.4rem); }
     .section-lead { color:var(--muted); font-size:1.08rem; max-width:820px; }
 
-    .metric-card, .benefit-card, .area-card, .use-card, .who-card {
+    .metric-card, .area-card, .who-card {
       height:100%; background:#fff; border:1px solid var(--border); border-radius:28px; padding:28px;
       box-shadow:0 18px 50px rgba(21,35,31,.07); transition:.25s ease;
     }
-    .metric-card:hover,.benefit-card:hover,.area-card:hover,.use-card:hover,.who-card:hover { transform:translateY(-7px); box-shadow:0 28px 70px rgba(21,35,31,.13); }
+    .metric-card:hover,.area-card:hover,.who-card:hover { transform:translateY(-7px); box-shadow:0 28px 70px rgba(21,35,31,.13); }
     .icon-box { width:58px; height:58px; border-radius:19px; display:grid; place-items:center; background:var(--gradient); color:#fff; font-size:1.55rem; margin-bottom:20px; }
     .metric-number { font-family:'Nunito'; font-size:2.9rem; font-weight:900; line-height:1; }
-    .metric-label, .benefit-card p { color:var(--muted); }
+    .metric-label { color:var(--muted); }
 
     /* Explainer problema -> solução */
     .explain-col { background:var(--soft); border:1px solid var(--border); border-radius:28px; padding:30px; height:100%; }
@@ -99,12 +99,12 @@
     .explain-col.problem li i { color:#b04a3a; }
     .explain-col.solution li i { color:#2f7d5b; }
 
-    .impact-band { background:var(--gradient); border-radius:36px; padding:42px; color:#fff; box-shadow:0 30px 80px rgba(229,141,0,.2); }
-    .impact-band p { color:rgba(255,255,255,.9); }
+    .impact-band { position:relative; background:var(--gradient); border-radius:36px; padding:42px; color:#fff; box-shadow:0 30px 80px rgba(229,141,0,.2); overflow:hidden; }
+    .impact-band::before { content:""; position:absolute; inset:0; background:rgba(15,30,25,.42); }
+    .impact-band > .row { position:relative; z-index:1; }
+    .impact-band p { color:rgba(255,255,255,.92); }
 
     .soft-section { background:var(--soft); }
-    .benefit-card h4 { font-weight:900; }
-    .benefit-card .icon-box { background:rgba(244,163,0,.13); color:#b36c00; }
 
     /* Áreas */
     .area-card { position:relative; overflow:hidden; }
@@ -122,25 +122,23 @@
     .bases-accordion .accordion-button:not(.collapsed) { background:var(--soft); color:#a96300; box-shadow:none; }
     .bases-accordion .accordion-button:focus { box-shadow:none; border-color:var(--border); }
     .bases-accordion .accordion-body { padding:6px 24px 24px; }
-    .group-count { font-family:'Nunito'; font-weight:900; font-size:.78rem; color:#fff; background:var(--gradient); border-radius:999px; padding:4px 13px; margin-left:14px; white-space:nowrap; }
+    .group-count { font-family:'Nunito'; font-weight:900; font-size:.78rem; color:#fff; background:var(--green); border-radius:999px; padding:4px 13px; margin-left:14px; white-space:nowrap; }
     .bases-list { columns:2; column-gap:32px; list-style:none; padding:0; margin:0; }
     .bases-list li { break-inside:avoid; padding:8px 0; border-top:1px dashed var(--border); font-size:.93rem; color:#4e5d57; line-height:1.35; }
     .bases-list li:first-child { border-top:0; }
     .bases-list li b { color:var(--dark); }
+    .binfo { border:0; background:transparent; padding:0 0 0 7px; color:#b8905a; font-size:1em; vertical-align:-1px; cursor:pointer; line-height:1; }
+    .binfo:hover, .binfo:focus { color:#c97700; }
+    .binfo:focus-visible { outline:2px solid rgba(244,163,0,.4); outline-offset:3px; border-radius:50%; }
+    .popover { max-width:280px; }
+    .popover-body { font-size:.86rem; color:#4e5d57; }
+    .popover-body strong { color:var(--dark); }
     @media(max-width:576px){ .bases-list { columns:1; } }
 
-    /* Formas de uso */
-    .use-card { text-align:left; }
-    .use-card .icon-box { margin-bottom:18px; }
-    .use-card h4 { font-weight:900; }
-    .use-card p { color:var(--muted); margin-bottom:10px; }
-    .use-tag { display:inline-block; font-size:.76rem; font-weight:800; color:#2f7d5b; background:rgba(47,125,91,.1); border-radius:999px; padding:5px 12px; }
-
-    .steps-wrap { position:relative; }
-    .step-card { text-align:center; padding:22px; }
-    .step-number { width:74px; height:74px; margin:0 auto 20px; border-radius:24px; display:grid; place-items:center; font-family:'Nunito'; font-size:1.8rem; font-weight:900; color:#fff; background:var(--gradient); box-shadow:0 18px 40px rgba(229,141,0,.22); }
-    .step-card h4 { font-weight:900; }
-    .step-card p { color:var(--muted); }
+    /* Formas de uso: dois fluxos */
+    .flow-card { background:#fff; border:1px solid var(--border); border-radius:28px; padding:36px; box-shadow:0 18px 50px rgba(21,35,31,.07); }
+    .flow-card.wip { background:var(--soft); }
+    .flow-card p { color:#4e5d57; }
 
     /* Para quem é */
     .who-card { text-align:center; padding:26px 20px; }
@@ -174,14 +172,15 @@
       <span class="brand-mark"><i class="bi bi-sun-fill"></i></span>
       <strong>Guaraci</strong>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu"><span class="navbar-toggler-icon"></span></button>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="Abrir menu"><span class="navbar-toggler-icon"></span></button>
     <div class="collapse navbar-collapse" id="menu">
       <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
         <a class="nav-link" href="#o-que-e">O que é</a>
         <a class="nav-link" href="#numeros">Em números</a>
         <a class="nav-link" href="#bases">As bases</a>
         <a class="nav-link" href="#como-usar">Como usar</a>
-        <a class="btn btn-main ms-lg-3" href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener">Acessar Guaraci</a>
+        <a class="nav-link" href="#faq">Dúvidas</a>
+        <a class="btn btn-main ms-lg-3" href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener">Ver no GitHub <i class="bi bi-arrow-up-right ms-1"></i></a>
       </div>
     </div>
   </div>
@@ -192,17 +191,17 @@
     <div class="row align-items-center g-5">
       <div class="col-lg-8">
         <div class="hero-badge mb-4"><i class="bi bi-stars"></i> Dados públicos mais próximos de quem precisa</div>
-        <h1 class="mb-4">Muitas bases.<br><span>Um só caminho.</span></h1>
-        <p class="mb-4">O Guaraci reúne <strong>mais de 90 conjuntos de dados públicos</strong> do Brasil — saúde, população, saneamento, clima e território — direto das <strong>fontes oficiais</strong>, em um único lugar. Menos tempo procurando, mais tempo pesquisando, planejando e criando soluções para o país.</p>
+        <h1 class="mb-4">Diversas bases.<br><span>Um só caminho.</span></h1>
+        <p class="mb-4">O Guaraci é um <strong>orquestrador de downloads</strong>: busca dados públicos do Brasil direto em cada fonte oficial e entrega tudo com qualidade, integridade e fidelidade à fonte original. Menos tempo procurando bases, mais tempo pesquisando, planejando e criando soluções para o país.</p>
         <div class="d-flex flex-wrap gap-3">
           <a href="#bases" class="btn btn-main">Conhecer as bases</a>
-          <a href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener" class="btn btn-outline-soft">Acesso gratuito <i class="bi bi-arrow-up-right ms-1"></i></a>
+          <a href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener" class="btn btn-outline-soft">Acesso gratuito no GitHub <i class="bi bi-arrow-up-right ms-1"></i></a>
         </div>
       </div>
       <div class="col-lg-4">
         <div class="hero-panel">
-          <div class="hero-mini"><i class="bi bi-database-fill-check"></i><div><strong>90+ conjuntos</strong><span>de dados públicos reunidos</span></div></div>
-          <div class="hero-mini"><i class="bi bi-diagram-3-fill"></i><div><strong>5 grandes áreas</strong><span>saúde, população, saneamento, clima e território</span></div></div>
+          <div class="hero-mini"><i class="bi bi-database-fill-check"></i><div><strong>91 conjuntos</strong><span>de dados públicos reunidos</span></div></div>
+          <div class="hero-mini"><i class="bi bi-diagram-3-fill"></i><div><strong>5 grandes áreas</strong><span>saúde, população, clima, saneamento e território</span></div></div>
           <div class="hero-mini"><i class="bi bi-unlock-fill"></i><div><strong>100% gratuito</strong><span>para pesquisa, ensino, gestão e inovação</span></div></div>
         </div>
       </div>
@@ -216,7 +215,7 @@
     <div class="text-center mb-5">
       <span class="section-kicker"><i class="bi bi-question-circle-fill"></i> O que é o Guaraci</span>
       <h2 class="section-title mt-3">Do dado espalhado à informação útil</h2>
-      <p class="section-lead mx-auto">Os dados públicos do Brasil existem — mas ficam espalhados em dezenas de portais, cada um com seu formato, senha e jeito de baixar. O Guaraci é a ponte que traz tudo isso para um só lugar, direto da fonte oficial.</p>
+      <p class="section-lead mx-auto">Os dados públicos do Brasil existem — mas ficam espalhados em dezenas de portais, cada um com seu formato, senha e jeito de baixar. O Guaraci é o orquestrador de downloads que busca tudo isso direto da fonte oficial e entrega em um só lugar, com qualidade, integridade e fidelidade ao dado original.</p>
     </div>
     <div class="row g-4 align-items-stretch">
       <div class="col-lg-6">
@@ -227,7 +226,7 @@
             <li><i class="bi bi-x-circle-fill"></i> Cada base fica em um portal diferente do governo.</li>
             <li><i class="bi bi-x-circle-fill"></i> Formatos técnicos e difíceis de abrir (como arquivos <em>.dbc</em>).</li>
             <li><i class="bi bi-x-circle-fill"></i> É preciso repetir o download estado por estado, ano por ano.</li>
-            <li><i class="bi bi-x-circle-fill"></i> Fácil pegar dado desatualizado ou de intermediários.</li>
+            <li><i class="bi bi-x-circle-fill"></i> É fácil pegar dado desatualizado ou vindo de intermediários.</li>
           </ul>
         </div>
       </div>
@@ -236,7 +235,7 @@
           <span class="source-tag"><i class="bi bi-sun-fill"></i> Com o Guaraci</span>
           <h4 class="fw-bold mb-1">Tudo em um caminho só</h4>
           <ul class="explain-list">
-            <li><i class="bi bi-check-circle-fill"></i> Um único ponto de acesso para 90+ conjuntos de dados.</li>
+            <li><i class="bi bi-check-circle-fill"></i> Chega de caçar em dezenas de portais diferentes.</li>
             <li><i class="bi bi-check-circle-fill"></i> Já entregue pronto para usar (CSV, Parquet ou banco de dados).</li>
             <li><i class="bi bi-check-circle-fill"></i> Você escolhe período, estado e recorte — ele baixa tudo.</li>
             <li><i class="bi bi-check-circle-fill"></i> Sempre da <strong>fonte oficial</strong>, sem intermediários.</li>
@@ -253,17 +252,17 @@
     <div class="text-center mb-5">
       <span class="section-kicker"><i class="bi bi-bar-chart-fill"></i> Em números</span>
       <h2 class="section-title mt-3">A dimensão do projeto</h2>
-      <p class="section-lead mx-auto">São mais de 90 conjuntos acessíveis, organizados a partir de cerca de 30 sistemas e fontes oficiais brasileiros e internacionais.</p>
+      <p class="section-lead mx-auto">A conta é simples: <strong>4 instituições oficiais</strong> produzem os dados, que o Guaraci organiza em <strong>17 grupos</strong> e entrega como <strong>91 conjuntos</strong> prontos para baixar.</p>
     </div>
     <div class="row g-4">
-      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-database-fill"></i></div><div class="metric-number"><span class="count" data-to="90">0</span>+</div><div class="metric-label">conjuntos de dados públicos acessíveis em um único projeto</div></div></div>
-      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-diagram-3-fill"></i></div><div class="metric-number"><span class="count" data-to="30">0</span>+</div><div class="metric-label">sistemas e fontes oficiais integrados diretamente</div></div></div>
-      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-heart-pulse-fill"></i></div><div class="metric-number"><span class="count" data-to="14">0</span></div><div class="metric-label">sistemas de saúde do DATASUS (SUS) já conectados</div></div></div>
+      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-bank2"></i></div><div class="metric-number"><span class="count" data-to="4">0</span></div><div class="metric-label">instituições oficiais na origem: Ministério da Saúde, IBGE, NASA e gov.br</div></div></div>
+      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-diagram-3-fill"></i></div><div class="metric-number"><span class="count" data-to="17">0</span></div><div class="metric-label">grupos no catálogo, reunindo bases de uma mesma família</div></div></div>
+      <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-database-fill"></i></div><div class="metric-number"><span class="count" data-to="91">0</span></div><div class="metric-label">conjuntos de dados prontos para baixar, listados um a um nesta página</div></div></div>
       <div class="col-lg-3 col-md-6"><div class="metric-card"><div class="icon-box"><i class="bi bi-globe-americas"></i></div><div class="metric-number">Brasil</div><div class="metric-label">dados nacionais, estaduais e municipais — de todo o país</div></div></div>
     </div>
     <div class="impact-band mt-5">
       <div class="row align-items-center g-4">
-        <div class="col-lg-8"><h2 class="fw-bold mb-3">Informação pública com mais alcance</h2><p class="mb-0">O Guaraci reduz caminhos, organiza o acesso e ajuda pessoas e instituições a encontrarem dados que podem apoiar pesquisas, políticas públicas, ações de prevenção e decisões com maior impacto social.</p></div>
+        <div class="col-lg-8"><h2 class="fw-bold mb-3">Informação pública com mais alcance</h2><p class="mb-0">O Guaraci organiza o acesso a dados públicos e ajuda pessoas e instituições a encontrarem informações que apoiam pesquisas, políticas públicas, ações de prevenção e decisões com maior impacto social.</p></div>
         <div class="col-lg-4 text-lg-end"><a href="#bases" class="btn btn-light rounded-pill px-4 py-3 fw-bold">Ver as bases</a></div>
       </div>
     </div>
@@ -276,14 +275,13 @@
     <div class="text-center mb-5">
       <span class="section-kicker"><i class="bi bi-grid-1x2-fill"></i> Cinco grandes áreas</span>
       <h2 class="section-title mt-3">Um retrato amplo do Brasil</h2>
-      <p class="section-lead mx-auto">As fontes vão do nascimento ao cuidado em saúde, passando por população e economia, saneamento, clima e território.</p>
+      <p class="section-lead mx-auto">As fontes vão do nascimento ao cuidado em saúde, passando por população e economia, clima, saneamento e território.</p>
     </div>
     <div class="row g-4">
-      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-heart-pulse-fill"></i></div><h4>Saúde pública</h4><p>Doenças, internações, atendimentos, óbitos, nascimentos, vacinação, exames e unidades de saúde do SUS.</p><span class="area-count">14 sistemas do DATASUS</span></div></div>
-      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-shield-f-fill"></i></div><h4>Doenças e vigilância</h4><p>Dengue, chikungunya, zika, febre amarela, mpox, síndromes respiratórias e eventos pós-vacinação, em tempo mais recente.</p><span class="area-count">Dezenas de conjuntos OpenDataSUS</span></div></div>
+      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-heart-pulse-fill"></i></div><h4>Saúde pública</h4><p>Doenças, internações, atendimentos, óbitos, nascimentos, vacinação, exames, vigilância epidemiológica (dengue, chikungunya, zika, febre amarela, mpox) e unidades de saúde do SUS.</p><span class="area-count">83 fontes do Ministério da Saúde</span></div></div>
       <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-people-fill"></i></div><h4>População e economia</h4><p>Estimativas de população, Censo por idade e sexo e PIB dos municípios — o contexto que dá sentido aos indicadores.</p><span class="area-count">3 fontes do IBGE</span></div></div>
       <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-cloud-drizzle-fill"></i></div><h4>Clima e ambiente</h4><p>Temperatura, chuva e focos de incêndio, para relacionar condições ambientais com saúde e qualidade de vida.</p><span class="area-count">3 fontes da NASA</span></div></div>
-      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-droplet-fill"></i></div><h4>Saneamento</h4><p>Informações nacionais de água, esgoto e serviços de saneamento — base para avaliar desigualdades e riscos.</p><span class="area-count">2 sistemas (gov.br)</span></div></div>
+      <div class="col-lg-4 col-md-6"><div class="area-card"><div class="icon-box"><i class="bi bi-droplet-fill"></i></div><h4>Saneamento</h4><p>Informações nacionais de água, esgoto e serviços de saneamento — base para avaliar desigualdades e riscos.</p><span class="area-count">2 fontes (gov.br)</span></div></div>
       <div class="col-lg-4 col-md-6"><div class="area-card" style="background:var(--gradient);color:#fff;border:0;"><div class="icon-box" style="background:rgba(255,255,255,.18);"><i class="bi bi-geo-alt-fill"></i></div><h4>Território</h4><p class="text-white-50">Todas as áreas se cruzam por município, estado e região — permitindo comparar realidades locais em todo o Brasil.</p><span class="area-count" style="color:#fff;">Cobertura nacional</span></div></div>
     </div>
   </div>
@@ -295,7 +293,7 @@
     <div class="text-center mb-5">
       <span class="section-kicker"><i class="bi bi-collection-fill"></i> As bases, uma a uma</span>
       <h2 class="section-title mt-3">As 91 fontes que compõem o Guaraci</h2>
-      <p class="section-lead mx-auto">Nada de "e outros": abaixo está o catálogo completo, agrupado por área. Clique em cada grupo para abrir a lista de conjuntos.</p>
+      <p class="section-lead mx-auto">Nada de “e outros”: abaixo está o catálogo completo, agrupado por área. Clique em cada grupo para abrir a lista de conjuntos. Algumas bases aparecem em mais de um grupo por estarem disponíveis tanto no formato tradicional do DATASUS quanto pelo catálogo aberto mais recente.</p>
     </div>
 
     <div class="accordion bases-accordion" id="basesAccordion">
@@ -308,21 +306,21 @@
         </h3>
         <div id="c-datasus" class="accordion-collapse collapse show" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>SIH</b> — internações hospitalares pelo SUS</li>
-              <li><b>SIM</b> — mortalidade (óbitos e causas)</li>
-              <li><b>SINAN</b> — notificação compulsória de agravos</li>
-              <li><b>SINASC</b> — nascidos vivos</li>
-              <li><b>SIA‑SUS</b> — atendimentos ambulatoriais (14 subgrupos)</li>
-              <li><b>CNES</b> — cadastro de estabelecimentos de saúde (13 subgrupos)</li>
-              <li><b>PNI</b> (histórico) — imunizações, base legada</li>
-              <li><b>CIHA</b> — comunicação de internação hospitalar e ambulatorial</li>
-              <li><b>CIH</b> (legado 2008–2010) — internações, versão anterior ao SIH</li>
-              <li><b>SISCAN</b> — rastreamento de câncer de colo do útero e mama</li>
-              <li><b>SISPRENATAL</b> — acompanhamento de pré‑natal</li>
-              <li><b>RESP</b> — microcefalia e arboviroses na gestação</li>
-              <li><b>PCE</b> — controle da esquistossomose</li>
-              <li><b>Painel de Oncologia</b> — produção de tratamentos oncológicos</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde (DATASUS)">
+              <li><b>SIH</b> — internações hospitalares pelo SUS <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>SIM</b> — mortalidade (óbitos e causas) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>SINAN</b> — notificação compulsória de agravos <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>SINASC</b> — nascidos vivos <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>SIA‑SUS</b> — atendimentos ambulatoriais (14 subgrupos) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>CNES</b> — cadastro de estabelecimentos de saúde (13 subgrupos) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>PNI</b> (histórico) — imunizações, base legada <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>CIHA</b> — comunicação de internação hospitalar e ambulatorial <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>CIH</b> (legado 2008–2010) — internações, versão anterior ao SIH <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>SISCAN</b> — rastreamento de câncer de colo do útero e mama <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>SISPRENATAL</b> — acompanhamento de pré‑natal <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>RESP</b> — microcefalia e arboviroses na gestação <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>PCE</b> — controle da esquistossomose <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Painel de Oncologia</b> — produção de tratamentos oncológicos <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -336,16 +334,16 @@
         </h3>
         <div id="c-vitrine" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>Dengue</b></li>
-              <li><b>Chikungunya</b></li>
-              <li><b>Zika vírus</b></li>
-              <li><b>Febre amarela</b></li>
-              <li><b>Mpox</b></li>
-              <li><b>Síndrome gripal leve</b></li>
-              <li><b>SRAG</b> — síndrome respiratória aguda grave</li>
-              <li><b>ESAVI</b> — eventos adversos pós‑vacinação</li>
-              <li><b>Doses aplicadas (PNI)</b> — painel de vacinação</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde — Secretaria de Vigilância em Saúde">
+              <li><b>Dengue</b> <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Chikungunya</b> <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Zika</b> <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Febre amarela</b> <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Mpox</b> <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Síndrome gripal leve</b> <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>SRAG</b> — síndrome respiratória aguda grave <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>ESAVI</b> — eventos adversos pós‑vacinação <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Doses aplicadas (PNI)</b> — painel de vacinação <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -359,10 +357,10 @@
         </h3>
         <div id="c-arbo" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>Chikungunya</b> — endpoint adicional no catálogo aberto</li>
-              <li><b>Dengue</b> — endpoint adicional no catálogo aberto</li>
-              <li><b>Febre amarela</b> — humanos e primatas não humanos</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde — Secretaria de Vigilância em Saúde">
+              <li><b>Chikungunya</b> — endpoint adicional no catálogo aberto <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Dengue</b> — endpoint adicional no catálogo aberto <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Febre amarela</b> — humanos e primatas não humanos <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -376,10 +374,10 @@
         </h3>
         <div id="c-vma" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>Mpox</b> — endpoint via catálogo aberto</li>
-              <li><b>Sistema de informação sobre mortalidade</b> — via catálogo aberto</li>
-              <li><b>Sistema de informação sobre nascidos vivos</b> — via catálogo aberto</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde — Secretaria de Vigilância em Saúde">
+              <li><b>Mpox</b> — endpoint via catálogo aberto <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Sistema de informação sobre mortalidade</b> — via catálogo aberto <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Sistema de informação sobre nascidos vivos</b> — via catálogo aberto <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -393,9 +391,9 @@
         </h3>
         <div id="c-vac" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>ESAVI</b> — endpoint via catálogo aberto</li>
-              <li><b>Insumos estratégicos de vacinação</b> — estoque e distribuição</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde — Programa Nacional de Imunizações">
+              <li><b>ESAVI</b> — endpoint via catálogo aberto <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Insumos estratégicos de vacinação</b> — estoque e distribuição <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -409,11 +407,11 @@
         </h3>
         <div id="c-cnes" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>Estabelecimentos de saúde</b></li>
-              <li><b>Estabelecimentos por código CNES</b> — consulta individual</li>
-              <li><b>Tipos de unidade de saúde</b></li>
-              <li><b>Tipos de unidade por código</b> — consulta individual</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde (CNES)">
+              <li><b>Estabelecimentos de saúde</b> <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Estabelecimentos por código CNES</b> — consulta individual <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Tipos de unidade de saúde</b> <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Tipos de unidade por código</b> — consulta individual <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -427,21 +425,21 @@
         </h3>
         <div id="c-sisagua" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li>Vigilância — parâmetros básicos</li>
-              <li>Controle semestral</li>
-              <li>Controle mensal — parâmetros básicos</li>
-              <li>Pontos de captação de água</li>
-              <li>Carros‑pipa — população atendida</li>
-              <li>Carros‑pipa — procedência da água</li>
-              <li>Controle mensal — amostras fora do padrão</li>
-              <li>Controle mensal — demais parâmetros</li>
-              <li>Controle mensal — infraestrutura operacional</li>
-              <li>Controle mensal — plano de amostragem</li>
-              <li>População abastecida</li>
-              <li>Tratamento de água</li>
-              <li>Vigilância — cianobactérias e cianotoxinas</li>
-              <li>Vigilância — demais parâmetros</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde — Vigilância em Saúde Ambiental">
+              <li>Vigilância — parâmetros básicos <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Controle semestral <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Controle mensal — parâmetros básicos <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Pontos de captação de água <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Carros‑pipa — população atendida <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Carros‑pipa — procedência da água <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Controle mensal — amostras fora do padrão <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Controle mensal — demais parâmetros <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Controle mensal — infraestrutura operacional <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Controle mensal — plano de amostragem <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>População abastecida <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Tratamento de água <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Vigilância — cianobactérias e cianotoxinas <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Vigilância — demais parâmetros <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -455,19 +453,19 @@
         </h3>
         <div id="c-indigena" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li>Esgotamento sanitário em aldeias</li>
-              <li>Gerenciamento de resíduos sólidos</li>
-              <li>Acompanhamento de obras de infraestrutura de saúde</li>
-              <li>Fornecimento e qualidade da água — acesso à água</li>
-              <li>Registros de habilitação e recebimento de incentivo</li>
-              <li>Vigilância alimentar e nutricional indígena</li>
-              <li>Acompanhamento gestacional (SIASI)</li>
-              <li>Módulo de morbidades (SIASI)</li>
-              <li>Saúde bucal — ficha 3 (SIASI)</li>
-              <li>Saúde bucal — ficha 4 (SIASI)</li>
-              <li>Saúde bucal — ficha 7 (SIASI)</li>
-              <li>Enfrentamento e monitoramento da Covid‑19 em povos indígenas</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde — Secretaria Especial de Saúde Indígena (SESAI)">
+              <li>Esgotamento sanitário em aldeias <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Gerenciamento de resíduos sólidos <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Acompanhamento de obras de infraestrutura de saúde <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Fornecimento e qualidade da água — acesso à água <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Registros de habilitação e recebimento de incentivo <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Vigilância alimentar e nutricional indígena <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Acompanhamento gestacional (SIASI) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Módulo de morbidades (SIASI) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Saúde bucal — ficha 3</b>: atividades coletivas (escovação supervisionada, flúor gel, educação em saúde) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Saúde bucal — ficha 4</b>: ficha odontológica individual (prótese, fluorose, má-formação orofacial) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>Saúde bucal — ficha 7</b>: procedimentos clínicos das equipes multidisciplinares (EMSI) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Enfrentamento e monitoramento da Covid‑19 em povos indígenas <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -481,12 +479,12 @@
         </h3>
         <div id="c-apr" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>PMMB</b> — Programa Médicos pelo Brasil</li>
-              <li><b>PMMB</b> — profissionais ativos</li>
-              <li><b>PMMB</b> — série histórica</li>
-              <li>Cadastro vinculado ao Previne Brasil</li>
-              <li>Indicador de desempenho do Previne Brasil</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde — Secretaria de Atenção Primária à Saúde">
+              <li><b>PMMB</b> — Programa Médicos pelo Brasil <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>PMMB</b> — profissionais ativos <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>PMMB</b> — série histórica <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Cadastro vinculado ao Previne Brasil <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Indicador de desempenho do Previne Brasil <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -500,10 +498,10 @@
         </h3>
         <div id="c-assist" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li>Hospitais e leitos</li>
-              <li>Ocupação hospitalar — Covid‑19</li>
-              <li>Unidades básicas de saúde</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde">
+              <li>Hospitais e leitos <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Ocupação hospitalar — Covid‑19 <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Unidades básicas de saúde <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -517,9 +515,9 @@
         </h3>
         <div id="c-econ" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>BPS</b> — indicadores de economia da saúde</li>
-              <li><b>ApuraSUS</b> — apuração e gestão de custos do SUS</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde">
+              <li><b>BPS</b> — indicadores de economia da saúde <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>ApuraSUS</b> — apuração e gestão de custos do SUS <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -533,11 +531,11 @@
         </h3>
         <div id="c-ct" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li>Contribuições em consultas públicas</li>
-              <li>Controle de demandas da CONITEC</li>
-              <li>Controle de PCDT (protocolos e diretrizes terapêuticas)</li>
-              <li>Tecnologias e diretrizes</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde — DGITS">
+              <li>Contribuições em consultas públicas <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Controle de demandas da CONITEC <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Controle de PCDT (protocolos e diretrizes terapêuticas) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Tecnologias e diretrizes <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -551,9 +549,9 @@
         </h3>
         <div id="c-plat" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li>Projetos de pesquisa cadastrados</li>
-              <li>Projetos de pesquisa por número CAAE</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde — Comissão Nacional de Ética em Pesquisa (CONEP)">
+              <li>Projetos de pesquisa cadastrados <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Projetos de pesquisa por número CAAE <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -567,13 +565,13 @@
         </h3>
         <div id="c-outras" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>Sisvan</b> — estado nutricional</li>
-              <li><b>DAF</b> — estoque de medicamentos (BNAFAR/Hórus)</li>
-              <li>Educação em saúde (PVC)</li>
-              <li>Macrorregião e região de saúde por município</li>
-              <li>Outros temas (CED)</li>
-              <li>Prevenção e promoção — distribuição de insumos (EPI)</li>
+            <ul class="bases-list" data-maintainer="Ministério da Saúde">
+              <li><b>Sisvan</b> — estado nutricional <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>DAF</b> — estoque de medicamentos (BNAFAR/Hórus) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Educação em saúde (PVC) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Macrorregião e região de saúde por município <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Outros temas (CED) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>Prevenção e promoção — distribuição de insumos (EPI) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -587,10 +585,10 @@
         </h3>
         <div id="c-ibge" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li>População estimada</li>
-              <li>População por idade e sexo (Censo)</li>
-              <li>PIB dos municípios</li>
+            <ul class="bases-list" data-maintainer="IBGE">
+              <li>População estimada <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>População por idade e sexo (Censo) <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li>PIB dos municípios <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -604,10 +602,10 @@
         </h3>
         <div id="c-nasa" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>POWER</b> — temperatura, radiação solar e vento</li>
-              <li><b>GPM IMERG</b> — precipitação estimada por satélite</li>
-              <li><b>FIRMS</b> — focos de incêndio</li>
+            <ul class="bases-list" data-maintainer="NASA (EUA)">
+              <li><b>POWER</b> — temperatura, radiação solar e vento <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>GPM IMERG</b> — precipitação estimada por satélite <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>FIRMS</b> — focos de incêndio <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
@@ -621,19 +619,15 @@
         </h3>
         <div id="c-san" class="accordion-collapse collapse" data-bs-parent="#basesAccordion">
           <div class="accordion-body">
-            <ul class="bases-list">
-              <li><b>SNIS</b> — Sistema Nacional de Informações sobre Saneamento</li>
-              <li><b>SINISA</b> — Sistema Nacional de Informações em Saneamento Básico</li>
+            <ul class="bases-list" data-maintainer="Governo federal — gov.br (SNIS/SINISA)">
+              <li><b>SNIS</b> — Sistema Nacional de Informações sobre Saneamento <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
+              <li><b>SINISA</b> — Sistema Nacional de Informações em Saneamento Básico <button type="button" class="binfo" data-bs-toggle="popover" aria-label="Ver detalhes desta base"><i class="bi bi-question-circle"></i></button></li>
             </ul>
           </div>
         </div>
       </div>
 
     </div>
-
-    <p class="text-center section-lead mx-auto mt-4" style="font-size:.98rem;">
-      <i class="bi bi-info-circle"></i> 14 + 9 + 3 + 3 + 2 + 4 + 14 + 12 + 5 + 3 + 2 + 4 + 2 + 6 + 3 + 3 + 2 = <strong>91 conjuntos</strong>, todos listados acima — nenhum fica de fora do catálogo aberto do Guaraci.
-    </p>
   </div>
 </section>
 
@@ -642,23 +636,24 @@
   <div class="container">
     <div class="text-center mb-5">
       <span class="section-kicker"><i class="bi bi-compass-fill"></i> Como usar</span>
-      <h2 class="section-title mt-3">Três passos para chegar aos dados</h2>
-      <p class="section-lead mx-auto">O caminho é sempre o mesmo, não importa a base que você escolher.</p>
-    </div>
-    <div class="row g-4 steps-wrap mb-5">
-      <div class="col-lg-4"><div class="step-card"><div class="step-number">1</div><h4>Escolha o tema</h4><p>Selecione a base ou o assunto que deseja consultar — saúde, população, saneamento ou clima.</p></div></div>
-      <div class="col-lg-4"><div class="step-card"><div class="step-number">2</div><h4>Defina o recorte</h4><p>Informe período, estado, município e outros filtros para chegar exatamente ao conjunto que precisa.</p></div></div>
-      <div class="col-lg-4"><div class="step-card"><div class="step-number">3</div><h4>Receba os arquivos</h4><p>Acompanhe o download e receba os dados prontos para usar, reunidos em uma pasta sua.</p></div></div>
-    </div>
-
-    <div class="text-center mb-4">
-      <h3 class="fw-bold">Três formas de usar, para cada tipo de pessoa</h3>
-      <p class="section-lead mx-auto">Do usuário que só quer baixar um arquivo até o sistema que precisa integrar tudo automaticamente.</p>
+      <h2 class="section-title mt-3">Dois jeitos de acessar os dados</h2>
+      <p class="section-lead mx-auto">Um caminho já disponível para uso local, e um segundo em construção para manter um acervo sempre atualizado.</p>
     </div>
     <div class="row g-4">
-      <div class="col-lg-4"><div class="use-card"><div class="icon-box"><i class="bi bi-window-desktop"></i></div><h4>Aplicativo no computador</h4><p>Uma tela simples para escolher a base, preencher os filtros e acompanhar o download — sem precisar saber programar.</p><span class="use-tag">Para quem quer praticidade</span></div></div>
-      <div class="col-lg-4"><div class="use-card"><div class="icon-box"><i class="bi bi-terminal-fill"></i></div><h4>Linha de comando</h4><p>Um comando único e direto para baixar qualquer base, ideal para quem automatiza tarefas ou repete coletas com frequência.</p><span class="use-tag">Para quem automatiza</span></div></div>
-      <div class="col-lg-4"><div class="use-card"><div class="icon-box"><i class="bi bi-hdd-network-fill"></i></div><h4>Integração (API)</h4><p>Uma interface para conectar o Guaraci a outros sistemas e alimentar plataformas de dados de forma contínua.</p><span class="use-tag">Para quem constrói sistemas</span></div></div>
+      <div class="col-lg-6">
+        <div class="flow-card h-100 text-center">
+          <span class="source-tag"><i class="bi bi-check-circle-fill"></i> Disponível hoje</span>
+          <h3 class="fw-bold mt-2 mb-2">Uso local</h3>
+          <p class="mb-0">Baixe o Guaraci pelo GitHub e rode na sua máquina para buscar as bases que precisar, com os filtros de período e território que quiser.</p>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="flow-card wip h-100 text-center">
+          <span class="source-tag" style="background:#f6e7e4;color:#a5442f;"><i class="bi bi-tools"></i> Em construção</span>
+          <h3 class="fw-bold mt-2 mb-2">Uso contínuo</h3>
+          <p class="mb-0">Alimenta de forma automática e contínua o data lake <strong>Sabiá</strong>, mantendo o acervo sempre atualizado.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -673,7 +668,7 @@
     </div>
     <div class="row g-4">
       <div class="col-lg-3 col-6"><div class="who-card"><i class="bi bi-mortarboard-fill"></i><h5>Pesquisadores</h5><p>Reúnem dados de várias fontes para estudos científicos com mais rapidez.</p></div></div>
-      <div class="col-lg-3 col-6"><div class="who-card"><i class="bi bi-bank2"></i><h5>Gestão pública</h5><p>Apoiam políticas, prevenção e decisões com informação organizada.</p></div></div>
+      <div class="col-lg-3 col-6"><div class="who-card"><i class="bi bi-bank2"></i><h5>Gestão pública</h5><p>Apoia políticas, prevenção e decisões com informação organizada.</p></div></div>
       <div class="col-lg-3 col-6"><div class="who-card"><i class="bi bi-book-half"></i><h5>Ensino</h5><p>Professores e estudantes usam dados reais em sala de aula e projetos.</p></div></div>
       <div class="col-lg-3 col-6"><div class="who-card"><i class="bi bi-cpu-fill"></i><h5>Inovação</h5><p>Times de tecnologia constroem análises, painéis e produtos de dados.</p></div></div>
     </div>
@@ -692,15 +687,116 @@
         </div>
         <div class="col-lg-7">
           <div class="row g-3">
-            <div class="col-4"><div class="trust-logo">DATASUS<br><span class="fw-normal text-muted" style="font-size:.8rem;">Ministério da Saúde</span></div></div>
-            <div class="col-4"><div class="trust-logo">OpenDataSUS<br><span class="fw-normal text-muted" style="font-size:.8rem;">Dados abertos da saúde</span></div></div>
-            <div class="col-4"><div class="trust-logo">IBGE<br><span class="fw-normal text-muted" style="font-size:.8rem;">População e economia</span></div></div>
-            <div class="col-4"><div class="trust-logo">NASA<br><span class="fw-normal text-muted" style="font-size:.8rem;">Clima e ambiente</span></div></div>
-            <div class="col-4"><div class="trust-logo">gov.br<br><span class="fw-normal text-muted" style="font-size:.8rem;">Saneamento</span></div></div>
-            <div class="col-4"><div class="trust-logo">+ oficiais<br><span class="fw-normal text-muted" style="font-size:.8rem;">catálogo aberto</span></div></div>
+            <div class="col-6 col-md-3"><div class="trust-logo">Ministério da Saúde<br><span class="fw-normal text-muted" style="font-size:.8rem;">DATASUS e catálogo aberto</span></div></div>
+            <div class="col-6 col-md-3"><div class="trust-logo">IBGE<br><span class="fw-normal text-muted" style="font-size:.8rem;">População e economia</span></div></div>
+            <div class="col-6 col-md-3"><div class="trust-logo">NASA<br><span class="fw-normal text-muted" style="font-size:.8rem;">Clima e ambiente</span></div></div>
+            <div class="col-6 col-md-3"><div class="trust-logo">gov.br<br><span class="fw-normal text-muted" style="font-size:.8rem;">Saneamento</span></div></div>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="soft-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-kicker"><i class="bi bi-patch-question-fill"></i> Perguntas frequentes</span>
+      <h2 class="section-title mt-3">Dúvidas antes de começar</h2>
+      <p class="section-lead mx-auto">As perguntas que mais aparecem de quem está conhecendo o projeto.</p>
+    </div>
+
+    <div class="accordion bases-accordion" id="faqAccordion">
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="h-f1">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#f1" aria-expanded="true" aria-controls="f1">
+            O Guaraci é gratuito? Preciso de cadastro?
+          </button>
+        </h3>
+        <div id="f1" class="accordion-collapse collapse show" aria-labelledby="h-f1" data-bs-parent="#faqAccordion">
+          <div class="accordion-body"><p class="mb-0">Sim, é gratuito e de código aberto, sob licença MIT. Não há cadastro nem senha para usar o Guaraci: você baixa o projeto do GitHub e roda na sua própria máquina. Algumas fontes externas podem exigir uma chave de acesso própria delas — a documentação indica quais.</p></div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="h-f2">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f2" aria-expanded="false" aria-controls="f2">
+            O Guaraci hospeda os dados ou baixa da fonte?
+          </button>
+        </h3>
+        <div id="f2" class="accordion-collapse collapse" aria-labelledby="h-f2" data-bs-parent="#faqAccordion">
+          <div class="accordion-body"><p class="mb-0">Baixa da fonte. O Guaraci não guarda uma cópia própria dos dados nem serve como intermediário: quando você pede um conjunto, ele vai buscar no sistema oficial que o produz (DATASUS, catálogo aberto do Ministério da Saúde, IBGE, NASA ou os sistemas de saneamento do gov.br). O que você recebe é o dado oficial, com a atualização que a fonte tiver publicado.</p></div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="h-f3">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f3" aria-expanded="false" aria-controls="f3">
+            Preciso saber programar?
+          </button>
+        </h3>
+        <div id="f3" class="accordion-collapse collapse" aria-labelledby="h-f3" data-bs-parent="#faqAccordion">
+          <div class="accordion-body"><p class="mb-0">Um pouco. O uso principal é por linha de comando, então é preciso estar confortável em abrir um terminal e rodar comandos. Você não precisa escrever código nem conhecer as particularidades de cada fonte — o Guaraci cuida disso. Se você já usa R, Python ou Stata para analisar dados, o nível exigido está bem dentro do seu alcance.</p></div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="h-f4">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f4" aria-expanded="false" aria-controls="f4">
+            Em que formato os dados chegam?
+          </button>
+        </h3>
+        <div id="f4" class="accordion-collapse collapse" aria-labelledby="h-f4" data-bs-parent="#faqAccordion">
+          <div class="accordion-body"><p class="mb-0">Em CSV, Parquet ou banco SQLite, prontos para abrir em qualquer ferramenta de análise. Isso vale inclusive para as bases do DATASUS distribuídas em <em>.dbc</em>, um formato compactado antigo que costuma travar quem está começando: o Guaraci faz a conversão para você.</p></div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="h-f5">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f5" aria-expanded="false" aria-controls="f5">
+            O que preciso ter instalado?
+          </button>
+        </h3>
+        <div id="f5" class="accordion-collapse collapse" aria-labelledby="h-f5" data-bs-parent="#faqAccordion">
+          <div class="accordion-body"><p class="mb-0">Git e Docker. É o caminho oficialmente suportado hoje para rodar o Guaraci na sua máquina.</p></div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="h-f6">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f6" aria-expanded="false" aria-controls="f6">
+            O que é o Sabiá?
+          </button>
+        </h3>
+        <div id="f6" class="accordion-collapse collapse" aria-labelledby="h-f6" data-bs-parent="#faqAccordion">
+          <div class="accordion-body"><p class="mb-0">É o data lake — um grande acervo de dados sempre atualizado — abastecido pelo Guaraci. No futuro, o Sabiá vai disponibilizar uma interface própria de consulta, sem que você precise instalar o Guaraci (repositório, Docker etc.). Por enquanto, essa interface ainda está em construção.</p></div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="h-f7">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f7" aria-expanded="false" aria-controls="f7">
+            Posso usar os dados em pesquisa e publicação?
+          </button>
+        </h3>
+        <div id="f7" class="accordion-collapse collapse" aria-labelledby="h-f7" data-bs-parent="#faqAccordion">
+          <div class="accordion-body"><p class="mb-0">Sim. São dados públicos, obtidos das fontes oficiais — as condições de uso são as da instituição que produz cada base, e recomendamos citá-la sempre. O Guaraci em si é MIT e traz um arquivo <code>CITATION.cff</code> no repositório, caso você queira também referenciar a ferramenta usada na coleta.</p></div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="h-f8">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f8" aria-expanded="false" aria-controls="f8">
+            Falta uma base que eu preciso. Dá para incluir?
+          </button>
+        </h3>
+        <div id="f8" class="accordion-collapse collapse" aria-labelledby="h-f8" data-bs-parent="#faqAccordion">
+          <div class="accordion-body"><p class="mb-0">Dá. O catálogo cresce conforme a necessidade de quem usa: escreva para <a href="mailto:vogel@usp.br">vogel@usp.br</a> contando qual base você precisa e o órgão que a publica. O mesmo vale para relatar um erro em alguma coleta — quanto mais específico o relato, mais rápido o ajuste.</p></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -712,7 +808,7 @@
       <span class="section-kicker"><i class="bi bi-sun-fill"></i> Guaraci</span>
       <h2 class="section-title mt-3">Dados que iluminam decisões</h2>
       <p class="section-lead mx-auto mb-4">Uma iniciativa aberta para ampliar o acesso à informação pública e apoiar soluções com impacto científico, social e territorial.</p>
-      <a href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener" class="btn btn-main">Acessar o projeto <i class="bi bi-arrow-up-right ms-1"></i></a>
+      <a href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener" class="btn btn-main">Ver o projeto no GitHub <i class="bi bi-arrow-up-right ms-1"></i></a>
     </div>
   </div>
 </section>
@@ -720,7 +816,7 @@
 <footer>
   <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
     <div><strong>Guaraci</strong> — Dados públicos em um só lugar.</div>
-    <div>AutoAI Hub • Acesso aberto</div>
+    <div>AutoAI-Pandemics (ICMC-USP) • Acesso aberto</div>
   </div>
 </footer>
 
@@ -749,6 +845,35 @@
       });
     }, { threshold: 0.5 });
     counters.forEach(function (el) { obs.observe(el); });
+  })();
+
+  // Popover "quem mantém" em cada base do catálogo
+  (function () {
+    document.querySelectorAll('.bases-list .binfo').forEach(function (btn) {
+      var li = btn.closest('li');
+      var ul = btn.closest('ul.bases-list');
+      var maintainer = ul ? ul.dataset.maintainer : '';
+      var b = li.querySelector('b');
+      var name, desc;
+      if (b) {
+        name = b.textContent.trim();
+        desc = li.textContent.replace(b.textContent, '').replace(/^[\s—:]+/, '').trim();
+      } else {
+        var text = li.textContent.trim();
+        var sepMatch = text.match(/^(.*?)[—:](.*)$/);
+        name = sepMatch ? sepMatch[1].trim() : text;
+        desc = sepMatch ? sepMatch[2].trim() : '';
+      }
+      var content = '<div><strong>Mantido por:</strong> ' + maintainer + '</div>';
+      if (desc) content += '<div class="mt-1">' + desc + '</div>';
+      new bootstrap.Popover(btn, {
+        trigger: 'focus',
+        html: true,
+        placement: 'top',
+        title: name,
+        content: content
+      });
+    });
   })();
 </script>
 </body>
