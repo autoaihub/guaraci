@@ -1,0 +1,29 @@
+name: Vogel Stack Compliance
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  compliance:
+    name: Check Wikilinks and Quadro
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Run check-wikilinks
+        shell: pwsh
+        run: |
+          $env:REPO_ROOT = "$PWD"
+          pwsh ./vogel-stack/scripts/check-wikilinks.ps1
+
+      - name: Run check-quadro
+        shell: pwsh
+        run: |
+          $env:REPO_ROOT = "$PWD"
+          pwsh ./vogel-stack/scripts/check-quadro.ps1
