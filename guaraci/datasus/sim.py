@@ -1,4 +1,4 @@
-﻿"""
+"""
 Guaraci DATASUS SIM Integration
 ===============================
 
@@ -322,9 +322,9 @@ class SimDataSource(DataSource):
     def summary(self, df: pl.DataFrame, by: str = "CAUSABAS", metric: Literal["count", "mean", "sum"] = "count") -> pl.DataFrame:
         if by not in df.columns:
             raise ValueError(f"A coluna '{by}' não existe no DataFrame.")
-        if metric == "count": return df.groupby(by).count().sort(by)
-        if metric == "mean": return df.groupby(by).mean().sort(by)
-        if metric == "sum": return df.groupby(by).sum().sort(by)
+        if metric == "count": return df.group_by(by).len().sort(by)
+        if metric == "mean": return df.group_by(by).mean().sort(by)
+        if metric == "sum": return df.group_by(by).sum().sort(by)
         raise ValueError("metric deve ser 'count', 'mean' ou 'sum'.")
 
     def export(self, df: pl.DataFrame, format: Literal["csv", "sqlite", "parquet"] = "csv", name: str = "sim_output") -> Optional[Path]:

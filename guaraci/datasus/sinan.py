@@ -1,4 +1,4 @@
-﻿"""
+"""
 Guaraci DATASUS SINAN Integration
 ================================
 
@@ -359,11 +359,11 @@ class SinanDataSource(DataSource):
         if by not in df.columns:
             raise ValueError(f"A coluna '{by}' não existe no DataFrame.")
         if metric == "count":
-            return df.groupby(by).count().sort(by)
+            return df.group_by(by).len().sort(by)
         elif metric == "mean":
-            return df.groupby(by).mean().sort(by)
+            return df.group_by(by).mean().sort(by)
         elif metric == "sum":
-            return df.groupby(by).sum().sort(by)
+            return df.group_by(by).sum().sort(by)
         else:
             raise ValueError("metric deve ser 'count', 'mean' ou 'sum'.")
 
