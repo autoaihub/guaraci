@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added — versioned SIH-RD column mapping
+- Added `DEFAULT_SIH_RD_COLUMN_MAP` and `apply_sih_column_map()` / `SihDataSource.apply_column_map()` in `guaraci/datasus/sih.py` for standardizing SIH-RD field names (`N_AIH` -> `numero_aih`, `DT_INTER` -> `data_internacao`, `MUNIC_RES` -> `municipio_residencia`, `DIAG_PRINC` -> `diagnostico_principal`, etc.), backed by unit regression tests in `tests/test_sih_column_map.py`.
+
+### Added — Vogel Stack compliance CI workflow
+- Added `.github/workflows/vogel_stack_ci.yml` running `check-wikilinks.ps1` and `check-quadro.ps1` on every push/PR for automated Vogel Stack compliance verification.
+
+### Changed — legacy web app structure
+- Moved `apps/web` to `legacy/apps/web`, isolating the legacy React frontend out of core installable packages and consolidating CLI-first workflow guidelines.
+
+### Added — public properties on JobResult contract
+- Promoted `JobResult.exported_files` and `JobResult.materialized_paths` as explicit, version-stable public properties on `JobResult` (`guaraci/core/results.py`), freezing the interface seam consumed downstream by Monitoramento and external scripts.
+
+### Changed — Polars deprecation sweep
+- Replaced all deprecated `df.groupby(...)` calls with `df.group_by(...).len()` in `sih.py`, `sim.py`, and `sinan.py` summary methods.
+
+### Changed — field dictionary & catalog sampling updates
+- Successfully sampled and cataloged 5 pending sources (`pni`, `siscan`, `pce`, `cnes_estabelecimentos_{codigo_cnes}`, `cnes_tipounidades_{codigo_tipo_unidade}`), raising the total of fully-sampled sources from 72 to 77 in `guaraci/data/field_dictionary.json` and `docs/DATA_DICTIONARY.md`.
+
 ### Changed — web UI restyled with the Guaraci visual identity
 - `guaraci/api/static/index.html` now uses the dark "amanhecer de dados" theme
   from the project site (Space Grotesk/Inter/JetBrains Mono, sun-orange +
