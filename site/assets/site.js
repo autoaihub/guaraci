@@ -232,7 +232,8 @@
         '<div class="fields">' + basic.map((p) => '<span class="field-chip">' + esc(p.name) + "</span>").join("") + "</div>" +
         (s.fields.length ? "<h4>Campos do dado (" + s.fields.length + ")</h4><div class='fields'>" + fieldsPrev + extraFields + "</div>" : "") +
         "<h4>Linha de comando</h4>" +
-        '<div class="cli-box"><code>' + esc(s.cli) + "</code></div>" +
+        '<div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal — ' + esc(s.key) + '</span></div>' +
+        '<div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">' + esc(s.cli) + "</span></div></div></div>" +
         '<a class="btn btn-sun" style="margin-top:22px;" href="docs.html#' + slug(s.key) + '">Documentação completa <i class="bi bi-arrow-right"></i></a>';
       backdrop.hidden = false;
       document.body.style.overflow = "hidden";

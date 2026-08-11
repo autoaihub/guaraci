@@ -537,8 +537,11 @@ kbd { font-family: var(--font-mono); font-size: .8em; background: rgba(255,255,2
 .fields-toggle:hover { color: var(--sun-2); }
 .src-nofields { font-size: .87rem; color: var(--txt-2); padding: 14px 16px; background: rgba(255, 255, 255, .02); border: 1px solid var(--line); border-radius: 10px; margin: 18px 0; }
 .src-nofields i { color: var(--teal); margin-right: 6px; }
-.cli-box { display: flex; align-items: center; gap: 12px; justify-content: space-between; background: #071a16; border: 1px solid rgba(255, 255, 255, .1); border-radius: 12px; padding: 13px 16px; }
-.cli-box code { font-family: var(--font-mono); font-size: .8rem; color: var(--sun-2); background: none; padding: 0; overflow-wrap: anywhere; }
+/* exemplos de CLI usam a mesma janela de terminal (.term) do "Como usar" */
+.cli-term { max-width: 100%; }
+.term-bar .term-copy { margin-left: auto; }
+.term-body .cmd { overflow-wrap: anywhere; }
+.modal .term { margin-top: 4px; }
 
 @media (max-width: 1020px) {
   .docs-layout { grid-template-columns: 1fr; }

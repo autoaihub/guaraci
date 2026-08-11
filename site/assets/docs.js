@@ -122,7 +122,9 @@
         other.map(paramRow).join("") + "</tbody></table></div></details>" : "") +
       fieldsBlock(src) +
       "<h4>Exemplo na linha de comando</h4>" +
-      '<div class="cli-box"><code>' + esc(src.cli) + '</code><button class="copy-btn" type="button" data-copy="' + esc(src.cli) + '"><i class="bi bi-clipboard"></i></button></div>' +
+      '<div class="term cli-term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal — ' + esc(src.key) + '</span>' +
+      '<button class="copy-btn term-copy" type="button" data-copy="' + esc(src.cli) + '"><i class="bi bi-clipboard"></i> copiar</button></div>' +
+      '<div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">' + esc(src.cli) + "</span></div></div></div>" +
       "</div></article>";
   }
 

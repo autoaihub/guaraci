@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/site.css" rel="stylesheet">
+  <link href="assets/site.css?v=20260811" rel="stylesheet">
 </head>
 <body class="docs-body">
 <div id="scroll-progress"></div>
@@ -79,30 +79,30 @@
       <h3>1.1 Copie o projeto</h3>
       <p>Abra o terminal (no Windows, procure por <strong>PowerShell</strong> no menu Iniciar) e digite:</p>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">git clone https://github.com/autoaihub/guaraci.git</span></div><div><span class="ps1">&gt;</span> <span class="cmd">cd guaraci</span></div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>git clone https://github.com/autoaihub/guaraci.git</span></div><div><span class="ps1">&gt;</span> <span class="cmd" data-type>cd guaraci</span></div></div>
       </div>
 
       <h3>1.2 Monte a imagem (uma única vez)</h3>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">docker build -t guaraci .</span></div><div class="out">[+] Building… <span class="ok">✔ concluído</span></div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>docker build -t guaraci .</span></div><div class="out" data-print="500">[+] Building… <span class="ok">✔ concluído</span></div></div>
       </div>
       <div class="callout"><i class="bi bi-lightbulb-fill"></i><span>Refaça o build apenas quando houver atualização de dependências. Se suspeitar de cache quebrado, use <code>docker build --no-cache -t guaraci .</code>.</span></div>
 
       <h3>1.3 Ligue o Guaraci</h3>
       <p><strong>Jeito recomendado (Windows)</strong> — o launcher sobe o contêiner, espera o health check e abre a interface sozinho:</p>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">.\scripts\desktop\start-guaraci.ps1</span></div><div class="out"><span class="ok">✔ Guaraci no ar</span> — abrindo <span class="hl">http://localhost:8002/</span></div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>.\scripts\desktop\start-guaraci.ps1</span></div><div class="out" data-print="500"><span class="ok">✔ Guaraci no ar</span> — abrindo <span class="hl">http://localhost:8002/</span></div></div>
       </div>
       <p>No <strong>Linux/macOS</strong>: <code>./scripts/desktop/start-guaraci.sh</code>. Para conferir o status, <code>status-guaraci</code>; para desligar, <code>stop-guaraci</code>.</p>
       <p><strong>Jeito manual</strong> (útil para depurar — o terminal fica exibindo os logs; <kbd>Ctrl+C</kbd> encerra):</p>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">docker run --rm -it -p 8002:8000 -v "${PWD}:/app" guaraci uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log</span></div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>docker run --rm -it -p 8002:8000 -v "${PWD}:/app" guaraci uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log</span></div></div>
       </div>
       <div class="callout"><i class="bi bi-exclamation-triangle-fill"></i><span><strong>Sempre monte o volume</strong> (<code>-v "${PWD}:/app"</code>). Sem ele, downloads e manifestos são perdidos quando o contêiner encerra.</span></div>
 
       <h3>1.4 Confira se está tudo funcionando</h3>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">Invoke-RestMethod http://localhost:8002/health</span></div><div class="out">{"status": <span class="ok">"ok"</span>, "version": "0.6.0"}</div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>Invoke-RestMethod http://localhost:8002/health</span></div><div class="out" data-print="500">{"status": <span class="ok">"ok"</span>, "version": "0.6.0"}</div></div>
       </div>
 
       <h3>1.5 Problemas comuns</h3>
@@ -138,23 +138,23 @@
 
       <h3>3.1 <code>fetch list</code> — o que existe</h3>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">guaraci fetch list</span></div><div class="out">sih · sim · sinan · sinasc · dengue · nasa_power · ibge_populacao … <span class="hl">91 fontes</span></div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch list</span></div><div class="out" data-print="500">sih · sim · sinan · sinasc · dengue · nasa_power · ibge_populacao … <span class="hl">91 fontes</span></div></div>
       </div>
 
       <h3>3.2 <code>fetch schema</code> — os parâmetros de uma fonte</h3>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">guaraci fetch schema dengue</span></div><div class="out">nu_ano (string, opcional) · output_format [csv|parquet|sqlite] · batch_size (int, padrão 1000) …</div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch schema dengue</span></div><div class="out" data-print="500">nu_ano (string, opcional) · output_format [csv|parquet|sqlite] · batch_size (int, padrão 1000) …</div></div>
       </div>
 
       <h3>3.3 <code>fetch discover</code> — meça antes de baixar</h3>
       <p>Disponível para o SIH e os onze sistemas de microdados FTP do DATASUS (SIA, CNES, SINASC etc.): conta arquivos por grupo/UF <strong>sem baixar nada</strong>. Com <code>--sizes</code>, soma também o tamanho total. SIM e SINAN resolvem seus arquivos internamente durante a coleta e ficam de fora do preflight.</p>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">guaraci fetch discover sih --set start_year=2024 --set end_year=2024 --set states=SP --sizes</span></div><div class="out">grupo RD · UF SP · 12 arquivos · <span class="hl">198,4 MB</span></div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch discover sih --set start_year=2024 --set end_year=2024 --set states=SP --sizes</span></div><div class="out" data-print="500">grupo RD · UF SP · 12 arquivos · <span class="hl">198,4 MB</span></div></div>
       </div>
 
       <h3>3.4 <code>fetch run</code> — colete</h3>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">guaraci fetch run sinan --set disease=DENG --set start_year=2023 --set end_year=2024 --format csv</span></div><div class="out">baixando DENGBR23.dbc → convertendo → <span class="ok">✔ exportado: sinan_deng_2023-2024.csv</span></div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch run sinan --set disease=DENG --set start_year=2023 --set end_year=2024 --format csv</span></div><div class="out" data-print="500">baixando DENGBR23.dbc → convertendo → <span class="ok">✔ exportado: sinan_deng_2023-2024.csv</span></div></div>
       </div>
       <p>Regras úteis:</p>
       <ul class="doc-list">
@@ -196,7 +196,7 @@
       </table></div>
       <p><code>nasa_power</code> e todas as fontes IBGE, OpenDataSUS, DATASUS e gov.br <strong>não exigem credencial</strong>. Por segurança, as chaves são lidas apenas do ambiente: nunca entram como parâmetro de job nem são gravadas em manifesto.</p>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">$env:GUARACI_FIRMS_MAP_KEY = "sua-chave-aqui"</span></div><div class="out">(no Linux/macOS: <span class="hl">export GUARACI_FIRMS_MAP_KEY=sua-chave-aqui</span>)</div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>$env:GUARACI_FIRMS_MAP_KEY = "sua-chave-aqui"</span></div><div class="out" data-print="500">(no Linux/macOS: <span class="hl">export GUARACI_FIRMS_MAP_KEY=sua-chave-aqui</span>)</div></div>
       </div>
     </section>
 
@@ -253,8 +253,8 @@
   </div>
 </footer>
 
-<script src="assets/catalog-data.js"></script>
-<script src="assets/site.js"></script>
-<script src="assets/docs.js"></script>
+<script src="assets/catalog-data.js?v=20260811"></script>
+<script src="assets/site.js?v=20260811"></script>
+<script src="assets/docs.js?v=20260811"></script>
 </body>
 </html>
