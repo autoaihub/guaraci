@@ -1,4 +1,4 @@
-﻿"""
+"""
 Guaraci DATASUS SIH Integration
 ===============================
 
@@ -581,9 +581,9 @@ class SihDataSource(DataSource):
     def summary(self, df: pl.DataFrame, by: str = "UF_ZI", metric: Literal["count", "mean", "sum"] = "count") -> pl.DataFrame:
         if by not in df.columns:
             raise ValueError(f"A coluna '{by}' não existe no DataFrame.")
-        if metric == "count": return df.groupby(by).count().sort(by)
-        if metric == "mean": return df.groupby(by).mean().sort(by)
-        if metric == "sum": return df.groupby(by).sum().sort(by)
+        if metric == "count": return df.group_by(by).len().sort(by)
+        if metric == "mean": return df.group_by(by).mean().sort(by)
+        if metric == "sum": return df.group_by(by).sum().sort(by)
         raise ValueError("metric deve ser 'count', 'mean' ou 'sum'.")
 
     def export(self, df: pl.DataFrame, format: Literal["csv", "sqlite", "parquet"] = "csv", name: str = "sih_output") -> Optional[Path]:
@@ -600,5 +600,45 @@ class SihDataSource(DataSource):
             con.close()
         return final_path
 
+    def apply_column_map(
+        self,
+        df: pl.DataFrame,
+        column_map: Optional[Dict[str, str]] = None,
+    ) -> pl.DataFrame:
+        """Instance method shortcut for apply_sih_column_map."""
+        return apply_sih_column_map(df, column_map)
+
     def describe_fields(self, group: str = "RD") -> List[str]:
         return self.load_dataframe(group).columns
+
+
+DEFAULT_SIH_RD_COLUMN_MAP: Dict[str, str] = {
+    "N_AIH": "numero_aih",
+    "DT_INTER": "data_internacao",
+    "DT_SAIDA": "data_saida",
+    "MUNIC_RES": "municipio_residencia",
+    "MUNIC_MOV": "municipio_movimentacao",
+    "DIAG_PRINC": "diagnostico_principal",
+    "DIAG_SECUN": "diagnostico_secundario",
+    "COBRANCA": "motivo_cobranca",
+    "SEXO": "sexo",
+    "IDADE": "idade",
+    "UTI_MES_TO": "dias_uti_mes",
+    "MORTE": "obito",
+    "VAL_TOT": "valor_total",
+    "UF_ZI": "uf_gestao",
+}
+
+
+def apply_sih_column_map(
+    df: pl.DataFrame,
+    column_map: Optional[Dict[str, str]] = None,
+) -> pl.DataFrame:
+    """Apply a standardized column mapping to a SIH Polars DataFrame.
+
+    Defaults to DEFAULT_SIH_RD_COLUMN_MAP. Only renames columns that exist
+    in `df`; unmapped or missing columns are left untouched.
+    """
+    mapping = column_map if column_map is not None else DEFAULT_SIH_RD_COLUMN_MAP
+    rename_dict = {col: target for col, target in mapping.items() if col in df.columns}
+    return df.rename(rename_dict) if rename_dict else df
