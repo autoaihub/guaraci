@@ -184,7 +184,8 @@
       return '<article class="base-card" data-key="' + (b.key || "") + '" tabindex="0" role="button" aria-label="Detalhes de ' + b.n + '"><h4>' + b.n +
         ' <i class="bi bi-box-arrow-up-right card-hint" aria-hidden="true"></i></h4><p>' + b.d +
         '</p><div class="tags"><span class="base-tag">' + b.g +
-        '</span><span class="base-tag org">' + b.m + "</span></div></article>";
+        '</span><span class="base-tag org">' + b.m + "</span></div>" +
+        '<span class="card-cta"><i class="bi bi-list-columns-reverse"></i> Consultar campos e parâmetros</span></article>';
     }
 
     function render() {

@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/site.css?v=20260811" rel="stylesheet">
+  <link href="assets/site.css?v=20260811b" rel="stylesheet">
 </head>
 <body>
 <div id="scroll-progress"></div>
@@ -51,9 +51,20 @@
         <a href="#como-usar" class="btn btn-sun"><i class="bi bi-rocket-takeoff"></i> Começar em 5 passos</a>
         <a href="#bases" class="btn btn-ghost">Explorar as 91 bases</a>
       </div>
-      <div class="hero-autoai">
-        <img src="assets/partners/logo-autoai.svg" alt="Logo da AutoAI-Pandemics">
-        <span>Um projeto do hub <a href="https://autoaipandemics.icmc.usp.br/" target="_blank" rel="noopener">AutoAI-Pandemics</a> (ICMC-USP)</span>
+      <div class="hero-credits">
+        <div class="hero-autoai">
+          <img src="assets/partners/logo-autoai.svg" alt="Logo da AutoAI-Pandemics">
+          <span>Um projeto do hub <a href="https://autoaipandemics.icmc.usp.br/" target="_blank" rel="noopener">AutoAI-Pandemics</a> (ICMC-USP)</span>
+        </div>
+        <a class="hero-funders" href="#apoio" aria-label="Ver a seção de apoio e financiamento">
+          <span class="funders-lbl">Apoio e financiamento</span>
+          <span class="funder-chip"><img src="assets/partners/icmc.png" alt="ICMC-USP"></span>
+          <span class="funder-chip"><img src="assets/partners/utfpr.png" alt="UTFPR"></span>
+          <span class="funder-chip"><img src="assets/partners/ai4pep.png" alt="AI4PEP"></span>
+          <span class="funder-chip"><img src="assets/partners/idrc_logo_full_name_wordmark.jpg" alt="IDRC"></span>
+          <span class="funder-chip"><img src="assets/partners/uk-international-development-2.png" alt="UK International Development"></span>
+          <i class="bi bi-arrow-right-short"></i>
+        </a>
       </div>
     </div>
     <div class="hero-panel reveal">
@@ -169,6 +180,7 @@
       <h2 class="sec-title">Explore os <span class="grad-text">91 conjuntos</span></h2>
       <p class="sec-lead">Nada de "e outros": o catálogo completo está abaixo. Busque por nome, doença ou tema, filtre por área — e <strong>clique em qualquer base</strong> para ver parâmetros, campos e o comando pronto. Algumas bases aparecem em mais de um grupo por estarem disponíveis tanto no formato tradicional do DATASUS quanto pelo catálogo aberto mais recente.</p>
     </div>
+    <p class="explorer-hint reveal"><i class="bi bi-hand-index-thumb-fill"></i> <strong>Consulte os campos:</strong> clique em qualquer base para ver as colunas do dado, os parâmetros de coleta e o comando pronto — ou abra a <a href="docs.html#catalogo">documentação completa</a>.</p>
     <div class="explorer-bar reveal">
       <div class="search-box">
         <i class="bi bi-search"></i>
@@ -455,7 +467,7 @@
   </div>
 </div>
 
-<script src="assets/catalog-data.js?v=20260811"></script>
-<script src="assets/site.js?v=20260811"></script>
+<script src="assets/catalog-data.js?v=20260811b"></script>
+<script src="assets/site.js?v=20260811b"></script>
 </body>
 </html>
