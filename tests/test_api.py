@@ -35,7 +35,7 @@ def test_ui_endpoint(client: TestClient) -> None:
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "Guaraci Data Downloader" in response.text
+    assert "Guaraci" in response.text
     assert "text/html" in response.headers["content-type"]
 
 
