@@ -1,163 +1,172 @@
-"""Sample each first-class Guaraci source to validate it works and capture its
-filter parameters + output field names — a data dictionary for data-lake consumers.
+"""
+Fill in the Guaraci data dictionary (guaraci/data/field_dictionary.json +
+docs/DATA_DICTIONARY.md) for sources that are still `filters_only`.
 
-This is the empirical "run it once, broadly" applied to Guaraci's real mission
-(feeding the data lake from many sources). It is a long/verbose live job, so per
-the Vogel Stack (operação §5.1) run it with a persisted log:
+Two phases, always in this order, never mixed:
 
-    .venv/Scripts/python.exe scripts/sample_sources.py
+  1) Collection (hits the network, writes only reports/source_validation.json —
+     never touches the versioned files):
 
-Writes (incrementally, so a partial run still yields data):
-  reports/source_validation.json   — machine-readable per-source status/filters/fields
-  reports/data_dictionary.md       — human-readable filters + field names per source
+       .venv/Scripts/python.exe scripts/sample_sources.py --limit 5      # smoke test
+       .venv/Scripts/python.exe scripts/sample_sources.py                # full batch
 
-Windows are intentionally tiny (AC = smallest UF, 1 month/year). NASA FIRMS/GPM
-need credentials (env vars); without them they are reported as needs_credential.
+  2) Promotion (no network — merges the report into the versioned files):
+
+       .venv/Scripts/python.exe scripts/sample_sources.py --promote-from-report
+
+Sources already resolved (status ok/empty/error/needs_credential) in the
+existing field_dictionary.json are preserved and never re-sampled unless
+--force or --only is used. The 22 sources originally covered by hand (DATASUS
+FTP systems + a handful of "vitrine" OpenDataSUS sources + NASA) and the 2
+sources that need a seed ID from another source's sample are out of scope for
+this script — see guaraci/services/dictionary_sampling.py for why.
+
+This is a long/verbose live job against external government APIs (per the
+Vogel Stack, operação §5.1, run it with a persisted log).
 """
 from __future__ import annotations
 
+import argparse
 import json
-import tempfile
+import sys
+import time
 from pathlib import Path
+from typing import Any, Dict, List
 
-import polars as pl
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))  # allow `python scripts/sample_sources.py` without an editable install
 
+from guaraci.services.dictionary_io import atomic_write_json, load_field_dictionary, render_data_dictionary_md
+from guaraci.services.dictionary_sampling import (
+    RateLimited,
+    classify_source,
+    sample_generic_demas,
+    sample_govbr_single_document,
+    schema_of,
+)
 from guaraci.services.downloads import DownloadService
+from guaraci.snis import SinisaDataSource, SnisDataSource
 
-OUT_DIR = Path("reports")
-OUT_DIR.mkdir(exist_ok=True)
-JSON_OUT = OUT_DIR / "source_validation.json"
-MD_OUT = OUT_DIR / "data_dictionary.md"
+REPO_ROOT = _REPO_ROOT
+REPORTS_DIR = REPO_ROOT / "reports"
+REPORT_JSON = REPORTS_DIR / "source_validation.json"
+FIELD_DICT_JSON = REPO_ROOT / "guaraci" / "data" / "field_dictionary.json"
+DATA_DICT_MD = REPO_ROOT / "docs" / "DATA_DICTIONARY.md"
 
-svc = DownloadService()
-
-# Real download (captures output field names). Smallest feasible windows.
-DOWNLOAD_SAMPLES = {
-    "sih": dict(start_year=2024, end_year=2024, groups=["RD"], states=["AC"], months=["1"]),
-    "sim": dict(start_year=2021, end_year=2021, groups=["CID10"], states=["AC"]),
-    "sinan": dict(start_year=2022, end_year=2022, diseases=["ZIKA"]),
-    "sinasc": dict(start_year=2021, end_year=2021, states=["AC"]),
-    "pni": dict(start_year=2021, end_year=2021, states=["AC"]),
-    "painel_oncologia": dict(start_year=2023, end_year=2023),
-    "dengue": dict(start_year=2024, end_year=2024, uf="AC", max_pages=1),
-    "srag_demas": dict(start_year=2023, end_year=2023, uf="AC", max_pages=1),
-    "doses_aplicadas_pni": dict(start_year=2023, end_year=2023, uf="AC", max_pages=1),
-    "zikavirus": dict(start_year=2022, end_year=2022, uf="AC", max_pages=1),
-    "chikungunya": dict(start_year=2024, end_year=2024, uf="AC", max_pages=1),
-    "nasa_power": dict(latitude="-23.55", longitude="-46.63", start_date="2024-01-01", end_date="2024-01-07"),
-    "nasa_firms": dict(start_date="2024-01-01", end_date="2024-01-02", country="BRA"),
-    "nasa_gpm": dict(latitude="-23.55", longitude="-46.63", start_date="2024-01-01", end_date="2024-01-02"),
-}
-
-# FTP systems validated via discover (preflight, no download) — heavy to pull fully.
-DISCOVER_ONLY = {
-    "sia": dict(start_year=2023, end_year=2023, states=["AC"]),
-    "cnes": dict(start_year=2024, end_year=2024, states=["AC"]),
-    "ciha": dict(start_year=2014, end_year=2014, states=["AC"]),
-    "cih": dict(start_year=2009, end_year=2009, states=["AC"]),
-    "siscan": dict(start_year=2019, end_year=2019, states=["AC"]),
-    "sisprenatal": dict(start_year=2014, end_year=2014, states=["AC"]),
-    "resp": dict(start_year=2016, end_year=2016),
-    "pce": dict(start_year=2014, end_year=2014),
-}
+GOVBR_CLASSES = {"snis": SnisDataSource, "sinisa": SinisaDataSource}
+RESOLVED_STATUSES = {"ok", "empty", "error", "needs_credential"}
+CIRCUIT_BREAKER_LIMIT = 3
 
 
 def log(msg: str) -> None:
     print(msg, flush=True)
 
 
-def schema_of(source: str):
-    try:
-        sch = svc.get_source_schema(source)
-        return [
-            {"name": p["name"], "type": p["type"], "required": p.get("required"),
-             "allowed": p.get("allowed_values")}
-            for p in sch["params"]
+def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--only", type=str, default=None, help="comma-separated source keys to (re)process")
+    parser.add_argument("--limit", type=int, default=None, help="process at most N pending sources")
+    parser.add_argument("--force", action="store_true", help="re-sample sources even if already resolved")
+    parser.add_argument("--sleep", type=float, default=1.5, help="seconds between network calls (default 1.5)")
+    parser.add_argument(
+        "--promote-from-report",
+        action="store_true",
+        help="no network: merge an existing reports/source_validation.json into the versioned files",
+    )
+    return parser.parse_args(argv)
+
+
+def write_report(results: Dict[str, Any]) -> None:
+    REPORT_JSON.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def promote(existing: Dict[str, Any]) -> Dict[str, Any]:
+    if not REPORT_JSON.exists():
+        raise SystemExit(f"{REPORT_JSON} not found — run a collection pass first (no --promote-from-report).")
+    report = json.loads(REPORT_JSON.read_text(encoding="utf-8"))
+    merged = dict(existing)
+    merged.update(report)
+    return merged
+
+
+def main(argv: List[str] | None = None) -> int:
+    args = parse_args(argv)
+    REPORTS_DIR.mkdir(exist_ok=True)
+    existing = load_field_dictionary(FIELD_DICT_JSON)
+
+    if args.promote_from_report:
+        merged = promote(existing)
+        atomic_write_json(FIELD_DICT_JSON, merged)
+        DATA_DICT_MD.write_text(render_data_dictionary_md(merged), encoding="utf-8")
+        log(f"Promoted {REPORT_JSON} -> {FIELD_DICT_JSON}, {DATA_DICT_MD}")
+        return 0
+
+    svc = DownloadService()
+    all_sources = [d.source for d in svc.list_sources()]
+    known = set(all_sources)
+
+    results: Dict[str, Any] = {s: dict(existing.get(s, {})) for s in all_sources}
+
+    # 1) Filters for every source: instant, no network, always refreshed.
+    log(f"[schema] {len(all_sources)} sources")
+    for source in all_sources:
+        results[source]["filters"] = schema_of(svc, source)
+    write_report(results)
+
+    # 2) Pick targets.
+    if args.only:
+        targets = [s.strip() for s in args.only.split(",") if s.strip()]
+        unknown = [s for s in targets if s not in known]
+        if unknown:
+            raise SystemExit(f"Unknown source(s) in --only: {', '.join(unknown)}")
+    else:
+        targets = [
+            s for s in all_sources
+            if args.force or results[s].get("status") not in RESOLVED_STATUSES
         ]
-    except Exception as exc:  # noqa: BLE001
-        return {"error": str(exc)}
+        targets = [s for s in targets if classify_source(s) in ("demas_generic", "govbr")]
+        if args.limit is not None:
+            targets = targets[: args.limit]
 
+    preview = ", ".join(targets[:20]) + (", ..." if len(targets) > 20 else "")
+    log(f"[targets] {len(targets)} source(s): {preview}")
 
-results: dict = {}
+    # 3) Sample each target. One bad source never aborts the batch; three
+    #    consecutive rate-limit signals do (circuit breaker).
+    consecutive_rate_limits = 0
+    for i, source in enumerate(targets, start=1):
+        category = classify_source(source)
+        log(f"[{i}/{len(targets)}] {source} ({category})")
 
+        if category not in ("demas_generic", "govbr"):
+            log(f"   -> skipped (category={category}, out of scope for this script)")
+            continue
 
-def write_partial() -> None:
-    JSON_OUT.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
-
-
-# 1) Filter schema for ALL registered sources (instant, no network).
-all_sources = [d.source for d in svc.list_sources()]
-log(f"[schema] {len(all_sources)} sources")
-for s in all_sources:
-    results.setdefault(s, {})["filters"] = schema_of(s)
-write_partial()
-
-# 2) Discover (preflight) for the heavier FTP systems.
-for s, params in DISCOVER_ONLY.items():
-    log(f"[discover] {s} {params}")
-    try:
-        summ = svc.discover(s, fetch_sizes=False, **params)
-        results.setdefault(s, {})["discover"] = {
-            "status": "ok",
-            "documents_found": summ.get("documents_found"),
-            "by_group": summ.get("by_group"),
-            "by_state": summ.get("by_state"),
-        }
-        log(f"   -> ok: {summ.get('documents_found')} files")
-    except Exception as exc:  # noqa: BLE001
-        results.setdefault(s, {})["discover"] = {"status": "error", "error": str(exc)[:300]}
-        log(f"   -> error: {str(exc)[:160]}")
-    write_partial()
-
-# 3) Download a small sample to capture output field names.
-for s, params in DOWNLOAD_SAMPLES.items():
-    log(f"[sample] {s} {params}")
-    rec = results.setdefault(s, {})
-    try:
-        with tempfile.TemporaryDirectory(prefix="guaraci_sample_") as tmp:
-            res = svc.run(s, output_format="parquet", output_dir=tmp, **params)
-            payload = res.to_dict() if hasattr(res, "to_dict") else dict(res)
-            files = payload.get("exported_files") or []
-            if files:
-                df = pl.read_parquet(files[0])
-                rec["sample"] = {"status": "ok", "rows": df.height,
-                                 "n_cols": df.width, "columns": df.columns}
-                log(f"   -> ok: {df.height} rows, {df.width} cols")
+        try:
+            if category == "govbr":
+                outcome = sample_govbr_single_document(GOVBR_CLASSES[source], source)
             else:
-                rec["sample"] = {"status": "empty", "warning": payload.get("export_warning")}
-                log(f"   -> empty: {payload.get('export_warning')}")
-    except Exception as exc:  # noqa: BLE001
-        msg = str(exc)
-        low = msg.lower()
-        status = "needs_credential" if any(k in low for k in ("map_key", "token", "earthdata")) else "error"
-        rec["sample"] = {"status": status, "error": msg[:300]}
-        log(f"   -> {status}: {msg[:160]}")
-    write_partial()
+                outcome = sample_generic_demas(svc, source)
+            consecutive_rate_limits = 0
+        except RateLimited as exc:
+            consecutive_rate_limits += 1
+            log(f"   -> rate limited ({consecutive_rate_limits}/{CIRCUIT_BREAKER_LIMIT}): {exc}")
+            if consecutive_rate_limits >= CIRCUIT_BREAKER_LIMIT:
+                log("Circuit breaker tripped (3 consecutive rate limits) — stopping this batch.")
+                break
+            continue
 
-# 4) Human-readable data dictionary.
-lines = [
-    "# Data dictionary — amostragem por fonte\n\n",
-    f"Gerado por `scripts/sample_sources.py`. {len(all_sources)} fontes registradas.\n",
-    "Filtros = argumentos que o usuário pode passar; Campos = colunas de saída (amostra real).\n",
-]
-for s in sorted(results):
-    rec = results[s]
-    lines.append(f"\n## {s}\n\n")
-    filt = rec.get("filters")
-    if isinstance(filt, list):
-        rendered = ", ".join(
-            f"`{p['name']}`({p['type']}{'*' if p.get('required') else ''})" for p in filt
-        )
-        lines.append(f"- **Filtros:** {rendered}\n")
-    if "discover" in rec:
-        d = rec["discover"]
-        lines.append(f"- **Discover:** {d.get('status')} — {d.get('documents_found')} arquivo(s); by_group={d.get('by_group')}\n")
-    if "sample" in rec:
-        sp = rec["sample"]
-        if sp.get("status") == "ok":
-            lines.append(f"- **Amostra:** OK — {sp['rows']} linhas, {sp['n_cols']} colunas\n")
-            lines.append("- **Campos:** " + ", ".join(f"`{c}`" for c in sp["columns"]) + "\n")
-        else:
-            lines.append(f"- **Amostra:** {sp.get('status')} — {sp.get('error') or sp.get('warning')}\n")
-MD_OUT.write_text("".join(lines), encoding="utf-8")
-log(f"\nDONE. JSON: {JSON_OUT}  MD: {MD_OUT}")
+        results[source].update(outcome)
+        log(f"   -> {outcome.get('status')}")
+        write_report(results)
+        if args.sleep:
+            time.sleep(args.sleep)
+
+    write_report(results)
+    log(f"\n[collection done] wrote {REPORT_JSON}. Run with --promote-from-report to update the versioned files.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
