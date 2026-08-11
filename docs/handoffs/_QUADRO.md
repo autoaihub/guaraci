@@ -10,8 +10,7 @@
 >
 > **Drenagem:** ao concluir um item, registre a entrega no `CHANGELOG.md` e remova a linha
 > na próxima reconciliação. O quadro mostra o presente em aberto; o passado vive no changelog.
->
-> **Última reconciliação:** 2026-07-18 — fontes: reunião AutoAI-Pandemics (24/06), feedback de agente (28/06), amostragem de fontes (28/06), memória do projeto. Conectores **IBGE SIDRA** (`ibge_populacao`, `ibge_pib_municipios`, `ibge_populacao_idade_sexo`) concluídos e documentados no padrão das demais fontes (SOURCES_AND_FILTERS, DATA_DICTIONARY live-sampled, ARCHITECTURE, field_dictionary, AI_HANDOFF, operacao) — drenados ao `CHANGELOG.md`.
+> **Última reconciliação:** 2026-08-11 — Reconciliação do backlog: concluídos sweep de deprecations do Polars, contrato público JobResult, amostragem de 5 novas fontes e default column_map do SIH-RD.
 >
 > **Legenda:** 🔴 Prioridade · 🟡 Em andamento · ⚪ Pendente (backlog válido) · 🗄️ Defasado (morto, mantido por memória) · ✅ Concluído (transitório → changelog)
 
@@ -23,7 +22,6 @@ _Nada em aberto no momento — os bloqueios (validar `column_map` do SIH; amostr
 
 | Item | Origem | Próxima ação / nota |
 |---|---|---|
-| Interface web → legado, foco CLI | reunião 24/06 | Decidido: mover `apps/web` + static UI p/ `legacy/`, tirar dos instaláveis, docs CLI-first. **Ainda não executado.** |
 | Artigo *Data in Brief* sobre o Guaraci | reunião 24/06 | Material em `docs/artigo/for-author/` (untracked). Bruna escreve; 1º draft ~20/07; revisão semana de 6–7/07. Pendências: data object + DOI, grant IDRC, autoria. |
 
 ## ⚪ Pendente (backlog válido)
@@ -31,10 +29,7 @@ _Nada em aberto no momento — os bloqueios (validar `column_map` do SIH; amostr
 | Item | Origem | Nota |
 |---|---|---|
 | **Bug:** `pni`/`pce`/`siscan` retornam vazio (`group=None` no `load_dataframe`) | amostragem 28/06 | Discovery confirma os arquivos no FTP, mas o load multi-grupo/nacional não materializa. Investigar `ftp_source.load_dataframe`/`generic_backend`. |
-| Promover `run()`→`exported_files` a **contrato público documentado** | feedback de agente | Congela o seam que o Monitoramento consome; baixo custo, alto valor. |
-| Sweep de deprecations do Polars | feedback de agente | `df.groupby`→`group_by` em `sih.py:579`, `sim.py:320-322`, `sinan.py:357-361` (todos no `summary()`, fora do caminho de dados). |
-| `column_map` do SIH-RD como default **versionado + testado** no Guaraci | feedback de agente | Campos já validados (dicionário); falta um default/teste de regressão dentro do Guaraci. |
-| Adotar os linters da vogel-stack em CI (`check-wikilinks`/`check-quadro`) | conformidade | Família leve já declarada no `AGENTS.md`; falta a GitHub Action. |
+| **Detalhamento semântico de campos e janelas históricas no site catálogo** | demanda usuário (11/08) | Enriquecer o catálogo com dicionários de dados semânticos (descrição/significado das siglas dos campos) obtidos das fontes oficiais (DATASUS, OpenDataSUS, etc.) e limites de cobertura histórica (anos disponíveis por fonte). |
 | Empacotamento durável p/ submódulo (submódulo fixo × `pip install @ git+` × editable) | feedback de agente | Decidir só **depois** do Guaraci estabilizar; por ora, editable-install local serve. |
 | `downloads.py` (3113 linhas) — fatiar o registry repetitivo | feedback de agente | Otimização prematura: 90% é schema. Só se doer. |
 | Deletar branches stale (`feat/nasa-clima`, `feat/datasus-ftp-direto`) | higiene git | `main` é a viva; manter `archive/*`/`safety/*`. Aguarda ok. |
