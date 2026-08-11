@@ -121,6 +121,10 @@ venv.bak/
 # mkdocs: se for adotado, configure site_dir (ex.: build/docs) — /site é a landing page versionada
 /build/docs
 
+# referência local baixada do site da AutoAI (template comercial — não publicar)
+/AutoAI-Pandemics.html
+/AutoAI-Pandemics_files/
+
 # mypy
 .mypy_cache/
 .dmypy.json
