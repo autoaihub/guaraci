@@ -118,8 +118,8 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
+# mkdocs: se for adotado, configure site_dir (ex.: build/docs) — /site é a landing page versionada
+/build/docs
 
 # mypy
 .mypy_cache/

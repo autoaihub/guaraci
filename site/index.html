@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guaraci | Dados públicos do Brasil em um só lugar</title>
+  <meta name="description" content="O Guaraci reúne 91 conjuntos de dados públicos brasileiros — saúde, população, clima, saneamento e território — direto das fontes oficiais, com interface web e acesso gratuito.">
+  <meta property="og:title" content="Guaraci | Dados públicos do Brasil em um só lugar">
+  <meta property="og:description" content="91 conjuntos de dados públicos, direto das fontes oficiais, com interface web gratuita. Um projeto AutoAI-Pandemics (ICMC-USP).">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/logo-guaraci.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/site.css" rel="stylesheet">
+</head>
+<body>
+<div id="scroll-progress"></div>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="#inicio">
+      <img src="assets/logo-guaraci.svg" alt="Logo do Guaraci" data-logo>
+      <span data-logo-fallback style="display:none;width:40px;height:40px;border-radius:11px;background:var(--grad);place-items:center;color:#10231e;font-size:1.3rem;"><i class="bi bi-sun-fill"></i></span>
+      Guaraci
+    </a>
+    <button class="nav-toggle" aria-label="Abrir menu"><i class="bi bi-list"></i></button>
+    <div class="nav-links">
+      <a href="#o-que-e">O que é</a>
+      <a href="#numeros">Em números</a>
+      <a href="#bases">As 91 bases</a>
+      <a href="#como-usar">Como usar</a>
+      <a href="#ecossistema">Ecossistema</a>
+      <a href="#apoio">Apoio</a>
+      <a href="#faq">Dúvidas</a>
+      <a class="btn btn-sun" href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener"><i class="bi bi-github"></i> GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<header id="inicio" class="hero">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="container hero-grid">
+    <div>
+      <span class="hero-badge"><i class="bi bi-stars"></i> Dados públicos mais próximos de quem precisa</span>
+      <h1>Diversas bases.<br><span class="grad-text">Um só caminho.</span></h1>
+      <p class="hero-sub">O Guaraci é um <strong>orquestrador de downloads</strong>: busca dados públicos do Brasil direto em cada fonte oficial e entrega tudo pronto para usar, com <strong>interface web</strong> e fidelidade ao dado original. Menos tempo procurando bases, mais tempo pesquisando, planejando e criando soluções para o país.</p>
+      <div class="hero-ctas">
+        <a href="#como-usar" class="btn btn-sun"><i class="bi bi-rocket-takeoff"></i> Começar em 5 passos</a>
+        <a href="#bases" class="btn btn-ghost">Explorar as 91 bases</a>
+      </div>
+      <div class="hero-autoai">
+        <img src="assets/partners/logo-autoai.svg" alt="Logo da AutoAI-Pandemics">
+        <span>Um projeto do hub <a href="https://autoaipandemics.icmc.usp.br/" target="_blank" rel="noopener">AutoAI-Pandemics</a> (ICMC-USP)</span>
+      </div>
+    </div>
+    <div class="hero-panel reveal">
+      <div class="hero-stat"><div class="ico"><i class="bi bi-database-fill-check"></i></div><div><strong><span data-to="91">0</span> conjuntos</strong><span>de dados públicos reunidos</span></div></div>
+      <div class="hero-stat"><div class="ico"><i class="bi bi-diagram-3-fill"></i></div><div><strong>5 grandes áreas</strong><span>saúde, população, clima, saneamento e território</span></div></div>
+      <div class="hero-stat"><div class="ico"><i class="bi bi-window-fullscreen"></i></div><div><strong>Interface web</strong><span>peça os dados por formulário, sem escrever código</span></div></div>
+      <div class="hero-stat"><div class="ico"><i class="bi bi-unlock-fill"></i></div><div><strong>100% gratuito</strong><span>código aberto (MIT) para pesquisa, ensino e gestão</span></div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ O QUE É ═══════════ -->
+<section id="o-que-e">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="kicker"><i class="bi bi-question-circle-fill"></i> O que é o Guaraci</span>
+      <h2 class="sec-title">Do dado espalhado à <span class="grad-text">informação útil</span></h2>
+      <p class="sec-lead">Os dados públicos do Brasil existem — mas ficam espalhados em dezenas de portais, cada um com seu formato e jeito de baixar. O Guaraci busca tudo direto da fonte oficial e entrega em um só lugar, com qualidade, integridade e fidelidade ao dado original.</p>
+    </div>
+    <div class="duo">
+      <div class="duo-col problem reveal">
+        <span class="duo-tag"><i class="bi bi-exclamation-triangle-fill"></i> Sem o Guaraci</span>
+        <h3>Procurar dados dá trabalho</h3>
+        <ul class="duo-list">
+          <li><i class="bi bi-x-circle-fill"></i><span>Cada base fica em um portal diferente do governo.</span></li>
+          <li><i class="bi bi-x-circle-fill"></i><span>Formatos técnicos e difíceis de abrir (como arquivos <em>.dbc</em>).</span></li>
+          <li><i class="bi bi-x-circle-fill"></i><span>É preciso repetir o download estado por estado, ano por ano.</span></li>
+          <li><i class="bi bi-x-circle-fill"></i><span>É fácil pegar dado desatualizado ou vindo de intermediários.</span></li>
+        </ul>
+      </div>
+      <div class="duo-col solution reveal" data-delay="120">
+        <span class="duo-tag"><i class="bi bi-sun-fill"></i> Com o Guaraci</span>
+        <h3>Tudo em um caminho só</h3>
+        <ul class="duo-list">
+          <li><i class="bi bi-check-circle-fill"></i><span>Chega de caçar em dezenas de portais diferentes.</span></li>
+          <li><i class="bi bi-check-circle-fill"></i><span>Entregue pronto para usar: <strong>CSV, Parquet ou banco de dados</strong>.</span></li>
+          <li><i class="bi bi-check-circle-fill"></i><span>Você escolhe período, estado e recorte — ele baixa tudo.</span></li>
+          <li><i class="bi bi-check-circle-fill"></i><span>Sempre da <strong>fonte oficial</strong>, sem intermediários.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="flow reveal">
+      <div class="flow-row">
+        <div class="flow-node">
+          <div class="ico"><i class="bi bi-bank2"></i></div>
+          <strong>Fontes oficiais</strong>
+          <span>Ministério da Saúde, IBGE, NASA e gov.br</span>
+        </div>
+        <div class="flow-link"></div>
+        <div class="flow-node sunny">
+          <div class="ico"><i class="bi bi-sun-fill"></i></div>
+          <strong>Guaraci</strong>
+          <span>busca, valida, converte e organiza</span>
+        </div>
+        <div class="flow-link"></div>
+        <div class="flow-node">
+          <div class="ico"><i class="bi bi-laptop"></i></div>
+          <strong>Você</strong>
+          <span>arquivos prontos na sua máquina</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ EM NÚMEROS ═══════════ -->
+<section id="numeros" class="soft">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="kicker"><i class="bi bi-bar-chart-fill"></i> Em números</span>
+      <h2 class="sec-title">A dimensão do projeto</h2>
+      <p class="sec-lead">A conta é simples: <strong>4 instituições oficiais</strong> produzem os dados, que o Guaraci organiza em <strong>17 grupos</strong> e entrega como <strong>91 conjuntos</strong> prontos para baixar.</p>
+    </div>
+    <div class="metrics">
+      <div class="metric reveal"><div class="num grad-text"><span data-to="4">0</span></div><div class="lbl">instituições oficiais na origem: Ministério da Saúde, IBGE, NASA e gov.br</div></div>
+      <div class="metric reveal" data-delay="90"><div class="num grad-text"><span data-to="17">0</span></div><div class="lbl">grupos no catálogo, reunindo bases de uma mesma família</div></div>
+      <div class="metric reveal" data-delay="180"><div class="num grad-text"><span data-to="91">0</span></div><div class="lbl">conjuntos de dados prontos para baixar, listados um a um nesta página</div></div>
+      <div class="metric reveal" data-delay="270"><div class="num grad-text">BR</div><div class="lbl">dados nacionais, estaduais e municipais — de todo o país</div></div>
+    </div>
+    <div class="impact reveal">
+      <div>
+        <h3>Informação pública com mais alcance</h3>
+        <p>O Guaraci organiza o acesso a dados públicos e ajuda pessoas e instituições a encontrarem informações que apoiam pesquisas, políticas públicas, ações de prevenção e decisões com maior impacto social.</p>
+      </div>
+      <a href="#bases" class="btn">Ver as bases <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ÁREAS ═══════════ -->
+<section id="areas">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="kicker"><i class="bi bi-grid-1x2-fill"></i> Cinco grandes áreas</span>
+      <h2 class="sec-title">Um retrato amplo do Brasil</h2>
+      <p class="sec-lead">As fontes vão do nascimento ao cuidado em saúde, passando por população e economia, clima, saneamento e território.</p>
+    </div>
+    <div class="areas">
+      <div class="area reveal"><div class="ico"><i class="bi bi-heart-pulse-fill"></i></div><h3>Saúde pública</h3><p>Doenças, internações, óbitos, nascimentos, vacinação, vigilância epidemiológica (dengue, chikungunya, zika, febre amarela, mpox), qualidade da água e unidades do SUS.</p><span class="count">83 fontes do Ministério da Saúde</span></div>
+      <div class="area reveal" data-delay="80"><div class="ico"><i class="bi bi-people-fill"></i></div><h3>População e economia</h3><p>Estimativas de população, Censo por idade e sexo e PIB dos municípios — o contexto que dá sentido aos indicadores.</p><span class="count">3 fontes do IBGE</span></div>
+      <div class="area reveal" data-delay="160"><div class="ico"><i class="bi bi-cloud-drizzle-fill"></i></div><h3>Clima e ambiente</h3><p>Temperatura, chuva e focos de incêndio, para relacionar condições ambientais com saúde e qualidade de vida.</p><span class="count">3 fontes da NASA</span></div>
+      <div class="area reveal" data-delay="240"><div class="ico"><i class="bi bi-droplet-fill"></i></div><h3>Saneamento</h3><p>Informações nacionais de água, esgoto e serviços de saneamento — base para avaliar desigualdades e riscos.</p><span class="count">2 fontes (gov.br)</span></div>
+      <div class="area reveal" data-delay="320"><div class="ico"><i class="bi bi-geo-alt-fill"></i></div><h3>Território</h3><p>Todas as áreas se cruzam por município, estado e região — permitindo comparar realidades locais em todo o Brasil.</p><span class="count">Cobertura nacional</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CATÁLOGO ═══════════ -->
+<section id="bases" class="soft">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="kicker"><i class="bi bi-collection-fill"></i> As bases, uma a uma</span>
+      <h2 class="sec-title">Explore os <span class="grad-text">91 conjuntos</span></h2>
+      <p class="sec-lead">Nada de "e outros": o catálogo completo está abaixo. Busque por nome, doença ou tema, ou filtre por área. Algumas bases aparecem em mais de um grupo por estarem disponíveis tanto no formato tradicional do DATASUS quanto pelo catálogo aberto mais recente.</p>
+    </div>
+    <div class="explorer-bar reveal">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input id="bases-search" type="search" placeholder="Buscar por nome, doença ou tema — ex.: dengue, mortalidade, água…" aria-label="Buscar base">
+      </div>
+      <div class="chips" id="bases-chips">
+        <button class="chip active" data-area="all">Todas</button>
+        <button class="chip" data-area="saude">Saúde pública</button>
+        <button class="chip" data-area="pop">População</button>
+        <button class="chip" data-area="clima">Clima</button>
+        <button class="chip" data-area="san">Saneamento</button>
+      </div>
+    </div>
+    <p class="explorer-count" id="bases-count"></p>
+    <div class="bases-grid" id="bases-grid"></div>
+    <div class="explorer-empty" id="bases-empty"><i class="bi bi-binoculars" style="font-size:2rem;"></i><p>Nenhuma base encontrada com esse filtro. Tente outro termo — ou <a href="mailto:vogel@usp.br">peça a inclusão</a> de uma nova base.</p></div>
+    <div class="explorer-more" id="bases-more" style="display:none;"><button class="btn btn-ghost" id="bases-more-btn">Mostrar todas <i class="bi bi-chevron-down"></i></button></div>
+  </div>
+</section>
+
+<!-- ═══════════ COMO USAR ═══════════ -->
+<section id="como-usar">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="kicker"><i class="bi bi-compass-fill"></i> Como usar</span>
+      <h2 class="sec-title">Do zero aos dados em <span class="grad-text">5 passos</span></h2>
+      <p class="sec-lead">Você não precisa saber programar: depois de instalar, tudo acontece em uma <strong>interface web</strong> no seu navegador. O terminal só aparece na instalação — e mostramos exatamente o que digitar.</p>
+    </div>
+
+    <div class="steps">
+      <!-- Passo 1 -->
+      <div class="step reveal">
+        <div class="step-dot">1</div>
+        <h3>Instale os dois programas necessários</h3>
+        <p class="step-lead">O Guaraci roda dentro do <strong>Docker</strong> (um "contêiner" que já traz tudo configurado) e é copiado para o computador com o <strong>Git</strong>. Os dois são gratuitos:</p>
+        <div class="dl-links">
+          <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener"><i class="bi bi-box-seam"></i> Baixar Docker Desktop</a>
+          <a href="https://git-scm.com/downloads" target="_blank" rel="noopener"><i class="bi bi-git"></i> Baixar Git</a>
+        </div>
+        <div class="callout"><i class="bi bi-lightbulb-fill"></i><span>Instale com as opções padrão ("Avançar, Avançar, Concluir"). Depois de instalar, <strong>abra o Docker Desktop e deixe-o aberto</strong> — ele precisa estar ativo para os próximos passos.</span></div>
+      </div>
+
+      <!-- Passo 2 -->
+      <div class="step reveal">
+        <div class="step-dot">2</div>
+        <h3>Copie o Guaraci para o seu computador</h3>
+        <p class="step-lead">Abra o terminal — no Windows, procure por <strong>PowerShell</strong> no menu Iniciar — e digite as duas linhas abaixo, apertando Enter após cada uma:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
+          <div class="term-body">
+            <div><span class="ps1">&gt;</span> <span class="cmd" data-type>git clone https://github.com/autoaihub/guaraci.git</span></div>
+            <div class="out" data-print="500">Cloning into 'guaraci'... <span class="ok">done.</span></div>
+            <div><span class="ps1">&gt;</span> <span class="cmd" data-type>cd guaraci</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Passo 3 -->
+      <div class="step reveal">
+        <div class="step-dot">3</div>
+        <h3>Monte o Guaraci (só na primeira vez)</h3>
+        <p class="step-lead">Este comando prepara tudo o que o Guaraci precisa dentro do Docker. Demora alguns minutos, mas <strong>só precisa ser feito uma vez</strong>:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
+          <div class="term-body">
+            <div><span class="ps1">&gt;</span> <span class="cmd" data-type>docker build -t guaraci .</span></div>
+            <div class="out" data-print="600">[+] Building… instalando dependências ⏳</div>
+            <div class="out" data-print="700"><span class="ok">✔ Imagem "guaraci" criada com sucesso</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Passo 4 -->
+      <div class="step reveal">
+        <div class="step-dot">4</div>
+        <h3>Ligue o Guaraci</h3>
+        <p class="step-lead">Um único comando sobe o servidor e <strong>abre a interface sozinho no navegador</strong>, em <code style="font-family:var(--font-mono);color:var(--sun-2);">http://localhost:8002</code>:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
+          <div class="term-body">
+            <div><span class="ps1">&gt;</span> <span class="cmd" data-type>.\scripts\desktop\start-guaraci.ps1</span></div>
+            <div class="out" data-print="550">Aguardando health check…</div>
+            <div class="out" data-print="650"><span class="ok">✔ Guaraci no ar</span> — abrindo <span class="hl">http://localhost:8002/</span></div>
+          </div>
+        </div>
+        <div class="callout"><i class="bi bi-apple"></i><span>No <strong>Linux ou macOS</strong>, o comando equivalente é <code style="font-family:var(--font-mono);">./scripts/desktop/start-guaraci.sh</code>. Para desligar depois: <code style="font-family:var(--font-mono);">stop-guaraci</code>.</span></div>
+      </div>
+
+      <!-- Passo 5 -->
+      <div class="step reveal">
+        <div class="step-dot">5</div>
+        <h3>Peça seus dados pela interface</h3>
+        <p class="step-lead">Na tela que abrir: <strong>escolha a fonte</strong> (ex.: dengue), <strong>preencha os filtros</strong> (anos, estado, formato) e clique em <strong>criar o download</strong>. Você acompanha o progresso ao vivo e, no final, os arquivos ficam na pasta <strong>Guaraci Downloads</strong>, na sua Área de Trabalho.</p>
+        <div class="browser reveal">
+          <div class="browser-bar"><span class="dot" style="width:11px;height:11px;border-radius:50%;background:#ff5f57;"></span><span class="dot" style="width:11px;height:11px;border-radius:50%;background:#febc2e;"></span><span class="dot" style="width:11px;height:11px;border-radius:50%;background:#28c840;"></span><span class="browser-url">localhost:8002 — Guaraci</span></div>
+          <div class="browser-body">
+            <div class="ui-row"><label>Fonte</label><div class="ui-field sel">dengue — casos notificados (Ministério da Saúde)</div></div>
+            <div class="ui-row"><label>Período</label><div class="ui-field">2023 → 2024</div></div>
+            <div class="ui-row"><label>Estado (UF)</label><div class="ui-field">SP</div></div>
+            <div class="ui-row"><label>Formato</label><div class="ui-field sel">CSV (abre no Excel)</div></div>
+            <div class="ui-row"><label>Progresso</label><div class="ui-progress"><div></div></div></div>
+            <div class="ui-row"><label>Log</label><div class="ui-log">baixando página 42/58 · 96,4 MB transferidos · ETA 00:41<br><span class="ok">✔ exportado: dengue_2023-2024_SP.csv → Guaraci Downloads</span></div></div>
+          </div>
+        </div>
+        <div class="callout"><i class="bi bi-life-preserver"></i><span>Algo deu errado? O <a href="https://github.com/autoaihub/guaraci/blob/main/docs/quickstart.md" target="_blank" rel="noopener">guia de instalação completo</a> tem a solução para os problemas mais comuns (porta ocupada, Docker parado etc.) — e você pode escrever para <a href="mailto:vogel@usp.br">vogel@usp.br</a>.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ECOSSISTEMA ═══════════ -->
+<section id="ecossistema" class="soft">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="kicker"><i class="bi bi-diagram-3-fill"></i> Ecossistema</span>
+      <h2 class="sec-title">Onde o Guaraci se encaixa</h2>
+      <p class="sec-lead">O Guaraci nasce dentro do hub AutoAI-Pandemics e abastece o data lake Sabiá — três iniciativas conectadas, do dado bruto à decisão em saúde pública.</p>
+    </div>
+    <div class="eco reveal">
+      <div class="eco-card">
+        <img src="assets/partners/logo-autoai.svg" alt="Logo da AutoAI-Pandemics">
+        <h3>AutoAI-Pandemics</h3>
+        <p>Hub de IA do ICMC-USP para preparação e resposta a epidemias — o guarda-chuva científico do projeto.</p>
+        <span class="stage live">Ativo</span>
+      </div>
+      <div class="eco-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+      <div class="eco-card">
+        <img src="assets/logo-guaraci.svg" alt="Logo do Guaraci" data-logo>
+        <span data-logo-fallback style="display:none;width:62px;height:62px;border-radius:18px;background:var(--grad);place-items:center;color:#10231e;font-size:1.7rem;margin-bottom:8px;"><i class="bi bi-sun-fill"></i></span>
+        <h3>Guaraci</h3>
+        <p>O orquestrador de downloads: busca 91 bases direto das fontes oficiais e entrega prontas para usar.</p>
+        <span class="stage live">Disponível hoje · uso local</span>
+      </div>
+      <div class="eco-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+      <div class="eco-card">
+        <div class="logo-chip"><img src="assets/partners/sabia.webp" alt="Logo do Sabiá Data Lake"></div>
+        <h3>Sabiá Data Lake</h3>
+        <p>O acervo contínuo e sempre atualizado, abastecido pelo Guaraci, com interface própria de consulta.</p>
+        <span class="stage wip">Em construção</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PARA QUEM ═══════════ -->
+<section id="publico">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="kicker"><i class="bi bi-people-fill"></i> Para quem é</span>
+      <h2 class="sec-title">Feito para diferentes públicos</h2>
+      <p class="sec-lead">A mesma iniciativa serve a quem pesquisa, ensina, gere serviços públicos ou desenvolve soluções.</p>
+    </div>
+    <div class="who">
+      <div class="who-card reveal"><i class="bi bi-mortarboard-fill"></i><h3>Pesquisadores</h3><p>Reúnem dados de várias fontes para estudos científicos com mais rapidez.</p></div>
+      <div class="who-card reveal" data-delay="80"><i class="bi bi-bank2"></i><h3>Gestão pública</h3><p>Apoia políticas, prevenção e decisões com informação organizada.</p></div>
+      <div class="who-card reveal" data-delay="160"><i class="bi bi-book-half"></i><h3>Ensino</h3><p>Professores e estudantes usam dados reais em sala de aula e projetos.</p></div>
+      <div class="who-card reveal" data-delay="240"><i class="bi bi-cpu-fill"></i><h3>Inovação</h3><p>Times de tecnologia constroem análises, painéis e produtos de dados.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FONTES OFICIAIS ═══════════ -->
+<section id="fontes" class="soft">
+  <div class="container">
+    <div class="trust reveal">
+      <div>
+        <span class="kicker"><i class="bi bi-shield-check"></i> Fontes oficiais</span>
+        <h2 style="font-size:1.9rem;margin-top:18px;">Sempre direto de quem produz o dado</h2>
+        <p style="color:var(--txt-2);margin:0;">O Guaraci se conecta às instituições que originam a informação — sem intermediários que podem atrasar ou alterar os dados. Assim você recebe o dado oficial, atualizado e rastreável.</p>
+      </div>
+      <div class="trust-logos">
+        <div class="trust-logo"><strong>Ministério da Saúde</strong><span>DATASUS e catálogo aberto</span></div>
+        <div class="trust-logo"><strong>IBGE</strong><span>População e economia</span></div>
+        <div class="trust-logo"><strong>NASA</strong><span>Clima e ambiente</span></div>
+        <div class="trust-logo"><strong>gov.br</strong><span>Saneamento</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ APOIO E FINANCIAMENTO ═══════════ -->
+<section id="apoio">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="kicker"><i class="bi bi-award-fill"></i> Apoio e financiamento</span>
+      <h2 class="sec-title">Quem torna o Guaraci possível</h2>
+      <p class="sec-lead">O Guaraci é desenvolvido no ecossistema AutoAI-Pandemics com o apoio de instituições de pesquisa e financiadores internacionais.</p>
+    </div>
+    <div class="partners-grid">
+      <div class="partner reveal"><div class="logo-box"><img src="assets/partners/icmc.png" alt="Logo do ICMC-USP"></div><strong>ICMC — USP</strong><span>Instituto de Ciências Matemáticas e de Computação, instituição-sede</span></div>
+      <div class="partner reveal" data-delay="70"><div class="logo-box"><img src="assets/partners/utfpr.png" alt="Logo da UTFPR"></div><strong>UTFPR</strong><span>Universidade Tecnológica Federal do Paraná, instituição parceira</span></div>
+      <div class="partner reveal" data-delay="140"><div class="logo-box"><img src="assets/partners/ai4pep.png" alt="Logo da rede AI4PEP"></div><strong>AI4PEP</strong><span>Global South AI for Pandemic &amp; Epidemic Preparedness Network</span></div>
+      <div class="partner reveal" data-delay="210"><div class="logo-box"><img src="assets/partners/idrc_logo_full_name_wordmark.jpg" alt="Logo do IDRC"></div><strong>IDRC</strong><span>International Development Research Centre (Canadá), financiador</span></div>
+      <div class="partner reveal" data-delay="280"><div class="logo-box"><img src="assets/partners/uk-international-development-2.png" alt="Logo do UK International Development (FCDO)"></div><strong>UK International Development</strong><span>Foreign, Commonwealth &amp; Development Office (Reino Unido), financiador</span></div>
+      <div class="partner reveal" data-delay="350"><div class="logo-box"><img src="assets/partners/sabia.webp" alt="Logo do Sabiá Data Lake"></div><strong>Sabiá Data Lake</strong><span>Saúde avançada com Big Data e IA — projeto irmão abastecido pelo Guaraci</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FAQ ═══════════ -->
+<section id="faq" class="soft">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="kicker"><i class="bi bi-patch-question-fill"></i> Perguntas frequentes</span>
+      <h2 class="sec-title">Dúvidas antes de começar</h2>
+    </div>
+    <div class="faq">
+      <div class="faq-item reveal">
+        <button class="faq-q" aria-expanded="false">O Guaraci é gratuito? Preciso de cadastro?<i class="bi bi-plus-lg"></i></button>
+        <div class="faq-a"><div class="faq-a-inner">Sim, é gratuito e de código aberto, sob licença MIT. Não há cadastro nem senha: você baixa o projeto do GitHub e roda na sua própria máquina. Algumas fontes externas podem exigir uma chave de acesso própria delas (como a NASA) — a documentação indica quais.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" aria-expanded="false">Preciso saber programar?<i class="bi bi-plus-lg"></i></button>
+        <div class="faq-a"><div class="faq-a-inner">Não. Depois da instalação, tudo acontece em uma <strong>interface web</strong> no navegador: você escolhe a fonte, preenche filtros em um formulário e acompanha o download. O terminal só é usado nos passos de instalação — e o passo a passo acima mostra exatamente o que digitar.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" aria-expanded="false">O que preciso ter instalado?<i class="bi bi-plus-lg"></i></button>
+        <div class="faq-a"><div class="faq-a-inner"><strong>Git</strong> e <strong>Docker Desktop</strong>, ambos gratuitos. É o caminho oficialmente suportado para rodar o Guaraci na sua máquina — o Docker garante que tudo funcione igual em qualquer computador.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" aria-expanded="false">O Guaraci hospeda os dados ou baixa da fonte?<i class="bi bi-plus-lg"></i></button>
+        <div class="faq-a"><div class="faq-a-inner">Baixa da fonte. O Guaraci não guarda uma cópia própria dos dados nem serve como intermediário: quando você pede um conjunto, ele vai buscar no sistema oficial que o produz (DATASUS, catálogo aberto do Ministério da Saúde, IBGE, NASA ou gov.br). O que você recebe é o dado oficial, com a atualização que a fonte tiver publicado.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" aria-expanded="false">Em que formato os dados chegam?<i class="bi bi-plus-lg"></i></button>
+        <div class="faq-a"><div class="faq-a-inner">Em <strong>CSV</strong>, <strong>Parquet</strong> ou banco <strong>SQLite</strong>, prontos para abrir em qualquer ferramenta de análise. Isso vale inclusive para as bases do DATASUS distribuídas em <code>.dbc</code>, um formato compactado antigo que costuma travar quem está começando: o Guaraci faz a conversão para você.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" aria-expanded="false">O que é o Sabiá?<i class="bi bi-plus-lg"></i></button>
+        <div class="faq-a"><div class="faq-a-inner">É o data lake — um grande acervo de dados sempre atualizado — abastecido pelo Guaraci. No futuro, o Sabiá vai disponibilizar uma interface própria de consulta, sem que você precise instalar nada. Por enquanto, essa interface está em construção; saiba mais em <a href="https://sabiadatalake.com.br/" target="_blank" rel="noopener">sabiadatalake.com.br</a>.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" aria-expanded="false">Posso usar os dados em pesquisa e publicação?<i class="bi bi-plus-lg"></i></button>
+        <div class="faq-a"><div class="faq-a-inner">Sim. São dados públicos, obtidos das fontes oficiais — as condições de uso são as da instituição que produz cada base, e recomendamos citá-la sempre. O Guaraci em si é MIT e traz um arquivo <code>CITATION.cff</code> no repositório, caso você queira também referenciar a ferramenta usada na coleta.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" aria-expanded="false">Falta uma base que eu preciso. Dá para incluir?<i class="bi bi-plus-lg"></i></button>
+        <div class="faq-a"><div class="faq-a-inner">Dá. O catálogo cresce conforme a necessidade de quem usa: escreva para <a href="mailto:vogel@usp.br">vogel@usp.br</a> contando qual base você precisa e o órgão que a publica. O mesmo vale para relatar um erro em alguma coleta — quanto mais específico o relato, mais rápido o ajuste.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CTA ═══════════ -->
+<section id="cta-final">
+  <div class="container">
+    <div class="cta reveal">
+      <span class="kicker"><i class="bi bi-sun-fill"></i> Guaraci</span>
+      <h2>Dados que <span class="grad-text">iluminam decisões</span></h2>
+      <p>Uma iniciativa aberta para ampliar o acesso à informação pública e apoiar soluções com impacto científico, social e territorial.</p>
+      <div class="hero-ctas" style="justify-content:center;">
+        <a href="#como-usar" class="btn btn-sun"><i class="bi bi-rocket-takeoff"></i> Começar agora</a>
+        <a href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener" class="btn btn-ghost"><i class="bi bi-github"></i> Ver no GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <img src="assets/logo-guaraci.svg" alt="" data-logo>
+      <span data-logo-fallback style="display:none;width:34px;height:34px;border-radius:9px;background:var(--grad);place-items:center;color:#10231e;font-size:1rem;"><i class="bi bi-sun-fill"></i></span>
+      Guaraci
+    </div>
+    <div>Dados públicos em um só lugar · <a href="https://autoaipandemics.icmc.usp.br/" target="_blank" rel="noopener">AutoAI-Pandemics (ICMC-USP)</a> · Licença MIT</div>
+    <div><a href="mailto:vogel@usp.br"><i class="bi bi-envelope-fill"></i> vogel@usp.br</a></div>
+  </div>
+</footer>
+
+<script src="assets/bases.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Logo do Guaraci: sol nascendo com raios em traços de circuito">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#062b23"/>
+      <stop offset=".58" stop-color="#04120f"/>
+      <stop offset="1" stop-color="#071a16"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd166"/>
+      <stop offset=".55" stop-color="#f7a41d"/>
+      <stop offset="1" stop-color="#e8890b"/>
+    </linearGradient>
+    <radialGradient id="halo" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#f7a41d" stop-opacity=".42"/>
+      <stop offset=".6" stop-color="#f7a41d" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#f7a41d" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="1.7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="tile"><rect width="128" height="128" rx="28"/></clipPath>
+    <clipPath id="ceu"><rect x="0" y="0" width="128" height="87"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#tile)">
+    <rect width="128" height="128" fill="url(#sky)"/>
+
+    <!-- halo do amanhecer -->
+    <circle cx="64" cy="87" r="46" fill="url(#halo)"/>
+
+    <!-- raios-circuito (teal, ortogonais e a 45°, com pads de PCB) -->
+    <g stroke="#14b8a6" stroke-width="3.2" stroke-linecap="round" fill="none" filter="url(#glow)">
+      <path d="M64 55 V33"/>
+      <path d="M82.4 68.6 L94 57 V42"/>
+      <path d="M45.6 68.6 L34 57 V42"/>
+      <path d="M91 80 H106"/>
+      <path d="M37 80 H22"/>
+      <circle cx="64" cy="27.8" r="3.4" stroke-width="2.6"/>
+      <circle cx="94" cy="36.8" r="3.4" stroke-width="2.6"/>
+      <circle cx="34" cy="36.8" r="3.4" stroke-width="2.6"/>
+      <circle cx="110.8" cy="80" r="3" stroke-width="2.6"/>
+      <circle cx="17.2" cy="80" r="3" stroke-width="2.6"/>
+    </g>
+
+    <!-- estrelas de brilho nas pontas -->
+    <g fill="#7ff0dd" filter="url(#glow)">
+      <path d="M99 25 q.9 3.1 4 4 q-3.1 .9 -4 4 q-.9 -3.1 -4 -4 q3.1 -.9 4 -4 Z"/>
+      <path d="M27.5 28.5 q.6 2.2 2.8 2.8 q-2.2 .6 -2.8 2.8 q-.6 -2.2 -2.8 -2.8 q2.2 -.6 2.8 -2.8 Z"/>
+    </g>
+
+    <!-- disco solar (flat-3D: extrusão escura + disco em gradiente) -->
+    <g clip-path="url(#ceu)">
+      <circle cx="67.2" cy="87" r="26" fill="#5b3a05"/>
+      <circle cx="64" cy="87" r="26" fill="url(#sun)"/>
+    </g>
+
+    <!-- horizonte -->
+    <rect x="0" y="86.4" width="128" height="1.6" fill="rgba(20,184,166,.4)"/>
+
+    <!-- reflexo de dados no "mar" -->
+    <g stroke-linecap="round" fill="none">
+      <path d="M28 95 H100" stroke="rgba(247,164,29,.4)" stroke-width="2" stroke-dasharray="11 7"/>
+      <path d="M38 103 H90" stroke="rgba(20,184,166,.3)" stroke-width="2" stroke-dasharray="7 8"/>
+      <path d="M48 111 H80" stroke="rgba(20,184,166,.16)" stroke-width="2" stroke-dasharray="4 9"/>
+    </g>
+  </g>
+</svg>
