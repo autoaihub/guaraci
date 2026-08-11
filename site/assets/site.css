@@ -19,7 +19,11 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: rgba(20, 184, 166, .35) rgba(255, 255, 255, .04); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(20, 184, 166, .28); border-radius: 999px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: rgba(20, 184, 166, .5); }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
@@ -71,6 +75,9 @@ img { max-width: 100%; }
 .btn-ghost { background: transparent; color: var(--txt); border: 1px solid rgba(255, 255, 255, .22); }
 .btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
 .nav .btn { padding: 9px 20px; font-size: .88rem; }
+/* especificidade: .nav-links a pintava o botão GitHub de cinza sobre o laranja */
+.nav-links a.btn-sun { color: #10231e; }
+.nav-links a.btn-sun:hover { color: #10231e; background: var(--sun-2); }
 .nav-toggle { display: none; margin-left: auto; background: none; border: 0; color: var(--txt); font-size: 1.6rem; cursor: pointer; }
 
 /* ── Hero ── */
@@ -237,6 +244,7 @@ section { padding: 104px 0; position: relative; }
   position: fixed; inset: 0; z-index: 400; background: rgba(2, 10, 8, .78);
   backdrop-filter: blur(6px); display: grid; place-items: center; padding: 24px;
 }
+.modal-backdrop[hidden] { display: none !important; }
 .modal {
   position: relative; width: min(680px, 100%); max-height: 86vh; overflow-y: auto;
   background: var(--bg-2); border: 1px solid rgba(247, 164, 29, .3); border-radius: 24px;
@@ -476,12 +484,21 @@ kbd { font-family: var(--font-mono); font-size: .8em; background: rgba(255,255,2
 .src-group { margin-top: 34px; scroll-margin-top: 86px; }
 .src-group-title { font-size: 1.3rem; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
 .src-group-count { font-size: .8rem; color: var(--sun); background: rgba(247, 164, 29, .1); border: 1px solid rgba(247, 164, 29, .3); padding: 2px 10px; border-radius: 999px; vertical-align: 3px; margin-left: 6px; }
-.src-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 26px 28px; margin: 18px 0; scroll-margin-top: 86px; }
-.src-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; }
+.src-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 22px 28px; margin: 14px 0; scroll-margin-top: 86px; transition: border-color .2s; }
+.src-card:not(.open):hover { border-color: rgba(247, 164, 29, .35); }
+.src-card .src-body { display: none; }
+.src-card.open { padding: 26px 28px; }
+.src-card.open .src-body { display: block; }
+.src-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; cursor: pointer; }
+.src-chevron { flex: none; align-self: center; width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); color: var(--teal); transition: .25s; }
+.src-card.open .src-chevron { transform: rotate(180deg); color: var(--sun-2); border-color: rgba(247, 164, 29, .35); }
+.src-card:not(.open) .src-desc { margin-bottom: 0; }
+.cat-controls { display: flex; gap: 10px; margin: 0 0 6px; }
 .src-head h3 { font-size: 1.25rem; margin: 0; color: var(--txt); }
 .src-badges { display: flex; flex-wrap: wrap; gap: 8px; }
 .src-badge { font-size: .72rem; font-weight: 600; letter-spacing: .04em; padding: 4px 11px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--txt-2); display: inline-flex; gap: 6px; align-items: center; }
 .src-badge.mode { background: rgba(20, 184, 166, .1); border-color: rgba(20, 184, 166, .3); color: var(--teal); }
+.src-badge.year-badge { background: rgba(247, 164, 29, .08); border-color: rgba(247, 164, 29, .25); color: var(--sun-2); }
 .src-desc { color: var(--txt-2); margin: 10px 0 12px; }
 .src-desc em { color: var(--sun-2); font-style: normal; }
 .src-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: .87rem; color: var(--txt-2); }
@@ -493,12 +510,32 @@ kbd { font-family: var(--font-mono); font-size: .8em; background: rgba(255,255,2
 .src-adv { margin: 14px 0; }
 .src-adv summary { cursor: pointer; color: var(--teal); font-size: .9rem; font-weight: 600; padding: 6px 0; }
 .src-adv summary:hover { color: var(--sun-2); }
+.src-meta-panel { display: flex; flex-wrap: wrap; gap: 16px 24px; padding: 12px 16px; background: rgba(255, 255, 255, .03); border: 1px solid var(--line); border-radius: 10px; margin: 12px 0 16px; font-size: .84rem; }
+.src-meta-panel .meta-item { display: flex; align-items: center; gap: 8px; color: var(--txt-2); }
+.src-meta-panel .meta-lbl { color: var(--txt-2); opacity: .75; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+.src-meta-panel strong { color: var(--sun-2); }
+
+.src-fields-block { margin: 22px 0 16px; background: rgba(0, 0, 0, .2); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+.src-fields-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.src-fields-header h4 { margin: 0; font-size: 1rem; color: var(--txt); display: flex; align-items: center; gap: 10px; }
+.field-count-badge { font-size: .74rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: rgba(20, 184, 166, .12); color: var(--teal); border: 1px solid rgba(20, 184, 166, .25); }
+.field-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.src-fields-note { font-size: .81rem; color: var(--txt-2); margin: 4px 0 12px; opacity: .85; }
+.src-fields-note i { color: var(--teal); margin-right: 4px; }
+
+.field-search-wrap { position: relative; margin-bottom: 12px; }
+.field-search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--txt-2); opacity: .6; font-size: .8rem; }
+.field-filter-input { width: 100%; max-width: 360px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px 6px 34px; color: var(--txt); font-size: .81rem; font-family: var(--font-body); outline: none; transition: .2s; }
+.field-filter-input:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(20, 184, 166, .2); }
+
 .fields { display: flex; flex-wrap: wrap; gap: 7px; }
-.field-chip { font-family: var(--font-mono); font-size: .72rem; padding: 4px 10px; border-radius: 8px; background: rgba(20, 184, 166, .08); border: 1px solid rgba(20, 184, 166, .18); color: var(--txt-2); }
+.field-chip { font-family: var(--font-mono); font-size: .72rem; padding: 4px 10px; border-radius: 8px; background: rgba(20, 184, 166, .08); border: 1px solid rgba(20, 184, 166, .18); color: var(--txt-2); transition: .15s; }
+.field-chip:hover { background: rgba(20, 184, 166, .16); color: var(--txt); border-color: var(--teal); }
+.field-chip code { background: none; padding: 0; color: inherit; font-size: inherit; }
 .field-chip.more { color: var(--sun-2); border-color: rgba(247, 164, 29, .3); background: rgba(247, 164, 29, .08); }
-.fields-toggle { margin-top: 10px; background: none; border: 0; color: var(--teal); font-size: .84rem; font-weight: 600; cursor: pointer; padding: 0; font-family: var(--font-body); }
+.fields-toggle { margin-top: 12px; background: none; border: 0; color: var(--teal); font-size: .84rem; font-weight: 600; cursor: pointer; padding: 0; font-family: var(--font-body); display: inline-flex; align-items: center; gap: 6px; }
 .fields-toggle:hover { color: var(--sun-2); }
-.src-nofields { font-size: .87rem; color: var(--txt-2); }
+.src-nofields { font-size: .87rem; color: var(--txt-2); padding: 14px 16px; background: rgba(255, 255, 255, .02); border: 1px solid var(--line); border-radius: 10px; margin: 18px 0; }
 .src-nofields i { color: var(--teal); margin-right: 6px; }
 .cli-box { display: flex; align-items: center; gap: 12px; justify-content: space-between; background: #071a16; border: 1px solid rgba(255, 255, 255, .1); border-radius: 12px; padding: 13px 16px; }
 .cli-box code { font-family: var(--font-mono); font-size: .8rem; color: var(--sun-2); background: none; padding: 0; overflow-wrap: anywhere; }
