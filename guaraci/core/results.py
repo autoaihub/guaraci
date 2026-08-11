@@ -32,6 +32,22 @@ class JobResult(Mapping[str, object]):
             return "partial_success"
         return "success"
 
+    @property
+    def exported_files(self) -> List[str]:
+        """Public contract: list of exported file paths (CSV/Parquet/SQLite)."""
+        files = self.metadata.get("exported_files")
+        if isinstance(files, (list, tuple)):
+            return [str(f) for f in files]
+        return []
+
+    @property
+    def materialized_paths(self) -> List[str]:
+        """Public contract: list of raw materialized file paths."""
+        paths = self.metadata.get("materialized_paths")
+        if isinstance(paths, (list, tuple)):
+            return [str(p) for p in paths]
+        return []
+
     def to_dict(self) -> Dict[str, object]:
         payload: Dict[str, object] = {
             "source": self.source,
