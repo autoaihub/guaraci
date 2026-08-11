@@ -7,81 +7,95 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 91 sources cataloged; 22 sampled with real field names.
+- 91 sources cataloged; 77 sampled with real field names.
 
 ## Caveats (honest)
 
-- `pni`, `pce`, `siscan` returned empty with a `group=None` warning in
-  `load_dataframe` — a likely bug in the multi-group/national load path (flagged
-  for the Guaraci backlog); discovery confirms the files exist on the FTP.
-- `nasa_firms` / `nasa_gpm` need credentials (`GUARACI_FIRMS_MAP_KEY` /
-  `GUARACI_EARTHDATA_TOKEN`) — reported as `needs_credential`.
-- `mpox` returned an upstream DEMAS HTTP 500 at sampling time.
-- ~60 auto-generated OpenDataSUS DEMAS sources are listed with **filters only**
-  (they are covered by contract tests, not field-sampled here).
-- `snis` / `sinisa` are gov.br crawlers (download files); filters only.
+- `atencao_primaria_pmmb` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb' at endpoint '/atencao-primaria/pmmb' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not found on the server. If you entered the URL
+- `atencao_primaria_pmmb_profissionais_ativos` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb-profissionais-ativos' at endpoint '/atencao-primaria/pmmb-profissionais-ativos' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not fo
+- `economia_da_saude_bps` (error): OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {"message": "Ao menos um dos par\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado."} Hint: Check request parameters and endpoint compatibi
+- `febre_amarela` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `mpox` (error): OpenDataSUS DEMAS request failed for dataset 'mpox' at endpoint '/vigilancia-e-meio-ambiente/mpox' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
+- `nasa_firms` (needs_credential): NASA FIRMS requires a MAP_KEY. Set the environment variable GUARACI_FIRMS_MAP_KEY (free key from https://firms.modaps.eosdis.nasa.gov/api/map_key/).
+- `nasa_gpm` (needs_credential): NASA GPM (GES DISC) requires an Earthdata Login token. Set the environment variable GUARACI_EARTHDATA_TOKEN (generate at https://urs.earthdata.nasa.gov, and authorize the 'NASA GESDISC DATA ARCHIVE' application).
+- `prevencao_e_promocao_distribuicao_epi_insumo` (error): OpenDataSUS DEMAS request failed for dataset 'prevencao-e-promocao/distribuicao_epi_insumo' at endpoint '/prevencao-e-promocao/distribuicao_epi_insumo' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was no
+- `saude_indigena_acompanhamento_obra_infraestrutura_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `sinisa` (error): expected name token at '<![:e\x90\x02ª/Ü4æ\x03\x17G\x92ý\x83\x0b¦'
+- `snis` (empty): no documents matched file_kinds=planilhas, module=gestao_municipal
+- `vacinacao_esavi` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- 1 source(s) still `filters_only` (not yet field-sampled): `plataformabr_projetos_{numero_caae}`
 
 ## Legend
 
-`ok` = sampled, fields captured · `reachable` = FTP discovery confirms files,
-fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
+`ok` = sampled, fields captured · `empty`/`error`/`needs_credential` = see note ·
 `filters_only` = not sampled.
-
 
 ## arboviroses_chikungunya
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `nu_ano`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `tp_not`, `id_agravo`, `dt_notific`, `sem_not`, `nu_ano`, `sg_uf_not`, `id_municip`, `id_regiona`, `id_unidade`, `dt_sin_pri`, `sem_pri`, `nu_idade_n`, `cs_sexo`, `cs_gestant`, `cs_raca`, `cs_escol_n`, `sg_uf`, `id_mn_resi`, `id_rg_resi`, `id_pais`, `dt_invest`, `id_ocupa_n`, `febre`, `mialgia`, `cefaleia`, `exantema`, `vomito`, `nausea`, `dor_costas`, `conjuntvit`, `artrite`, `artralgia`, `petequia_n`, `leucopenia`, `laco`, `dor_retro`, `diabetes`, `hematolog`, `hepatopat`, `renal`, `hipertensa`, `acido_pept`, `auto_imune`, `dt_chik_s1`, `dt_chik_s2`, `dt_prnt`, `res_chiks1`, `res_chiks2`, `resul_prnt`, `dt_soro`, `resul_soro`, `dt_ns1`, `resul_ns1`, `dt_viral`, `resul_vi_n`, `dt_pcr`, `resul_pcr_`, `sorotipo`, `histopa_n`, `imunoh_n`, `hospitaliz`, `dt_interna`, `uf`, `municipio`, `tpautocto`, `coufinf`, `copaisinf`, `comuninf`, `classi_fin`, `criterio`, `doenca_tra`, `clinc_chik`, `evolucao`, `dt_obito`, `dt_encerra`, `alrm_hipot`, `alrm_plaq`, `alrm_vom`, `alrm_sang`, `alrm_hemat`, `alrm_abdom`, `alrm_letar`, `alrm_hepat`, `alrm_liq`, `dt_alrm`, `grav_pulso`, `grav_conv`, `grav_ench`, `grav_insuf`, `grav_taqui`, `grav_extre`, `grav_hipot`, `grav_hemat`, `grav_melen`, `grav_metro`, `grav_sang`, `grav_ast`, `grav_mioc`, `grav_consc`, `grav_orgao`, `dt_grav`, `mani_hemor`, `epistaxe`, `gengivo`, `metro`, `petequias`, `hematura`, `sangram`, `laco_n`, `plasmatico`, `evidencia`, `plaq_menor`, `con_fhd`, `complica`, `tp_sistema`, `nduplic_n`, `cs_suspeit`, `in_vincula`, `cs_flxret`, `flxrecebi`, `tpuninot`, `ano_nasc`, `nu_lote_i`, `dt_digita`, `migrado_w`
 
 ## arboviroses_dengue
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `nu_ano`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `tp_not`, `id_agravo`, `dt_notific`, `sem_not`, `nu_ano`, `sg_uf_not`, `id_municip`, `id_regiona`, `id_unidade`, `dt_sin_pri`, `sem_pri`, `nu_idade_n`, `cs_sexo`, `cs_gestant`, `cs_raca`, `cs_escol_n`, `sg_uf`, `id_mn_resi`, `id_rg_resi`, `id_pais`, `nduplic_n`, `dt_digita`, `cs_flxret`, `flxrecebi`, `migrado_w`, `dt_invest`, `id_ocupa_n`, `dt_soro`, `resul_soro`, `histopa_n`, `dt_viral`, `resul_vi_n`, `sorotipo`, `imunoh_n`, `dt_pcr`, `resul_pcr_`, `classi_fin`, `criterio`, `tpautocto`, `coufinf`, `copaisinf`, `comuninf`, `doenca_tra`, `evolucao`, `dt_obito`, `dt_encerra`, `mani_hemor`, `epistaxe`, `gengivo`, `metro`, `petequias`, `hematura`, `sangram`, `laco_n`, `plasmatico`, `evidencia`, `plaq_menor`, `con_fhd`, `complica`, `hospitaliz`, `dt_interna`, `uf`, `municipio`, `ano_nasc`, `febre`, `mialgia`, `cefaleia`, `exantema`, `vomito`, `nausea`, `dor_costas`, `conjuntvit`, `artrite`, `artralgia`, `petequia_n`, `leucopenia`, `laco`, `dor_retro`, `diabetes`, `hematolog`, `hepatopat`, `renal`, `hipertensa`, `acido_pept`, `auto_imune`, `dt_chik_s1`, `dt_chik_s2`, `dt_prnt`, `res_chiks1`, `res_chiks2`, `resul_prnt`, `dt_ns1`, `resul_ns1`, `clinc_chik`, `alrm_hipot`, `alrm_plaq`, `alrm_vom`, `alrm_sang`, `alrm_hemat`, `alrm_abdom`, `alrm_letar`, `alrm_hepat`, `alrm_liq`, `dt_alrm`, `grav_pulso`, `grav_conv`, `grav_ench`, `grav_insuf`, `grav_taqui`, `grav_extre`, `grav_hipot`, `grav_hemat`, `grav_melen`, `grav_metro`, `grav_sang`, `grav_ast`, `grav_mioc`, `grav_consc`, `grav_orgao`, `dt_grav`, `tp_sistema`, `acido_pept_c121`, `cs_escolar`, `nu_idade`, `id_dg_not`, `id_ev_not`, `ant_dt_inv`, `ocupacao`, `dengue`, `ano`, `vacinado`, `dt_dose`, `dt_febre`, `duracao`, `dor`, `prostacao`, `nauseas`, `diarreia`, `outros`, `sin_out`, `outros_m`, `outros_m_d`, `ascite`, `pleural`, `pericardi`, `abdominal`, `hepato`, `miocardi`, `hipotensao`, `choque`, `manifesta`, `insuficien`, `outro_s`, `outro_s_d`, `dt_choque`, `dt_col_hem`, `hema_maior`, `dt_col_plq`, `palq_maior`, `dt_col_he2`, `hema_menor`, `dt_col_pl2`, `dt_soro1`, `dt_soro2`, `dt_soror1`, `dt_soror2`, `s1_igm`, `s1_igg`, `s2_igm`, `s2_igg`, `s1_tit1`, `s2_tit1`, `material`, `soro1`, `soro2`, `tecidos`, `resul_vira`, `histopa`, `imunoh`, `amos_pcr`, `resul_pcr`, `amos_out`, `tecnica`, `resul_out`, `con_classi`, `con_criter`, `con_inf_mu`, `con_inf_uf`, `con_inf_pa`, `con_doenca`, `con_evoluc`, `con_dt_obi`, `con_dt_enc`, `in_vincula`, `nduplic`, `in_aids`
 
 ## arboviroses_febre_amarela_humanos_primatas_nao_humanos
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `mun_lpi`, `mes_is`, `sexo`, `dt_is`, `cod_mun_lpi`, `idade`, `dt_obito`, `macrorreg_lpi`, `ano_is`, `se_is`, `monitoramento_is`, `uf_lpi`, `obito`, `cod_uf_lpi`
 
 ## assistencia_a_saude_hospitais_e_leitos
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `uf`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `nome_da_regiao_do_brasil_onde_fica_o_hospital`, `unidade_da_federacao_onde_fica_o_hospital`, `nome_do_municipio_onde_fica_o_hospital`, `motivo_da_desabilitacao_do_hospital,_caso_esteja_desabilitado`, `nome_do_hospital`, `nome_da_razao_social_do_hospital`, `tipo_da_gestao_do_hospital`, `codigo_do_tipo_da_unidade`, `descricao_do_tipo_da_unidade`, `natureza_juridica_do_hospital`, `descricao_da_natureza_juridica_do_hosptial`, `enderco_do_hospital`, `numero_do_endereco_do_hospital`, `complemento_do_endereco_do_hospital`, `nome_do_bairro_do_endereco_do_hosptial`, `numero_do_cep_do_hospital`, `quantidade_total_de_leitos_do_hosptial`, `quantidade_total_de_leitos_sus_do_hosptial`, `quantidade_de_leitos_de_uti_do_hosptial`, `quantidade_de_leitos_de_uti_sus_do_hosptial`, `quantidade_de_leitos_de_uti_adulto_do_hosptial`, `quantidade_de_leitos_de_uti_sus_adulto_do_hosptial`, `quantidade_de_leitos_de_uti_pediatrico_do_hosptial`, `quantidade_de_leitos_de_uti_sus_pediatrico_do_hosptial`, `quantidade_de_leitos_de_uti_neonatal_do_hosptial`, `quantidade_de_leitos_de_uti_sus_neonatal_do_hosptial`, `quantidade_de_leitos_de_uti_queimado_do_hosptial`, `quantidade_de_leitos_de_uti_sus_queimado_do_hosptial`, `quantidade_de_leitos_de_uti_coronariana_do_hosptial`, `quantidade_de_leitos_de_uti_sus_coronariana_do_hosptial`, `codigo_ibge_do_municipio`
 
 ## assistencia_a_saude_registro_de_ocupacao_hospitalar_covid_19
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `estado`, `saidasuspeitaobitos`, `saidasuspeitaaltas`, `validado`, `ocupacaoconfirmadocli`, `ocupacaocovidcli`, `saidaconfirmadaobitos`, `saidaconfirmadaaltas`, `ocupacaoconfirmadouti`, `ocupacaosuspeitouti`, `cnes`, `municipio`, `ocupacaocoviduti`, `excluido`, `ocupacaosuspeitocli`, `ocupacaohospitalarcli`, `ocupacaohospitalaruti`, `origem`, `municipionotificacao`, `estadonotificacao`, `datanotificacao`
 
 ## assistencia_a_saude_unidade_basicas_de_saude
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `ibge`, `bairro`, `logradouro`, `cnes`, `uf`, `latitude`, `longitude`, `nome`
 
 ## atencao_primaria_cadastro_vinculado_programa_previne_brasil
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `competencia_referencia`, `sigla_unidade_federacao`, `codigo_municipio_ibge`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `competencia_referencia`, `sigla_unidade_federacao`, `codigo_municipio_ibge`, `nome_municipio`, `estimativa_populacional_ibge`, `tipo_equipe`, `sigla_equipe`, `situacao_equipe`, `pessoas_vinculadas_criterios_ponderacao`, `pessoas_vinculadas_equipe_municipio`
 
 ## atencao_primaria_indicador_desempenho_programa_previne_brasil
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `uf`, `quadrimestre`, `codigo_municipio`, `competencia`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `uf`, `municipio`, `codigo_tipo_indicador`, `numerador`, `denominador_utilizador`, `percentual_quadrimestre`, `visao_equipe`, `denominador_identificado`, `denominador_estimado`, `cadastro`, `base_externa`, `populacao`, `quadrimestre`, `codigo_municipio`, `competencia`, `percentual`
 
 ## atencao_primaria_pmmb
 
-- **Status:** filters_only
+- **Status:** error
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb' at endpoint '/atencao-primaria/pmmb' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not found on the server. If you entered the URL
 
 ## atencao_primaria_pmmb_profissionais_ativos
 
-- **Status:** filters_only
+- **Status:** error
 - **Filters:** `uf`, `sexo`, `nacionalidade`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb-profissionais-ativos' at endpoint '/atencao-primaria/pmmb-profissionais-ativos' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not fo
 
 ## atencao_primaria_pmmb_serie_historica
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `regiao`, `uf`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `regiao`, `uf`, `municipio_dsei`, `ibge`, `prof_crm_brasil_pmmb`, `prof_inter_pmmb`, `prof_cooperados_pmmb`, `prof_provab`, `total_prof_ativos`, `dt_referencia`, `prof_bolsista_vinculados`, `prof_celetista_vinculados`, `prof_tutor_vinculados`
 
 ## chikungunya
 
@@ -91,23 +105,27 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## ciencia_tecnologia_dgits_contribuicoes_consultas_publicas
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `ano`, `numero_da_semana_epidemiologica_e_ano`, `nome_da_tecnologia`, `total`, `data_da_consulta`
 
 ## ciencia_tecnologia_dgits_controle_demandas_conitec
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `origem`, `data_do_protocolo`, `tipo_de_tecnologia`, `tema_da_saude`, `nome_do_demandante`
 
 ## ciencia_tecnologia_dgits_controle_pcdt
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `descricao_do_nome`, `status`, `descricao_do_tipo`
 
 ## ciencia_tecnologia_dgits_tecnologias_diretrizes
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `quantidade`, `tecnologias_diretrizes_covid19`, `demandante`, `analise_inicial_conitec`, `relatorio_recomendacao_inicial`, `relatorios_sociedade`, `consulta_publica`, `contribuicões_experiencia_opiniao`, `contribuicões_tecnico_cientificas`, `analise_final_conitec`, `relatorio_recomendacao_final`, `decisao_ministerio_da_saude`, `decisao_ministerio_da_saude_relatorio`, `decisao_ministerio_da_saude_portarias`, `notas_tecnicas`, `despacho`
 
 ## cih
 
@@ -129,28 +147,33 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## cnes_estabelecimentos
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `codigo_tipo_unidade`, `codigo_uf`, `codigo_municipio`, `status`, `estabelecimento_possui_centro_cirurgico`, `estabelecimento_possui_centro_obstetrico`, `data_atualizacao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `codigo_cnes`, `numero_cnpj_entidade`, `nome_razao_social`, `nome_fantasia`, `natureza_organizacao_entidade`, `tipo_gestao`, `descricao_nivel_hierarquia`, `descricao_esfera_administrativa`, `codigo_tipo_unidade`, `codigo_cep_estabelecimento`, `endereco_estabelecimento`, `numero_estabelecimento`, `bairro_estabelecimento`, `numero_telefone_estabelecimento`, `latitude_estabelecimento_decimo_grau`, `longitude_estabelecimento_decimo_grau`, `endereco_email_estabelecimento`, `numero_cnpj`, `codigo_identificador_turno_atendimento`, `descricao_turno_atendimento`, `estabelecimento_faz_atendimento_ambulatorial_sus`, `codigo_estabelecimento_saude`, `codigo_uf`, `codigo_municipio`, `descricao_natureza_juridica_estabelecimento`, `codigo_motivo_desabilitacao_estabelecimento`, `estabelecimento_possui_centro_cirurgico`, `estabelecimento_possui_centro_obstetrico`, `estabelecimento_possui_centro_neonatal`, `estabelecimento_possui_atendimento_hospitalar`, `estabelecimento_possui_servico_apoio`, `estabelecimento_possui_atendimento_ambulatorial`, `codigo_atividade_ensino_unidade`, `codigo_natureza_organizacao_unidade`, `codigo_nivel_hierarquia_unidade`, `codigo_esfera_administrativa_unidade`, `data_atualizacao`
 
 ## cnes_estabelecimentos_{codigo_cnes}
 
-- **Status:** filters_only
+- **Status:** ok (1 rows sampled)
 - **Filters:** `codigo_cnes`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `codigo_cnes`, `numero_cnpj_entidade`, `nome_razao_social`, `nome_fantasia`, `natureza_organizacao_entidade`, `tipo_gestao`, `descricao_nivel_hierarquia`, `descricao_esfera_administrativa`, `codigo_tipo_unidade`, `codigo_cep_estabelecimento`, `endereco_estabelecimento`, `numero_estabelecimento`, `bairro_estabelecimento`, `numero_telefone_estabelecimento`, `latitude_estabelecimento_decimo_grau`, `longitude_estabelecimento_decimo_grau`, `endereco_email_estabelecimento`, `numero_cnpj`, `codigo_identificador_turno_atendimento`, `descricao_turno_atendimento`, `estabelecimento_faz_atendimento_ambulatorial_sus`, `codigo_estabelecimento_saude`, `codigo_uf`, `codigo_municipio`, `descricao_natureza_juridica_estabelecimento`, `codigo_motivo_desabilitacao_estabelecimento`, `estabelecimento_possui_centro_cirurgico`, `estabelecimento_possui_centro_obstetrico`, `estabelecimento_possui_centro_neonatal`, `estabelecimento_possui_atendimento_hospitalar`, `estabelecimento_possui_servico_apoio`, `estabelecimento_possui_atendimento_ambulatorial`, `codigo_atividade_ensino_unidade`, `codigo_natureza_organizacao_unidade`, `codigo_nivel_hierarquia_unidade`, `codigo_esfera_administrativa_unidade`, `data_atualizacao`
 
 ## cnes_tipounidades
 
-- **Status:** filters_only
+- **Status:** ok (39 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `codigo_tipo_unidade`, `descricao_tipo_unidade`
 
 ## cnes_tipounidades_{codigo_tipo_unidade}
 
-- **Status:** filters_only
+- **Status:** ok (1 rows sampled)
 - **Filters:** `codigo_tipo_unidade`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `codigo_tipo_unidade`, `descricao_tipo_unidade`
 
 ## daf_estoque_medicamentos_bnafar_horus
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `codigo_uf`, `codigo_municipio`, `codigo_cnes`, `anomes_posicao_estoque`, `data_posicao_estoque`, `codigo_catmat`, `sigla_programa_saude`, `tipo_produto`, `sigla_sistema_origem`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `codigo_uf`, `codigo_municipio`, `codigo_cnes`, `data_posicao_estoque`, `codigo_catmat`, `quantidade_estoque`, `numero_lote`, `data_validade`, `tipo_produto`, `sigla_programa_saude`, `descricao_programa_saude`, `sigla_sistema_origem`, `descricao_produto`, `municipio`, `uf`, `razao_social`, `nome_fantasia`, `cep`, `logradouro`, `numero_endereco`, `bairro`, `telefone`, `latitude`, `longitude`, `email`
 
 ## dengue
 
@@ -166,18 +189,21 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## economia_da_saude_bps
 
-- **Status:** filters_only
+- **Status:** error
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {"message": "Ao menos um dos par\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado."} Hint: Check request parameters and endpoint compatibi
 
 ## economia_da_saude_sistema_de_apuracao_e_gestao_de_custos_do_sus_apurasus
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `nome_fantasia_da_unidade`, `unidade_da_federacao`, `codigo_ibge`, `bairro`, `cnes`, `latitude`, `uf`, `municipio`, `longitude`
 
 ## educacao_em_saude_pvc
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `co_uf`, `nu_ano`, `nu_mes`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `co_uf`, `nu_ano`, `nu_mes`, `nu_beneficiario`, `vl_total`
 
 ## esavi
 
@@ -193,13 +219,13 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## ibge_pib_municipios
 
-- **Status:** ok (1 row sampled)
+- **Status:** ok (1 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `variavel_id`, `unidade`, `valor`
 
 ## ibge_populacao
 
-- **Status:** ok (1 row sampled)
+- **Status:** ok (1 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `variavel_id`, `unidade`, `valor`
 
@@ -211,8 +237,9 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## macrorregiao_e_regiao_de_saude_municipio
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `codigo_municipio`, `municipio`, `sigla_uf`, `codigo_regiao_saude`, `regiao_saude`, `codigo_macrorregiao_de_saude`, `macrorregiao_saude`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `codigo_regiao_pais`, `regiao_pais`, `codigo_uf`, `uf`, `codigo_macrorregiao_saude`, `macrorregiao_saude`, `codigo_regiao_saude`, `regiao_saude`, `codigo_municipio`, `municipio`, `populacao_estimada_ibge_2022`
 
 ## mpox
 
@@ -240,8 +267,9 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## outros_temas_ced
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `nome_sistema`, `gestor`, `sigla_sistema`
 
 ## painel_oncologia
 
@@ -251,13 +279,15 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## pce
 
-- **Status:** empty
+- **Status:** ok (716 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `states`
+- **Fields:** `ID_UF`, `SG_UF`, `ID_DISTR`, `ID_LOC`, `DT_COMP`, `QT_POP`, `QT_PRED`, `QT_EXAM`, `QT_NRECOL`, `QT_1A4`, `QT_5A16`, `QT_17`, `QT_POS`, `QT_ATRAT`, `QT_TRAT`, `QT_CI`, `QT_REC`, `QT_AUS`, `QT_ASC`, `QT_ANC`, `QT_TAE`, `QT_TT`, `QT_EV`, `QT_SE`, `QT_HN`, `QT_OUT`, `QT_CAP`, `QT_PESQ`, `QT_BGLA`, `QT_BSTR`, `QT_BTEN`, `QT_OUT1`, `QT_POSBGLA`, `QT_POSBTEN`, `QT_POSBSTR`, `QT_POSOUT`
 
 ## plataformabr_projetos
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `uf_comite_etica_pesquisa`, `codigo_situacao_parecer`, `uf_instituicao_proponente`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `numero_caae`, `titulo_projeto_pesquisa`, `nome_comite_etica_pesquisa`, `municipio_comite_etica_pesquisa`, `uf_comite_etica_pesquisa`, `data_submissao_projeto_pesquisa`, `numero_parecer `, `data_submissao_ultima_versao_projeto_pesquisa`, `data_emissao_parecer`, `situacao_parecer`, `instituicao_proponente`, `municipio_instituicao_proponente`, `uf_instituicao_proponente`
 
 ## plataformabr_projetos_{numero_caae}
 
@@ -266,13 +296,15 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## pni
 
-- **Status:** empty
+- **Status:** ok (8485 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `groups`, `states`
+- **Fields:** `ANO`, `UF`, `MUNIC`, `FX_ETARIA`, `IMUNO`, `DOSE`, `QT_DOSE`, `POP`, `COBERT`
 
 ## prevencao_e_promocao_distribuicao_epi_insumo
 
-- **Status:** filters_only
+- **Status:** error
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** OpenDataSUS DEMAS request failed for dataset 'prevencao-e-promocao/distribuicao_epi_insumo' at endpoint '/prevencao-e-promocao/distribuicao_epi_insumo' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was no
 
 ## resp
 
@@ -282,63 +314,75 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## saude_indigena_acompanhamento_obra_infraestrutura_saude
 
-- **Status:** filters_only
+- **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 
 ## saude_indigena_indicadores_enfrentamento_monitoramento_covid19_indigenas
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei`, `quantidade`, `tipo_de_vinculo`, `atuacao`, `categoria_profissional`
 
 ## saude_indigena_planilha_de_fornecimento_e_monitoramento_da_qualidade_da_agua_acesso_a_agua
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `populacao_total`, `_de_aldeias_monitoradas_em_relacao_ao_total`, `sem_info_pop`, `_aldeia_sem_fornecimento`, `pop_total_com_infraestrutura_de_abastecimento`, `n_aldeias_pmqai`, `requer_substituicao_pop`, `_aldeias_com_infraestrutura`, `numero_de_aldeias`, `satisfatorio_pop`, `soma_de_infraestrutura_saasac`, `satisfatorio__aldeia`, `dsei`, `_aldeia_abastecimento_caminhao_pipa`, `pop_total_abastecimento_por_caminhao_pipa`, `_de_aldeias_monitoradas_em_relacao_ao_pmqai_planejado`, `requer_manutencao_pop`, `media_do_numero_de_aldeias_monitoradas_no_mes_com_analise_dos_6`, `pop_sem_fornecimento`, `requer_manutencao__aldeia`, `requer_substituicao__aldeia`, `sem_info__aldeia`
 
 ## saude_indigena_planilha_registros_habilitacao_recebimento_incentivo
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `municipio`, `estado`, `cnes`, `situacao`, `tipo_estabelecimento`, `regiao`, `dsei`, `nome_do_estabelecimento`, `mesano_publicacao`, `portaria`
 
 ## saude_indigena_sasi_sus_gerenciamento_de_residuos_solidos
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_o_dsei_e_o_principal_responsavel`, `coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_nao_ha_informacao_sobre_os_responsaveis`, `coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_os_catadores_sao_os_principais_responsaveis`, `coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_a_prefeitura_e_a_principal_responsavel`, `coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_a_propria_aldeia_e_a_principal_responsavel`, `destinacao_dos_residuos_organicos_percentual_de_aldeias_que_destinam_os_residuos_organicos_junto_com_os_residuos_comuns`, `destinacao_dos_residuos_organicos_percentual_de_aldeias_que_destinam_os_residuos_organicos_no_lixao_da_aldeia`, `destinacao_dos_residuos_organicos_percentual_de_aldeias_que_destinam_os_residuos_organicos_na_mata_longe_das_aldeias`, `destinacao_dos_residuos_organicos_percentual_de_aldeias_que_utilizam_os_residuos_organicos_para_alimentacao_de_animais`, `destinacao_dos_residuos_organicos_percentual_de_aldeias_que_utilizam_os_residuos_organicos_para_compostagem`, `destinacao_dos_residuos_organicos_percentual_de_aldeias_sem_informacao_sobre_a_destinacao_dos_residuos_organicos`, `distrito_sanitario_especial_indigena_dsei`, `logistica_reversa_percentual_de_aldeias_que_realizam_logistica_reserva`, `possui_coleta_seletiva_implantada_percentual_de_aldeias_que_nao_possuem_coleta_seletiva`, `possui_coleta_seletiva_implantada_percentual_de_aldeias_que_possuem_coleta_seletiva`, `possui_coleta_seletiva_implantada_percentual_de_aldeias_sem_informacao_sobre_coleta_seletiva`, `possui_vala_construida_pela_comunidade_percentual_de_aldeias_com_presenca_de_valas_construidas_pela_comunidade`, `possui_vala_construida_pela_comunidade_percentual_de_aldeias_que_nao_possuem_valas_construidas_pela_comunidade`, `possui_vala_construida_pela_comunidade_percentual_de_aldeias_sem_informacoes_sobre_valas_construidas_pela_comunidade`, `pratica_de_queima_de_residuos_pela_comunidade_percentual_de_aldeias_que_possuem_a_pratica_de_queima_dos_residuos`, `pratica_de_queima_de_residuos_pela_comunidade_percentual_de_aldeias_que_nao_possuem_a_pratica_de_queima_dos_residuos`, `pratica_de_queima_de_residuos_pela_comunidade_percentual_de_aldeias_sem_informacao_sobre_a_pratica_de_queima_dos_residuos`
 
 ## saude_indigena_sasisus_esgotamento_sanitario
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `exist_estrut_perc_ald_sem_estrutura`, `est_conserv_estrut_perc_ald_estrut_exist_regular`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_filtro_sumidouro`, `est_conserv_estrut_perc_ald_estrut_exist_requer_interd_subst`, `tipo_trat_esgoto_perc_ald_destinacao_nos_corpos_hidricos`, `tipo_trat_esgoto_perc_ald_sem_informacao`, `exist_estrut_perc_ald_melhorias_sanits_domic_mds_indiv_coletiv`, `exist_estrut_perc_ald_coleta_pela_rede_publica`, `est_conserv_estrut_perc_ald_onde_nao_existe_estrut_tratamento`, `est_conserv_estrut_perc_ald_estrut_exist_satisfatoria`, `exist_estrut_perc_ald_coleta_pela_rede_sesai`, `exist_estrut_perc_ald_sem_informacao`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_seca`, `est_conserv_estrut_perc_ald_sem_informacao_sobre_a_estrutura`, `est_conserv_estrut_perc_ald_estrut_exist_insatisfatoria`, `est_conserv_estrut_perc_ald_estrut_exist_requer_manutencao`, `distrito_sanitario_especial_indigena`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_rudimentar`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_sumidouro`, `tipo_trat_esgoto_perc_ald_sem_tratamento`, `tipo_trat_esgoto_perc_ald_atendidas_por_concessionaria`, `exist_estrut_perc_ald_casinha_latrina`, `exist_estrut_perc_ald_banheiro_particular`
 
 ## saude_indigena_siasi_acompanhamento_gestacional
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `gestao_do_dsei`, `codigo_da_gestao_do_dsei`, `codigo_do_polo_base`, `descricao_do_polo_base`, `codigo_da_terra_indigena`, `nome_da_terra_indigena`, `codigo_do_ibge`, `nome_do_municipio`, `sigla_da_uf`, `data_de_nascimento`, `tipo_sexo`, `codigo_da_localidade`, `data_da_ultima_menstruacao`, `data_da_finalizacao`, `data_do_acompanhamento`, `status_risco_gestacional`, `tipo_do_local_de_atendimento`, `codigo_do_profissional`, `codigo_cbo_da_familia`, `descricao_do_cbo_da_familia`, `codigo_cbo_da_ocupacao`, `descricao_do_cbo_da_ocupacao`, `status_do_motivo_da_finalizacao`
 
 ## saude_indigena_siasi_modulo_morbidades
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `gestao_do_dsei`, `codigo_da_gestao_do_dsei`, `codigo_do_polo_base`, `descricao_do_polo_base`, `codigo_da_terra_indigena`, `nome_da_terra_indigena`, `codigo_do_ibge`, `nome_do_municipio`, `sigla_da_uf`, `data_de_nascimento`, `tipo_sexo`, `codigo_da_localidade`, `codigo_do_cid10`, `nome_da_categoria_e_subcategoria`, `codigo_da_categoria_pai`, `data_de_atendimento`, `mes_de_atendimento`, `ano_de_atendimento`, `idade_no_atendimento_em_dias`, `faixa_etaria_no_atendimento`, `codigo_cbo_da_ocupacao`, `descricao_do_cbo_da_ocupacao`, `codigo_da_familia_cbo`, `descricao_do_cbo_da_familia`
 
 ## saude_indigena_siasi_modulo_saude_bucal_ficha3
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei_gestao`, `co_dsei_gestao`, `co_polo_base`, `polo_base`, `co_aldeia`, `aldeia`, `co_terra_indigena`, `no_municipio`, `sg_uf`, `nu_ano`, `educ_prof_medio_comunidade`, `educ_prof_medio_estab`, `educ_prof_superior_comunidade`, `educ_prof_superior_estab`, `educ_escovacao_dental_superv`, `aplicacao_topica_fluor`, `escova_dental_distribuida`, `creme_dental_distribuido`, `fio_dental_distribuido`
 
 ## saude_indigena_siasi_modulo_saude_bucal_ficha4
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `gestao_do_dsei`, `codigo_da_gestao_do_dsei`, `codigo_do_polo_base`, `descricao_do_polo_base`, `codigo_do_ibge`, `nome_do_municipio`, `sigla_da_uf`, `tipo_sexo`, `codigo_da_terra_indigena`, `nome_da_terra_indigena`, `codigo_da_localidade`, `data_da_consulta`, `codigo_do_profissional`, `codigo_cbo_da_familia`, `descricao_do_cbo_da_familia`, `codigo_cbo_da_ocupacao`, `descricao_do_cbo_da_ocupacao`, `codigo_do_tipo_protese_necess_sup`, `necessidade_sup`, `codigo_tipo_protese_uso_sup`, `uso_sup`, `codigo_do_tipo_protese_necess_inf`, `necess_inf`, `codigo_do_tipo_protese_uso_inf`, `uso_inf`, `codigo_tipo_fluorose`, `descricao_tipo_fluorose`, `status_ma_formacao`, `data_de_nascimento`, `idade_na_consulta`
 
 ## saude_indigena_siasi_modulo_saude_bucal_ficha7
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `gestao_do_dsei`, `codigo_da_gestao_do_dsei`, `nome_do_municipio`, `sigla_da_uf`, `nome_da_terra_indigena`, `codigo_do_polo_base`, `descricao_do_polo_base`, `codigo_da_aldeia`, `descricao_da_aldeia`, `codigo_da_terra_indigena`, `codigo_do_ibge`, `numero_do_mes`, `numero_do_ano`, `consulta_odontologica_programada`, `consultas_atendidas_por_agendamento`, `demanda_espontanea`, `aplicacao_terapeutica_de_fluor`, `aplicacao_cariostatico`, `aplicacao_selante`, `evidencia_placa_bacteriana`, `rap_supragengival`, `rap_suibgengival`, `protese_complemento_dentino`, `tratamento_restauracao_atraumatico`, `restauracao_ionomero_de_vidro`, `restauracao_de_resiona`, `restrauracao_amalgama`, `outra_restauracao`, `pulpotomia`, `exodontia_decidup`, `exodontia_permanente`, `outro_procedimento_cirurgico`, `sutura`, `tratamento_alveolite`, `outro_procedimento_urgencia`, `endodontia`, `periodontia`, `protese`, `cirurgia_buco_maxilo_facial`, `ortodontia`, `radiologia`, `analgesico`, `anti-inflamatorio`, `antibiotico`, `outra_prescricao`, `tatramento_odontologico_basico`
 
 ## saude_indigena_sistema_de_atencao_a_saude_indigena_modulo_de_vigilancia_alimentar_e_nutricional
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `gestao_do_dsei`, `descricao_do_polo_base`, `nome_da_terra_indigena`, `codigo_do_ibge`, `nome_do_municipio`, `sigla_da_uf`, `data_de_nascimento`, `tipo_sexo`, `data_de_atendimento`, `mes_de_atendimento`, `ano_de_atendimento`, `idade_em_meses_no_atendimento`, `numero_do_peso`, `numero_da_altura`, `idade_no_atendimento`, `descricao_do_tipo_de_acompanhamento_nutricional`, `tipo_de_aleitamento`, `descricao_peso_idade`, `descricao_estatura_idade`, `descricao_imc_idade`, `codigo_do_profissional`, `codigo_cbo_da_familia`, `descricao_do_cbo_da_familia`, `codigo_cbo_da_ocupacao`, `descricao_do_cbo_da_ocupacao`
 
 ## sia
 
@@ -378,83 +422,99 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## sinisa
 
-- **Status:** filters_only
+- **Status:** error
 - **Filters:** `output_dir`, `results_url`, `file_kinds`, `modules`, `extract_archives`, `overwrite`, `timeout`
+- **Note:** expected name token at '<![:e\x90\x02ª/Ü4æ\x03\x17G\x92ý\x83\x0b¦'
 
 ## sisagua_cadastro_carro_pipa_populacao
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `tipo_de_responsavel`, `numero_da_autorizacao`, `nome_da_instituicao`, `codigo_do_carro_pipa`, `regiao_geografica`, `data_inicio_de_autorizacao`, `placa`, `finalidade`, `nome_do_responsavel_pelo_carro_pipa`, `municipio`, `cnpj_do_escritorio_regionallocal`, `tipo_da_instituicao`, `sigla_da_instituicao`, `regional_de_saude`, `codigo_ibge`, `data_de_preenchimento`, `nome_do_escritorio_regionallocal`, `data_fim_da_autorizacao`, `responsavel_pelas_informacoes`, `uf`, `n_de_pessoas_abastecidas_estimativa`, `data_de_criacao`, `cnpj_da_instituicao`
 
 ## sisagua_cadastro_carro_pipa_procedencia
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `c011`, `c006`, `c009`, `c004`, `c003`, `c007`, `c005`, `c010`, `c000`, `c008`, `c012`, `c001`, `c002`
 
 ## sisagua_controle_mensal_amostras_fora_do_padrao
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `regiao_geografica`, `sigla_da_instituicao`, `data_de_preenchimento_do_relatorio_mensal`, `tipo_da_instituicao`, `latitude`, `codigo_forma_de_abastecimento`, `zona`, `parametro`, `cnpj_da_instituicao`, `nome_do_escritorio_regionallocal`, `ponto_de_monitoramento`, `area`, `providencia_do_controle`, `data_de_registro`, `nome_da_forma_de_abastecimento`, `categoria_area`, `resultado`, `local`, `regional_de_saude`, `mes_de_referencia`, `endereco`, `municipio`, `ano_de_referencia`, `nome_da_instituicao`, `longitude`, `data_da_coleta`, `cnpj_do_escritorio_regionallocal`, `codigo_ibge`, `tipo_da_forma_de_abastecimento`, `uf`, `tipo_do_local`
 
 ## sisagua_controle_mensal_demais_parametros
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `tipo_da_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `sigla_da_instituicao`, `regional_de_saude`, `regiao_geografica`, `unidade`, `data_da_coleta`, `nome_do_escritorio_regionallocal`, `nome_da_instituicao`, `data_de_registro`, `parametro`, `ano_de_referencia`, `codigo_forma_de_abastecimento`, `nome_do_manancial_superficial`, `tipo_de_captacao`, `data_de_preenchimento_do_relatorio_mensal`, `municipio`, `cnpj_da_instituicao`, `cnpj_do_escritorio_regionallocal`, `resultado`, `mes_de_referencia`, `tipo_da_instituicao`, `nome_do_ponto_de_captacao_subterranea`, `nome_da_eta__uta`, `categoria_do_manancial_superficial`, `uf`, `codigo_ibge`, `categoria_do_ponto_de_captacao_subterranea`
 
 ## sisagua_controle_mensal_infraestrutura_operacional
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `local`, `numero_de_eventos_de_falta_de_agua`, `cnpj_do_escritorio_regionallocal`, `area`, `nome_da_forma_de_abastecimento`, `tipo_da_forma_de_abastecimento`, `data_de_preenchimento_do_relatorio_mensal`, `numero_de_reclamacoes_de_cor_da_agua`, `mes_de_referencia`, `nome_do_escritorio_regionallocal`, `numero_de_reclamacao_de_gosto_e_ou_odor`, `ano_de_referencia`, `regiao_geografica`, `numero_de_reparos_na_rede_somente_para_saa`, `tipo_da_instituicao`, `tipo_do_local`, `categoria_area`, `zona`, `cnpj_da_instituicao`, `codigo_ibge`, `codigo_forma_de_abastecimento`, `sigla_da_instituicao`, `numero_de_eventos_de_intermitencia_somente_para_saa`, `nome_da_instituicao`, `regional_de_saude`, `uf`, `data_de_registro`, `municipio`
 
 ## sisagua_controle_mensal_parametros_basicos
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `uf`, `codigo_ibge`, `cnpj_da_instituicao`, `tipo_da_forma_de_abastecimento`, `ano_de_referencia`, `mes_de_referencia`, `parametro`, `valor_minimo`, `valor_maximo`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `regiao_geografica`, `uf`, `regional_de_saude`, `codigo_ibge`, `municipio`, `tipo_da_instituicao`, `sigla_da_instituicao`, `nome_da_instituicao`, `cnpj_da_instituicao`, `nome_do_escritorio_regional_local`, `cnpj_do_escritorio_regional_local`, `tipo_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `nome_da_eta_uta`, `tipo_de_filtracao`, `ano_de_referencia`, `mes_de_referencia`, `ponto_de_monitoramento`, `parametro`, `campo`, `valor`
 
 ## sisagua_controle_mensal_plano_amostragem
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `data_de_registro_no_sisagua`, `regiao_geografica`, `captacao_superficial`, `ano_de_referencia`, `cnpj_da_instituicao`, `razao_habitantesdomicilio`, `tipo_da_forma_de_abastecimento`, `uf`, `municipio`, `campo`, `nome_do_escritorio_regionallocal`, `codigo_ibge`, `parameto`, `captacao_de_agua_de_chuva`, `cnpj_do_escritorio_regionallocal`, `numero_de_economias_residenciais_domicilios_permanentes`, `nome_da_forma_de_abastecimento`, `ponto_de_monitoramento`, `nome_da_etauta`, `populacao_abastecida_estimada`, `codigo_forma_de_abastecimento`, `captacao_subterranea`, `regional_de_saude`, `tempo_medio_diario_de_funcionamento`, `nome_da_instiuicao`, `numero_de_filtros`, `tipo_de_filtracao`, `sigla_da_instituicao`, `tipo_da_instituicao`, `valor`
 
 ## sisagua_controle_semestral
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `uf`, `codigo_ibge`, `cnpj_da_instituicao`, `tipo_da_forma_de_abastecimento`, `ano_de_referencia`, `semestre_de_referencia`, `grupo_de_parametros`, `ld_minimo`, `ld_maximo`, `lq_minimo`, `lq_maximo`, `resultado_minimo`, `resultado_maximo`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `regiao_geografica`, `uf`, `regional_de_saude`, `municipio`, `codigo_ibge`, `tipo_da_instituicao`, `sigla_da_instituicao`, `nome_da_instituicao`, `cnpj_da_instituicao`, `nome_do_escritorio_regional_local`, `cnpj_do_escritorio_regional_local`, `tipo_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `nome_da_eta_uta`, `ano_de_referencia`, `semestre_de_referencia`, `data_de_registro`, `data_de_preenchimento_do_relatorio_semestral`, `data_da_coleta`, `data_da_analise`, `ponto_de_monitoramento`, `grupo_de_parametros`, `parametro`, `ld`, `lq`, `resultado`, `trimestre_de_referencia`, `tipo_de_captacao`, `categoria_do_manancial_superficial`, `nome_do_manancial_superficial`, `categoria_do_ponto_de_captacao_subterranea`, `nome_do_ponto_de_captacao_subterranea`, `amostra`, `unidade`, `vmp`
 
 ## sisagua_pontos_de_captacao
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `codigo_ibge`, `uf`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `nome_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `municipio`, `regional_de_saude`, `codigo_do_ibge`, `tipo_da_forma_de_abastecimento`, `nome_do_escritorio_regional_local`, `cnpj_do_escritorio_regional_local`, `categoria_do_manancial_superficial`, `longitude`, `vazao`, `latitude`, `nome_da_instiuicao`, `regiao_geografica`, `categoria_do_ponto_de_captacao_subterraneo`, `tipo_da_instituicao`, `nome_do_manancial_superficial`, `tipo_de_captacao`, `nome_do_ponto_de_captacao_subterraneo`, `uf`, `nome_da_eta_uta`, `ano_de_referencia`, `sigla_da_instituicao`, `outorga`
 
 ## sisagua_populacao_abastecida
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `filtracao`, `numero_de_economias_residenciais_domicilios_permanentes`, `populacao_rural`, `cisterna`, `codigo_forma_de_abastecimento`, `caixa_dagua`, `pop_recebe_agua_de_saa`, `carro_pipa`, `regiao_geografica`, `numero_de_economias_residenciais_de_uso_ocasional`, `nome_da_forma_de_abastecimento`, `chafariz`, `regional_de_saude`, `data_de_preenchimento`, `tipo_da_forma_de_abastecimento`, `codigo_ibge`, `outro_tipo_de_suprimento`, `desinfeccao`, `municipio`, `ano_de_referencia`, `pop_recebe_agua_de_saasac`, `fonte`, `sem_reservacao`, `captacao_de_agua_de_chuva`, `tipo_da_instituicao`, `nome_da_instituicao`, `sigla_da_instituicao`, `populacao_urbana`, `canalizacao`, `uf`, `nome_do_escritorio_regionallocal`, `cnpj_do_escritorio_regionallocal`, `data_de_registro_no_sisagua`, `captacao_superficial`, `captacao_subterranea`, `cnpj_da_instituicao`, `populacao_estimada`
 
 ## sisagua_tratamento_de_agua
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `email`, `codigo_ibge`, `desinf_com_ozonio`, `uf`, `municipio`, `cnpj_da_instituicao`, `numero_do_conselho_de_classe`, `etapa_desinfeccao`, `codigo_forma_de_abastecimento`, `responsavel_tecnico`, `cisterna`, `regiao_geografica`, `nome_do_escritorio_regionallocal`, `outro_tipo_de_suprimento`, `etapa_fluoretacao`, `rad_dioxido_de_cloro`, `etapa_floculacao`, `desinf_com_cloramina`, `carro_pipa`, `polimero_com_epicloridrina`, `etapa_decantacao`, `nome_da_instituicao`, `regional_de_saude`, `fonte`, `polimero_com_acrilamida`, `data_de_preenchimento`, `desinf_com_dioxido_cloro`, `rad_cloro_res_livre`, `etapa_pre_oxidacao`, `impedimento_de_monitoramento_por_unidade_filtrante`, `chafariz`, `captacao_superficial`, `telefone`, `outra_etapa_tratamento`, `ano_de_referencia`, `numero_de_filtros`, `cep`, `etapa_desfluoretacao`, `data_de_registro_no_sisagua`, `outro_desinfetante`, `rad_cloro_res_combinado`, `canalizacao`, `numero`, `etapa_flotacao`, `nome_da_forma_de_abastecimento`, `sigla_da_instituicao`, `tipo_de_filtracao`, `captacao_de_agua_de_chuva`, `tempo_medio_diario_de_funcionamento`, `formacao`, `captacao_subterranea`, `ddd`, `tipo_da_forma_de_abastecimento`, `etapa_mistura_rap_e_coag`, `endereco`, `desinf_com_uv`, `vazao_de_agua_tratada`, `tipo_da_instituicao`, `art`, `desinf_com_cloro_gashipoc`, `cnpj_do_escritorio_regionallocal`, `nome_da_eta`, `desinf_com_isocianuratos_clorados`
 
 ## sisagua_vigilancia_cianobacterias_e_cianotoxinas
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `parametro_ciano`, `nome_da_etauta`, `hora_da_coleta`, `descricao_do_local`, `codigo_forma_de_abastecimento`, `tipo_da_forma_de_abastecimento`, `mes`, `data_da_coleta`, `regional_de_saude`, `categoria_area`, `resultado`, `motivo_da_coleta`, `data_de_registro_no_sisagua`, `grupo`, `ano`, `codigo_ibge`, `data_do_laudo`, `latitude`, `municipio`, `zona`, `local`, `nome_da_forma_de_abastecimento`, `tipo_do_local`, `uf`, `longitude`, `procedencia_da_coleta`, `area`, `numero_da_amostra`, `ponto_de_coleta`, `regiao_geografica`
 
 ## sisagua_vigilancia_demais_parametros
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `descricao_do_local`, `area`, `grupo_de_parametros`, `lq`, `longitude`, `parametro_demais_parametros`, `codigo_ibge`, `mes`, `latitude`, `resultado`, `data_da_coleta`, `procedencia_da_coleta`, `zona`, `numero_da_amostra`, `municipio`, `tipo_do_local`, `nome_da_forma_de_abastecimento`, `nome_da_etauta`, `uf`, `regional_de_saude`, `hora_da_coleta`, `tipo_da_forma_de_abastecimento`, `data_da_analise`, `ld`, `codigo_forma_de_abastecimento`, `motivo_da_coleta`, `local`, `regiao_geografica`, `categoria_area`, `ano`, `data_do_laudo`, `ponto_de_coleta`, `data_de_registro_no_sisagua`
 
 ## sisagua_vigilancia_parametros_basicos
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `uf`, `codigo_ibge`, `motivo_da_coleta`, `tipo_da_forma_de_abastecimento`, `ano`, `mes`, `procedencia_da_coleta`, `ponto_de_coleta`, `parametro`, `ld_minimo`, `ld_maximo`, `lq_minimo`, `lq_maximo`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `regiao_geografica`, `uf`, `regional_de_saude`, `municipio`, `codigo_ibge`, `numero_da_amostra`, `motivo_da_coleta`, `tipo_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `nome_da_eta_uta`, `ano`, `mes`, `data_da_coleta`, `hora_da_coleta`, `data_do_laudo`, `data_de_registro_no_sisagua`, `procedencia_da_coleta`, `ponto_de_coleta`, `descricao_do_local`, `zona`, `categoria_area`, `area`, `tipo_do_local`, `local`, `latitude`, `longitude`, `parametro`, `analise_realizada`, `data_da_analise`, `ld`, `lq`, `resultado`, `providencia`
 
 ## siscan
 
-- **Status:** empty
+- **Status:** ok (633543 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `groups`, `states`
+- **Fields:** `CO_US`, `CO_US_UF`, `CO_US_IBGE`, `REGUS`, `CO_PAC_IBG`, `CO_PAC_UF`, `CO_PAC_ESC`, `CO_RES_NOR`, `CO_PAC_IDA`, `REGRESID`, `CO_CNES`, `CLABIBGE`, `CLABUF`, `REGLAB`, `DT_ID_COMP`, `ANO_COMP`, `CO_FX_ETAR`, `CO_PAC_RAC`, `CO_ATI_ESC`, `CO_ATI_GLA`, `CO_ATI_IND`, `CO_CEL_ESC`, `CO_CEL_GLA`, `CO_NEO_MAL`, `CO_AMOSTRA`, `CO_ADEQ_MA`, `CO_BEN_INF`, `CO_BEN_MET`, `CO_BEN_REP`, `CO_BEN_ATR`, `CO_BEN_RAD`, `CO_BEN_OUT`, `CO_MIC_LAC`, `CO_MIC_COC`, `CO_MIC_CHL`, `CO_MIC_ACT`, `CO_MIC_BAC`, `CO_MIC_TRI`, `CO_MIC_HER`, `CO_MIC_CAN`, `CO_MIC_GAR`, `CO_MIC_OUT`, `CO_ANM_PRE`, `DT_ANM_PRE`, `ST_MON_EXT`, `TEMPCITANT`, `DINTCOLETA`, `DINTRESULT`, `DINTTEMPEX`, `QTDEXA`, `REPREZT`, `RESNORM`, `POSNAONEO`, `LESALTGRA`, `PSNAONPLA`, `NLSALTGRA`, `PSNNPLA`, `NALTGRA`, `LBGRAU`, `LAGRAU`, `LAGRAUMI`, `CARCINO`, `C_EPI_ESCA`, `C_EPI_GLAN`, `CO_EPI_MET`, `ADENCARCIN`, `DENCARCINV`, `OUTNEO`, `ALTERADO`, `CVCIONAL`, `MEIOLIQU`, `AMOSREJAUS`, `AMOSREJDAN`, `AMOSREJALH`, `AMOSREJOUT`, `REJEITADA`, `SATISFACT`, `INSATSFAC`, `CO_INSA_AC`, `CO_INSA_SA`, `CO_INSA_PI`, `CO_INSA_AR`, `CO_INSA_CO`, `CO_INSA_SU`, `CO_INSA_OU`, `CBEMINFLA`, `CBEMMETAS`, `CBEMREPAR`, `CBEMATROF`, `CBEMRADI`, `CBEMOUT`, `CMICLACT`, `CMICCOCO`, `CMICCHLA`, `CMICACTI`, `CMICBACI`, `CMICTRICO`, `CMICHERP`, `CMICCAND`, `CMICGARD`, `CMICOUT`
 
 ## sisprenatal
 
@@ -464,13 +524,15 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## sisvan_estado_nutricional
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `codigo_municipio`, `uf`, `codigo_cnes`, `idade_minima`, `idade_maxima`, `codigo_fase_vida`, `codigo_povo_comunidade`, `codigo_escolaridade`, `ano_mes_competencia`, `gestante`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `status_participacao`, `codigo_municipio`, `uf`, `municipio`, `codigo_cnes`, `idade`, `codigo_fase_vida`, `fase_vida`, `sexo`, `codigo_raca_cor`, `raca_cor`, `codigo_povo_comunidade`, `povo_comunidade`, `codigo_escolaridade`, `escolaridade`, `data_acompanhamento`, `ano_mes_competencia`, `peso`, `altura`, `imc`, `imc_pre_gestacional`, `peso_x_idade`, `peso_x_altura`, `crianca_altura_x_idade`, `crianca_imc_x_idade`, `adolescente_altura_x_idade`, `adolescente_imc_x_idade`, `codigo_estado_nutricional_adulto`, `codigo_estado_nutricional_idoso`, `codigo_estado_nutricional_imc_gestante`, `codigo_sistema_origem_acompanhamento`, `sistema_origem_acompanhamento`, `codigo_sequencial_acompanhamento`
 
 ## snis
 
-- **Status:** filters_only
+- **Status:** empty
 - **Filters:** `output_dir`, `results_url`, `file_kinds`, `modules`, `extract_archives`, `overwrite`, `timeout`
+- **Note:** no documents matched file_kinds=planilhas, module=gestao_municipal
 
 ## srag_demas
 
@@ -480,28 +542,33 @@ fields not downloaded · `empty`/`error`/`needs_credential` = see note ·
 
 ## vacinacao_esavi
 
-- **Status:** filters_only
+- **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 
 ## vacinacao_sistema_de_informacao_de_insumos_estrategicos
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `tx_area`, `qtde`, `mes`, `ibge`, `origem`, `tx_sigla`, `ano`, `tx_insumo`
 
 ## vigilancia_e_meio_ambiente_mpox
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `htlv`, `dt_interna`, `pac_imunossup`, `donovanose`, `hpv`, `dt_sin_pri`, `uti`, `cs_raca`, `linfogranuloma`, `co_uf_res`, `dip`, `data_vacina`, `caract_genomica`, `classi_fin`, `cs_sexo`, `orienta_sexual`, `doenca_tra1`, `dt_coleta`, `clado`, `nu_idade_n`, `transm`, `clamidea`, `hiv`, `evolucao`, `verruga_genital`, `id_mn_resi`, `estrangeiro`, `cancro_mole`, `vacina`, `sg_uf_not`, `comp_sexual`, `vinculo_epi`, `profis_saude`, `contag_cd4`, `trichomomas_vaginals`, `gonorreia`, `id_municip`, `ist_ativa`, `cs_gestant`, `contat_animal`, `dt_notific`, `met_lab`, `ident_genero`, `resultado_exa_lab`, `outro_des`, `tp_amost`, `dt_evolucao`, `mycoplasma_genital`, `sintoma`, `local_cont`, `sg_uf`, `hospital`, `sifilis`, `herpes_genital`, `dt_conclusao`
 
 ## vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_mortalidade
 
-- **Status:** filters_only
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `racacor`, `dtconinv`, `gravidez`, `peso`, `fonteinv`, `dtrecebim`, `idademae`, `dtrecoriga`, `atestante`, `comunsvoim`, `horaobito`, `contador`, `linhaii`, `altcausa`, `causabas`, `versaosist`, `idade`, `natural`, `morteparto`, `ocup`, `acidtrab`, `tp_altera`, `atestado`, `difdata`, `necropsia`, `codmunres`, `obitopuerp`, `dtinvestig`, `tppos`, `qtdfilmort`, `fonte`, `seriescfal`, `dtcadinf`, `ocupmae`, `escmaeagr1`, `opor_do`, `fontes`, `codmunnatu`, `assistmed`, `codestab`, `linhab`, `obitoparto`, `escmae2010`, `dtcadinv`, `causamat`, `dtcadastro`, `estciv`, `tpnivelinv`, `dtconcaso`, `tpresginfo`, `qtdfilvivo`, `dtatestado`, `exame`, `versaoscb`, `cb_alt`, `obitograv`, `linhac`, `cb_pre`, `gestacao`, `origem`, `seriescmae`, `semagestac`, `causabas_o`, `tipobito`, `cirurgia`, `tpmorteoco`, `parto`, `esc2010`, `sexo`, `linhaa`, `stcodifica`, `linhad`, `lococor`, `circobito`, `dtobito`, `tpobitocor`, `numerolote`, `codificado`, `dtnasc`, `stdoepidem`, `escmae`, `codmunocor`, `nudiasobco`, `esc`, `escfalagr1`, `stdonova`
 
 ## vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos
 
-- **Status:** filters_only
+- **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 
 ## zikavirus
 

@@ -1,32 +1,5 @@
 {
   "arboviroses_chikungunya": {
-    "filters": [
-      "nu_ano",
-      "output_dir",
-      "output_format",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "filters_only"
-  },
-  "chikungunya": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "start_date",
-      "end_date",
-      "uf",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "ok",
-    "rows_sampled": 20,
     "fields": [
       "tp_not",
       "id_agravo",
@@ -144,7 +117,6 @@
       "complica",
       "tp_sistema",
       "nduplic_n",
-      "arquivo",
       "cs_suspeit",
       "in_vincula",
       "cs_flxret",
@@ -154,9 +126,7 @@
       "nu_lote_i",
       "dt_digita",
       "migrado_w"
-    ]
-  },
-  "arboviroses_dengue": {
+    ],
     "filters": [
       "nu_ano",
       "output_dir",
@@ -166,24 +136,10 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
-  "dengue": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "start_date",
-      "end_date",
-      "uf",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "ok",
-    "rows_sampled": 20,
+  "arboviroses_dengue": {
     "fields": [
       "tp_not",
       "id_agravo",
@@ -248,7 +204,6 @@
       "dt_interna",
       "uf",
       "municipio",
-      "arquivo",
       "ano_nasc",
       "febre",
       "mialgia",
@@ -382,98 +337,81 @@
       "in_vincula",
       "nduplic",
       "in_aids"
-    ]
-  },
-  "febre_amarela": {
+    ],
     "filters": [
+      "nu_ano",
       "output_dir",
       "output_format",
-      "start_year",
-      "end_year",
-      "start_date",
-      "end_date",
-      "uf",
       "keep_raw",
       "batch_size",
       "max_pages",
       "api_base_url"
     ],
-    "status": "empty",
-    "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF."
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "arboviroses_febre_amarela_humanos_primatas_nao_humanos": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "filters_only"
-  },
-  "zikavirus": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "start_date",
-      "end_date",
-      "uf",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "ok",
-    "rows_sampled": 20,
     "fields": [
-      "tp_not",
-      "id_agravo",
-      "cs_suspeit",
-      "dt_notific",
-      "sem_not",
-      "nu_ano",
-      "sg_uf_not",
-      "id_municip",
-      "id_regiona",
-      "dt_sin_pri",
-      "sem_pri",
-      "nu_idade_n",
-      "cs_sexo",
-      "cs_gestant",
-      "cs_raca",
-      "cs_escol_n",
-      "sg_uf",
-      "id_mn_resi",
-      "id_rg_resi",
-      "id_pais",
-      "nduplic_n",
-      "in_vincula",
-      "dt_invest",
-      "id_ocupa_n",
-      "classi_fin",
-      "criterio",
-      "tpautocto",
-      "coufinf",
-      "copaisinf",
-      "comuninf",
-      "doenca_tra",
-      "evolucao",
+      "mun_lpi",
+      "mes_is",
+      "sexo",
+      "dt_is",
+      "cod_mun_lpi",
+      "idade",
       "dt_obito",
-      "dt_encerra",
-      "cs_flxret",
-      "flxrecebi",
-      "tp_sistema",
-      "tpuninot",
-      "arquivo",
-      "id_unidade",
-      "ano_nasc",
-      "dt_digita"
-    ]
+      "macrorreg_lpi",
+      "ano_is",
+      "se_is",
+      "monitoramento_is",
+      "uf_lpi",
+      "obito",
+      "cod_uf_lpi"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "assistencia_a_saude_hospitais_e_leitos": {
+    "fields": [
+      "nome_da_regiao_do_brasil_onde_fica_o_hospital",
+      "unidade_da_federacao_onde_fica_o_hospital",
+      "nome_do_municipio_onde_fica_o_hospital",
+      "motivo_da_desabilitacao_do_hospital,_caso_esteja_desabilitado",
+      "nome_do_hospital",
+      "nome_da_razao_social_do_hospital",
+      "tipo_da_gestao_do_hospital",
+      "codigo_do_tipo_da_unidade",
+      "descricao_do_tipo_da_unidade",
+      "natureza_juridica_do_hospital",
+      "descricao_da_natureza_juridica_do_hosptial",
+      "enderco_do_hospital",
+      "numero_do_endereco_do_hospital",
+      "complemento_do_endereco_do_hospital",
+      "nome_do_bairro_do_endereco_do_hosptial",
+      "numero_do_cep_do_hospital",
+      "quantidade_total_de_leitos_do_hosptial",
+      "quantidade_total_de_leitos_sus_do_hosptial",
+      "quantidade_de_leitos_de_uti_do_hosptial",
+      "quantidade_de_leitos_de_uti_sus_do_hosptial",
+      "quantidade_de_leitos_de_uti_adulto_do_hosptial",
+      "quantidade_de_leitos_de_uti_sus_adulto_do_hosptial",
+      "quantidade_de_leitos_de_uti_pediatrico_do_hosptial",
+      "quantidade_de_leitos_de_uti_sus_pediatrico_do_hosptial",
+      "quantidade_de_leitos_de_uti_neonatal_do_hosptial",
+      "quantidade_de_leitos_de_uti_sus_neonatal_do_hosptial",
+      "quantidade_de_leitos_de_uti_queimado_do_hosptial",
+      "quantidade_de_leitos_de_uti_sus_queimado_do_hosptial",
+      "quantidade_de_leitos_de_uti_coronariana_do_hosptial",
+      "quantidade_de_leitos_de_uti_sus_coronariana_do_hosptial",
+      "codigo_ibge_do_municipio"
+    ],
     "filters": [
       "uf",
       "output_dir",
@@ -483,9 +421,33 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "assistencia_a_saude_registro_de_ocupacao_hospitalar_covid_19": {
+    "fields": [
+      "estado",
+      "saidasuspeitaobitos",
+      "saidasuspeitaaltas",
+      "validado",
+      "ocupacaoconfirmadocli",
+      "ocupacaocovidcli",
+      "saidaconfirmadaobitos",
+      "saidaconfirmadaaltas",
+      "ocupacaoconfirmadouti",
+      "ocupacaosuspeitouti",
+      "cnes",
+      "municipio",
+      "ocupacaocoviduti",
+      "excluido",
+      "ocupacaosuspeitocli",
+      "ocupacaohospitalarcli",
+      "ocupacaohospitalaruti",
+      "origem",
+      "municipionotificacao",
+      "estadonotificacao",
+      "datanotificacao"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -494,9 +456,20 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "assistencia_a_saude_unidade_basicas_de_saude": {
+    "fields": [
+      "ibge",
+      "bairro",
+      "logradouro",
+      "cnes",
+      "uf",
+      "latitude",
+      "longitude",
+      "nome"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -505,9 +478,22 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "atencao_primaria_cadastro_vinculado_programa_previne_brasil": {
+    "fields": [
+      "competencia_referencia",
+      "sigla_unidade_federacao",
+      "codigo_municipio_ibge",
+      "nome_municipio",
+      "estimativa_populacional_ibge",
+      "tipo_equipe",
+      "sigla_equipe",
+      "situacao_equipe",
+      "pessoas_vinculadas_criterios_ponderacao",
+      "pessoas_vinculadas_equipe_municipio"
+    ],
     "filters": [
       "competencia_referencia",
       "sigla_unidade_federacao",
@@ -519,9 +505,28 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "atencao_primaria_indicador_desempenho_programa_previne_brasil": {
+    "fields": [
+      "uf",
+      "municipio",
+      "codigo_tipo_indicador",
+      "numerador",
+      "denominador_utilizador",
+      "percentual_quadrimestre",
+      "visao_equipe",
+      "denominador_identificado",
+      "denominador_estimado",
+      "cadastro",
+      "base_externa",
+      "populacao",
+      "quadrimestre",
+      "codigo_municipio",
+      "competencia",
+      "percentual"
+    ],
     "filters": [
       "uf",
       "quadrimestre",
@@ -534,7 +539,8 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "atencao_primaria_pmmb": {
     "filters": [
@@ -545,7 +551,8 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "note": "OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb' at endpoint '/atencao-primaria/pmmb' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not found on the server. If you entered the URL",
+    "status": "error"
   },
   "atencao_primaria_pmmb_profissionais_ativos": {
     "filters": [
@@ -559,9 +566,25 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "note": "OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb-profissionais-ativos' at endpoint '/atencao-primaria/pmmb-profissionais-ativos' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not fo",
+    "status": "error"
   },
   "atencao_primaria_pmmb_serie_historica": {
+    "fields": [
+      "regiao",
+      "uf",
+      "municipio_dsei",
+      "ibge",
+      "prof_crm_brasil_pmmb",
+      "prof_inter_pmmb",
+      "prof_cooperados_pmmb",
+      "prof_provab",
+      "total_prof_ativos",
+      "dt_referencia",
+      "prof_bolsista_vinculados",
+      "prof_celetista_vinculados",
+      "prof_tutor_vinculados"
+    ],
     "filters": [
       "regiao",
       "uf",
@@ -572,62 +595,240 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
-  "ciencia_tecnologia_dgits_contribuicoes_consultas_publicas": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
+  "chikungunya": {
+    "fields": [
+      "tp_not",
+      "id_agravo",
+      "dt_notific",
+      "sem_not",
+      "nu_ano",
+      "sg_uf_not",
+      "id_municip",
+      "id_regiona",
+      "id_unidade",
+      "dt_sin_pri",
+      "sem_pri",
+      "nu_idade_n",
+      "cs_sexo",
+      "cs_gestant",
+      "cs_raca",
+      "cs_escol_n",
+      "sg_uf",
+      "id_mn_resi",
+      "id_rg_resi",
+      "id_pais",
+      "dt_invest",
+      "id_ocupa_n",
+      "febre",
+      "mialgia",
+      "cefaleia",
+      "exantema",
+      "vomito",
+      "nausea",
+      "dor_costas",
+      "conjuntvit",
+      "artrite",
+      "artralgia",
+      "petequia_n",
+      "leucopenia",
+      "laco",
+      "dor_retro",
+      "diabetes",
+      "hematolog",
+      "hepatopat",
+      "renal",
+      "hipertensa",
+      "acido_pept",
+      "auto_imune",
+      "dt_chik_s1",
+      "dt_chik_s2",
+      "dt_prnt",
+      "res_chiks1",
+      "res_chiks2",
+      "resul_prnt",
+      "dt_soro",
+      "resul_soro",
+      "dt_ns1",
+      "resul_ns1",
+      "dt_viral",
+      "resul_vi_n",
+      "dt_pcr",
+      "resul_pcr_",
+      "sorotipo",
+      "histopa_n",
+      "imunoh_n",
+      "hospitaliz",
+      "dt_interna",
+      "uf",
+      "municipio",
+      "tpautocto",
+      "coufinf",
+      "copaisinf",
+      "comuninf",
+      "classi_fin",
+      "criterio",
+      "doenca_tra",
+      "clinc_chik",
+      "evolucao",
+      "dt_obito",
+      "dt_encerra",
+      "alrm_hipot",
+      "alrm_plaq",
+      "alrm_vom",
+      "alrm_sang",
+      "alrm_hemat",
+      "alrm_abdom",
+      "alrm_letar",
+      "alrm_hepat",
+      "alrm_liq",
+      "dt_alrm",
+      "grav_pulso",
+      "grav_conv",
+      "grav_ench",
+      "grav_insuf",
+      "grav_taqui",
+      "grav_extre",
+      "grav_hipot",
+      "grav_hemat",
+      "grav_melen",
+      "grav_metro",
+      "grav_sang",
+      "grav_ast",
+      "grav_mioc",
+      "grav_consc",
+      "grav_orgao",
+      "dt_grav",
+      "mani_hemor",
+      "epistaxe",
+      "gengivo",
+      "metro",
+      "petequias",
+      "hematura",
+      "sangram",
+      "laco_n",
+      "plasmatico",
+      "evidencia",
+      "plaq_menor",
+      "con_fhd",
+      "complica",
+      "tp_sistema",
+      "nduplic_n",
+      "arquivo",
+      "cs_suspeit",
+      "in_vincula",
+      "cs_flxret",
+      "flxrecebi",
+      "tpuninot",
+      "ano_nasc",
+      "nu_lote_i",
+      "dt_digita",
+      "migrado_w"
     ],
-    "status": "filters_only"
-  },
-  "ciencia_tecnologia_dgits_controle_demandas_conitec": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "filters_only"
-  },
-  "ciencia_tecnologia_dgits_controle_pcdt": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "filters_only"
-  },
-  "ciencia_tecnologia_dgits_tecnologias_diretrizes": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "filters_only"
-  },
-  "cih": {
     "filters": [
       "output_dir",
       "output_format",
       "start_year",
       "end_year",
-      "states"
+      "start_date",
+      "end_date",
+      "uf",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
     ],
-    "status": "ok",
-    "rows_sampled": 1480,
+    "rows_sampled": 20,
+    "status": "ok"
+  },
+  "ciencia_tecnologia_dgits_contribuicoes_consultas_publicas": {
+    "fields": [
+      "ano",
+      "numero_da_semana_epidemiologica_e_ano",
+      "nome_da_tecnologia",
+      "total",
+      "data_da_consulta"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "ciencia_tecnologia_dgits_controle_demandas_conitec": {
+    "fields": [
+      "origem",
+      "data_do_protocolo",
+      "tipo_de_tecnologia",
+      "tema_da_saude",
+      "nome_do_demandante"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "ciencia_tecnologia_dgits_controle_pcdt": {
+    "fields": [
+      "descricao_do_nome",
+      "status",
+      "descricao_do_tipo"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "ciencia_tecnologia_dgits_tecnologias_diretrizes": {
+    "fields": [
+      "quantidade",
+      "tecnologias_diretrizes_covid19",
+      "demandante",
+      "analise_inicial_conitec",
+      "relatorio_recomendacao_inicial",
+      "relatorios_sociedade",
+      "consulta_publica",
+      "contribuicões_experiencia_opiniao",
+      "contribuicões_tecnico_cientificas",
+      "analise_final_conitec",
+      "relatorio_recomendacao_final",
+      "decisao_ministerio_da_saude",
+      "decisao_ministerio_da_saude_relatorio",
+      "decisao_ministerio_da_saude_portarias",
+      "notas_tecnicas",
+      "despacho"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "cih": {
     "fields": [
       "ANO_CMPT",
       "MES_CMPT",
@@ -656,9 +857,7 @@
       "HOMONIMO",
       "CNES",
       "FONTE"
-    ]
-  },
-  "ciha": {
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -666,8 +865,10 @@
       "end_year",
       "states"
     ],
-    "status": "ok",
-    "rows_sampled": 3915,
+    "rows_sampled": 1480,
+    "status": "ok"
+  },
+  "ciha": {
     "fields": [
       "ANO_CMPT",
       "MES_CMPT",
@@ -699,19 +900,18 @@
       "FONTE",
       "CGC_CONSOR",
       "MODALIDADE"
-    ]
-  },
-  "cnes": {
+    ],
     "filters": [
       "output_dir",
       "output_format",
       "start_year",
       "end_year",
-      "groups",
       "states"
     ],
-    "status": "ok",
-    "rows_sampled": 17086,
+    "rows_sampled": 3915,
+    "status": "ok"
+  },
+  "cnes": {
     "fields": [
       "CNES",
       "CODUFMUN",
@@ -921,9 +1121,58 @@
       "DT_ATUAL",
       "COMPETEN",
       "NAT_JUR"
-    ]
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "groups",
+      "states"
+    ],
+    "rows_sampled": 17086,
+    "status": "ok"
   },
   "cnes_estabelecimentos": {
+    "fields": [
+      "codigo_cnes",
+      "numero_cnpj_entidade",
+      "nome_razao_social",
+      "nome_fantasia",
+      "natureza_organizacao_entidade",
+      "tipo_gestao",
+      "descricao_nivel_hierarquia",
+      "descricao_esfera_administrativa",
+      "codigo_tipo_unidade",
+      "codigo_cep_estabelecimento",
+      "endereco_estabelecimento",
+      "numero_estabelecimento",
+      "bairro_estabelecimento",
+      "numero_telefone_estabelecimento",
+      "latitude_estabelecimento_decimo_grau",
+      "longitude_estabelecimento_decimo_grau",
+      "endereco_email_estabelecimento",
+      "numero_cnpj",
+      "codigo_identificador_turno_atendimento",
+      "descricao_turno_atendimento",
+      "estabelecimento_faz_atendimento_ambulatorial_sus",
+      "codigo_estabelecimento_saude",
+      "codigo_uf",
+      "codigo_municipio",
+      "descricao_natureza_juridica_estabelecimento",
+      "codigo_motivo_desabilitacao_estabelecimento",
+      "estabelecimento_possui_centro_cirurgico",
+      "estabelecimento_possui_centro_obstetrico",
+      "estabelecimento_possui_centro_neonatal",
+      "estabelecimento_possui_atendimento_hospitalar",
+      "estabelecimento_possui_servico_apoio",
+      "estabelecimento_possui_atendimento_ambulatorial",
+      "codigo_atividade_ensino_unidade",
+      "codigo_natureza_organizacao_unidade",
+      "codigo_nivel_hierarquia_unidade",
+      "codigo_esfera_administrativa_unidade",
+      "data_atualizacao"
+    ],
     "filters": [
       "codigo_tipo_unidade",
       "codigo_uf",
@@ -939,9 +1188,49 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "cnes_estabelecimentos_{codigo_cnes}": {
+    "fields": [
+      "codigo_cnes",
+      "numero_cnpj_entidade",
+      "nome_razao_social",
+      "nome_fantasia",
+      "natureza_organizacao_entidade",
+      "tipo_gestao",
+      "descricao_nivel_hierarquia",
+      "descricao_esfera_administrativa",
+      "codigo_tipo_unidade",
+      "codigo_cep_estabelecimento",
+      "endereco_estabelecimento",
+      "numero_estabelecimento",
+      "bairro_estabelecimento",
+      "numero_telefone_estabelecimento",
+      "latitude_estabelecimento_decimo_grau",
+      "longitude_estabelecimento_decimo_grau",
+      "endereco_email_estabelecimento",
+      "numero_cnpj",
+      "codigo_identificador_turno_atendimento",
+      "descricao_turno_atendimento",
+      "estabelecimento_faz_atendimento_ambulatorial_sus",
+      "codigo_estabelecimento_saude",
+      "codigo_uf",
+      "codigo_municipio",
+      "descricao_natureza_juridica_estabelecimento",
+      "codigo_motivo_desabilitacao_estabelecimento",
+      "estabelecimento_possui_centro_cirurgico",
+      "estabelecimento_possui_centro_obstetrico",
+      "estabelecimento_possui_centro_neonatal",
+      "estabelecimento_possui_atendimento_hospitalar",
+      "estabelecimento_possui_servico_apoio",
+      "estabelecimento_possui_atendimento_ambulatorial",
+      "codigo_atividade_ensino_unidade",
+      "codigo_natureza_organizacao_unidade",
+      "codigo_nivel_hierarquia_unidade",
+      "codigo_esfera_administrativa_unidade",
+      "data_atualizacao"
+    ],
     "filters": [
       "codigo_cnes",
       "output_dir",
@@ -951,9 +1240,14 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 1,
+    "status": "ok"
   },
   "cnes_tipounidades": {
+    "fields": [
+      "codigo_tipo_unidade",
+      "descricao_tipo_unidade"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -962,9 +1256,14 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 39,
+    "status": "ok"
   },
   "cnes_tipounidades_{codigo_tipo_unidade}": {
+    "fields": [
+      "codigo_tipo_unidade",
+      "descricao_tipo_unidade"
+    ],
     "filters": [
       "codigo_tipo_unidade",
       "output_dir",
@@ -974,9 +1273,37 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 1,
+    "status": "ok"
   },
   "daf_estoque_medicamentos_bnafar_horus": {
+    "fields": [
+      "codigo_uf",
+      "codigo_municipio",
+      "codigo_cnes",
+      "data_posicao_estoque",
+      "codigo_catmat",
+      "quantidade_estoque",
+      "numero_lote",
+      "data_validade",
+      "tipo_produto",
+      "sigla_programa_saude",
+      "descricao_programa_saude",
+      "sigla_sistema_origem",
+      "descricao_produto",
+      "municipio",
+      "uf",
+      "razao_social",
+      "nome_fantasia",
+      "cep",
+      "logradouro",
+      "numero_endereco",
+      "bairro",
+      "telefone",
+      "latitude",
+      "longitude",
+      "email"
+    ],
     "filters": [
       "codigo_uf",
       "codigo_municipio",
@@ -994,25 +1321,226 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
-  "doses_aplicadas_pni": {
+  "dengue": {
+    "fields": [
+      "tp_not",
+      "id_agravo",
+      "dt_notific",
+      "sem_not",
+      "nu_ano",
+      "sg_uf_not",
+      "id_municip",
+      "id_regiona",
+      "id_unidade",
+      "dt_sin_pri",
+      "sem_pri",
+      "nu_idade_n",
+      "cs_sexo",
+      "cs_gestant",
+      "cs_raca",
+      "cs_escol_n",
+      "sg_uf",
+      "id_mn_resi",
+      "id_rg_resi",
+      "id_pais",
+      "nduplic_n",
+      "dt_digita",
+      "cs_flxret",
+      "flxrecebi",
+      "migrado_w",
+      "dt_invest",
+      "id_ocupa_n",
+      "dt_soro",
+      "resul_soro",
+      "histopa_n",
+      "dt_viral",
+      "resul_vi_n",
+      "sorotipo",
+      "imunoh_n",
+      "dt_pcr",
+      "resul_pcr_",
+      "classi_fin",
+      "criterio",
+      "tpautocto",
+      "coufinf",
+      "copaisinf",
+      "comuninf",
+      "doenca_tra",
+      "evolucao",
+      "dt_obito",
+      "dt_encerra",
+      "mani_hemor",
+      "epistaxe",
+      "gengivo",
+      "metro",
+      "petequias",
+      "hematura",
+      "sangram",
+      "laco_n",
+      "plasmatico",
+      "evidencia",
+      "plaq_menor",
+      "con_fhd",
+      "complica",
+      "hospitaliz",
+      "dt_interna",
+      "uf",
+      "municipio",
+      "arquivo",
+      "ano_nasc",
+      "febre",
+      "mialgia",
+      "cefaleia",
+      "exantema",
+      "vomito",
+      "nausea",
+      "dor_costas",
+      "conjuntvit",
+      "artrite",
+      "artralgia",
+      "petequia_n",
+      "leucopenia",
+      "laco",
+      "dor_retro",
+      "diabetes",
+      "hematolog",
+      "hepatopat",
+      "renal",
+      "hipertensa",
+      "acido_pept",
+      "auto_imune",
+      "dt_chik_s1",
+      "dt_chik_s2",
+      "dt_prnt",
+      "res_chiks1",
+      "res_chiks2",
+      "resul_prnt",
+      "dt_ns1",
+      "resul_ns1",
+      "clinc_chik",
+      "alrm_hipot",
+      "alrm_plaq",
+      "alrm_vom",
+      "alrm_sang",
+      "alrm_hemat",
+      "alrm_abdom",
+      "alrm_letar",
+      "alrm_hepat",
+      "alrm_liq",
+      "dt_alrm",
+      "grav_pulso",
+      "grav_conv",
+      "grav_ench",
+      "grav_insuf",
+      "grav_taqui",
+      "grav_extre",
+      "grav_hipot",
+      "grav_hemat",
+      "grav_melen",
+      "grav_metro",
+      "grav_sang",
+      "grav_ast",
+      "grav_mioc",
+      "grav_consc",
+      "grav_orgao",
+      "dt_grav",
+      "tp_sistema",
+      "acido_pept_c121",
+      "cs_escolar",
+      "nu_idade",
+      "id_dg_not",
+      "id_ev_not",
+      "ant_dt_inv",
+      "ocupacao",
+      "dengue",
+      "ano",
+      "vacinado",
+      "dt_dose",
+      "dt_febre",
+      "duracao",
+      "dor",
+      "prostacao",
+      "nauseas",
+      "diarreia",
+      "outros",
+      "sin_out",
+      "outros_m",
+      "outros_m_d",
+      "ascite",
+      "pleural",
+      "pericardi",
+      "abdominal",
+      "hepato",
+      "miocardi",
+      "hipotensao",
+      "choque",
+      "manifesta",
+      "insuficien",
+      "outro_s",
+      "outro_s_d",
+      "dt_choque",
+      "dt_col_hem",
+      "hema_maior",
+      "dt_col_plq",
+      "palq_maior",
+      "dt_col_he2",
+      "hema_menor",
+      "dt_col_pl2",
+      "dt_soro1",
+      "dt_soro2",
+      "dt_soror1",
+      "dt_soror2",
+      "s1_igm",
+      "s1_igg",
+      "s2_igm",
+      "s2_igg",
+      "s1_tit1",
+      "s2_tit1",
+      "material",
+      "soro1",
+      "soro2",
+      "tecidos",
+      "resul_vira",
+      "histopa",
+      "imunoh",
+      "amos_pcr",
+      "resul_pcr",
+      "amos_out",
+      "tecnica",
+      "resul_out",
+      "con_classi",
+      "con_criter",
+      "con_inf_mu",
+      "con_inf_uf",
+      "con_inf_pa",
+      "con_doenca",
+      "con_evoluc",
+      "con_dt_obi",
+      "con_dt_enc",
+      "in_vincula",
+      "nduplic",
+      "in_aids"
+    ],
     "filters": [
       "output_dir",
       "output_format",
       "start_year",
       "end_year",
-      "uf",
       "start_date",
       "end_date",
+      "uf",
       "keep_raw",
       "batch_size",
       "max_pages",
-      "resource_id",
       "api_base_url"
     ],
-    "status": "ok",
-    "rows_sampled": 1000,
+    "rows_sampled": 20,
+    "status": "ok"
+  },
+  "doses_aplicadas_pni": {
     "fields": [
       "codigo_vacina_categoria_atendimento",
       "codigo_etnia_indigena_paciente",
@@ -1048,7 +1576,23 @@
       "nome_fantasia_estalecimento",
       "descricao_vacina_grupo_atendimento",
       "pais_paciente"
-    ]
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "uf",
+      "start_date",
+      "end_date",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "resource_id",
+      "api_base_url"
+    ],
+    "rows_sampled": 1000,
+    "status": "ok"
   },
   "economia_da_saude_bps": {
     "filters": [
@@ -1059,9 +1603,21 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "note": "OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {\"message\": \"Ao menos um dos par\\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado.\"} Hint: Check request parameters and endpoint compatibi",
+    "status": "error"
   },
   "economia_da_saude_sistema_de_apuracao_e_gestao_de_custos_do_sus_apurasus": {
+    "fields": [
+      "nome_fantasia_da_unidade",
+      "unidade_da_federacao",
+      "codigo_ibge",
+      "bairro",
+      "cnes",
+      "latitude",
+      "uf",
+      "municipio",
+      "longitude"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1070,9 +1626,17 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "educacao_em_saude_pvc": {
+    "fields": [
+      "co_uf",
+      "nu_ano",
+      "nu_mes",
+      "nu_beneficiario",
+      "vl_total"
+    ],
     "filters": [
       "co_uf",
       "nu_ano",
@@ -1084,24 +1648,10 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "esavi": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "start_date",
-      "end_date",
-      "uf",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "ok",
-    "rows_sampled": 1000,
     "fields": [
       "descricao_tipo_encerramento",
       "descricao_estrangeiro",
@@ -1176,9 +1726,128 @@
       "descricao_tipo_atendimento",
       "descricao_gravidade_ea",
       "descricao_conduta"
-    ]
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "start_date",
+      "end_date",
+      "uf",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 1000,
+    "status": "ok"
+  },
+  "febre_amarela": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "start_date",
+      "end_date",
+      "uf",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.",
+    "status": "empty"
+  },
+  "ibge_pib_municipios": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 1,
+    "status": "ok"
+  },
+  "ibge_populacao": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 1,
+    "status": "ok"
+  },
+  "ibge_populacao_idade_sexo": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "sexo",
+      "idade",
+      "forma_de_declaracao_da_idade",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "sexo",
+      "faixa_etaria",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 42,
+    "status": "ok"
   },
   "macrorregiao_e_regiao_de_saude_municipio": {
+    "fields": [
+      "codigo_regiao_pais",
+      "regiao_pais",
+      "codigo_uf",
+      "uf",
+      "codigo_macrorregiao_saude",
+      "macrorregiao_saude",
+      "codigo_regiao_saude",
+      "regiao_saude",
+      "codigo_municipio",
+      "municipio",
+      "populacao_estimada_ibge_2022"
+    ],
     "filters": [
       "codigo_municipio",
       "municipio",
@@ -1194,7 +1863,8 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "mpox": {
     "filters": [
@@ -1210,82 +1880,8 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "error",
-    "note": "OpenDataSUS DEMAS request failed for dataset 'mpox' at endpoint '/vigilancia-e-meio-ambiente/mpox' page 1. OpenDataSUS request failed (500): {\"message\": \"Internal Server Error\"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable."
-  },
-  "ibge_populacao": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "level",
-      "keep_raw",
-      "timeout",
-      "api_base_url"
-    ],
-    "status": "ok",
-    "rows_sampled": 1,
-    "fields": [
-      "nivel",
-      "localidade_id",
-      "localidade_nome",
-      "ano",
-      "variavel_id",
-      "unidade",
-      "valor"
-    ]
-  },
-  "ibge_pib_municipios": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "level",
-      "keep_raw",
-      "timeout",
-      "api_base_url"
-    ],
-    "status": "ok",
-    "rows_sampled": 1,
-    "fields": [
-      "nivel",
-      "localidade_id",
-      "localidade_nome",
-      "ano",
-      "variavel_id",
-      "unidade",
-      "valor"
-    ]
-  },
-  "ibge_populacao_idade_sexo": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "level",
-      "sexo",
-      "faixa_etaria",
-      "keep_raw",
-      "timeout",
-      "api_base_url"
-    ],
-    "status": "ok",
-    "rows_sampled": 42,
-    "fields": [
-      "nivel",
-      "localidade_id",
-      "localidade_nome",
-      "ano",
-      "sexo",
-      "idade",
-      "forma_de_declaracao_da_idade",
-      "variavel_id",
-      "unidade",
-      "valor"
-    ]
+    "note": "OpenDataSUS DEMAS request failed for dataset 'mpox' at endpoint '/vigilancia-e-meio-ambiente/mpox' page 1. OpenDataSUS request failed (500): {\"message\": \"Internal Server Error\"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.",
+    "status": "error"
   },
   "nasa_firms": {
     "filters": [
@@ -1300,8 +1896,8 @@
       "timeout",
       "api_base_url"
     ],
-    "status": "needs_credential",
-    "note": "NASA FIRMS requires a MAP_KEY. Set the environment variable GUARACI_FIRMS_MAP_KEY (free key from https://firms.modaps.eosdis.nasa.gov/api/map_key/)."
+    "note": "NASA FIRMS requires a MAP_KEY. Set the environment variable GUARACI_FIRMS_MAP_KEY (free key from https://firms.modaps.eosdis.nasa.gov/api/map_key/).",
+    "status": "needs_credential"
   },
   "nasa_gpm": {
     "filters": [
@@ -1317,26 +1913,10 @@
       "timeout",
       "api_base_url"
     ],
-    "status": "needs_credential",
-    "note": "NASA GPM (GES DISC) requires an Earthdata Login token. Set the environment variable GUARACI_EARTHDATA_TOKEN (generate at https://urs.earthdata.nasa.gov, and authorize the 'NASA GESDISC DATA ARCHIVE' application)."
+    "note": "NASA GPM (GES DISC) requires an Earthdata Login token. Set the environment variable GUARACI_EARTHDATA_TOKEN (generate at https://urs.earthdata.nasa.gov, and authorize the 'NASA GESDISC DATA ARCHIVE' application).",
+    "status": "needs_credential"
   },
   "nasa_power": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "latitude",
-      "longitude",
-      "start_date",
-      "end_date",
-      "parameters",
-      "temporal",
-      "community",
-      "keep_raw",
-      "timeout",
-      "api_base_url"
-    ],
-    "status": "ok",
-    "rows_sampled": 7,
     "fields": [
       "period",
       "date",
@@ -1351,9 +1931,30 @@
       "T2M_MIN",
       "PRECTOTCORR",
       "RH2M"
-    ]
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "latitude",
+      "longitude",
+      "start_date",
+      "end_date",
+      "parameters",
+      "temporal",
+      "community",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 7,
+    "status": "ok"
   },
   "outros_temas_ced": {
+    "fields": [
+      "nome_sistema",
+      "gestor",
+      "sigla_sistema"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1362,17 +1963,10 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "painel_oncologia": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year"
-    ],
-    "status": "ok",
-    "rows_sampled": 679417,
     "fields": [
       "ANO_DIAGN",
       "ANOMES_DIA",
@@ -1397,9 +1991,55 @@
       "DT_DIAG",
       "DT_TRAT",
       "DT_NASC"
-    ]
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year"
+    ],
+    "rows_sampled": 679417,
+    "status": "ok"
   },
   "pce": {
+    "fields": [
+      "ID_UF",
+      "SG_UF",
+      "ID_DISTR",
+      "ID_LOC",
+      "DT_COMP",
+      "QT_POP",
+      "QT_PRED",
+      "QT_EXAM",
+      "QT_NRECOL",
+      "QT_1A4",
+      "QT_5A16",
+      "QT_17",
+      "QT_POS",
+      "QT_ATRAT",
+      "QT_TRAT",
+      "QT_CI",
+      "QT_REC",
+      "QT_AUS",
+      "QT_ASC",
+      "QT_ANC",
+      "QT_TAE",
+      "QT_TT",
+      "QT_EV",
+      "QT_SE",
+      "QT_HN",
+      "QT_OUT",
+      "QT_CAP",
+      "QT_PESQ",
+      "QT_BGLA",
+      "QT_BSTR",
+      "QT_BTEN",
+      "QT_OUT1",
+      "QT_POSBGLA",
+      "QT_POSBTEN",
+      "QT_POSBSTR",
+      "QT_POSOUT"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1407,10 +2047,25 @@
       "end_year",
       "states"
     ],
-    "status": "empty",
-    "note": null
+    "rows_sampled": 716,
+    "status": "ok"
   },
   "plataformabr_projetos": {
+    "fields": [
+      "numero_caae",
+      "titulo_projeto_pesquisa",
+      "nome_comite_etica_pesquisa",
+      "municipio_comite_etica_pesquisa",
+      "uf_comite_etica_pesquisa",
+      "data_submissao_projeto_pesquisa",
+      "numero_parecer ",
+      "data_submissao_ultima_versao_projeto_pesquisa",
+      "data_emissao_parecer",
+      "situacao_parecer",
+      "instituicao_proponente",
+      "municipio_instituicao_proponente",
+      "uf_instituicao_proponente"
+    ],
     "filters": [
       "uf_comite_etica_pesquisa",
       "codigo_situacao_parecer",
@@ -1422,7 +2077,8 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "plataformabr_projetos_{numero_caae}": {
     "filters": [
@@ -1437,6 +2093,17 @@
     "status": "filters_only"
   },
   "pni": {
+    "fields": [
+      "ANO",
+      "UF",
+      "MUNIC",
+      "FX_ETARIA",
+      "IMUNO",
+      "DOSE",
+      "QT_DOSE",
+      "POP",
+      "COBERT"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1445,8 +2112,8 @@
       "groups",
       "states"
     ],
-    "status": "empty",
-    "note": null
+    "rows_sampled": 8485,
+    "status": "ok"
   },
   "prevencao_e_promocao_distribuicao_epi_insumo": {
     "filters": [
@@ -1457,18 +2124,10 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "note": "OpenDataSUS DEMAS request failed for dataset 'prevencao-e-promocao/distribuicao_epi_insumo' at endpoint '/prevencao-e-promocao/distribuicao_epi_insumo' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was no",
+    "status": "error"
   },
   "resp": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "states"
-    ],
-    "status": "ok",
-    "rows_sampled": 48,
     "fields": [
       "CO_SEQ",
       "DT_NOTIFIC",
@@ -1548,7 +2207,16 @@
       "CRITERIO",
       "STATUS_NOT",
       "DT_ULT_ALT"
-    ]
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "states"
+    ],
+    "rows_sampled": 48,
+    "status": "ok"
   },
   "saude_indigena_acompanhamento_obra_infraestrutura_saude": {
     "filters": [
@@ -1559,9 +2227,17 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.",
+    "status": "empty"
   },
   "saude_indigena_indicadores_enfrentamento_monitoramento_covid19_indigenas": {
+    "fields": [
+      "dsei",
+      "quantidade",
+      "tipo_de_vinculo",
+      "atuacao",
+      "categoria_profissional"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1570,9 +2246,34 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_planilha_de_fornecimento_e_monitoramento_da_qualidade_da_agua_acesso_a_agua": {
+    "fields": [
+      "populacao_total",
+      "_de_aldeias_monitoradas_em_relacao_ao_total",
+      "sem_info_pop",
+      "_aldeia_sem_fornecimento",
+      "pop_total_com_infraestrutura_de_abastecimento",
+      "n_aldeias_pmqai",
+      "requer_substituicao_pop",
+      "_aldeias_com_infraestrutura",
+      "numero_de_aldeias",
+      "satisfatorio_pop",
+      "soma_de_infraestrutura_saasac",
+      "satisfatorio__aldeia",
+      "dsei",
+      "_aldeia_abastecimento_caminhao_pipa",
+      "pop_total_abastecimento_por_caminhao_pipa",
+      "_de_aldeias_monitoradas_em_relacao_ao_pmqai_planejado",
+      "requer_manutencao_pop",
+      "media_do_numero_de_aldeias_monitoradas_no_mes_com_analise_dos_6",
+      "pop_sem_fornecimento",
+      "requer_manutencao__aldeia",
+      "requer_substituicao__aldeia",
+      "sem_info__aldeia"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1581,9 +2282,22 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_planilha_registros_habilitacao_recebimento_incentivo": {
+    "fields": [
+      "municipio",
+      "estado",
+      "cnes",
+      "situacao",
+      "tipo_estabelecimento",
+      "regiao",
+      "dsei",
+      "nome_do_estabelecimento",
+      "mesano_publicacao",
+      "portaria"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1592,9 +2306,34 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_sasi_sus_gerenciamento_de_residuos_solidos": {
+    "fields": [
+      "coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_o_dsei_e_o_principal_responsavel",
+      "coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_nao_ha_informacao_sobre_os_responsaveis",
+      "coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_os_catadores_sao_os_principais_responsaveis",
+      "coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_a_prefeitura_e_a_principal_responsavel",
+      "coleta_e_destinacao_de_residuos_solidos_percentual_de_aldeias_onde_a_propria_aldeia_e_a_principal_responsavel",
+      "destinacao_dos_residuos_organicos_percentual_de_aldeias_que_destinam_os_residuos_organicos_junto_com_os_residuos_comuns",
+      "destinacao_dos_residuos_organicos_percentual_de_aldeias_que_destinam_os_residuos_organicos_no_lixao_da_aldeia",
+      "destinacao_dos_residuos_organicos_percentual_de_aldeias_que_destinam_os_residuos_organicos_na_mata_longe_das_aldeias",
+      "destinacao_dos_residuos_organicos_percentual_de_aldeias_que_utilizam_os_residuos_organicos_para_alimentacao_de_animais",
+      "destinacao_dos_residuos_organicos_percentual_de_aldeias_que_utilizam_os_residuos_organicos_para_compostagem",
+      "destinacao_dos_residuos_organicos_percentual_de_aldeias_sem_informacao_sobre_a_destinacao_dos_residuos_organicos",
+      "distrito_sanitario_especial_indigena_dsei",
+      "logistica_reversa_percentual_de_aldeias_que_realizam_logistica_reserva",
+      "possui_coleta_seletiva_implantada_percentual_de_aldeias_que_nao_possuem_coleta_seletiva",
+      "possui_coleta_seletiva_implantada_percentual_de_aldeias_que_possuem_coleta_seletiva",
+      "possui_coleta_seletiva_implantada_percentual_de_aldeias_sem_informacao_sobre_coleta_seletiva",
+      "possui_vala_construida_pela_comunidade_percentual_de_aldeias_com_presenca_de_valas_construidas_pela_comunidade",
+      "possui_vala_construida_pela_comunidade_percentual_de_aldeias_que_nao_possuem_valas_construidas_pela_comunidade",
+      "possui_vala_construida_pela_comunidade_percentual_de_aldeias_sem_informacoes_sobre_valas_construidas_pela_comunidade",
+      "pratica_de_queima_de_residuos_pela_comunidade_percentual_de_aldeias_que_possuem_a_pratica_de_queima_dos_residuos",
+      "pratica_de_queima_de_residuos_pela_comunidade_percentual_de_aldeias_que_nao_possuem_a_pratica_de_queima_dos_residuos",
+      "pratica_de_queima_de_residuos_pela_comunidade_percentual_de_aldeias_sem_informacao_sobre_a_pratica_de_queima_dos_residuos"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1603,9 +2342,35 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_sasisus_esgotamento_sanitario": {
+    "fields": [
+      "exist_estrut_perc_ald_sem_estrutura",
+      "est_conserv_estrut_perc_ald_estrut_exist_regular",
+      "tipo_trat_esgoto_perc_ald_tratamento_por_fossa_filtro_sumidouro",
+      "est_conserv_estrut_perc_ald_estrut_exist_requer_interd_subst",
+      "tipo_trat_esgoto_perc_ald_destinacao_nos_corpos_hidricos",
+      "tipo_trat_esgoto_perc_ald_sem_informacao",
+      "exist_estrut_perc_ald_melhorias_sanits_domic_mds_indiv_coletiv",
+      "exist_estrut_perc_ald_coleta_pela_rede_publica",
+      "est_conserv_estrut_perc_ald_onde_nao_existe_estrut_tratamento",
+      "est_conserv_estrut_perc_ald_estrut_exist_satisfatoria",
+      "exist_estrut_perc_ald_coleta_pela_rede_sesai",
+      "exist_estrut_perc_ald_sem_informacao",
+      "tipo_trat_esgoto_perc_ald_tratamento_por_fossa_seca",
+      "est_conserv_estrut_perc_ald_sem_informacao_sobre_a_estrutura",
+      "est_conserv_estrut_perc_ald_estrut_exist_insatisfatoria",
+      "est_conserv_estrut_perc_ald_estrut_exist_requer_manutencao",
+      "distrito_sanitario_especial_indigena",
+      "tipo_trat_esgoto_perc_ald_tratamento_por_fossa_rudimentar",
+      "tipo_trat_esgoto_perc_ald_tratamento_por_fossa_sumidouro",
+      "tipo_trat_esgoto_perc_ald_sem_tratamento",
+      "tipo_trat_esgoto_perc_ald_atendidas_por_concessionaria",
+      "exist_estrut_perc_ald_casinha_latrina",
+      "exist_estrut_perc_ald_banheiro_particular"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1614,9 +2379,35 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_siasi_acompanhamento_gestacional": {
+    "fields": [
+      "gestao_do_dsei",
+      "codigo_da_gestao_do_dsei",
+      "codigo_do_polo_base",
+      "descricao_do_polo_base",
+      "codigo_da_terra_indigena",
+      "nome_da_terra_indigena",
+      "codigo_do_ibge",
+      "nome_do_municipio",
+      "sigla_da_uf",
+      "data_de_nascimento",
+      "tipo_sexo",
+      "codigo_da_localidade",
+      "data_da_ultima_menstruacao",
+      "data_da_finalizacao",
+      "data_do_acompanhamento",
+      "status_risco_gestacional",
+      "tipo_do_local_de_atendimento",
+      "codigo_do_profissional",
+      "codigo_cbo_da_familia",
+      "descricao_do_cbo_da_familia",
+      "codigo_cbo_da_ocupacao",
+      "descricao_do_cbo_da_ocupacao",
+      "status_do_motivo_da_finalizacao"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1625,9 +2416,36 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_siasi_modulo_morbidades": {
+    "fields": [
+      "gestao_do_dsei",
+      "codigo_da_gestao_do_dsei",
+      "codigo_do_polo_base",
+      "descricao_do_polo_base",
+      "codigo_da_terra_indigena",
+      "nome_da_terra_indigena",
+      "codigo_do_ibge",
+      "nome_do_municipio",
+      "sigla_da_uf",
+      "data_de_nascimento",
+      "tipo_sexo",
+      "codigo_da_localidade",
+      "codigo_do_cid10",
+      "nome_da_categoria_e_subcategoria",
+      "codigo_da_categoria_pai",
+      "data_de_atendimento",
+      "mes_de_atendimento",
+      "ano_de_atendimento",
+      "idade_no_atendimento_em_dias",
+      "faixa_etaria_no_atendimento",
+      "codigo_cbo_da_ocupacao",
+      "descricao_do_cbo_da_ocupacao",
+      "codigo_da_familia_cbo",
+      "descricao_do_cbo_da_familia"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1636,9 +2454,31 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_siasi_modulo_saude_bucal_ficha3": {
+    "fields": [
+      "dsei_gestao",
+      "co_dsei_gestao",
+      "co_polo_base",
+      "polo_base",
+      "co_aldeia",
+      "aldeia",
+      "co_terra_indigena",
+      "no_municipio",
+      "sg_uf",
+      "nu_ano",
+      "educ_prof_medio_comunidade",
+      "educ_prof_medio_estab",
+      "educ_prof_superior_comunidade",
+      "educ_prof_superior_estab",
+      "educ_escovacao_dental_superv",
+      "aplicacao_topica_fluor",
+      "escova_dental_distribuida",
+      "creme_dental_distribuido",
+      "fio_dental_distribuido"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1647,9 +2487,42 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_siasi_modulo_saude_bucal_ficha4": {
+    "fields": [
+      "gestao_do_dsei",
+      "codigo_da_gestao_do_dsei",
+      "codigo_do_polo_base",
+      "descricao_do_polo_base",
+      "codigo_do_ibge",
+      "nome_do_municipio",
+      "sigla_da_uf",
+      "tipo_sexo",
+      "codigo_da_terra_indigena",
+      "nome_da_terra_indigena",
+      "codigo_da_localidade",
+      "data_da_consulta",
+      "codigo_do_profissional",
+      "codigo_cbo_da_familia",
+      "descricao_do_cbo_da_familia",
+      "codigo_cbo_da_ocupacao",
+      "descricao_do_cbo_da_ocupacao",
+      "codigo_do_tipo_protese_necess_sup",
+      "necessidade_sup",
+      "codigo_tipo_protese_uso_sup",
+      "uso_sup",
+      "codigo_do_tipo_protese_necess_inf",
+      "necess_inf",
+      "codigo_do_tipo_protese_uso_inf",
+      "uso_inf",
+      "codigo_tipo_fluorose",
+      "descricao_tipo_fluorose",
+      "status_ma_formacao",
+      "data_de_nascimento",
+      "idade_na_consulta"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1658,9 +2531,58 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_siasi_modulo_saude_bucal_ficha7": {
+    "fields": [
+      "gestao_do_dsei",
+      "codigo_da_gestao_do_dsei",
+      "nome_do_municipio",
+      "sigla_da_uf",
+      "nome_da_terra_indigena",
+      "codigo_do_polo_base",
+      "descricao_do_polo_base",
+      "codigo_da_aldeia",
+      "descricao_da_aldeia",
+      "codigo_da_terra_indigena",
+      "codigo_do_ibge",
+      "numero_do_mes",
+      "numero_do_ano",
+      "consulta_odontologica_programada",
+      "consultas_atendidas_por_agendamento",
+      "demanda_espontanea",
+      "aplicacao_terapeutica_de_fluor",
+      "aplicacao_cariostatico",
+      "aplicacao_selante",
+      "evidencia_placa_bacteriana",
+      "rap_supragengival",
+      "rap_suibgengival",
+      "protese_complemento_dentino",
+      "tratamento_restauracao_atraumatico",
+      "restauracao_ionomero_de_vidro",
+      "restauracao_de_resiona",
+      "restrauracao_amalgama",
+      "outra_restauracao",
+      "pulpotomia",
+      "exodontia_decidup",
+      "exodontia_permanente",
+      "outro_procedimento_cirurgico",
+      "sutura",
+      "tratamento_alveolite",
+      "outro_procedimento_urgencia",
+      "endodontia",
+      "periodontia",
+      "protese",
+      "cirurgia_buco_maxilo_facial",
+      "ortodontia",
+      "radiologia",
+      "analgesico",
+      "anti-inflamatorio",
+      "antibiotico",
+      "outra_prescricao",
+      "tatramento_odontologico_basico"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1669,9 +2591,37 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "saude_indigena_sistema_de_atencao_a_saude_indigena_modulo_de_vigilancia_alimentar_e_nutricional": {
+    "fields": [
+      "gestao_do_dsei",
+      "descricao_do_polo_base",
+      "nome_da_terra_indigena",
+      "codigo_do_ibge",
+      "nome_do_municipio",
+      "sigla_da_uf",
+      "data_de_nascimento",
+      "tipo_sexo",
+      "data_de_atendimento",
+      "mes_de_atendimento",
+      "ano_de_atendimento",
+      "idade_em_meses_no_atendimento",
+      "numero_do_peso",
+      "numero_da_altura",
+      "idade_no_atendimento",
+      "descricao_do_tipo_de_acompanhamento_nutricional",
+      "tipo_de_aleitamento",
+      "descricao_peso_idade",
+      "descricao_estatura_idade",
+      "descricao_imc_idade",
+      "codigo_do_profissional",
+      "codigo_cbo_da_familia",
+      "descricao_do_cbo_da_familia",
+      "codigo_cbo_da_ocupacao",
+      "descricao_do_cbo_da_ocupacao"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1680,19 +2630,10 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sia": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "groups",
-      "states"
-    ],
-    "status": "ok",
-    "rows_sampled": 1180837,
     "fields": [
       "PA_CODUNI",
       "PA_GESTAO",
@@ -1754,23 +2695,19 @@
       "PA_SRV_C",
       "PA_INE",
       "PA_NAT_JUR"
-    ]
-  },
-  "sih": {
+    ],
     "filters": [
       "output_dir",
       "output_format",
       "start_year",
       "end_year",
       "groups",
-      "states",
-      "months",
-      "uf",
-      "municipio",
-      "sexo"
+      "states"
     ],
-    "status": "ok",
-    "rows_sampled": 4315,
+    "rows_sampled": 1180837,
+    "status": "ok"
+  },
+  "sih": {
     "fields": [
       "UF_ZI",
       "ANO_CMPT",
@@ -1885,9 +2822,7 @@
       "TPDISEC7",
       "TPDISEC8",
       "TPDISEC9"
-    ]
-  },
-  "sim": {
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -1895,14 +2830,15 @@
       "end_year",
       "groups",
       "states",
+      "months",
       "uf",
       "municipio",
-      "sexo",
-      "causa_basica",
-      "ano_obito"
+      "sexo"
     ],
-    "status": "ok",
-    "rows_sampled": 5496,
+    "rows_sampled": 4315,
+    "status": "ok"
+  },
+  "sim": {
     "fields": [
       "ORIGEM",
       "TIPOBITO",
@@ -1991,24 +2927,24 @@
       "FONTESINF",
       "ALTCAUSA",
       "CONTADOR"
-    ]
-  },
-  "sinan": {
+    ],
     "filters": [
       "output_dir",
       "output_format",
       "start_year",
       "end_year",
-      "diseases",
+      "groups",
+      "states",
       "uf",
       "municipio",
       "sexo",
-      "faixa_etaria",
-      "evolucao",
-      "classificacao"
+      "causa_basica",
+      "ano_obito"
     ],
-    "status": "ok",
-    "rows_sampled": 1405095,
+    "rows_sampled": 5496,
+    "status": "ok"
+  },
+  "sinan": {
     "fields": [
       "TP_NOT",
       "ID_AGRAVO",
@@ -2131,18 +3067,24 @@
       "CS_FLXRET",
       "FLXRECEBI",
       "MIGRADO_W"
-    ]
-  },
-  "sinasc": {
+    ],
     "filters": [
       "output_dir",
       "output_format",
       "start_year",
       "end_year",
-      "states"
+      "diseases",
+      "uf",
+      "municipio",
+      "sexo",
+      "faixa_etaria",
+      "evolucao",
+      "classificacao"
     ],
-    "status": "ok",
-    "rows_sampled": 15699,
+    "rows_sampled": 1405095,
+    "status": "ok"
+  },
+  "sinasc": {
     "fields": [
       "ORIGEM",
       "CODESTAB",
@@ -2205,7 +3147,98 @@
       "PARIDADE",
       "KOTELCHUCK",
       "CONTADOR"
-    ]
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "states"
+    ],
+    "rows_sampled": 15699,
+    "status": "ok"
+  },
+  "sindrome_gripal_leve": {
+    "fields": [
+      "excluido",
+      "codigo_estado_teste_4",
+      "outro_busca_ativa_assintomatico",
+      "evolucao_caso",
+      "lote_segunda_dose",
+      "codigo_busca_ativa_assintomatico",
+      "codigo_tipo_teste_3",
+      "estado_notificacao",
+      "codigo_laboratorio_segunda_dose",
+      "lote_primeira_dose",
+      "raca_cor",
+      "codigo_doses_vacina",
+      "data_notificacao",
+      "condicoes",
+      "data_segunda_dose",
+      "profissional_saude",
+      "outro_triagem_populacao_especifica",
+      "idade",
+      "classificacao_final",
+      "codigo_fabricante_teste_4",
+      "codigo_local_realizacao_testagem",
+      "data_encerramento",
+      "sexo",
+      "codigo_recebeu_vacina",
+      "sintomas",
+      "total_testes_realizados",
+      "codigo_estado_teste_1",
+      "outros_sintomas",
+      "codigofabricanteteste1",
+      "codigo_tipo_teste_2",
+      "data_coleta_teste_1",
+      "data_coleta_teste_2",
+      "codigo_fabricante_teste_2",
+      "profissional_seguranca",
+      "cbo",
+      "validado",
+      "municipio",
+      "codigo_resultado_teste_3",
+      "estado",
+      "data_coleta_teste_3",
+      "estado_notificacao_ibge",
+      "municipio_ibge",
+      "codigo_resultado_teste_1",
+      "codigo_resultado_teste_2",
+      "outras_condicoes",
+      "data_primeira_dose",
+      "outro_local_realizacao_testagem",
+      "codigo_laboratorio_primeira_dose",
+      "codigo_estado_teste_2",
+      "codigo_contem_comunidade_tradicional",
+      "codigo_fabricante_teste_3",
+      "codigo_tipo_teste_1",
+      "municipio_notificacao",
+      "codigo_resultado_teste_4",
+      "codigo_estado_teste_3",
+      "data_coleta_teste_4",
+      "estado_ibge",
+      "origem",
+      "data_inicio_sintomas",
+      "codigo_tipo_teste_4",
+      "municipio_notificacao_ibge",
+      "codigo_estrategia_covid",
+      "codigo_triagem_populacao_especifica"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "start_date",
+      "end_date",
+      "uf",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 1000,
+    "status": "ok"
   },
   "sinisa": {
     "filters": [
@@ -2217,9 +3250,35 @@
       "overwrite",
       "timeout"
     ],
-    "status": "filters_only"
+    "note": "expected name token at '<![:e\\x90\\x02ª/Ü4æ\\x03\\x17G\\x92ý\\x83\\x0b¦'",
+    "status": "error"
   },
   "sisagua_cadastro_carro_pipa_populacao": {
+    "fields": [
+      "tipo_de_responsavel",
+      "numero_da_autorizacao",
+      "nome_da_instituicao",
+      "codigo_do_carro_pipa",
+      "regiao_geografica",
+      "data_inicio_de_autorizacao",
+      "placa",
+      "finalidade",
+      "nome_do_responsavel_pelo_carro_pipa",
+      "municipio",
+      "cnpj_do_escritorio_regionallocal",
+      "tipo_da_instituicao",
+      "sigla_da_instituicao",
+      "regional_de_saude",
+      "codigo_ibge",
+      "data_de_preenchimento",
+      "nome_do_escritorio_regionallocal",
+      "data_fim_da_autorizacao",
+      "responsavel_pelas_informacoes",
+      "uf",
+      "n_de_pessoas_abastecidas_estimativa",
+      "data_de_criacao",
+      "cnpj_da_instituicao"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2228,9 +3287,25 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_cadastro_carro_pipa_procedencia": {
+    "fields": [
+      "c011",
+      "c006",
+      "c009",
+      "c004",
+      "c003",
+      "c007",
+      "c005",
+      "c010",
+      "c000",
+      "c008",
+      "c012",
+      "c001",
+      "c002"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2239,9 +3314,43 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_controle_mensal_amostras_fora_do_padrao": {
+    "fields": [
+      "regiao_geografica",
+      "sigla_da_instituicao",
+      "data_de_preenchimento_do_relatorio_mensal",
+      "tipo_da_instituicao",
+      "latitude",
+      "codigo_forma_de_abastecimento",
+      "zona",
+      "parametro",
+      "cnpj_da_instituicao",
+      "nome_do_escritorio_regionallocal",
+      "ponto_de_monitoramento",
+      "area",
+      "providencia_do_controle",
+      "data_de_registro",
+      "nome_da_forma_de_abastecimento",
+      "categoria_area",
+      "resultado",
+      "local",
+      "regional_de_saude",
+      "mes_de_referencia",
+      "endereco",
+      "municipio",
+      "ano_de_referencia",
+      "nome_da_instituicao",
+      "longitude",
+      "data_da_coleta",
+      "cnpj_do_escritorio_regionallocal",
+      "codigo_ibge",
+      "tipo_da_forma_de_abastecimento",
+      "uf",
+      "tipo_do_local"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2250,9 +3359,40 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_controle_mensal_demais_parametros": {
+    "fields": [
+      "tipo_da_forma_de_abastecimento",
+      "nome_da_forma_de_abastecimento",
+      "sigla_da_instituicao",
+      "regional_de_saude",
+      "regiao_geografica",
+      "unidade",
+      "data_da_coleta",
+      "nome_do_escritorio_regionallocal",
+      "nome_da_instituicao",
+      "data_de_registro",
+      "parametro",
+      "ano_de_referencia",
+      "codigo_forma_de_abastecimento",
+      "nome_do_manancial_superficial",
+      "tipo_de_captacao",
+      "data_de_preenchimento_do_relatorio_mensal",
+      "municipio",
+      "cnpj_da_instituicao",
+      "cnpj_do_escritorio_regionallocal",
+      "resultado",
+      "mes_de_referencia",
+      "tipo_da_instituicao",
+      "nome_do_ponto_de_captacao_subterranea",
+      "nome_da_eta__uta",
+      "categoria_do_manancial_superficial",
+      "uf",
+      "codigo_ibge",
+      "categoria_do_ponto_de_captacao_subterranea"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2261,9 +3401,40 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_controle_mensal_infraestrutura_operacional": {
+    "fields": [
+      "local",
+      "numero_de_eventos_de_falta_de_agua",
+      "cnpj_do_escritorio_regionallocal",
+      "area",
+      "nome_da_forma_de_abastecimento",
+      "tipo_da_forma_de_abastecimento",
+      "data_de_preenchimento_do_relatorio_mensal",
+      "numero_de_reclamacoes_de_cor_da_agua",
+      "mes_de_referencia",
+      "nome_do_escritorio_regionallocal",
+      "numero_de_reclamacao_de_gosto_e_ou_odor",
+      "ano_de_referencia",
+      "regiao_geografica",
+      "numero_de_reparos_na_rede_somente_para_saa",
+      "tipo_da_instituicao",
+      "tipo_do_local",
+      "categoria_area",
+      "zona",
+      "cnpj_da_instituicao",
+      "codigo_ibge",
+      "codigo_forma_de_abastecimento",
+      "sigla_da_instituicao",
+      "numero_de_eventos_de_intermitencia_somente_para_saa",
+      "nome_da_instituicao",
+      "regional_de_saude",
+      "uf",
+      "data_de_registro",
+      "municipio"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2272,9 +3443,34 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_controle_mensal_parametros_basicos": {
+    "fields": [
+      "regiao_geografica",
+      "uf",
+      "regional_de_saude",
+      "codigo_ibge",
+      "municipio",
+      "tipo_da_instituicao",
+      "sigla_da_instituicao",
+      "nome_da_instituicao",
+      "cnpj_da_instituicao",
+      "nome_do_escritorio_regional_local",
+      "cnpj_do_escritorio_regional_local",
+      "tipo_da_forma_de_abastecimento",
+      "codigo_forma_de_abastecimento",
+      "nome_da_forma_de_abastecimento",
+      "nome_da_eta_uta",
+      "tipo_de_filtracao",
+      "ano_de_referencia",
+      "mes_de_referencia",
+      "ponto_de_monitoramento",
+      "parametro",
+      "campo",
+      "valor"
+    ],
     "filters": [
       "uf",
       "codigo_ibge",
@@ -2292,9 +3488,42 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_controle_mensal_plano_amostragem": {
+    "fields": [
+      "data_de_registro_no_sisagua",
+      "regiao_geografica",
+      "captacao_superficial",
+      "ano_de_referencia",
+      "cnpj_da_instituicao",
+      "razao_habitantesdomicilio",
+      "tipo_da_forma_de_abastecimento",
+      "uf",
+      "municipio",
+      "campo",
+      "nome_do_escritorio_regionallocal",
+      "codigo_ibge",
+      "parameto",
+      "captacao_de_agua_de_chuva",
+      "cnpj_do_escritorio_regionallocal",
+      "numero_de_economias_residenciais_domicilios_permanentes",
+      "nome_da_forma_de_abastecimento",
+      "ponto_de_monitoramento",
+      "nome_da_etauta",
+      "populacao_abastecida_estimada",
+      "codigo_forma_de_abastecimento",
+      "captacao_subterranea",
+      "regional_de_saude",
+      "tempo_medio_diario_de_funcionamento",
+      "nome_da_instiuicao",
+      "numero_de_filtros",
+      "tipo_de_filtracao",
+      "sigla_da_instituicao",
+      "tipo_da_instituicao",
+      "valor"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2303,9 +3532,48 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_controle_semestral": {
+    "fields": [
+      "regiao_geografica",
+      "uf",
+      "regional_de_saude",
+      "municipio",
+      "codigo_ibge",
+      "tipo_da_instituicao",
+      "sigla_da_instituicao",
+      "nome_da_instituicao",
+      "cnpj_da_instituicao",
+      "nome_do_escritorio_regional_local",
+      "cnpj_do_escritorio_regional_local",
+      "tipo_da_forma_de_abastecimento",
+      "codigo_forma_de_abastecimento",
+      "nome_da_forma_de_abastecimento",
+      "nome_da_eta_uta",
+      "ano_de_referencia",
+      "semestre_de_referencia",
+      "data_de_registro",
+      "data_de_preenchimento_do_relatorio_semestral",
+      "data_da_coleta",
+      "data_da_analise",
+      "ponto_de_monitoramento",
+      "grupo_de_parametros",
+      "parametro",
+      "ld",
+      "lq",
+      "resultado",
+      "trimestre_de_referencia",
+      "tipo_de_captacao",
+      "categoria_do_manancial_superficial",
+      "nome_do_manancial_superficial",
+      "categoria_do_ponto_de_captacao_subterranea",
+      "nome_do_ponto_de_captacao_subterranea",
+      "amostra",
+      "unidade",
+      "vmp"
+    ],
     "filters": [
       "uf",
       "codigo_ibge",
@@ -2327,9 +3595,36 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_pontos_de_captacao": {
+    "fields": [
+      "nome_da_forma_de_abastecimento",
+      "codigo_forma_de_abastecimento",
+      "municipio",
+      "regional_de_saude",
+      "codigo_do_ibge",
+      "tipo_da_forma_de_abastecimento",
+      "nome_do_escritorio_regional_local",
+      "cnpj_do_escritorio_regional_local",
+      "categoria_do_manancial_superficial",
+      "longitude",
+      "vazao",
+      "latitude",
+      "nome_da_instiuicao",
+      "regiao_geografica",
+      "categoria_do_ponto_de_captacao_subterraneo",
+      "tipo_da_instituicao",
+      "nome_do_manancial_superficial",
+      "tipo_de_captacao",
+      "nome_do_ponto_de_captacao_subterraneo",
+      "uf",
+      "nome_da_eta_uta",
+      "ano_de_referencia",
+      "sigla_da_instituicao",
+      "outorga"
+    ],
     "filters": [
       "codigo_ibge",
       "uf",
@@ -2340,9 +3635,49 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_populacao_abastecida": {
+    "fields": [
+      "filtracao",
+      "numero_de_economias_residenciais_domicilios_permanentes",
+      "populacao_rural",
+      "cisterna",
+      "codigo_forma_de_abastecimento",
+      "caixa_dagua",
+      "pop_recebe_agua_de_saa",
+      "carro_pipa",
+      "regiao_geografica",
+      "numero_de_economias_residenciais_de_uso_ocasional",
+      "nome_da_forma_de_abastecimento",
+      "chafariz",
+      "regional_de_saude",
+      "data_de_preenchimento",
+      "tipo_da_forma_de_abastecimento",
+      "codigo_ibge",
+      "outro_tipo_de_suprimento",
+      "desinfeccao",
+      "municipio",
+      "ano_de_referencia",
+      "pop_recebe_agua_de_saasac",
+      "fonte",
+      "sem_reservacao",
+      "captacao_de_agua_de_chuva",
+      "tipo_da_instituicao",
+      "nome_da_instituicao",
+      "sigla_da_instituicao",
+      "populacao_urbana",
+      "canalizacao",
+      "uf",
+      "nome_do_escritorio_regionallocal",
+      "cnpj_do_escritorio_regionallocal",
+      "data_de_registro_no_sisagua",
+      "captacao_superficial",
+      "captacao_subterranea",
+      "cnpj_da_instituicao",
+      "populacao_estimada"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2351,9 +3686,75 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_tratamento_de_agua": {
+    "fields": [
+      "email",
+      "codigo_ibge",
+      "desinf_com_ozonio",
+      "uf",
+      "municipio",
+      "cnpj_da_instituicao",
+      "numero_do_conselho_de_classe",
+      "etapa_desinfeccao",
+      "codigo_forma_de_abastecimento",
+      "responsavel_tecnico",
+      "cisterna",
+      "regiao_geografica",
+      "nome_do_escritorio_regionallocal",
+      "outro_tipo_de_suprimento",
+      "etapa_fluoretacao",
+      "rad_dioxido_de_cloro",
+      "etapa_floculacao",
+      "desinf_com_cloramina",
+      "carro_pipa",
+      "polimero_com_epicloridrina",
+      "etapa_decantacao",
+      "nome_da_instituicao",
+      "regional_de_saude",
+      "fonte",
+      "polimero_com_acrilamida",
+      "data_de_preenchimento",
+      "desinf_com_dioxido_cloro",
+      "rad_cloro_res_livre",
+      "etapa_pre_oxidacao",
+      "impedimento_de_monitoramento_por_unidade_filtrante",
+      "chafariz",
+      "captacao_superficial",
+      "telefone",
+      "outra_etapa_tratamento",
+      "ano_de_referencia",
+      "numero_de_filtros",
+      "cep",
+      "etapa_desfluoretacao",
+      "data_de_registro_no_sisagua",
+      "outro_desinfetante",
+      "rad_cloro_res_combinado",
+      "canalizacao",
+      "numero",
+      "etapa_flotacao",
+      "nome_da_forma_de_abastecimento",
+      "sigla_da_instituicao",
+      "tipo_de_filtracao",
+      "captacao_de_agua_de_chuva",
+      "tempo_medio_diario_de_funcionamento",
+      "formacao",
+      "captacao_subterranea",
+      "ddd",
+      "tipo_da_forma_de_abastecimento",
+      "etapa_mistura_rap_e_coag",
+      "endereco",
+      "desinf_com_uv",
+      "vazao_de_agua_tratada",
+      "tipo_da_instituicao",
+      "art",
+      "desinf_com_cloro_gashipoc",
+      "cnpj_do_escritorio_regionallocal",
+      "nome_da_eta",
+      "desinf_com_isocianuratos_clorados"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2362,9 +3763,42 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_vigilancia_cianobacterias_e_cianotoxinas": {
+    "fields": [
+      "parametro_ciano",
+      "nome_da_etauta",
+      "hora_da_coleta",
+      "descricao_do_local",
+      "codigo_forma_de_abastecimento",
+      "tipo_da_forma_de_abastecimento",
+      "mes",
+      "data_da_coleta",
+      "regional_de_saude",
+      "categoria_area",
+      "resultado",
+      "motivo_da_coleta",
+      "data_de_registro_no_sisagua",
+      "grupo",
+      "ano",
+      "codigo_ibge",
+      "data_do_laudo",
+      "latitude",
+      "municipio",
+      "zona",
+      "local",
+      "nome_da_forma_de_abastecimento",
+      "tipo_do_local",
+      "uf",
+      "longitude",
+      "procedencia_da_coleta",
+      "area",
+      "numero_da_amostra",
+      "ponto_de_coleta",
+      "regiao_geografica"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2373,9 +3807,45 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_vigilancia_demais_parametros": {
+    "fields": [
+      "descricao_do_local",
+      "area",
+      "grupo_de_parametros",
+      "lq",
+      "longitude",
+      "parametro_demais_parametros",
+      "codigo_ibge",
+      "mes",
+      "latitude",
+      "resultado",
+      "data_da_coleta",
+      "procedencia_da_coleta",
+      "zona",
+      "numero_da_amostra",
+      "municipio",
+      "tipo_do_local",
+      "nome_da_forma_de_abastecimento",
+      "nome_da_etauta",
+      "uf",
+      "regional_de_saude",
+      "hora_da_coleta",
+      "tipo_da_forma_de_abastecimento",
+      "data_da_analise",
+      "ld",
+      "codigo_forma_de_abastecimento",
+      "motivo_da_coleta",
+      "local",
+      "regiao_geografica",
+      "categoria_area",
+      "ano",
+      "data_do_laudo",
+      "ponto_de_coleta",
+      "data_de_registro_no_sisagua"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2384,9 +3854,46 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "sisagua_vigilancia_parametros_basicos": {
+    "fields": [
+      "regiao_geografica",
+      "uf",
+      "regional_de_saude",
+      "municipio",
+      "codigo_ibge",
+      "numero_da_amostra",
+      "motivo_da_coleta",
+      "tipo_da_forma_de_abastecimento",
+      "codigo_forma_de_abastecimento",
+      "nome_da_forma_de_abastecimento",
+      "nome_da_eta_uta",
+      "ano",
+      "mes",
+      "data_da_coleta",
+      "hora_da_coleta",
+      "data_do_laudo",
+      "data_de_registro_no_sisagua",
+      "procedencia_da_coleta",
+      "ponto_de_coleta",
+      "descricao_do_local",
+      "zona",
+      "categoria_area",
+      "area",
+      "tipo_do_local",
+      "local",
+      "latitude",
+      "longitude",
+      "parametro",
+      "analise_realizada",
+      "data_da_analise",
+      "ld",
+      "lq",
+      "resultado",
+      "providencia"
+    ],
     "filters": [
       "uf",
       "codigo_ibge",
@@ -2408,9 +3915,113 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "siscan": {
+    "fields": [
+      "CO_US",
+      "CO_US_UF",
+      "CO_US_IBGE",
+      "REGUS",
+      "CO_PAC_IBG",
+      "CO_PAC_UF",
+      "CO_PAC_ESC",
+      "CO_RES_NOR",
+      "CO_PAC_IDA",
+      "REGRESID",
+      "CO_CNES",
+      "CLABIBGE",
+      "CLABUF",
+      "REGLAB",
+      "DT_ID_COMP",
+      "ANO_COMP",
+      "CO_FX_ETAR",
+      "CO_PAC_RAC",
+      "CO_ATI_ESC",
+      "CO_ATI_GLA",
+      "CO_ATI_IND",
+      "CO_CEL_ESC",
+      "CO_CEL_GLA",
+      "CO_NEO_MAL",
+      "CO_AMOSTRA",
+      "CO_ADEQ_MA",
+      "CO_BEN_INF",
+      "CO_BEN_MET",
+      "CO_BEN_REP",
+      "CO_BEN_ATR",
+      "CO_BEN_RAD",
+      "CO_BEN_OUT",
+      "CO_MIC_LAC",
+      "CO_MIC_COC",
+      "CO_MIC_CHL",
+      "CO_MIC_ACT",
+      "CO_MIC_BAC",
+      "CO_MIC_TRI",
+      "CO_MIC_HER",
+      "CO_MIC_CAN",
+      "CO_MIC_GAR",
+      "CO_MIC_OUT",
+      "CO_ANM_PRE",
+      "DT_ANM_PRE",
+      "ST_MON_EXT",
+      "TEMPCITANT",
+      "DINTCOLETA",
+      "DINTRESULT",
+      "DINTTEMPEX",
+      "QTDEXA",
+      "REPREZT",
+      "RESNORM",
+      "POSNAONEO",
+      "LESALTGRA",
+      "PSNAONPLA",
+      "NLSALTGRA",
+      "PSNNPLA",
+      "NALTGRA",
+      "LBGRAU",
+      "LAGRAU",
+      "LAGRAUMI",
+      "CARCINO",
+      "C_EPI_ESCA",
+      "C_EPI_GLAN",
+      "CO_EPI_MET",
+      "ADENCARCIN",
+      "DENCARCINV",
+      "OUTNEO",
+      "ALTERADO",
+      "CVCIONAL",
+      "MEIOLIQU",
+      "AMOSREJAUS",
+      "AMOSREJDAN",
+      "AMOSREJALH",
+      "AMOSREJOUT",
+      "REJEITADA",
+      "SATISFACT",
+      "INSATSFAC",
+      "CO_INSA_AC",
+      "CO_INSA_SA",
+      "CO_INSA_PI",
+      "CO_INSA_AR",
+      "CO_INSA_CO",
+      "CO_INSA_SU",
+      "CO_INSA_OU",
+      "CBEMINFLA",
+      "CBEMMETAS",
+      "CBEMREPAR",
+      "CBEMATROF",
+      "CBEMRADI",
+      "CBEMOUT",
+      "CMICLACT",
+      "CMICCOCO",
+      "CMICCHLA",
+      "CMICACTI",
+      "CMICBACI",
+      "CMICTRICO",
+      "CMICHERP",
+      "CMICCAND",
+      "CMICGARD",
+      "CMICOUT"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2419,19 +4030,10 @@
       "groups",
       "states"
     ],
-    "status": "empty",
-    "note": null
+    "rows_sampled": 633543,
+    "status": "ok"
   },
   "sisprenatal": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "states"
-    ],
-    "status": "ok",
-    "rows_sampled": 19111,
     "fields": [
       "NU_ANO_GES",
       "DT_ATEND",
@@ -2469,9 +4071,53 @@
       "QT_CONSULT",
       "ST_GESTAC",
       "DT_INC"
-    ]
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "states"
+    ],
+    "rows_sampled": 19111,
+    "status": "ok"
   },
   "sisvan_estado_nutricional": {
+    "fields": [
+      "status_participacao",
+      "codigo_municipio",
+      "uf",
+      "municipio",
+      "codigo_cnes",
+      "idade",
+      "codigo_fase_vida",
+      "fase_vida",
+      "sexo",
+      "codigo_raca_cor",
+      "raca_cor",
+      "codigo_povo_comunidade",
+      "povo_comunidade",
+      "codigo_escolaridade",
+      "escolaridade",
+      "data_acompanhamento",
+      "ano_mes_competencia",
+      "peso",
+      "altura",
+      "imc",
+      "imc_pre_gestacional",
+      "peso_x_idade",
+      "peso_x_altura",
+      "crianca_altura_x_idade",
+      "crianca_imc_x_idade",
+      "adolescente_altura_x_idade",
+      "adolescente_imc_x_idade",
+      "codigo_estado_nutricional_adulto",
+      "codigo_estado_nutricional_idoso",
+      "codigo_estado_nutricional_imc_gestante",
+      "codigo_sistema_origem_acompanhamento",
+      "sistema_origem_acompanhamento",
+      "codigo_sequencial_acompanhamento"
+    ],
     "filters": [
       "codigo_municipio",
       "uf",
@@ -2490,7 +4136,8 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "snis": {
     "filters": [
@@ -2502,24 +4149,10 @@
       "overwrite",
       "timeout"
     ],
-    "status": "filters_only"
+    "note": "no documents matched file_kinds=planilhas, module=gestao_municipal",
+    "status": "empty"
   },
   "srag_demas": {
-    "filters": [
-      "output_dir",
-      "output_format",
-      "start_year",
-      "end_year",
-      "start_date",
-      "end_date",
-      "uf",
-      "keep_raw",
-      "batch_size",
-      "max_pages",
-      "api_base_url"
-    ],
-    "status": "ok",
-    "rows_sampled": 21,
     "fields": [
       "nu_notific",
       "dt_notific",
@@ -2715,9 +4348,7 @@
       "vg_reinf",
       "vg_codest",
       "reinf"
-    ]
-  },
-  "sindrome_gripal_leve": {
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2731,73 +4362,8 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "ok",
-    "rows_sampled": 1000,
-    "fields": [
-      "excluido",
-      "codigo_estado_teste_4",
-      "outro_busca_ativa_assintomatico",
-      "evolucao_caso",
-      "lote_segunda_dose",
-      "codigo_busca_ativa_assintomatico",
-      "codigo_tipo_teste_3",
-      "estado_notificacao",
-      "codigo_laboratorio_segunda_dose",
-      "lote_primeira_dose",
-      "raca_cor",
-      "codigo_doses_vacina",
-      "data_notificacao",
-      "condicoes",
-      "data_segunda_dose",
-      "profissional_saude",
-      "outro_triagem_populacao_especifica",
-      "idade",
-      "classificacao_final",
-      "codigo_fabricante_teste_4",
-      "codigo_local_realizacao_testagem",
-      "data_encerramento",
-      "sexo",
-      "codigo_recebeu_vacina",
-      "sintomas",
-      "total_testes_realizados",
-      "codigo_estado_teste_1",
-      "outros_sintomas",
-      "codigofabricanteteste1",
-      "codigo_tipo_teste_2",
-      "data_coleta_teste_1",
-      "data_coleta_teste_2",
-      "codigo_fabricante_teste_2",
-      "profissional_seguranca",
-      "cbo",
-      "validado",
-      "municipio",
-      "codigo_resultado_teste_3",
-      "estado",
-      "data_coleta_teste_3",
-      "estado_notificacao_ibge",
-      "municipio_ibge",
-      "codigo_resultado_teste_1",
-      "codigo_resultado_teste_2",
-      "outras_condicoes",
-      "data_primeira_dose",
-      "outro_local_realizacao_testagem",
-      "codigo_laboratorio_primeira_dose",
-      "codigo_estado_teste_2",
-      "codigo_contem_comunidade_tradicional",
-      "codigo_fabricante_teste_3",
-      "codigo_tipo_teste_1",
-      "municipio_notificacao",
-      "codigo_resultado_teste_4",
-      "codigo_estado_teste_3",
-      "data_coleta_teste_4",
-      "estado_ibge",
-      "origem",
-      "data_inicio_sintomas",
-      "codigo_tipo_teste_4",
-      "municipio_notificacao_ibge",
-      "codigo_estrategia_covid",
-      "codigo_triagem_populacao_especifica"
-    ]
+    "rows_sampled": 21,
+    "status": "ok"
   },
   "vacinacao_esavi": {
     "filters": [
@@ -2808,9 +4374,20 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.",
+    "status": "empty"
   },
   "vacinacao_sistema_de_informacao_de_insumos_estrategicos": {
+    "fields": [
+      "tx_area",
+      "qtde",
+      "mes",
+      "ibge",
+      "origem",
+      "tx_sigla",
+      "ano",
+      "tx_insumo"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2819,9 +4396,67 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "vigilancia_e_meio_ambiente_mpox": {
+    "fields": [
+      "htlv",
+      "dt_interna",
+      "pac_imunossup",
+      "donovanose",
+      "hpv",
+      "dt_sin_pri",
+      "uti",
+      "cs_raca",
+      "linfogranuloma",
+      "co_uf_res",
+      "dip",
+      "data_vacina",
+      "caract_genomica",
+      "classi_fin",
+      "cs_sexo",
+      "orienta_sexual",
+      "doenca_tra1",
+      "dt_coleta",
+      "clado",
+      "nu_idade_n",
+      "transm",
+      "clamidea",
+      "hiv",
+      "evolucao",
+      "verruga_genital",
+      "id_mn_resi",
+      "estrangeiro",
+      "cancro_mole",
+      "vacina",
+      "sg_uf_not",
+      "comp_sexual",
+      "vinculo_epi",
+      "profis_saude",
+      "contag_cd4",
+      "trichomomas_vaginals",
+      "gonorreia",
+      "id_municip",
+      "ist_ativa",
+      "cs_gestant",
+      "contat_animal",
+      "dt_notific",
+      "met_lab",
+      "ident_genero",
+      "resultado_exa_lab",
+      "outro_des",
+      "tp_amost",
+      "dt_evolucao",
+      "mycoplasma_genital",
+      "sintoma",
+      "local_cont",
+      "sg_uf",
+      "hospital",
+      "sifilis",
+      "herpes_genital",
+      "dt_conclusao"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2830,9 +4465,98 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_mortalidade": {
+    "fields": [
+      "racacor",
+      "dtconinv",
+      "gravidez",
+      "peso",
+      "fonteinv",
+      "dtrecebim",
+      "idademae",
+      "dtrecoriga",
+      "atestante",
+      "comunsvoim",
+      "horaobito",
+      "contador",
+      "linhaii",
+      "altcausa",
+      "causabas",
+      "versaosist",
+      "idade",
+      "natural",
+      "morteparto",
+      "ocup",
+      "acidtrab",
+      "tp_altera",
+      "atestado",
+      "difdata",
+      "necropsia",
+      "codmunres",
+      "obitopuerp",
+      "dtinvestig",
+      "tppos",
+      "qtdfilmort",
+      "fonte",
+      "seriescfal",
+      "dtcadinf",
+      "ocupmae",
+      "escmaeagr1",
+      "opor_do",
+      "fontes",
+      "codmunnatu",
+      "assistmed",
+      "codestab",
+      "linhab",
+      "obitoparto",
+      "escmae2010",
+      "dtcadinv",
+      "causamat",
+      "dtcadastro",
+      "estciv",
+      "tpnivelinv",
+      "dtconcaso",
+      "tpresginfo",
+      "qtdfilvivo",
+      "dtatestado",
+      "exame",
+      "versaoscb",
+      "cb_alt",
+      "obitograv",
+      "linhac",
+      "cb_pre",
+      "gestacao",
+      "origem",
+      "seriescmae",
+      "semagestac",
+      "causabas_o",
+      "tipobito",
+      "cirurgia",
+      "tpmorteoco",
+      "parto",
+      "esc2010",
+      "sexo",
+      "linhaa",
+      "stcodifica",
+      "linhad",
+      "lococor",
+      "circobito",
+      "dtobito",
+      "tpobitocor",
+      "numerolote",
+      "codificado",
+      "dtnasc",
+      "stdoepidem",
+      "escmae",
+      "codmunocor",
+      "nudiasobco",
+      "esc",
+      "escfalagr1",
+      "stdonova"
+    ],
     "filters": [
       "output_dir",
       "output_format",
@@ -2841,7 +4565,8 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos": {
     "filters": [
@@ -2852,6 +4577,68 @@
       "max_pages",
       "api_base_url"
     ],
-    "status": "filters_only"
+    "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.",
+    "status": "empty"
+  },
+  "zikavirus": {
+    "fields": [
+      "tp_not",
+      "id_agravo",
+      "cs_suspeit",
+      "dt_notific",
+      "sem_not",
+      "nu_ano",
+      "sg_uf_not",
+      "id_municip",
+      "id_regiona",
+      "dt_sin_pri",
+      "sem_pri",
+      "nu_idade_n",
+      "cs_sexo",
+      "cs_gestant",
+      "cs_raca",
+      "cs_escol_n",
+      "sg_uf",
+      "id_mn_resi",
+      "id_rg_resi",
+      "id_pais",
+      "nduplic_n",
+      "in_vincula",
+      "dt_invest",
+      "id_ocupa_n",
+      "classi_fin",
+      "criterio",
+      "tpautocto",
+      "coufinf",
+      "copaisinf",
+      "comuninf",
+      "doenca_tra",
+      "evolucao",
+      "dt_obito",
+      "dt_encerra",
+      "cs_flxret",
+      "flxrecebi",
+      "tp_sistema",
+      "tpuninot",
+      "arquivo",
+      "id_unidade",
+      "ano_nasc",
+      "dt_digita"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "start_date",
+      "end_date",
+      "uf",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 20,
+    "status": "ok"
   }
 }
