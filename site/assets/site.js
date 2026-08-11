@@ -181,7 +181,8 @@
     }
 
     function card(b) {
-      return '<article class="base-card"><h4>' + b.n + "</h4><p>" + b.d +
+      return '<article class="base-card" data-key="' + (b.key || "") + '" tabindex="0" role="button" aria-label="Detalhes de ' + b.n + '"><h4>' + b.n +
+        ' <i class="bi bi-box-arrow-up-right card-hint" aria-hidden="true"></i></h4><p>' + b.d +
         '</p><div class="tags"><span class="base-tag">' + b.g +
         '</span><span class="base-tag org">' + b.m + "</span></div></article>";
     }
@@ -203,6 +204,59 @@
     }));
     moreBtn.addEventListener("click", () => { shown += 1000; render(); });
     render();
+
+    /* ── Modal de detalhe da fonte ── */
+    const backdrop = document.getElementById("base-modal");
+    const modalBody = document.getElementById("modal-body");
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const slug = (k) => "src-" + k.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "");
+
+    function openModal(key) {
+      const s = (typeof GUARACI_CATALOG !== "undefined") && GUARACI_CATALOG[key];
+      if (!s || !backdrop) return;
+      const basic = s.params.filter((p) => ["basico", "coleta", "download"].includes(p.phase));
+      const fieldsPrev = s.fields.slice(0, 14).map((f) => '<span class="field-chip">' + esc(f) + "</span>").join("");
+      const extraFields = s.fields.length > 14 ? '<span class="field-chip more">+' + (s.fields.length - 14) + "</span>" : "";
+      const live = s.discover && s.discover.files
+        ? '<div class="src-live"><i class="bi bi-broadcast"></i> Conferido ao vivo no FTP: <strong>' + s.discover.files + " arquivos em " + s.discover.year + "</strong></div>" : "";
+      modalBody.innerHTML =
+        '<span class="kicker" style="font-size:.7rem;">' + esc(s.g) + "</span>" +
+        '<h3 id="modal-title">' + esc(s.n) + "</h3>" +
+        '<p class="src-desc">' + esc(s.d) + " · <em>" + esc(s.m) + "</em></p>" +
+        '<div class="src-badges" style="margin-bottom:14px;"><span class="src-badge mode">' + esc(s.modeLabel) + "</span>" +
+        '<span class="src-badge"><i class="bi bi-arrow-repeat"></i> atualização ' + esc(s.cadence) + "</span>" +
+        (s.minYear ? '<span class="src-badge"><i class="bi bi-clock-history"></i> desde ' + s.minYear + "</span>" : "") + "</div>" +
+        '<div class="src-meta" style="margin-bottom:6px;"><span>Identificador: <code>' + esc(s.key) + "</code></span></div>" + live +
+        "<h4>Parâmetros de coleta (" + basic.length + " básicos, " + (s.params.length - basic.length) + " avançados)</h4>" +
+        '<div class="fields">' + basic.map((p) => '<span class="field-chip">' + esc(p.name) + "</span>").join("") + "</div>" +
+        (s.fields.length ? "<h4>Campos do dado (" + s.fields.length + ")</h4><div class='fields'>" + fieldsPrev + extraFields + "</div>" : "") +
+        "<h4>Linha de comando</h4>" +
+        '<div class="cli-box"><code>' + esc(s.cli) + "</code></div>" +
+        '<a class="btn btn-sun" style="margin-top:22px;" href="docs.html#' + slug(s.key) + '">Documentação completa <i class="bi bi-arrow-right"></i></a>';
+      backdrop.hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+    function closeModal() {
+      if (!backdrop) return;
+      backdrop.hidden = true;
+      document.body.style.overflow = "";
+    }
+    grid.addEventListener("click", (e) => {
+      const c = e.target.closest(".base-card");
+      if (c && c.dataset.key) openModal(c.dataset.key);
+    });
+    grid.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const c = e.target.closest(".base-card");
+      if (c && c.dataset.key) { e.preventDefault(); openModal(c.dataset.key); }
+    });
+    if (backdrop) {
+      backdrop.addEventListener("click", (e) => {
+        if (e.target === backdrop || e.target.closest(".modal-close")) closeModal();
+      });
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+    }
   }
 
   /* ── Logo: fallback enquanto a arte final não existe ── */

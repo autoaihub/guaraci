@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentação | Guaraci</title>
+  <meta name="description" content="Documentação completa do Guaraci: instalação, interface web, linha de comando e o catálogo detalhado das 91 fontes de dados públicos — com todos os parâmetros e campos.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo-guaraci.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/site.css" rel="stylesheet">
+</head>
+<body class="docs-body">
+<div id="scroll-progress"></div>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="index.html">
+      <img src="assets/logo-guaraci.svg" alt="Logo do Guaraci">
+      Guaraci
+    </a>
+    <button class="nav-toggle" aria-label="Abrir menu"><i class="bi bi-list"></i></button>
+    <div class="nav-links">
+      <a href="index.html">Início</a>
+      <a href="#instalacao">Instalação</a>
+      <a href="#interface">Interface</a>
+      <a href="#cli">Linha de comando</a>
+      <a href="#catalogo">Catálogo das fontes</a>
+      <a class="btn btn-sun" href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener"><i class="bi bi-github"></i> GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="docs-hero">
+  <div class="container">
+    <span class="kicker"><i class="bi bi-book-half"></i> Documentação</span>
+    <h1>O guia completo do <span class="grad-text">Guaraci</span></h1>
+    <p class="sec-lead">Da instalação ao detalhe de cada campo: tudo o que você precisa para coletar dados públicos oficiais — pela interface web ou pela linha de comando. Sem pressa, sem jargão escondido, com cada uma das <strong>91 fontes</strong> documentada uma a uma.</p>
+  </div>
+</header>
+
+<div class="container docs-layout">
+  <!-- ═══ Sidebar ═══ -->
+  <aside class="docs-side" id="docs-side">
+    <p class="side-title">Neste guia</p>
+    <a href="#visao-geral">Visão geral</a>
+    <a href="#instalacao">1 · Instalação</a>
+    <a href="#interface">2 · Interface web</a>
+    <a href="#cli">3 · Linha de comando</a>
+    <a href="#saida">4 · Formatos e saída</a>
+    <a href="#credenciais">5 · Credenciais (NASA)</a>
+    <a href="#orquestrador">6 · Orquestrador</a>
+    <a href="#boas-praticas">7 · Boas práticas</a>
+    <a href="#catalogo">8 · Catálogo das 91 fontes</a>
+    <div id="side-groups"></div>
+  </aside>
+
+  <!-- ═══ Conteúdo ═══ -->
+  <main class="docs-main">
+
+    <section class="doc-sec" id="visao-geral">
+      <h2>Visão geral</h2>
+      <p>O Guaraci é um <strong>orquestrador de downloads de dados públicos</strong>: ele se conecta diretamente às fontes oficiais — DATASUS (FTP de microdados), catálogo aberto do Ministério da Saúde (OpenDataSUS/DEMAS), IBGE (API SIDRA), NASA (POWER, FIRMS, GPM) e gov.br (SNIS/SINISA) — e entrega os dados prontos para uso em <strong>CSV, Parquet ou SQLite</strong>.</p>
+      <p>Três princípios guiam o projeto:</p>
+      <ul class="doc-list">
+        <li><strong>Fonte primária, sempre.</strong> O Guaraci nunca busca em espelhos ou curadorias de terceiros: cada base vem do sistema oficial que a produz. Você recebe o dado com a atualização que a fonte tiver publicado, rastreável até a origem.</li>
+        <li><strong>Fidelidade ao dado original.</strong> A coleta preserva o conteúdo publicado — a conversão de formatos técnicos (como o <code>.dbc</code> do DATASUS) não altera os valores.</li>
+        <li><strong>Docker-first.</strong> O caminho oficialmente suportado roda em um contêiner Docker: o ambiente é idêntico em qualquer máquina, sem conflito de dependências.</li>
+      </ul>
+      <p>Duas portas de entrada, mesma engine: a <a href="#interface">interface web</a> (formulários no navegador, sem código) e a <a href="#cli">linha de comando</a> <code>guaraci fetch</code> (para automação e scripts). As duas leem o mesmo <em>schema</em> de parâmetros documentado no <a href="#catalogo">catálogo</a>.</p>
+    </section>
+
+    <section class="doc-sec" id="instalacao">
+      <h2>1 · Instalação</h2>
+      <p>Você precisa de dois programas gratuitos: <a href="https://git-scm.com/downloads" target="_blank" rel="noopener"><strong>Git</strong></a> (copia o projeto) e <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener"><strong>Docker Desktop</strong></a> (roda o Guaraci). Instale ambos com as opções padrão e <strong>deixe o Docker Desktop aberto</strong>.</p>
+
+      <h3>1.1 Copie o projeto</h3>
+      <p>Abra o terminal (no Windows, procure por <strong>PowerShell</strong> no menu Iniciar) e digite:</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">git clone https://github.com/autoaihub/guaraci.git</span></div><div><span class="ps1">&gt;</span> <span class="cmd">cd guaraci</span></div></div>
+      </div>
+
+      <h3>1.2 Monte a imagem (uma única vez)</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">docker build -t guaraci .</span></div><div class="out">[+] Building… <span class="ok">✔ concluído</span></div></div>
+      </div>
+      <div class="callout"><i class="bi bi-lightbulb-fill"></i><span>Refaça o build apenas quando houver atualização de dependências. Se suspeitar de cache quebrado, use <code>docker build --no-cache -t guaraci .</code>.</span></div>
+
+      <h3>1.3 Ligue o Guaraci</h3>
+      <p><strong>Jeito recomendado (Windows)</strong> — o launcher sobe o contêiner, espera o health check e abre a interface sozinho:</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">.\scripts\desktop\start-guaraci.ps1</span></div><div class="out"><span class="ok">✔ Guaraci no ar</span> — abrindo <span class="hl">http://localhost:8002/</span></div></div>
+      </div>
+      <p>No <strong>Linux/macOS</strong>: <code>./scripts/desktop/start-guaraci.sh</code>. Para conferir o status, <code>status-guaraci</code>; para desligar, <code>stop-guaraci</code>.</p>
+      <p><strong>Jeito manual</strong> (útil para depurar — o terminal fica exibindo os logs; <kbd>Ctrl+C</kbd> encerra):</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">docker run --rm -it -p 8002:8000 -v "${PWD}:/app" guaraci uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log</span></div></div>
+      </div>
+      <div class="callout"><i class="bi bi-exclamation-triangle-fill"></i><span><strong>Sempre monte o volume</strong> (<code>-v "${PWD}:/app"</code>). Sem ele, downloads e manifestos são perdidos quando o contêiner encerra.</span></div>
+
+      <h3>1.4 Confira se está tudo funcionando</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">Invoke-RestMethod http://localhost:8002/health</span></div><div class="out">{"status": <span class="ok">"ok"</span>, "version": "0.6.0"}</div></div>
+      </div>
+
+      <h3>1.5 Problemas comuns</h3>
+      <div class="doc-table-wrap"><table class="doc-table">
+        <thead><tr><th>Sintoma</th><th>Solução</th></tr></thead>
+        <tbody>
+          <tr><td>Porta 8002 ocupada (<em>port is already allocated</em>)</td><td>Pare o contêiner antigo com <code>stop-guaraci</code> ou suba em outra porta: <code>start-guaraci.ps1 -HostPort 8003</code>.</td></tr>
+          <tr><td>UI sem dados ou "Guaraci UI not found"</td><td>Confira o volume (<code>-v "${PWD}:/app"</code>) e as permissões de escrita da pasta <code>data/</code>.</td></tr>
+          <tr><td>"PySUS is required for SIH functionality"</td><td>Reconstrua a imagem com <code>docker build --no-cache -t guaraci .</code>.</td></tr>
+          <tr><td>Contêiner encerra na hora, sem logs</td><td>No modo manual, garanta a flag <code>-it</code>.</td></tr>
+          <tr><td>Botão "Abrir pasta" não faz nada</td><td>Dentro do Docker não há como abrir o explorador do host: copie o caminho <code>host_output_dir</code> exibido na interface.</td></tr>
+          <tr><td>Exportação pedida, mas nenhum arquivo gerado</td><td>Os filtros provavelmente excluíram 100% dos registros — veja os logs e o aviso <code>export_warning</code>.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="doc-sec" id="interface">
+      <h2>2 · Interface web</h2>
+      <p>Com o Guaraci no ar, a interface fica em <code>http://localhost:8002</code>. O fluxo inteiro acontece em uma tela:</p>
+      <ol class="doc-steps">
+        <li><strong>Escolha a fonte.</strong> A lista traz as 91 fontes com busca. Cada uma expõe seus próprios parâmetros — o formulário se monta sozinho a partir do schema (o mesmo documentado no <a href="#catalogo">catálogo</a>).</li>
+        <li><strong>Preencha os filtros básicos.</strong> Período (anos), estados, grupos ou doenças, conforme a fonte. Os campos <em>avançados</em> (paginação, URL alternativa, snapshot bruto) ficam recolhidos — os padrões atendem a maioria dos casos.</li>
+        <li><strong>Escolha o formato de exportação.</strong> <code>CSV</code> (abre no Excel), <code>Parquet</code> (análise de dados) ou <code>SQLite</code> (banco local). Sem formato, o Guaraci só coleta e registra o manifesto.</li>
+        <li><strong>Crie o download e acompanhe.</strong> A barra de progresso e o log ao vivo mostram cada arquivo sendo buscado, validado e convertido. Jobs ficam no histórico — dá para repetir ou depurar depois.</li>
+        <li><strong>Abra o resultado.</strong> Os arquivos ficam na pasta <strong>Guaraci Downloads</strong> (na Área de Trabalho, por padrão), junto com um <code>manifest.json</code> descrevendo a coleta.</li>
+      </ol>
+      <div class="callout"><i class="bi bi-magic"></i><span>Para fontes volumosas do DATASUS (SIA, SIH, CNES), use o <strong>preflight de descoberta</strong> antes de baixar: ele conta os arquivos por grupo/UF sem transferir nada — na interface ou via <code>guaraci fetch discover</code>.</span></div>
+    </section>
+
+    <section class="doc-sec" id="cli">
+      <h2>3 · Linha de comando</h2>
+      <p>O grupo <code>guaraci fetch</code> alcança <strong>qualquer</strong> fonte registrada com quatro subcomandos. Dentro do Docker, prefixe com <code>docker run --rm -v "${PWD}:/app" guaraci</code> (ou use o shell interativo).</p>
+
+      <h3>3.1 <code>fetch list</code> — o que existe</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">guaraci fetch list</span></div><div class="out">sih · sim · sinan · sinasc · dengue · nasa_power · ibge_populacao … <span class="hl">91 fontes</span></div></div>
+      </div>
+
+      <h3>3.2 <code>fetch schema</code> — os parâmetros de uma fonte</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">guaraci fetch schema dengue</span></div><div class="out">nu_ano (string, opcional) · output_format [csv|parquet|sqlite] · batch_size (int, padrão 1000) …</div></div>
+      </div>
+
+      <h3>3.3 <code>fetch discover</code> — meça antes de baixar</h3>
+      <p>Disponível para o SIH e os onze sistemas de microdados FTP do DATASUS (SIA, CNES, SINASC etc.): conta arquivos por grupo/UF <strong>sem baixar nada</strong>. Com <code>--sizes</code>, soma também o tamanho total. SIM e SINAN resolvem seus arquivos internamente durante a coleta e ficam de fora do preflight.</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">guaraci fetch discover sih --set start_year=2024 --set end_year=2024 --set states=SP --sizes</span></div><div class="out">grupo RD · UF SP · 12 arquivos · <span class="hl">198,4 MB</span></div></div>
+      </div>
+
+      <h3>3.4 <code>fetch run</code> — colete</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">guaraci fetch run sinan --set disease=DENG --set start_year=2023 --set end_year=2024 --format csv</span></div><div class="out">baixando DENGBR23.dbc → convertendo → <span class="ok">✔ exportado: sinan_deng_2023-2024.csv</span></div></div>
+      </div>
+      <p>Regras úteis:</p>
+      <ul class="doc-list">
+        <li><code>--set CHAVE=VALOR</code> é convertido automaticamente para o tipo declarado no schema (inteiro, booleano, lista).</li>
+        <li>Omita <code>--format</code> para coletar sem exportar (só o manifesto é gravado).</li>
+        <li><code>-o PASTA</code> muda o destino (padrão: <strong>Guaraci Downloads</strong> na Área de Trabalho).</li>
+        <li>Credenciais NASA nunca são flags — só variáveis de ambiente (<a href="#credenciais">§5</a>).</li>
+      </ul>
+      <p>Cada fonte do <a href="#catalogo">catálogo</a> traz um exemplo de <code>fetch run</code> pronto para copiar.</p>
+    </section>
+
+    <section class="doc-sec" id="saida">
+      <h2>4 · Formatos e saída</h2>
+      <div class="doc-table-wrap"><table class="doc-table">
+        <thead><tr><th>Formato</th><th>Quando usar</th></tr></thead>
+        <tbody>
+          <tr><td><code>csv</code></td><td>Abrir no Excel/LibreOffice, compartilhar com quem não programa.</td></tr>
+          <tr><td><code>parquet</code></td><td>Análise de dados (pandas, polars, R, Spark): compacto e rápido, preserva tipos.</td></tr>
+          <tr><td><code>sqlite</code></td><td>Consultas SQL locais sem servidor; um arquivo <code>.db</code> único.</td></tr>
+        </tbody>
+      </table></div>
+      <ul class="doc-list">
+        <li><strong><code>manifest.json</code></strong> — toda coleta grava um manifesto com fonte, parâmetros, arquivos e horários: é o registro de proveniência do dado.</li>
+        <li><strong><code>keep_raw=true</code></strong> — além da exportação, salva o snapshot bruto (<code>raw/*.jsonl</code> nas APIs) para auditoria.</li>
+        <li><strong><code>export_warning</code></strong> — se os filtros zerarem os registros ou a paginação truncar (<code>max_pages</code>), o aviso aparece no manifesto e nos logs. É o primeiro lugar para olhar quando "não veio nada".</li>
+        <li><strong>Formatos de origem</strong> — arquivos <code>.dbc</code>/<code>.DBF</code> do DATASUS são decodificados automaticamente; você nunca precisa lidar com eles.</li>
+      </ul>
+    </section>
+
+    <section class="doc-sec" id="credenciais">
+      <h2>5 · Credenciais (NASA)</h2>
+      <p>Quase tudo no Guaraci dispensa cadastro. As exceções são duas fontes da NASA — e as chaves são <strong>gratuitas</strong>:</p>
+      <div class="doc-table-wrap"><table class="doc-table">
+        <thead><tr><th>Fonte</th><th>Credencial</th><th>Variável de ambiente</th><th>Onde obter</th></tr></thead>
+        <tbody>
+          <tr><td><code>nasa_firms</code></td><td>MAP_KEY</td><td><code>GUARACI_FIRMS_MAP_KEY</code></td><td><a href="https://firms.modaps.eosdis.nasa.gov/api/map_key/" target="_blank" rel="noopener">firms.modaps.eosdis.nasa.gov</a></td></tr>
+          <tr><td><code>nasa_gpm</code></td><td>Token Earthdata</td><td><code>GUARACI_EARTHDATA_TOKEN</code></td><td><a href="https://urs.earthdata.nasa.gov" target="_blank" rel="noopener">urs.earthdata.nasa.gov</a> (autorize o app <em>NASA GESDISC DATA ARCHIVE</em>)</td></tr>
+        </tbody>
+      </table></div>
+      <p><code>nasa_power</code> e todas as fontes IBGE, OpenDataSUS, DATASUS e gov.br <strong>não exigem credencial</strong>. Por segurança, as chaves são lidas apenas do ambiente: nunca entram como parâmetro de job nem são gravadas em manifesto.</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd">$env:GUARACI_FIRMS_MAP_KEY = "sua-chave-aqui"</span></div><div class="out">(no Linux/macOS: <span class="hl">export GUARACI_FIRMS_MAP_KEY=sua-chave-aqui</span>)</div></div>
+      </div>
+    </section>
+
+    <section class="doc-sec" id="orquestrador">
+      <h2>6 · Orquestrador (uso em servidor)</h2>
+      <p>Para quem mantém um acervo contínuo (como o data lake Sabiá), o <code>guaraci orchestrate</code> automatiza a coleta em duas camadas <em>bronze</em>:</p>
+      <ul class="doc-list">
+        <li><strong><code>raw/</code></strong> — o arquivo oficial cru, na granularidade nativa da fonte (SINAN anual continua anual; SIH mensal continua mensal).</li>
+        <li><strong><code>refined/</code></strong> — as mesmas linhas reparticionadas na árvore uniforme <code>fonte/grupo/UF/ano/mês</code>, fatiadas pela data do evento.</li>
+      </ul>
+      <p>Comandos: <code>orchestrate profiles</code> (cadência de cada fonte), <code>plan</code> (dry-run), <code>backfill</code> (histórico completo), <code>update</code> (só o delta, guiado por um ledger CSV) e <code>status</code>. Os wrappers <code>scripts/server/orchestrate.{sh,ps1}</code> prontos para cron cuidam de lock e log. Detalhes em <code>docs/ORCHESTRATOR.md</code> no repositório.</p>
+    </section>
+
+    <section class="doc-sec" id="boas-praticas">
+      <h2>7 · Boas práticas</h2>
+      <ul class="doc-list">
+        <li><strong>Comece pequeno.</strong> Menor janela de tempo e filtros mais estreitos possíveis; amplie depois que o fluxo estiver validado.</li>
+        <li><strong>Meça antes de baixar.</strong> Nas fontes FTP volumosas (SIA, SIH, CNES), rode <code>fetch discover</code> primeiro — seleções amplas podem resolver para milhares de arquivos e muitos gigabytes.</li>
+        <li><strong>Exporte só quando precisar.</strong> Defina <code>output_format</code> apenas quando quiser o dataset final; a coleta sem exportação é mais rápida e já fica registrada.</li>
+        <li><strong>Vigie o <code>export_warning</code>.</strong> Ele denuncia exportações vazias e paginação truncada.</li>
+        <li><strong>Dado do ano corrente é parcial.</strong> As fontes DATASUS aceitam o ano em curso, mas há atraso de publicação de ~2–3 meses — compare com cuidado.</li>
+        <li><strong>Cite a fonte oficial.</strong> As condições de uso são as da instituição produtora; o Guaraci traz um <code>CITATION.cff</code> caso queira citar também a ferramenta.</li>
+      </ul>
+    </section>
+
+    <section class="doc-sec" id="catalogo">
+      <h2>8 · Catálogo das 91 fontes</h2>
+      <p class="sec-lead" style="max-width:none;">Cada fonte abaixo documenta: o <strong>identificador canônico</strong> (o mesmo usado na interface, na API e no <code>fetch run</code>), transporte e fonte primária, cadência de atualização, <strong>todos os parâmetros</strong> com tipo, fase, padrão e valores aceitos, os <strong>campos reais</strong> observados em amostra e um exemplo de linha de comando pronto.</p>
+      <div class="explorer-bar" style="margin-top:26px;">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input id="cat-search" type="search" placeholder="Filtrar fontes — ex.: dengue, sih, água, população…" aria-label="Filtrar fontes">
+        </div>
+      </div>
+      <p class="explorer-count" id="cat-count"></p>
+      <div id="cat-root"></div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <img src="assets/logo-guaraci.svg" alt="">
+      Guaraci
+    </div>
+    <div>Dados públicos em um só lugar · <a href="https://autoaipandemics.icmc.usp.br/" target="_blank" rel="noopener">AutoAI-Pandemics (ICMC-USP)</a> · Licença MIT</div>
+    <div><a href="mailto:vogel@usp.br"><i class="bi bi-envelope-fill"></i> vogel@usp.br</a></div>
+  </div>
+</footer>
+
+<script src="assets/catalog-data.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/docs.js"></script>
+</body>
+</html>

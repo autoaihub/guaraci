@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Changed — web UI restyled with the Guaraci visual identity
+- `guaraci/api/static/index.html` now uses the dark "amanhecer de dados" theme
+  from the project site (Space Grotesk/Inter/JetBrains Mono, sun-orange +
+  teal palette, gradient progress bar, dark log console, inline Guaraci logo).
+  Purely presentational: all element ids/classes consumed by the embedded JS
+  and every API contract (`/sources`, `/sources/{s}/schema`, `/jobs`,
+  `/jobs/{id}/logs`) are unchanged. Verified end-to-end against the live API
+  (schema-driven wizard, job creation, progress, logs, history).
+
+### Added — documentation site with the full 91-source catalog
+- `site/docs.html` + `site/assets/docs.js`: extensive user guide (install,
+  web UI, `guaraci fetch`, output formats, NASA credentials, orchestrator,
+  best practices) plus a generated catalog documenting every source — all
+  parameters (type, phase, default, allowed values), live-sampled fields, and
+  a ready-to-copy CLI example per source.
+- `scripts/build_site_catalog.py` generates `site/assets/catalog-data.js` from
+  `DownloadService` schemas + `guaraci/data/field_dictionary.json` +
+  orchestrator cadence profiles; `--live` adds real FTP discovery counts
+  (14 DATASUS systems verified against `ftp.datasus.gov.br`).
+- Landing page explorer cards now open a per-source detail modal linking into
+  the docs page (single data source: `catalog-data.js` replaces `bases.js`).
+
 ### Added — IBGE connectors (SIDRA aggregates API, keyless JSON)
 - New `guaraci/ibge/` package with a shared `SidraAggregateSource` base (fetch
   one year at a time, flatten `resultados -> series -> serie` into tidy rows,

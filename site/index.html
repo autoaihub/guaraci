@@ -32,8 +32,8 @@
       <a href="#bases">As 91 bases</a>
       <a href="#como-usar">Como usar</a>
       <a href="#ecossistema">Ecossistema</a>
-      <a href="#apoio">Apoio</a>
       <a href="#faq">Dúvidas</a>
+      <a href="docs.html">Documentação</a>
       <a class="btn btn-sun" href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener"><i class="bi bi-github"></i> GitHub</a>
     </div>
   </div>
@@ -167,7 +167,7 @@
     <div class="sec-head reveal">
       <span class="kicker"><i class="bi bi-collection-fill"></i> As bases, uma a uma</span>
       <h2 class="sec-title">Explore os <span class="grad-text">91 conjuntos</span></h2>
-      <p class="sec-lead">Nada de "e outros": o catálogo completo está abaixo. Busque por nome, doença ou tema, ou filtre por área. Algumas bases aparecem em mais de um grupo por estarem disponíveis tanto no formato tradicional do DATASUS quanto pelo catálogo aberto mais recente.</p>
+      <p class="sec-lead">Nada de "e outros": o catálogo completo está abaixo. Busque por nome, doença ou tema, filtre por área — e <strong>clique em qualquer base</strong> para ver parâmetros, campos e o comando pronto. Algumas bases aparecem em mais de um grupo por estarem disponíveis tanto no formato tradicional do DATASUS quanto pelo catálogo aberto mais recente.</p>
     </div>
     <div class="explorer-bar reveal">
       <div class="search-box">
@@ -273,8 +273,16 @@
             <div class="ui-row"><label>Log</label><div class="ui-log">baixando página 42/58 · 96,4 MB transferidos · ETA 00:41<br><span class="ok">✔ exportado: dengue_2023-2024_SP.csv → Guaraci Downloads</span></div></div>
           </div>
         </div>
-        <div class="callout"><i class="bi bi-life-preserver"></i><span>Algo deu errado? O <a href="https://github.com/autoaihub/guaraci/blob/main/docs/quickstart.md" target="_blank" rel="noopener">guia de instalação completo</a> tem a solução para os problemas mais comuns (porta ocupada, Docker parado etc.) — e você pode escrever para <a href="mailto:vogel@usp.br">vogel@usp.br</a>.</span></div>
+        <div class="callout"><i class="bi bi-life-preserver"></i><span>Algo deu errado? A <a href="docs.html#instalacao">documentação de instalação</a> tem a solução para os problemas mais comuns (porta ocupada, Docker parado etc.) — e você pode escrever para <a href="mailto:vogel@usp.br">vogel@usp.br</a>.</span></div>
       </div>
+    </div>
+
+    <div class="impact reveal" style="margin-top:70px;">
+      <div>
+        <h3>Quer o mapa completo?</h3>
+        <p>A documentação extensiva cobre instalação, interface, linha de comando e cada uma das 91 fontes — com todos os parâmetros, valores aceitos e os campos reais de cada base.</p>
+      </div>
+      <a href="docs.html" class="btn">Abrir a documentação <i class="bi bi-arrow-right"></i></a>
     </div>
   </div>
 </section>
@@ -439,7 +447,15 @@
   </div>
 </footer>
 
-<script src="assets/bases.js"></script>
+<!-- Modal de detalhe de fonte (preenchido pelo site.js) -->
+<div class="modal-backdrop" id="base-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <button class="modal-close" type="button" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script src="assets/catalog-data.js"></script>
 <script src="assets/site.js"></script>
 </body>
 </html>
