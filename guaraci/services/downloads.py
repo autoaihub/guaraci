@@ -14,6 +14,7 @@ from loguru import logger
 
 from guaraci.core.contracts import DownloadManifest, SourceParameterSpec, validate_source_params
 from guaraci.core.results import JobResult
+from guaraci.core.security import ensure_allowed_crawl_url, ensure_allowed_output_dir
 from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
 from guaraci.datasus.ftp import specs as ftp_specs
 from guaraci.datasus.ftp_source import FtpDataSource
@@ -642,6 +643,11 @@ class OpenDataSUSDownloadSource:
         self._params_schema = list(params_schema)
         self._fixed_dataset = fixed_dataset.strip().lower() if fixed_dataset else None
         self._normalize_params = normalize_params
+
+    @property
+    def fixed_dataset(self) -> Optional[str]:
+        """Dataset/endpoint DEMAS fixado nesta fonte (usado no dedup por endpoint)."""
+        return self._fixed_dataset
 
     def params_schema(self) -> List[SourceParameterSpec]:
         return list(self._params_schema)
@@ -2846,13 +2852,27 @@ class DownloadService:
             ),
         ]
 
-        # Append the auto-generated OpenDataSUS sources
+        # Append the auto-generated OpenDataSUS sources.
+        # Dedup em duas dimensões: por nome de fonte E por endpoint DEMAS —
+        # sem a segunda, o mesmo endpoint entra duas vezes (ex.: 'dengue'
+        # manual com filtros temporais vs 'arboviroses_dengue' gerada sem
+        # recorte, que baixaria o dataset inteiro).
         from guaraci.services.opendatasus_registry import get_opendatasus_sources
+
         existing_keys = {self._normalize_source_name(s.descriptor.source) for s in sources}
+        manual_endpoints = {
+            str(spec.demas_static_path).strip().lower().lstrip("/")
+            for spec in OpenDataSUSDataSource.DATASET_SPECS.values()
+            if getattr(spec, "demas_static_path", None)
+        }
         for auto_src in get_opendatasus_sources():
             key = self._normalize_source_name(auto_src.descriptor.source)
-            if key not in existing_keys:
-                sources.append(auto_src)
+            if key in existing_keys:
+                continue
+            endpoint_key = (auto_src.fixed_dataset or "").strip().lower().lstrip("/")
+            if endpoint_key and endpoint_key in manual_endpoints:
+                continue
+            sources.append(auto_src)
 
         return sources
 
@@ -2898,6 +2918,11 @@ class DownloadService:
         source: str,
         params: Mapping[str, object],
     ) -> None:
+        # Guardrails de segurança antes da validação de schema: URLs de crawl
+        # restritas a domínios permitidos (anti-SSRF) e output_dir confinado à
+        # raiz configurada (GUARACI_OUTPUT_ROOT), quando definida.
+        ensure_allowed_crawl_url(params.get("results_url"))
+        ensure_allowed_output_dir(params.get("output_dir"))
         selected = self._get_registered_source(source)
         selected.validate_params(params)
 

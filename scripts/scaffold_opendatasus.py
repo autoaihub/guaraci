@@ -134,8 +134,16 @@ def main():
         lines.append("    return [")
         
         # We exclude hardcoded ones and also any endpoint that ends with year patterns
-        # to avoid duplication of annual sources (PNI, Gripal, SRAG)
-        manual_excludes = {"/arboviroses/zikavirus"}
+        # to avoid duplication of annual sources (PNI, Gripal, SRAG).
+        # Os excludes são derivados dos specs manuais (DATASET_SPECS) para que
+        # nenhum endpoint com fonte curada apareça duplicado no registry gerado.
+        from guaraci.opendatasus.datasource import OpenDataSUSDataSource
+
+        manual_excludes = {
+            str(spec.demas_static_path).strip()
+            for spec in OpenDataSUSDataSource.DATASET_SPECS.values()
+            if spec.demas_static_path
+        }
         
         count = 0
         for endpoint, params in catalog.items():

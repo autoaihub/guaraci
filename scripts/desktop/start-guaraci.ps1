@@ -2,6 +2,9 @@ param(
   [string]$Image = "guaraci",
   [string]$ContainerName = "guaraci-desktop",
   [int]$HostPort = 8002,
+  # A API não tem autenticação: por padrão publica apenas em loopback.
+  # Use -BindAddress 0.0.0.0 para expor na rede local de forma explícita.
+  [string]$BindAddress = "127.0.0.1",
   [string]$ProjectDir = (Get-Location).Path,
   [switch]$Rebuild,
   [switch]$AccessLog
@@ -75,7 +78,7 @@ if (-not $alreadyRunning) {
   }
   docker run -d `
     --name $ContainerName `
-    -p "$HostPort`:8000" `
+    -p "$BindAddress`:$HostPort`:8000" `
     -v "${projectPath}:/app" `
     -v "${hostDownloadsPath}:/downloads" `
     -e "GUARACI_HOST_APP_ROOT=${projectPath}" `
@@ -84,6 +87,7 @@ if (-not $alreadyRunning) {
     -e "GUARACI_CONTAINER_DOWNLOADS_ROOT=/downloads" `
     -e "GUARACI_DEFAULT_DOWNLOAD_ROOT=/downloads" `
     -e "GUARACI_DEFAULT_OUTPUT_ROOT=/downloads" `
+    -e "GUARACI_OUTPUT_ROOT=/downloads" `
     $Image `
     @uvicornArgs | Out-Null
 

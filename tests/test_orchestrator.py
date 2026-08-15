@@ -454,3 +454,27 @@ def test_orchestrator_dry_run_leaves_no_ledger(tmp_path):
     report = orch.backfill(current_year=2002, dry_run=True)
     assert report.totals[STATUS_PLANNED] >= 2
     assert not (tmp_path / "_ledger.csv").exists()
+
+
+def test_plan_update_requests_fetch_sizes(tmp_path):
+    """Volumetria: plan_update must ask the provider for real file sizes."""
+    seen = {}
+
+    def provider(kind, source, years, *, fetch_sizes=False):
+        seen["fetch_sizes"] = fetch_sizes
+        return []
+
+    ledger = Ledger(tmp_path / "_ledger.csv")
+    prof = profile_for("sih", "pysus ftp")
+    plan_update(prof, ledger, current_year=2024, records_provider=provider)
+    assert seen["fetch_sizes"] is True
+
+
+def test_plan_update_accepts_legacy_provider_signature(tmp_path):
+    """Providers with the historical 3-arg signature keep working."""
+    ledger = Ledger(tmp_path / "_ledger.csv")
+    prof = profile_for("sih", "pysus ftp")
+    units = plan_update(
+        prof, ledger, current_year=2024, records_provider=sih_records
+    )
+    assert units  # discovery ran without TypeError

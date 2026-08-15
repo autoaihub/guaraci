@@ -200,3 +200,7 @@ docs/handoff-*.md
 # Downloaded datasets (SIVEP/SINAN/etc). Multi-GB output of the platform,
 # never versioned — regenerate with the collectors.
 out/
+
+# Windows folder metadata and stray archives
+desktop.ini
+*.zip

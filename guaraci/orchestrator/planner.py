@@ -16,6 +16,7 @@ Per source shape:
 """
 from __future__ import annotations
 
+import inspect
 from datetime import datetime
 from typing import Callable, List, Optional, Sequence
 
@@ -37,12 +38,14 @@ def _now_year() -> int:
 
 
 def default_ftp_records(
-    kind: Kind, source: str, years: Sequence[int]
+    kind: Kind, source: str, years: Sequence[int], *, fetch_sizes: bool = False
 ) -> List[object]:
     """Live file-level discovery against the DATASUS FTP server.
 
     Reuses the verified phase-3/phase-5 discovery primitives and owns the async
-    loop through ``run_coro`` so the planner stays synchronous.
+    loop through ``run_coro`` so the planner stays synchronous. ``fetch_sizes``
+    populates ``FileRecord.size`` (one ``SIZE`` per file) so the ledger's
+    volumetria check can detect grown current-year files.
     """
     from guaraci.datasus.ftp.client import DatasusFtpClient
     from guaraci.datasus.ftp.discovery import (
@@ -57,13 +60,21 @@ def default_ftp_records(
     async def _impl() -> List[object]:
         async with DatasusFtpClient() as client:
             if kind is Kind.FTP_SIH:
-                return list(await discover_sih(client, years=years))
+                return list(
+                    await discover_sih(client, years=years, fetch_sizes=fetch_sizes)
+                )
             if kind is Kind.FTP_SIM:
-                return list(await discover_sim(client, years=years))
+                return list(
+                    await discover_sim(client, years=years, fetch_sizes=fetch_sizes)
+                )
             if kind is Kind.FTP_SINAN:
-                return list(await discover_sinan(client, years=years))
+                return list(
+                    await discover_sinan(client, years=years, fetch_sizes=fetch_sizes)
+                )
             spec = get_spec(source)
-            return list(await discover_spec(client, spec, years=years))
+            return list(
+                await discover_spec(client, spec, years=years, fetch_sizes=fetch_sizes)
+            )
 
     return run_coro(_impl())
 
@@ -93,9 +104,37 @@ def _ftp_units(
     profile: SourceProfile,
     years: Sequence[int],
     records_provider: FtpRecordsProvider,
+    *,
+    fetch_sizes: bool = False,
 ) -> List[FetchUnit]:
-    records = records_provider(profile.kind, profile.source, list(years))
+    records = _call_records_provider(
+        records_provider, profile.kind, profile.source, list(years), fetch_sizes
+    )
     return [_record_to_unit(profile.source, profile.kind, rec) for rec in records]
+
+
+def _call_records_provider(
+    provider: FtpRecordsProvider,
+    kind: Kind,
+    source: str,
+    years: List[int],
+    fetch_sizes: bool,
+) -> List[object]:
+    """Invoke the provider, passing ``fetch_sizes`` only when it accepts it.
+
+    Custom providers (tests, fixtures) keep the historical 3-arg signature.
+    """
+    try:
+        parameters = inspect.signature(provider).parameters
+        supports_fetch_sizes = "fetch_sizes" in parameters or any(
+            param.kind is inspect.Parameter.VAR_KEYWORD
+            for param in parameters.values()
+        )
+    except (TypeError, ValueError):
+        supports_fetch_sizes = False
+    if supports_fetch_sizes:
+        return provider(kind, source, years, fetch_sizes=fetch_sizes)
+    return provider(kind, source, years)
 
 
 def _api_window_units(source: str, years: Sequence[int]) -> List[FetchUnit]:
@@ -152,7 +191,15 @@ def plan_update(
 
     if profile.kind.is_ftp():
         low = max(profile.min_year or year_now, year_now - update_lookback_years)
-        units = _ftp_units(profile, list(range(low, year_now + 1)), records_provider)
+        # fetch_sizes=True: sem os tamanhos, src_size fica 0 e o check de
+        # volumetria do ledger nunca dispara — arquivos do ano corrente que
+        # crescem (SINAN preliminar) jamais seriam repuxados.
+        units = _ftp_units(
+            profile,
+            list(range(low, year_now + 1)),
+            records_provider,
+            fetch_sizes=True,
+        )
         return [u for u in units if not ledger.satisfied(u, index=index)]
 
     if profile.kind is Kind.API_WINDOW:

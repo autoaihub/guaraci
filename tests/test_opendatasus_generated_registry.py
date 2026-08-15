@@ -106,3 +106,24 @@ def test_generated_source_paths_resolve_and_execute_with_fake_client(source, tmp
     assert "}" not in resolved_path
     for name in required_values:
         assert name not in client.calls[0][1]
+
+
+def test_no_generated_source_duplicates_manual_demas_endpoint():
+    """Endpoints com spec manual curada não podem reaparecer no registry gerado."""
+    from guaraci.opendatasus.datasource import OpenDataSUSDataSource
+    from guaraci.services.downloads import DownloadService, OpenDataSUSDownloadSource
+
+    manual_endpoints = {
+        str(spec.demas_static_path).strip().lower().lstrip("/")
+        for spec in OpenDataSUSDataSource.DATASET_SPECS.values()
+        if spec.demas_static_path
+    }
+    service = DownloadService()
+    for src in service._sources.values():
+        if not isinstance(src, OpenDataSUSDownloadSource):
+            continue
+        endpoint = (src.fixed_dataset or "").strip().lower().lstrip("/")
+        if "/" in endpoint:  # datasets estilo endpoint vêm do registry gerado
+            assert endpoint not in manual_endpoints, (
+                f"Endpoint '{endpoint}' duplicado: já coberto por spec manual."
+            )

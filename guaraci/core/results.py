@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterator, Mapping, Optional
+from typing import Any, Dict, Iterator, List, Mapping, Optional
 
 
 @dataclass(frozen=True)

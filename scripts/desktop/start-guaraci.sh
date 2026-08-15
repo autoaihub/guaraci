@@ -4,6 +4,9 @@ set -euo pipefail
 IMAGE="${IMAGE:-guaraci}"
 CONTAINER_NAME="${CONTAINER_NAME:-guaraci-desktop}"
 HOST_PORT="${HOST_PORT:-8002}"
+# A API não tem autenticação: por padrão publica apenas em loopback.
+# Para expor na rede local, defina BIND_ADDRESS=0.0.0.0 explicitamente.
+BIND_ADDRESS="${BIND_ADDRESS:-127.0.0.1}"
 PROJECT_DIR="${PROJECT_DIR:-$(pwd)}"
 HOST_DESKTOP_DIR="${HOST_DESKTOP_DIR:-$HOME/Desktop}"
 HOST_DOWNLOADS_DIR="${HOST_DOWNLOADS_DIR:-${HOST_DESKTOP_DIR}/Guaraci Downloads}"
@@ -50,7 +53,7 @@ if ! docker ps --filter "name=^/${CONTAINER_NAME}$" --format "{{.ID}}" | grep -q
   fi
   docker run -d \
     --name "$CONTAINER_NAME" \
-    -p "${HOST_PORT}:8000" \
+    -p "${BIND_ADDRESS}:${HOST_PORT}:8000" \
     -v "${PROJECT_DIR}:/app" \
     -v "${HOST_DOWNLOADS_DIR}:/downloads" \
     -e "GUARACI_HOST_APP_ROOT=${PROJECT_DIR}" \
@@ -59,6 +62,7 @@ if ! docker ps --filter "name=^/${CONTAINER_NAME}$" --format "{{.ID}}" | grep -q
     -e "GUARACI_CONTAINER_DOWNLOADS_ROOT=/downloads" \
     -e "GUARACI_DEFAULT_DOWNLOAD_ROOT=/downloads" \
     -e "GUARACI_DEFAULT_OUTPUT_ROOT=/downloads" \
+    -e "GUARACI_OUTPUT_ROOT=/downloads" \
     "$IMAGE" \
     "${UVICORN_ARGS[@]}" >/dev/null
 fi

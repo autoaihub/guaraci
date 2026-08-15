@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
@@ -183,7 +183,11 @@ def discover_source(source: str, payload: SourceDiscoveryRequest) -> SourceDisco
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except ImportError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        # Não vazar detalhes do ambiente (nomes de módulos) ao cliente.
+        raise HTTPException(
+            status_code=500,
+            detail="Source discovery unavailable: missing optional dependency on the server.",
+        ) from exc
     return SourceDiscoveryResponse(**discovery)
 
 
@@ -209,7 +213,7 @@ def create_job(payload: JobCreateRequest) -> JobStatusResponse:
 
 
 @app.get("/jobs", response_model=List[JobStatusResponse])
-def list_jobs(limit: int = 50) -> List[JobStatusResponse]:
+def list_jobs(limit: int = Query(50, ge=1, le=500)) -> List[JobStatusResponse]:
     jobs = job_service.list_jobs(limit=limit)
     return [JobStatusResponse(**job.to_dict()) for job in jobs]
 
@@ -244,7 +248,7 @@ def retry_job(job_id: str) -> JobStatusResponse:
 
 
 @app.get("/jobs/{job_id}/logs", response_model=List[JobLogResponse])
-def get_job_logs(job_id: str, limit: int = 200) -> List[JobLogResponse]:
+def get_job_logs(job_id: str, limit: int = Query(200, ge=1, le=2000)) -> List[JobLogResponse]:
     try:
         logs = job_service.get_job_logs(job_id=job_id, limit=limit)
     except KeyError as exc:

@@ -19,7 +19,6 @@ from __future__ import annotations
 import asyncio
 import ftplib
 import logging
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Optional
@@ -37,6 +36,14 @@ class FtpEntry:
 
     name: str
     size: Optional[int] = None
+
+
+class TruncatedDownloadError(OSError):
+    """Transfer finished cleanly but with fewer bytes than the server-reported size.
+
+    Subclasses :class:`OSError` so the retry loop treats truncation as a
+    transient failure and re-downloads the file.
+    """
 
 
 _TRANSIENT_FTP_ERRORS: tuple[type[BaseException], ...] = (
@@ -168,17 +175,32 @@ class DatasusFtpClient:
         except ftplib.error_perm:
             total = 0
 
+        # Escreve num .part e só promove ao destino final após validar o
+        # tamanho: um encerramento "limpo" da conexão de dados no meio do
+        # arquivo não pode virar um download truncado aceito como completo.
         dest.parent.mkdir(parents=True, exist_ok=True)
+        part_path = dest.with_name(f"{dest.name}.part")
         bytes_written = 0
-        with dest.open("wb") as fh:
-            def _write(chunk: bytes) -> None:
-                nonlocal bytes_written
-                fh.write(chunk)
-                bytes_written += len(chunk)
-                if progress is not None:
-                    progress(bytes_written, total)
+        try:
+            with part_path.open("wb") as fh:
+                def _write(chunk: bytes) -> None:
+                    nonlocal bytes_written
+                    fh.write(chunk)
+                    bytes_written += len(chunk)
+                    if progress is not None:
+                        progress(bytes_written, total)
 
-            ftp.retrbinary(f"RETR {path}", _write)
+                ftp.retrbinary(f"RETR {path}", _write)
+
+            if total > 0 and bytes_written != total:
+                raise TruncatedDownloadError(
+                    f"Truncated FTP download for '{path}': "
+                    f"got {bytes_written} of {total} bytes."
+                )
+            part_path.replace(dest)
+        except BaseException:
+            part_path.unlink(missing_ok=True)
+            raise
 
     async def _run_with_retry(self, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         async with self._lock:
@@ -210,7 +232,3 @@ def _basename(name: str) -> str:
     if "/" in name:
         return name.rsplit("/", 1)[-1]
     return name
-
-
-# Silence the "unused import" linter without exporting `time` publicly.
-_ = time

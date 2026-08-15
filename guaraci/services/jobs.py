@@ -16,6 +16,7 @@ from typing import Dict, List, Mapping, Optional
 from uuid import uuid4
 
 from guaraci.core.results import JobResult
+from guaraci.core.security import ensure_allowed_output_dir
 from guaraci.services.downloads import DownloadService
 
 
@@ -262,6 +263,7 @@ class DownloadJobService:
             raise ValueError("Output directory not available for this job yet.")
 
         folder = Path(str(output_dir)).resolve()
+        ensure_allowed_output_dir(folder)
 
         if Path("/.dockerenv").exists():
             host_output_dir = output.get("host_output_dir")
@@ -860,6 +862,7 @@ class DownloadJobService:
             finished_at=finished_at,
             result=result,
             error=error,
+            error_retryable=bool(payload.get("error_retryable", True)),
             cancel_requested=bool(payload.get("cancel_requested", False)),
             attempt=self._to_int(payload.get("attempt"), default=1),
             retry_of=retry_of,
