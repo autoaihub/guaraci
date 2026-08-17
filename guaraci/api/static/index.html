@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,151 +7,242 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2304120f'/%3E%3Cpath d='M16 14V8M22 17l4-4M10 17l-4-4' stroke='%2314b8a6' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M8 22a8 8 0 0 1 16 0Z' fill='%23f7a41d'/%3E%3Crect x='4' y='22' width='24' height='1.4' fill='%2314b8a6' opacity='.5'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/theme.css">
   <script src="/static/app.js" defer></script>
 </head>
 <body>
-  <div class="shell">
-    <section class="hero">
-      <div class="hero-brand">
-        <svg viewBox="0 0 128 128" aria-hidden="true">
-          <defs>
-            <linearGradient id="lg-sun" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#ffd166"/><stop offset=".55" stop-color="#f7a41d"/><stop offset="1" stop-color="#e8890b"/>
-            </linearGradient>
-            <clipPath id="lg-tile"><rect width="128" height="128" rx="28"/></clipPath>
-            <clipPath id="lg-ceu"><rect x="0" y="0" width="128" height="87"/></clipPath>
-          </defs>
-          <g clip-path="url(#lg-tile)">
-            <rect width="128" height="128" fill="#071a16"/>
-            <g stroke="#14b8a6" stroke-width="3.2" stroke-linecap="round" fill="none">
-              <path d="M64 55 V33"/><path d="M82.4 68.6 L94 57 V42"/><path d="M45.6 68.6 L34 57 V42"/>
-              <path d="M91 80 H106"/><path d="M37 80 H22"/>
-              <circle cx="64" cy="27.8" r="3.4" stroke-width="2.6"/><circle cx="94" cy="36.8" r="3.4" stroke-width="2.6"/><circle cx="34" cy="36.8" r="3.4" stroke-width="2.6"/>
-            </g>
-            <g clip-path="url(#lg-ceu)">
-              <circle cx="67.2" cy="87" r="26" fill="#5b3a05"/><circle cx="64" cy="87" r="26" fill="url(#lg-sun)"/>
-            </g>
-            <rect x="0" y="86.4" width="128" height="1.6" fill="rgba(20,184,166,.4)"/>
-            <path d="M28 95 H100" stroke="rgba(247,164,29,.4)" stroke-width="2" stroke-dasharray="11 7" fill="none"/>
-            <path d="M38 103 H90" stroke="rgba(20,184,166,.3)" stroke-width="2" stroke-dasharray="7 8" fill="none"/>
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<div class="shell">
+  <!-- ═══ Sidebar ═══ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <svg viewBox="0 0 128 128" aria-hidden="true">
+        <defs>
+          <linearGradient id="lg-sun" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffd166"/><stop offset=".55" stop-color="#f7a41d"/><stop offset="1" stop-color="#e8890b"/>
+          </linearGradient>
+          <clipPath id="lg-tile"><rect width="128" height="128" rx="28"/></clipPath>
+          <clipPath id="lg-ceu"><rect x="0" y="0" width="128" height="87"/></clipPath>
+        </defs>
+        <g clip-path="url(#lg-tile)">
+          <rect width="128" height="128" fill="#071a16"/>
+          <g stroke="#14b8a6" stroke-width="3.2" stroke-linecap="round" fill="none">
+            <path d="M64 55 V33"/><path d="M82.4 68.6 L94 57 V42"/><path d="M45.6 68.6 L34 57 V42"/>
+            <circle cx="64" cy="27.8" r="3.4" stroke-width="2.6"/><circle cx="94" cy="36.8" r="3.4" stroke-width="2.6"/><circle cx="34" cy="36.8" r="3.4" stroke-width="2.6"/>
           </g>
-        </svg>
-        <div>
-          <h1>Guaraci <span class="grad" data-i18n="hero_tagline">· coleta de dados</span></h1>
-          <p data-i18n="hero_subtitle">Escolha a fonte, preencha os filtros e acompanhe o download — direto da fonte oficial.</p>
-        </div>
+          <g clip-path="url(#lg-ceu)"><circle cx="64" cy="87" r="26" fill="url(#lg-sun)"/></g>
+          <rect x="0" y="86.4" width="128" height="1.6" fill="rgba(20,184,166,.4)"/>
+        </g>
+      </svg>
+      <div><strong>Guaraci</strong><span data-i18n="brand_sub">dados públicos de saúde</span></div>
+    </div>
+
+    <div class="nav-label" data-i18n="nav_operation">Operação</div>
+    <button class="nav-item" data-view="jobs" aria-current="page" type="button">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l3-4 3 2 3-5 3 3"/><path d="M1 14h14"/></svg>
+      <span data-i18n="nav_jobs">Coletas</span>
+    </button>
+    <button class="nav-item" data-view="new" type="button">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>
+      <span data-i18n="nav_new">Nova coleta</span>
+    </button>
+    <button class="nav-item" data-view="sources" type="button">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="4" rx="5.5" ry="2.2"/><path d="M2.5 4v8c0 1.2 2.5 2.2 5.5 2.2s5.5-1 5.5-2.2V4"/><path d="M2.5 8c0 1.2 2.5 2.2 5.5 2.2s5.5-1 5.5-2.2"/></svg>
+      <span data-i18n="nav_sources">Fontes</span>
+    </button>
+
+    <div class="nav-label" data-i18n="nav_help">Ajuda</div>
+    <a class="nav-item" href="https://github.com/autoaihub/guaraci#readme" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2" width="11" height="12" rx="1.5"/><path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3"/></svg>
+      <span data-i18n="nav_docs">Documentação</span>
+    </a>
+
+    <div class="sidebar-foot">
+      <div class="api-status">
+        <span class="api-dot" id="api-dot" aria-hidden="true"></span>
+        <span id="api-label" data-i18n="api_connecting">API: conectando…</span>
       </div>
-      <div class="hero-actions">
-        <button id="lang-toggle" class="lang-btn" type="button" aria-label="Switch to English">EN</button>
-        <div class="pill" id="api-pill" data-i18n="api_connecting">API: conectando...</div>
+      <button class="side-btn" id="theme-toggle" type="button">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4"/></svg>
+        <span data-i18n="theme_toggle">Alternar tema</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ Main ═══ -->
+  <div class="main">
+    <header class="topbar">
+      <h1 id="topbar-title" data-i18n="nav_jobs">Coletas</h1>
+      <div class="topbar-actions">
+        <button id="lang-toggle" class="btn btn-sm lang-btn" type="button" aria-label="Switch to English">EN</button>
+        <button class="btn btn-primary" id="topbar-new" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3v10M3 8h10"/></svg>
+          <span data-i18n="nav_new">Nova coleta</span>
+        </button>
       </div>
-    </section>
+    </header>
 
-    <div id="notice" class="notice" role="status" aria-live="polite"></div>
-
-    <section class="grid">
-      <article class="card">
-        <h2 data-i18n="new_job">Novo Job</h2>
-        <form id="job-form">
-          <div class="wizard-steps">
-            <button class="step-btn step-active" type="button" data-step="1" data-i18n="step1">1. Fonte</button>
-            <button class="step-btn" type="button" data-step="2" data-i18n="step2">2. Filtros</button>
-            <button class="step-btn" type="button" data-step="3" data-i18n="step3">3. Revisão</button>
-          </div>
-
-          <section class="step-pane step-visible" data-step-pane="1">
-            <h3 data-i18n="step1_title">Selecione a fonte</h3>
-            <label>
-              <span data-i18n="source_label">Fonte</span>
-              <select id="source" name="source" required></select>
-            </label>
-            <div id="source-mode" class="source-mode" data-i18n="loading">Carregando...</div>
-            <p class="hint" data-i18n="step1_hint">O schema de parâmetros dessa fonte aparece abaixo.</p>
-            <div id="schema-info" class="schema-box" data-i18n="schema_loading">Carregando schema...</div>
-          </section>
-
-          <section class="step-pane" data-step-pane="2">
-            <h3 data-i18n="step2_title">Defina os parâmetros</h3>
-            <p class="hint" data-i18n="step2_hint">Consulte seus downloads na pasta Guaraci Downloads na sua Área de Trabalho.</p>
-            <div id="dynamic-fields" class="fields-stack">
-              <div id="dynamic-fields-basic" class="fields-grid"></div>
-              <button id="advanced-toggle" class="advanced-toggle" type="button" hidden>
-                <span data-i18n="advanced">Filtragem avançada</span>
-                <span id="advanced-arrow" class="advanced-arrow" aria-hidden="true">▼</span>
-              </button>
-              <div id="advanced-wrap" class="advanced-wrap">
-                <div id="dynamic-fields-advanced" class="fields-grid"></div>
-              </div>
-            </div>
-          </section>
-
-          <section class="step-pane" data-step-pane="3">
-            <h3 data-i18n="step3_title">Confirmação</h3>
-            <div id="review-box" class="review-box" data-i18n="review_placeholder">Preencha os campos para visualizar o resumo da operação.</div>
-            <p class="hint" data-i18n="step3_hint">Confira os filtros escolhidos antes de criar o job.</p>
-          </section>
-
-          <div class="wizard-actions">
-            <div class="group">
-              <button id="btn-prev" class="btn-alt" type="button" data-i18n="btn_back">Voltar</button>
-              <button id="btn-next" class="btn-muted" type="button" data-i18n="btn_next">Próximo</button>
-            </div>
-            <div class="group">
-              <button id="btn-submit" type="submit" data-i18n="btn_submit">Criar Job</button>
-            </div>
-          </div>
-        </form>
-      </article>
-
-      <article class="card">
-        <h2 data-i18n="monitoring">Monitoramento</h2>
-        <div id="latest-job" class="latest-box" role="status" aria-live="polite" data-i18n="no_job_selected">Nenhum job selecionado.</div>
-        <div class="progress-panel">
-          <div class="progress-row">
-            <span id="progress-percent">0.0%</span>
-            <span id="progress-time">00:00 | ETA --</span>
-          </div>
-          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso do download">
-            <div id="progress-fill" class="progress-fill"></div>
-          </div>
-          <div id="progress-file" class="progress-meta">Arquivo: --</div>
-          <div id="progress-destination" class="progress-meta">Destino: --</div>
-        </div>
-        <div id="output-path" class="output-path" data-i18n="output_unavailable">Pasta de saída: indisponível.</div>
-
-        <div class="latest-controls">
-          <button id="cancel-latest" class="btn-fail" type="button" data-i18n="cancel_selected">Cancelar Selecionado</button>
-          <button id="retry-latest" class="btn-warn" type="button" data-i18n="retry_selected">Retry Selecionado</button>
-          <button id="refresh-jobs" class="btn-alt" type="button" data-i18n="refresh_list">Atualizar Lista</button>
+    <main class="content">
+      <!-- ═══════════ VIEW: Coletas ═══════════ -->
+      <section class="view active" id="view-jobs">
+        <div class="kpi-row">
+          <div class="tile reveal"><div class="t-label" data-i18n="kpi_running">Em execução</div><div class="t-value" id="kpi-running">–</div><div class="t-delta" id="kpi-queued-note"></div></div>
+          <div class="tile reveal"><div class="t-label" data-i18n="kpi_done">Concluídas</div><div class="t-value" id="kpi-done">–</div><div class="t-delta" data-i18n="kpi_window">entre as últimas 40 coletas</div></div>
+          <div class="tile reveal"><div class="t-label" data-i18n="kpi_failed">Falhas</div><div class="t-value" id="kpi-failed">–</div><div class="t-delta" data-i18n="kpi_window">entre as últimas 40 coletas</div></div>
+          <div class="tile reveal"><div class="t-label" data-i18n="kpi_volume">Volume transferido</div><div class="t-value" id="kpi-volume">–</div><div class="t-delta" id="kpi-files-note"></div></div>
         </div>
 
-        <div class="output-controls">
-          <button id="copy-output" class="btn-muted" type="button" data-i18n="copy_path">Copiar Caminho</button>
-          <button id="open-output" class="btn-alt" type="button" data-i18n="open_folder">Abrir Pasta</button>
+        <div class="filter-bar reveal">
+          <div class="search">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+            <input id="job-search" type="search" data-i18n-placeholder="jobs_search_ph" placeholder="Buscar por fonte ou ID…" aria-label="Buscar coletas">
+          </div>
+          <div class="seg" role="group" aria-label="Filtrar por status" id="jobs-seg">
+            <button aria-pressed="true" data-filter="all" type="button" data-i18n="flt_all">Todas</button>
+            <button aria-pressed="false" data-filter="active" type="button" data-i18n="flt_active">Ativas</button>
+            <button aria-pressed="false" data-filter="completed" type="button" data-i18n="flt_done">Concluídas</button>
+            <button aria-pressed="false" data-filter="failed" type="button" data-i18n="flt_failed">Falhas</button>
+          </div>
+          <button class="btn btn-sm btn-ghost" id="refresh-jobs" type="button" data-i18n="refresh_list">Atualizar</button>
         </div>
 
-        <div id="log-box" class="log-box" data-i18n="no_logs">Sem logs para exibir.</div>
-
-        <div class="jobs">
-          <table>
-            <caption class="sr-only" data-i18n="jobs_caption">Lista de jobs de download com status, progresso e ações</caption>
-            <thead>
-              <tr>
-                <th scope="col" data-i18n="th_job">Job</th>
-                <th scope="col" data-i18n="th_status">Status</th>
+        <div class="panel reveal">
+          <div class="panel-scroll">
+            <table>
+              <caption class="sr-only" data-i18n="jobs_caption">Lista de coletas com status, progresso e ações</caption>
+              <thead><tr>
+                <th scope="col" data-i18n="th_job">ID</th>
                 <th scope="col" data-i18n="th_source">Fonte</th>
+                <th scope="col" data-i18n="th_status">Status</th>
+                <th scope="col" style="width:210px" data-i18n="th_progress">Progresso</th>
+                <th scope="col" style="text-align:right" data-i18n="th_files">Arquivos</th>
                 <th scope="col" data-i18n="th_attempt">Tent.</th>
-                <th scope="col" data-i18n="th_summary">Resumo</th>
-                <th scope="col" data-i18n="th_actions">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="jobs-body"></tbody>
-          </table>
+              </tr></thead>
+              <tbody id="jobs-body"></tbody>
+            </table>
+          </div>
         </div>
-      </article>
-    </section>
+      </section>
+
+      <!-- ═══════════ VIEW: Nova coleta ═══════════ -->
+      <section class="view" id="view-new">
+        <div class="stepper" aria-label="Etapas">
+          <div class="st is-active" id="stp-1"><span class="st-n">1</span> <span data-i18n="step_source">Fonte</span></div>
+          <div class="st-sep"></div>
+          <div class="st" id="stp-2"><span class="st-n">2</span> <span data-i18n="step_filters">Filtros e revisão</span></div>
+        </div>
+
+        <!-- Etapa 1: catálogo -->
+        <div id="nc-step1">
+          <div class="filter-bar">
+            <div class="search">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+              <input type="search" id="nc-search" data-i18n-placeholder="src_search_ph" placeholder="Buscar fonte… (ex.: dengue, sih, população)" aria-label="Buscar fontes">
+            </div>
+          </div>
+          <div id="nc-catalog"></div>
+        </div>
+
+        <!-- Etapa 2: formulário + resumo -->
+        <div id="nc-step2" hidden>
+          <div class="nc-layout">
+            <form class="form-card" id="job-form">
+              <h2 id="form-title">—</h2>
+              <p class="fc-sub" id="form-sub">—</p>
+              <div class="fields-grid" id="dynamic-fields-basic"></div>
+              <div class="disclosure" id="adv" hidden>
+                <button type="button" id="advanced-toggle">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6l4 4 4-4"/></svg>
+                  <span data-i18n="advanced">Filtros avançados</span> (<span id="adv-count">0</span>)
+                </button>
+                <div class="disc-body">
+                  <div class="fields-grid" id="dynamic-fields-advanced"></div>
+                </div>
+              </div>
+            </form>
+
+            <aside class="summary">
+              <div class="form-card">
+                <h3 data-i18n="summary_title">Resumo da coleta</h3>
+                <div class="sum-rows" id="sum-rows"></div>
+              </div>
+              <div class="estimate" id="estimate-box" hidden></div>
+              <button class="btn" id="btn-estimate" type="button" style="justify-content:center" data-i18n="btn_estimate">Estimar volume</button>
+              <button class="btn btn-primary" id="btn-submit" type="button" style="justify-content:center" data-i18n="btn_submit">Iniciar coleta</button>
+              <button class="btn btn-ghost" id="btn-back-catalog" type="button" style="justify-content:center" data-i18n="btn_change_source">← Trocar fonte</button>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ VIEW: Fontes ═══════════ -->
+      <section class="view" id="view-sources">
+        <div class="filter-bar">
+          <div class="search">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+            <input type="search" id="sources-search" data-i18n-placeholder="src_search_ph" placeholder="Buscar fonte…" aria-label="Buscar fontes">
+          </div>
+          <p style="margin:0;font-size:12.5px;color:var(--muted)" data-i18n="sources_hint">Clique numa fonte para iniciar uma coleta com ela.</p>
+        </div>
+        <div id="sources-catalog"></div>
+      </section>
+    </main>
   </div>
+</div>
+
+<!-- ═══ Drawer de detalhe ═══ -->
+<div class="drawer-scrim" id="drawer-scrim"></div>
+<aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+  <div class="drawer-head">
+    <div>
+      <h2 id="drawer-title">—</h2>
+      <div class="sub" id="drawer-id">—</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="drawer-badge"></span>
+      <button class="btn btn-ghost btn-sm" id="drawer-close" type="button" aria-label="Fechar painel">✕</button>
+    </div>
+  </div>
+  <div class="drawer-body">
+    <div class="d-progress">
+      <span class="big-pct" id="d-pct">0%</span>
+      <div class="meter-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso do download" id="d-progressbar">
+        <div class="meter-fill" id="d-fill" style="width:0%"></div>
+      </div>
+      <div class="d-sub"><span id="d-files-bytes">—</span><span id="d-time">—</span></div>
+    </div>
+
+    <div class="d-actions">
+      <button class="btn btn-danger btn-sm" id="d-cancel" type="button" data-i18n="btn_cancel">Cancelar</button>
+      <button class="btn btn-warn btn-sm" id="d-retry" type="button" data-i18n="btn_retry">Repetir</button>
+      <button class="btn btn-sm" id="d-open" type="button" data-i18n="open_folder">Abrir pasta</button>
+      <button class="btn btn-sm" id="d-copy" type="button" data-i18n="copy_path">Copiar caminho</button>
+    </div>
+
+    <div class="d-error" id="d-error" hidden></div>
+
+    <dl class="d-meta">
+      <div><dt data-i18n="lbl_source">Fonte</dt><dd id="d-source">—</dd></div>
+      <div><dt data-i18n="lbl_created">Criada</dt><dd id="d-created">—</dd></div>
+      <div><dt data-i18n="lbl_params">Filtros</dt><dd id="d-params">—</dd></div>
+      <div><dt data-i18n="lbl_current_file">Arquivo atual</dt><dd class="mono" id="d-current">—</dd></div>
+      <div class="full"><dt data-i18n="lbl_output_folder">Destino</dt><dd class="mono" id="d-dest">—</dd></div>
+    </dl>
+
+    <div class="d-files" id="d-exported" hidden></div>
+
+    <div>
+      <div style="font-family:var(--font-display);font-size:12.5px;font-weight:600;margin-bottom:8px" data-i18n="log_title">Log da execução</div>
+      <div class="term">
+        <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title" id="term-title">guaraci</span></div>
+        <div class="term-body" id="log-box" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
