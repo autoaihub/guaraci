@@ -1,4 +1,4 @@
-/* ═══════════ Guaraci — documentação: catálogo das 91 fontes ═══════════ */
+/* ═══════════ Guaraci — documentação: catálogo das 94 fontes ═══════════ */
 (function () {
   "use strict";
   if (typeof GUARACI_CATALOG === "undefined") return;

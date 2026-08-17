@@ -1,4 +1,4 @@
-"""Gera site/assets/catalog-data.js — catálogo detalhado das 91 fontes do Guaraci.
+"""Gera site/assets/catalog-data.js — catálogo detalhado das 94 fontes do Guaraci.
 
 Fontes de verdade:
 - DownloadService: parâmetros (tipo, default, allowed_values, min/max, fase) e modo.
@@ -155,6 +155,9 @@ CURATED = {
     "ibge_populacao": ("População estimada", "Estimativas anuais de população", G_IBGE, "IBGE", "pop"),
     "ibge_populacao_idade_sexo": ("População por idade e sexo (Censo)", "Pirâmide etária do Censo", G_IBGE, "IBGE", "pop"),
     "ibge_pib_municipios": ("PIB dos municípios", "Produto interno bruto municipal", G_IBGE, "IBGE", "pop"),
+    "ibge_nascidos_vivos_rc": ("Nascidos vivos (registro civil)", "Nascimentos por mês/sexo — registro cartorial", G_IBGE, "IBGE", "pop"),
+    "ibge_obitos_rc": ("Óbitos (registro civil)", "Óbitos por mês/sexo — registro cartorial", G_IBGE, "IBGE", "pop"),
+    "ibge_area_territorial": ("Área territorial e densidade", "Área, população e densidade demográfica (Censo 2022)", G_IBGE, "IBGE", "pop"),
     # NASA
     "nasa_power": ("POWER", "Temperatura, radiação solar e vento", G_NASA, "NASA (EUA)", "clima"),
     "nasa_gpm": ("GPM IMERG", "Precipitação estimada por satélite", G_NASA, "NASA (EUA)", "clima"),
@@ -261,7 +264,7 @@ def main() -> None:
     payload = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     OUT.write_text(
         "// GERADO por scripts/build_site_catalog.py — não editar à mão.\n"
-        "// Catálogo detalhado das 91 fontes: parâmetros (DownloadService), campos\n"
+        "// Catálogo detalhado das 94 fontes: parâmetros (DownloadService), campos\n"
         "// amostrados (field_dictionary.json), cadência (orquestrador) e discover FTP.\n"
         f"const GUARACI_CATALOG = {payload};\n"
         "const GUARACI_BASES = Object.values(GUARACI_CATALOG);\n",
