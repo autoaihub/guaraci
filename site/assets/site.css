@@ -74,10 +74,14 @@ img { max-width: 100%; }
 .btn-sun:hover { background: var(--sun-2); color: #1c1204; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(247, 164, 29, .42); }
 .btn-ghost { background: transparent; color: var(--txt); border: 1px solid rgba(255, 255, 255, .22); }
 .btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+.btn-teal { background: var(--teal); color: #04120f; box-shadow: 0 8px 32px rgba(20, 184, 166, .3); }
+.btn-teal:hover { background: var(--teal-deep); color: #04120f; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(20, 184, 166, .42); }
 .nav .btn { padding: 9px 20px; font-size: .88rem; }
-/* especificidade: .nav-links a pintava o botão GitHub de cinza sobre o laranja */
+/* especificidade: .nav-links a pintava os botões de cinza sobre o fundo colorido */
 .nav-links a.btn-sun { color: #10231e; }
 .nav-links a.btn-sun:hover { color: #10231e; background: var(--sun-2); }
+.nav-links a.btn-teal { color: #04120f; }
+.nav-links a.btn-teal:hover { color: #04120f; background: var(--teal-deep); }
 .nav-toggle { display: none; margin-left: auto; background: none; border: 0; color: var(--txt); font-size: 1.6rem; cursor: pointer; }
 
 /* ── Hero ── */
