@@ -4,7 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "guaraci"
-version = "0.6.0"
+# Fonte única da versão: guaraci/__init__.py (__version__), lida estaticamente
+# pelo setuptools via [tool.setuptools.dynamic].
+dynamic = ["version"]
 description = "Brazilian public data integration platform for scientific research"
 readme = "README.md"
 license = {text = "MIT"}
@@ -77,24 +79,9 @@ dev = [
     "mypy>=1.6.0",
     "pre-commit>=3.5.0"
 ]
+# Agregado autorreferente: sem duplicar pins, não há como divergir dos extras acima.
 full = [
-    "pyreaddbc>=2.0.0",
-    "dbfread>=2.0.7",
-    "pysus>=2.2.0",
-    "google-cloud-bigquery>=3.11.0",
-    "db-dtypes>=1.2.0",
-    "fastapi>=0.104.0",
-    "uvicorn[standard]>=0.24.0",
-    "httpx>=0.25.0",
-    "aiofiles>=23.2.0",
-    "pytest>=7.4.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.1.0",
-    "black>=23.9.0",
-    "isort>=5.12.0",
-    "flake8>=6.1.0",
-    "mypy>=1.6.0",
-    "pre-commit>=3.5.0"
+    "guaraci[datasus,datasus-legacy,snis-legacy,api,dev]"
 ]
 docs = [
     "mkdocs>=1.5.0",
@@ -119,12 +106,15 @@ TermsOfUse = "https://github.com/autoaihub/guaraci/blob/main/TERMS_OF_USE.md"
 [project.scripts]
 guaraci = "guaraci.cli.main:app"
 
+[tool.setuptools.dynamic]
+version = {attr = "guaraci.__version__"}
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["guaraci*"]
 
 [tool.setuptools.package-data]
-guaraci = ["py.typed", "config/*.yaml", "api/static/*.html", "data/*.json"]
+guaraci = ["py.typed", "config/*.yaml", "api/static/*", "data/*.json"]
 
 [tool.black]
 line-length = 88
@@ -154,6 +144,9 @@ strict_equality = true
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --strict-markers --strict-config"
+markers = [
+    "smoke: live network smoke tests (opt-in via GUARACI_*_SMOKE env vars); deselect with -m 'not smoke'",
+]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]

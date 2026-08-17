@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from guaraci import __version__
@@ -20,6 +21,11 @@ job_service = DownloadJobService(
     storage_path=config.data_root / "jobs" / "download_jobs.json",
 )
 _UI_INDEX_PATH = Path(__file__).with_name("static") / "index.html"
+app.mount(
+    "/static",
+    StaticFiles(directory=Path(__file__).with_name("static")),
+    name="static",
+)
 
 
 class SourceResponse(BaseModel):
