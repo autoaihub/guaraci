@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+### Added — IBGE registro civil + território (Fase C)
+- `ibge_nascidos_vivos_rc` (`guaraci/ibge/registro_civil.py`) — live births by
+  month/sex, SIDRA table 2680 (variable 218), registro civil; a counterpoint
+  to DATASUS SINASC. Reference verified live 2026-08-17: Brasil 2023,
+  `mes`/`sexo`=`total` → 2 523 267.
+- `ibge_obitos_rc` — deaths by month/sex, SIDRA table 2681 (variable 343),
+  registro civil; counterpoint to DATASUS SIM. Reference verified live
+  2026-08-17: Brasil 2023, `mes`/`sexo`=`total` → 1 429 575.
+- `ibge_area_territorial` (`guaraci/ibge/territorio.py`) — area / density /
+  population from SIDRA table 4714 (variables 93/614/6318 bundled in one
+  request via SIDRA's `|`-joined variable list), single period 2022 (census
+  reference). Reference verified live 2026-08-17: Brasil área territorial
+  8 510 417.771 km².
+- Both registro-civil sources reject `mes != "total"` at `level="municipio"`
+  up front (`ValueError`) — confirmed live that SIDRA returns HTTP 500 for the
+  municipal x all-months combination (5570 municipalities x 13 categories
+  exceeds the aggregate limit); UF/região/Brasil accept the monthly
+  breakdown.
+- Registered in `guaraci/services/sources/ibge.py` (mode `ibge api`); backfill
+  floors added to `ibge_floor` in `guaraci/orchestrator/cadence.py` (2003 for
+  both registro-civil sources, 2022 — census year — for área territorial).
+- Offline tests in `tests/test_ibge_registro_civil_territorio.py` (fake SIDRA
+  client) plus 3 new opt-in live smoke tests in `tests/test_ibge_smoke.py`
+  (`GUARACI_IBGE_SMOKE=1`).
+- Site catalog, `docs/SOURCES_AND_FILTERS.md` and `field_dictionary.json` /
+  `docs/DATA_DICTIONARY.md` updated for the 3 new sources; source count in
+  the site copy raised from 91 to 94.
+
 ### Added — versioned SIH-RD column mapping
 - Added `DEFAULT_SIH_RD_COLUMN_MAP` and `apply_sih_column_map()` / `SihDataSource.apply_column_map()` in `guaraci/datasus/sih.py` for standardizing SIH-RD field names (`N_AIH` -> `numero_aih`, `DT_INTER` -> `data_internacao`, `MUNIC_RES` -> `municipio_residencia`, `DIAG_PRINC` -> `diagnostico_principal`, etc.), backed by unit regression tests in `tests/test_sih_column_map.py`.
 
