@@ -17,9 +17,12 @@ from guaraci.ibge import (
 )
 
 SMOKE = os.environ.get("GUARACI_IBGE_SMOKE") == "1"
-pytestmark = pytest.mark.skipif(
+pytestmark = [
+    pytest.mark.smoke,
+    pytest.mark.skipif(
     not SMOKE, reason="Set GUARACI_IBGE_SMOKE=1 to enable the live IBGE smoke test"
-)
+),
+]
 
 
 def test_live_brazil_population(tmp_path):

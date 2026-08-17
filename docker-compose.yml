@@ -1,46 +1,28 @@
 # Docker Compose for Guaraci Platform
-# Future use for web API and services
-
-version: '3.8'
+#
+# Caminho oficialmente suportado: scripts/desktop/start-guaraci.{cmd,sh}
+# (mesma porta 8002 usada em toda a documentação). Este compose é um
+# atalho equivalente para quem prefere `docker compose up api`.
 
 services:
-  guaraci:
-    build: .
-    container_name: guaraci-app
-    volumes:
-      - ./data:/app/data
-      - .:/app
-    environment:
-      - GUARACI_DATA_ROOT=/app/data
-      - GUARACI_LOG_LEVEL=INFO
-      - GUARACI_MAX_CONCURRENT_DOWNLOADS=5
-    ports:
-      - "8000:8000"
-    command: python -c "import guaraci; print(f'Guaraci v{guaraci.__version__} ready!')"
-
   api:
     build: .
     container_name: guaraci-api
     volumes:
       - ./data:/app/data
-      - .:/app
     environment:
       - GUARACI_DATA_ROOT=/app/data
       - GUARACI_LOG_LEVEL=INFO
       - GUARACI_MAX_CONCURRENT_DOWNLOADS=5
+      - GUARACI_OUTPUT_ROOT=/app/data
     ports:
-      - "8001:8000"
+      # A API não tem autenticação: publica apenas em loopback por padrão.
+      - "127.0.0.1:8002:8000"
     command: uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000
 
-  # Future: Database service
-  # db:
-  #   image: postgres:15
-  #   environment:
-  #     POSTGRES_DB: guaraci
-  #     POSTGRES_USER: guaraci
-  #     POSTGRES_PASSWORD: guaraci
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-
-# volumes:
-#   postgres_data:
+  # Utilitário: imprime a versão instalada e sai.
+  version-check:
+    build: .
+    container_name: guaraci-version
+    profiles: ["tools"]
+    command: python -c "import guaraci; print(f'Guaraci v{guaraci.__version__} ready!')"

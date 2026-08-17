@@ -26,7 +26,7 @@
 
 ## Artigo científico
 
-- [`artigo/for-author/`](artigo/for-author/): material para o artigo *Data in Brief* — dossiê técnico/histórico, rascunho por seção do template e dicionário de dados (inglês, para a redação).
+- `docs/artigo/` (apenas local, fora do versionamento): material para o artigo *Data in Brief* — dossiê técnico/histórico, rascunho por seção do template e dicionário de dados. No clone público este diretório não existe.
 
 ## Legais e Contribuição
 

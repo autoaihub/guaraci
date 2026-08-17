@@ -67,7 +67,7 @@ Resumo rápido:
 docker build -t guaraci .
 
 # 2. Iniciar (Windows — abre o browser automaticamente)
-.\scripts\desktop\start-guaraci.ps1
+.\scripts\desktop\start-guaraci.cmd
 
 # 3. Health check
 Invoke-RestMethod http://localhost:8002/health
@@ -244,9 +244,9 @@ Useful commands on Windows:
 
 ```powershell
 .\scripts\desktop\launcher.ps1
-.\scripts\desktop\start-guaraci.ps1
+.\scripts\desktop\start-guaraci.cmd
 .\scripts\desktop\status-guaraci.ps1
-.\scripts\desktop\stop-guaraci.ps1
+.\scripts\desktop\stop-guaraci.cmd
 ```
 
 Useful commands on Linux or macOS:

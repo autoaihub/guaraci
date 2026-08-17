@@ -18,9 +18,12 @@ from guaraci.orchestrator.model import Kind
 from guaraci.orchestrator.runner import run_ftp_batch
 
 SMOKE = os.environ.get("GUARACI_FTP_SMOKE") == "1"
-pytestmark = pytest.mark.skipif(
+pytestmark = [
+    pytest.mark.smoke,
+    pytest.mark.skipif(
     not SMOKE, reason="Set GUARACI_FTP_SMOKE=1 to enable the live FTP smoke test"
-)
+),
+]
 
 
 def _one_small_sinan_record():

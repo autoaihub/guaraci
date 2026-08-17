@@ -190,5 +190,7 @@ def apply_uf_mapping_polars(df, columns: list[str]):
                 pl.col(col).map_elements(utility_mapping, return_dtype=pl.Utf8).alias(col)
             ])
         except Exception as e:
-            print(f"⚠️ Failed to apply UF mapping on column {col}: {e}")
+            from loguru import logger
+
+            logger.warning(f"Failed to apply UF mapping on column {col}: {e}")
     return df

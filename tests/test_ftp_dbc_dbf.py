@@ -69,3 +69,55 @@ def test_missing_file_raises(fake_decoders, tmp_path) -> None:
 
     with pytest.raises(FileNotFoundError):
         dbc.read(tmp_path / "nope.dbf")
+
+
+def test_chunked_read_concatenates_all_records(fake_decoders, tmp_path, monkeypatch) -> None:
+    """Com _CHUNK_ROWS pequeno, múltiplos chunks devem concatenar sem perda."""
+    import sys
+    import types
+
+    fake_dbfread = types.ModuleType("dbfread")
+    records = [{"COD": str(i), "VAL": i} for i in range(7)]
+
+    def _DBF(path, **kwargs):  # noqa: N802
+        return iter(records)
+
+    fake_dbfread.DBF = _DBF
+    monkeypatch.setitem(sys.modules, "dbfread", fake_dbfread)
+
+    from guaraci.datasus.ftp import dbc
+
+    monkeypatch.setattr(dbc, "_CHUNK_ROWS", 3)
+    src = tmp_path / "BIG.DBF"
+    src.write_bytes(b"\x00")
+
+    df = dbc.read(src)
+
+    assert df.height == 7
+    assert df["COD"].to_list() == [str(i) for i in range(7)]
+
+
+def test_mixed_types_across_chunks(fake_decoders, tmp_path, monkeypatch) -> None:
+    """Coluna nula no 1º chunk e texto no 2º não pode quebrar a concatenação."""
+    import sys
+    import types
+
+    fake_dbfread = types.ModuleType("dbfread")
+    records = [{"A": None}, {"A": None}, {"A": "x"}, {"A": "y"}]
+
+    def _DBF(path, **kwargs):  # noqa: N802
+        return iter(records)
+
+    fake_dbfread.DBF = _DBF
+    monkeypatch.setitem(sys.modules, "dbfread", fake_dbfread)
+
+    from guaraci.datasus.ftp import dbc
+
+    monkeypatch.setattr(dbc, "_CHUNK_ROWS", 2)
+    src = tmp_path / "MIX.DBF"
+    src.write_bytes(b"\x00")
+
+    df = dbc.read(src)
+
+    assert df.height == 4
+    assert df["A"].to_list() == [None, None, "x", "y"]

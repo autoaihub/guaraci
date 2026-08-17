@@ -31,7 +31,7 @@ docker build -t guaraci .
 O script cuida de subir o container em background (`guaraci-desktop`), aguardar o health check e abrir a UI automaticamente no browser.
 
 ```powershell
-.\scripts\desktop\start-guaraci.ps1
+.\scripts\desktop\start-guaraci.cmd
 ```
 
 A UI abrirá em **http://localhost:8002/**.
@@ -69,7 +69,7 @@ Invoke-RestMethod http://localhost:8002/sources
 
 **Se usou o Launcher:**
 ```powershell
-.\scripts\desktop\stop-guaraci.ps1
+.\scripts\desktop\stop-guaraci.cmd
 ```
 
 **Se iniciou manualmente:**
@@ -79,9 +79,9 @@ Basta pressionar `Ctrl+C` no terminal.
 
 | Ação | Script/Comando |
 |---|---|
-| Iniciar UI | `.\scripts\desktop\start-guaraci.ps1` (ou `.sh` no Linux/Mac) |
+| Iniciar UI | `.\scripts\desktop\start-guaraci.cmd` (ou `.sh` no Linux/Mac) |
 | Verificar status | `.\scripts\desktop\status-guaraci.ps1` |
-| Parar | `.\scripts\desktop\stop-guaraci.ps1` |
+| Parar | `.\scripts\desktop\stop-guaraci.cmd` |
 | Rodar testes completos | `docker run --rm -v "${PWD}:/app" guaraci python -m pytest tests/ -v` |
 | Shell interativo | `docker run --rm -it -v "${PWD}:/app" guaraci bash` |
 
@@ -89,7 +89,7 @@ Basta pressionar `Ctrl+C` no terminal.
 
 ### Porta 8002 ocupada
 *Erro: `Bind for 0.0.0.0:8002 failed: port is already allocated`*
-**Solução:** O container antigo pode estar preso. Pare com `stop-guaraci.ps1` ou rode o launcher em outra porta: `.\scripts\desktop\start-guaraci.ps1 -HostPort 8003`.
+**Solução:** O container antigo pode estar preso. Pare com `stop-guaraci.cmd` ou rode o launcher em outra porta: `.\scripts\desktop\start-guaraci.cmd (edite HostPort) ou powershell -ExecutionPolicy Bypass -File scripts/desktop/start-guaraci.ps1 -HostPort 8003`.
 
 ### "Guaraci UI not found" ou UI sem dados
 **Solução:** Verifique se o volume está montado corretamente (`-v "${PWD}:/app"`) e se a pasta `data/` possui permissões de escrita.

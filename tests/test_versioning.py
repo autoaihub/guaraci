@@ -34,9 +34,15 @@ def _load_pyproject() -> dict:
     return tomllib.loads(pyproject.read_text(encoding="utf-8"))
 
 
-def test_package_version_matches_pyproject() -> None:
+def test_pyproject_version_is_dynamic_from_package() -> None:
+    """A versão tem fonte única: guaraci.__version__ via setuptools dynamic."""
     data = _load_pyproject()
-    assert guaraci.__version__ == data["project"]["version"]
+    assert "version" not in data["project"]
+    assert "version" in data["project"]["dynamic"]
+    assert (
+        data["tool"]["setuptools"]["dynamic"]["version"]["attr"]
+        == "guaraci.__version__"
+    )
 
 
 def test_pyproject_authors_are_in_expected_order() -> None:
@@ -46,10 +52,9 @@ def test_pyproject_authors_are_in_expected_order() -> None:
 
 
 def test_citation_metadata_matches_current_version_and_author_order() -> None:
-    data = _load_pyproject()
     citation = (_repo_root() / "CITATION.cff").read_text(encoding="utf-8")
 
-    assert f'version: "{data["project"]["version"]}"' in citation
+    assert f'version: "{guaraci.__version__}"' in citation
 
     previous_index = -1
     for author_block in EXPECTED_CITATION_AUTHORS:
@@ -59,12 +64,15 @@ def test_citation_metadata_matches_current_version_and_author_order() -> None:
 
 
 def test_readme_mentions_current_version() -> None:
-    data = _load_pyproject()
     readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
-    assert f'Current version: `{data["project"]["version"]}`' in readme
+    assert f"Current version: `{guaraci.__version__}`" in readme
 
 
-def test_dockerfile_version_label_matches_pyproject() -> None:
-    data = _load_pyproject()
+def test_dockerfile_version_label_matches_package() -> None:
     dockerfile = (_repo_root() / "dockerfile").read_text(encoding="utf-8")
-    assert f'LABEL version="{data["project"]["version"]}"' in dockerfile
+    assert f'LABEL version="{guaraci.__version__}"' in dockerfile
+
+
+def test_requirements_txt_removed_in_favor_of_pyproject() -> None:
+    """Dependências têm fonte única (pyproject + uv.lock); sem requirements.txt."""
+    assert not (_repo_root() / "requirements.txt").exists()

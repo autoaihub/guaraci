@@ -27,10 +27,13 @@ from guaraci.datasus.ftp.discovery import discover_spec
 _SMOKE_FLAGS = {"1", "true", "yes", "on"}
 _SMOKE_ENABLED = os.environ.get("GUARACI_FTP_SMOKE", "").strip().lower() in _SMOKE_FLAGS
 
-pytestmark = pytest.mark.skipif(
+pytestmark = [
+    pytest.mark.smoke,
+    pytest.mark.skipif(
     not _SMOKE_ENABLED,
     reason="Set GUARACI_FTP_SMOKE=1 to enable the live FTP smoke test",
-)
+),
+]
 
 
 # (spec, probe year, groups, min files expected) — values from live recon.
