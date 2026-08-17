@@ -20,6 +20,14 @@ from guaraci.core.security import ensure_allowed_output_dir
 from guaraci.services.downloads import DownloadService
 
 
+class JobCancelledError(BaseException):
+    """Raised from inside the progress callback to abort a running download.
+
+    Deriva de ``BaseException`` de propósito: blocos ``except Exception``
+    por-arquivo dentro das datasources não podem engolir o cancelamento.
+    """
+
+
 @dataclass
 class DownloadJob:
     """Represents one asynchronous download execution."""
@@ -326,7 +334,24 @@ class DownloadJobService:
             source = job.source
 
         source_semaphore = self._get_source_semaphore(source)
-        source_semaphore.acquire()
+        # Aquisição com polling: um job cancelado ainda na fila não pode ficar
+        # bloqueado no semáforo da fonte segurando um worker do pool.
+        while not source_semaphore.acquire(timeout=0.5):
+            with self._lock:
+                job = self._jobs.get(job_id)
+                if job is None:
+                    return
+                if job.cancel_requested or job.status == "canceled":
+                    if job.status != "canceled":
+                        self._mark_canceled_locked(job, message="Canceled by user.")
+                        self._append_event_locked(
+                            job,
+                            level="warning",
+                            message="Job canceled while waiting for source slot.",
+                            event="canceled",
+                        )
+                        self._persist_jobs_locked()
+                    return
         started_monotonic = time.monotonic()
         per_file_bytes: Dict[str, int] = {}
         per_file_totals: Dict[str, int] = {}
@@ -359,6 +384,11 @@ class DownloadJobService:
                 if should_persist:
                     self._persist_jobs_locked()
                     progress_log_state["last_persist_ts"] = now
+                cancel_now = running_job.cancel_requested
+            if cancel_now:
+                # Aborta o download em andamento de verdade: a exceção sobe
+                # pela pilha da datasource até o handler de cancelamento.
+                raise JobCancelledError(job_id)
 
         try:
             with self._lock:
@@ -380,6 +410,20 @@ class DownloadJobService:
                     progress_callback=progress_callback,
                     **params,
                 )
+            except JobCancelledError:
+                with self._lock:
+                    job = self._jobs[job_id]
+                    self._mark_canceled_locked(job, message="Canceled by user.")
+                    self._append_event_locked(
+                        job,
+                        level="warning",
+                        message="Job canceled: in-flight download aborted.",
+                        event="canceled",
+                    )
+                    job.elapsed_seconds = max(0.0, time.monotonic() - started_monotonic)
+                    job.eta_seconds = None
+                    self._persist_jobs_locked()
+                return
             except Exception as exc:
                 with self._lock:
                     job = self._jobs[job_id]

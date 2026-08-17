@@ -554,3 +554,52 @@ def test_open_job_output_dir_returns_not_opened_in_docker() -> None:
     payload = service.open_job_output_dir(finished.job_id)
     assert payload["opened"] is False
     assert "docker" in str(payload["message"]).lower()
+
+
+class _SlowLoopDownloadService:
+    """Simula um download longo que reporta progresso a cada iteração."""
+
+    def __init__(self) -> None:
+        self.iterations_done = 0
+        self.started = threading.Event()
+
+    def list_sources(self):
+        return [SourceDescriptor(source="snis", title="SNIS", mode="mock")]
+
+    def validate_source_params(self, source: str, params):  # noqa: ANN001
+        pass
+
+    def run(self, source: str, progress_callback=None, **kwargs):  # noqa: ANN001, ANN003
+        for index in range(200):
+            self.iterations_done = index + 1
+            if progress_callback is not None:
+                progress_callback(
+                    {
+                        "event": "file_progress",
+                        "file_path": "big_file.zip",
+                        "file_bytes_downloaded": index + 1,
+                        "file_total_bytes": 200,
+                    }
+                )
+            self.started.set()
+            time.sleep(0.01)
+        return JobResult(source=source, documents_found=1, downloaded_count=1)
+
+
+def test_cancel_aborts_in_flight_download(tmp_path: Path):
+    """Cancelar deve interromper o download em andamento, não só marcá-lo."""
+    slow_service = _SlowLoopDownloadService()
+    service = DownloadJobService(
+        download_service=slow_service,
+        storage_path=tmp_path / "jobs.json",
+    )
+    job = service.create_job(source="snis", params={})
+    assert slow_service.started.wait(timeout=5.0), "download não iniciou"
+
+    service.cancel_job(job.job_id)
+    finished = service.wait_for_job(job.job_id, timeout_seconds=10.0)
+
+    assert finished.status == "canceled"
+    # O laço tem 200 iterações de 10ms; abortar de verdade significa parar
+    # muito antes do fim.
+    assert slow_service.iterations_done < 200

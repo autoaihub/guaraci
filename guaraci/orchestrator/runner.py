@@ -96,28 +96,38 @@ def run_ftp_batch(
     cache_dir: Optional[Path] = None,
     client_factory: Optional[Callable[[], Any]] = None,
     dbc_reader: Optional[Callable[[Path], Any]] = None,
+    on_row: Optional[Callable[[LedgerRow], None]] = None,
 ) -> List[LedgerRow]:
     """Materialise a batch of FTP units (all from the same source) as bronze CSVs.
 
     ``tiers`` selects the offerings: ``raw`` (the official file as-is) and/or
     ``refined`` (the same rows repartitioned by month, see ``refine.py``). Both
     are produced from a single decode of each file.
+
+    O processamento é unidade a unidade (download → CSV → linha de ledger) e
+    ``on_row`` é invocado assim que cada linha existe: um crash no meio de um
+    backfill grande preserva o rastro de tudo que já foi materializado.
     """
     bronze_root = Path(bronze_root)
     tiers = tuple(tiers)
     index = ledger.index()
     rows: List[LedgerRow] = []
-    todo: List[FetchUnit] = []
 
+    def _emit(row: LedgerRow) -> None:
+        rows.append(row)
+        if on_row is not None:
+            on_row(row)
+
+    todo: List[FetchUnit] = []
     for unit in units:
         raw_target = paths.bronze_path(bronze_root, unit, tier="raw")
         if dry_run:
-            rows.append(_base_row(unit, run_id, ts, STATUS_PLANNED, out_path=str(raw_target)))
+            _emit(_base_row(unit, run_id, ts, STATUS_PLANNED, out_path=str(raw_target)))
             continue
         # Skip only when the raw tier is requested and already present + unchanged;
         # a refined-only run always regenerates from the existing raw decode.
         if "raw" in tiers and raw_target.exists() and ledger.satisfied(unit, index=index):
-            rows.append(_base_row(unit, run_id, ts, STATUS_SKIPPED, out_path=str(raw_target)))
+            _emit(_base_row(unit, run_id, ts, STATUS_SKIPPED, out_path=str(raw_target)))
             continue
         todo.append(unit)
 
@@ -133,31 +143,15 @@ def run_ftp_batch(
     reader = dbc_reader or dbc_module.read
     cache = Path(cache_dir) if cache_dir else _cache_dir(bronze_root)
 
-    records = [_Rec(u.src_path, u.src_basename, u.group or "") for u in todo]
-
-    async def _impl() -> Dict[str, Any]:
-        async with factory() as client:
-            return await download_records(
-                client, records, cache_dir=cache, dbc_reader=reader
-            )
-
-    result = run_coro(_impl())
-    failed = {basename for _group, basename in result.get("failed_downloads", [])}
-
-    for unit in todo:
-        if unit.src_basename in failed:
-            rows.append(
-                _base_row(unit, run_id, ts, STATUS_ERROR, error="download/decode failed")
-            )
-            continue
+    def _materialise_unit(unit: FetchUnit) -> LedgerRow:
         parquet = cache / f"{Path(unit.src_basename).stem}.parquet"
         if not parquet.exists():
-            rows.append(
-                _base_row(unit, run_id, ts, STATUS_ERROR, error="parquet not produced")
-            )
-            continue
+            return _base_row(unit, run_id, ts, STATUS_ERROR, error="parquet not produced")
         try:
             frame = pl.read_parquet(parquet)
+            if frame.height == 0:
+                # Arquivo oficial vazio: registrado como `empty`, não `ok`.
+                return _base_row(unit, run_id, ts, STATUS_EMPTY, documents_found=1)
             out_path = ""
             n_bytes = 0
             refined_count = 0
@@ -176,22 +170,41 @@ def run_ftp_batch(
                 refined_count = len(refined_paths)
                 if not out_path and refined_paths:
                     out_path = str(refined_paths[0])
-            rows.append(
-                _base_row(
-                    unit,
-                    run_id,
-                    ts,
-                    STATUS_OK,
-                    documents_found=1,
-                    downloaded_count=1,
-                    refined_count=refined_count,
-                    n_bytes=n_bytes,
-                    out_path=out_path,
-                )
+            return _base_row(
+                unit,
+                run_id,
+                ts,
+                STATUS_OK,
+                documents_found=1,
+                downloaded_count=1,
+                refined_count=refined_count,
+                n_bytes=n_bytes,
+                out_path=out_path,
             )
         except Exception as exc:  # noqa: BLE001 — per-file failure must not abort the batch
-            rows.append(_base_row(unit, run_id, ts, STATUS_ERROR, error=str(exc)))
+            return _base_row(unit, run_id, ts, STATUS_ERROR, error=str(exc))
 
+    async def _impl() -> None:
+        async with factory() as client:
+            for unit in todo:
+                record = _Rec(unit.src_path, unit.src_basename, unit.group or "")
+                try:
+                    result = await download_records(
+                        client, [record], cache_dir=cache, dbc_reader=reader
+                    )
+                except Exception as exc:  # noqa: BLE001 — per-file failure must not abort the batch
+                    _emit(_base_row(unit, run_id, ts, STATUS_ERROR, error=str(exc)))
+                    continue
+                if result.get("failed_downloads"):
+                    _emit(
+                        _base_row(
+                            unit, run_id, ts, STATUS_ERROR, error="download/decode failed"
+                        )
+                    )
+                    continue
+                _emit(_materialise_unit(unit))
+
+    run_coro(_impl())
     return rows
 
 

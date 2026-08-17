@@ -196,6 +196,9 @@ class Orchestrator:
         dry_run: bool,
     ) -> List[LedgerRow]:
         ts = self.clock()
+        # Append incremental: cada linha vai ao ledger assim que existe, para
+        # que um crash no meio do sweep não perca o rastro do que já foi feito.
+        on_row = None if dry_run else self.ledger.append
         if profile.kind.is_ftp():
             rows = run_ftp_batch(
                 units,
@@ -207,10 +210,12 @@ class Orchestrator:
                 tiers=self.tiers,
                 client_factory=self.ftp_client_factory,
                 dbc_reader=self.dbc_reader,
+                on_row=on_row,
             )
         else:
-            rows = [
-                run_via_service(
+            rows = []
+            for unit in units:
+                row = run_via_service(
                     unit,
                     service=self.service,
                     bronze_root=self.bronze_root,
@@ -218,14 +223,13 @@ class Orchestrator:
                     ts=ts,
                     dry_run=dry_run,
                 )
-                for unit in units
-            ]
-
-        if not dry_run:
-            for row in rows:
-                self.ledger.append(row)
+                rows.append(row)
+                if on_row is not None:
+                    on_row(row)
         return rows
 
     def _new_run_id(self, mode: str) -> str:
-        digits = re.sub(r"[^0-9]", "", self.clock())[:14] or "0"
+        # 20 dígitos preservam subsegundos do timestamp ISO — dois runs no
+        # mesmo segundo não colidem mais no run_id.
+        digits = re.sub(r"[^0-9]", "", self.clock())[:20] or "0"
         return f"{mode}_{digits}"
