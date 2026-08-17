@@ -68,6 +68,20 @@ Convention:
   fetch layer may change without
   altering the source identity.
 
+### Canonical parameter vocabulary
+
+Same concept, canonical names by family (aliases are not accepted — the schema
+rejects unknown parameters):
+
+- **UF / state**: `states` (list) on DATASUS collection params (SIM/SIH/SINAN
+  and FTP spec systems); `uf` (single value) on refinement/export filters and
+  OpenDataSUS sources.
+- **Year range**: `start_year` / `end_year` everywhere a range applies.
+- **Date range**: `start_date` / `end_date` (ISO `YYYY-MM-DD`) on NASA sources.
+- **Case-insensitivity**: UF and group values are normalized before
+  validation — `states=["sp"]` and `uf="sp"` are accepted and coerced to
+  upper case across all sources.
+
 ## 3. Parameters by Source
 
 ### 3.1 SNIS (`snis`)

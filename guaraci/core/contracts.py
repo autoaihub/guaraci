@@ -90,9 +90,15 @@ def _validate_param_value(spec: SourceParameterSpec, value: object) -> None:
     if spec.param_type == "string_list":
         if isinstance(value, str) or not isinstance(value, Sequence):
             raise ValueError(f"Parameter '{name}' must be a list of strings.")
-        if any(not isinstance(item, str) for item in value):
+        # Inteiros são aceitos e coagidos para string na checagem de
+        # allowed_values: a validação roda sobre params já normalizados e
+        # normalizadores convertem itens numéricos (ex.: months) para int.
+        if any(
+            isinstance(item, bool) or not isinstance(item, (str, int))
+            for item in value
+        ):
             raise ValueError(f"Parameter '{name}' must contain only strings.")
-        _validate_allowed(spec, list(value))
+        _validate_allowed(spec, [str(item) for item in value])
         return
 
     raise ValueError(f"Unsupported parameter type '{spec.param_type}' for '{name}'.")
