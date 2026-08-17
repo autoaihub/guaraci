@@ -162,7 +162,7 @@ def _normalize_opendatasus_params(params: Dict[str, object]) -> Dict[str, object
 def _normalize_ibge_params(params: Dict[str, object]) -> Dict[str, object]:
     normalized = dict(params)
 
-    for key in ("level", "sexo", "faixa_etaria"):
+    for key in ("level", "sexo", "faixa_etaria", "mes"):
         value = normalized.get(key)
         if isinstance(value, str):
             cleaned = value.strip().lower()

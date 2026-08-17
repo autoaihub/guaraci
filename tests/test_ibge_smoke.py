@@ -11,6 +11,9 @@ import os
 import pytest
 
 from guaraci.ibge import (
+    IbgeAreaTerritorialDataSource,
+    IbgeNascidosVivosRcDataSource,
+    IbgeObitosRcDataSource,
     IbgePibMunicipiosDataSource,
     IbgePopulacaoDataSource,
     IbgePopulacaoIdadeSexoDataSource,
@@ -50,3 +53,31 @@ def test_live_population_by_sex_age(tmp_path):
     assert {"sexo", "idade"} <= set(df.columns)
     assert set(df["sexo"].to_list()) == {"Homens", "Mulheres"}
     assert df["valor"].sum() > 150_000_000  # summed age groups ~ total pop
+
+
+def test_live_nascidos_vivos_rc_brazil_2023(tmp_path):
+    # Reference verified live 2026-08-17: Brasil, 2023, mes/sexo=Total -> 2 523 267.
+    ds = IbgeNascidosVivosRcDataSource(output_path=str(tmp_path))
+    ds.download(start_year=2023, end_year=2023, level="brasil")
+    row = ds.load_dataframe().row(0, named=True)
+    assert row["localidade_nome"] == "Brasil"
+    assert row["valor"] == 2_523_267
+
+
+def test_live_obitos_rc_brazil_2023(tmp_path):
+    # Reference verified live 2026-08-17: Brasil, 2023, mes/sexo=Total -> 1 429 575.
+    ds = IbgeObitosRcDataSource(output_path=str(tmp_path))
+    ds.download(start_year=2023, end_year=2023, level="brasil")
+    row = ds.load_dataframe().row(0, named=True)
+    assert row["localidade_nome"] == "Brasil"
+    assert row["valor"] == 1_429_575
+
+
+def test_live_area_territorial_brazil(tmp_path):
+    # Reference verified live 2026-08-17: Brasil, 2022 -> 8 510 417.771 km².
+    ds = IbgeAreaTerritorialDataSource(output_path=str(tmp_path))
+    ds.download(level="brasil")
+    df = ds.load_dataframe()
+    area_row = df.filter(df["variavel_id"] == "6318").row(0, named=True)
+    assert area_row["localidade_nome"] == "Brasil"
+    assert area_row["valor"] == pytest.approx(8_510_417.771, abs=1.0)

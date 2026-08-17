@@ -294,4 +294,311 @@ def build_sources() -> List[DownloadSource]:
             ],
             normalize_params=_normalize_ibge_params,
         ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source="ibge_nascidos_vivos_rc",
+                title="IBGE Nascidos Vivos (Registro Civil)",
+                mode="ibge api",
+            ),
+            datasource_cls=_downloads.IbgeNascidosVivosRcDataSource,
+            params_schema=[
+                SourceParameterSpec(
+                    name="output_dir",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Output directory for downloaded files.",
+                    required=False,
+                    default=None,
+                ),
+                SourceParameterSpec(
+                    name="output_format",
+                    phase="exportacao",
+                    param_type="string",
+                    description="Optional export format for the live births table.",
+                    required=False,
+                    default=None,
+                    allowed_values=EXPORT_FORMAT_VALUES,
+                ),
+                SourceParameterSpec(
+                    name="start_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description=(
+                        "Ano inicial dos nascidos vivos (IBGE SIDRA tabela 2680, "
+                        "registro civil, desde 2003)."
+                    ),
+                    required=False,
+                    default=last_year,
+                    minimum=2003,
+                    maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="end_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description="Ano final dos nascidos vivos.",
+                    required=False,
+                    default=last_year,
+                    minimum=2003,
+                    maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="level",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Nível territorial: municipio, uf, regiao ou brasil. "
+                        "Com mes != total, apenas uf/regiao/brasil são aceitos "
+                        "(municipal x todos os meses excede o limite da SIDRA)."
+                    ),
+                    required=False,
+                    default=_downloads.IbgeNascidosVivosRcDataSource.DEFAULT_LEVEL,
+                    allowed_values=["municipio", "uf", "regiao", "brasil"],
+                ),
+                SourceParameterSpec(
+                    name="mes",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Recorte de mês do nascimento: total (padrão, igual à "
+                        "tabela anual 2679) ou all (quebra mensal; requer "
+                        "level != municipio)."
+                    ),
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "all"],
+                ),
+                SourceParameterSpec(
+                    name="sexo",
+                    phase="coleta",
+                    param_type="string",
+                    description="Recorte de sexo: total (padrão), ambos, homens ou mulheres.",
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "ambos", "homens", "mulheres"],
+                ),
+                SourceParameterSpec(
+                    name="keep_raw",
+                    phase="tecnica",
+                    param_type="boolean",
+                    description="Se true, salva o JSON bruto da resposta.",
+                    required=False,
+                    default=False,
+                ),
+                SourceParameterSpec(
+                    name="timeout",
+                    phase="tecnica",
+                    param_type="integer",
+                    description="HTTP timeout in seconds.",
+                    required=False,
+                    default=_downloads.IbgeNascidosVivosRcDataSource.DEFAULT_TIMEOUT,
+                    minimum=1,
+                ),
+                SourceParameterSpec(
+                    name="api_base_url",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Optional IBGE API base URL override.",
+                    required=False,
+                    default=None,
+                ),
+            ],
+            normalize_params=_normalize_ibge_params,
+        ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source="ibge_obitos_rc",
+                title="IBGE Óbitos (Registro Civil)",
+                mode="ibge api",
+            ),
+            datasource_cls=_downloads.IbgeObitosRcDataSource,
+            params_schema=[
+                SourceParameterSpec(
+                    name="output_dir",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Output directory for downloaded files.",
+                    required=False,
+                    default=None,
+                ),
+                SourceParameterSpec(
+                    name="output_format",
+                    phase="exportacao",
+                    param_type="string",
+                    description="Optional export format for the deaths table.",
+                    required=False,
+                    default=None,
+                    allowed_values=EXPORT_FORMAT_VALUES,
+                ),
+                SourceParameterSpec(
+                    name="start_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description=(
+                        "Ano inicial dos óbitos (IBGE SIDRA tabela 2681, "
+                        "registro civil, desde 2003)."
+                    ),
+                    required=False,
+                    default=last_year,
+                    minimum=2003,
+                    maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="end_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description="Ano final dos óbitos.",
+                    required=False,
+                    default=last_year,
+                    minimum=2003,
+                    maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="level",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Nível territorial: municipio, uf, regiao ou brasil. "
+                        "Com mes != total, apenas uf/regiao/brasil são aceitos "
+                        "(municipal x todos os meses excede o limite da SIDRA)."
+                    ),
+                    required=False,
+                    default=_downloads.IbgeObitosRcDataSource.DEFAULT_LEVEL,
+                    allowed_values=["municipio", "uf", "regiao", "brasil"],
+                ),
+                SourceParameterSpec(
+                    name="mes",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Recorte de mês de ocorrência: total (padrão, igual à "
+                        "tabela anual 2684) ou all (quebra mensal; requer "
+                        "level != municipio)."
+                    ),
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "all"],
+                ),
+                SourceParameterSpec(
+                    name="sexo",
+                    phase="coleta",
+                    param_type="string",
+                    description="Recorte de sexo: total (padrão), ambos, homens ou mulheres.",
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "ambos", "homens", "mulheres"],
+                ),
+                SourceParameterSpec(
+                    name="keep_raw",
+                    phase="tecnica",
+                    param_type="boolean",
+                    description="Se true, salva o JSON bruto da resposta.",
+                    required=False,
+                    default=False,
+                ),
+                SourceParameterSpec(
+                    name="timeout",
+                    phase="tecnica",
+                    param_type="integer",
+                    description="HTTP timeout in seconds.",
+                    required=False,
+                    default=_downloads.IbgeObitosRcDataSource.DEFAULT_TIMEOUT,
+                    minimum=1,
+                ),
+                SourceParameterSpec(
+                    name="api_base_url",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Optional IBGE API base URL override.",
+                    required=False,
+                    default=None,
+                ),
+            ],
+            normalize_params=_normalize_ibge_params,
+        ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source="ibge_area_territorial",
+                title="IBGE Área Territorial e Densidade",
+                mode="ibge api",
+            ),
+            datasource_cls=_downloads.IbgeAreaTerritorialDataSource,
+            params_schema=[
+                SourceParameterSpec(
+                    name="output_dir",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Output directory for downloaded files.",
+                    required=False,
+                    default=None,
+                ),
+                SourceParameterSpec(
+                    name="output_format",
+                    phase="exportacao",
+                    param_type="string",
+                    description="Optional export format for the area/density table.",
+                    required=False,
+                    default=None,
+                    allowed_values=EXPORT_FORMAT_VALUES,
+                ),
+                SourceParameterSpec(
+                    name="start_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description=(
+                        "Ano da tabela (IBGE SIDRA 4714, área/densidade/população, "
+                        "referência do Censo 2022 — único período publicado)."
+                    ),
+                    required=False,
+                    default=2022,
+                    minimum=2022,
+                    maximum=2022,
+                ),
+                SourceParameterSpec(
+                    name="end_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description="Ano final (deve ser igual a start_year, 2022).",
+                    required=False,
+                    default=2022,
+                    minimum=2022,
+                    maximum=2022,
+                ),
+                SourceParameterSpec(
+                    name="level",
+                    phase="coleta",
+                    param_type="string",
+                    description="Nível territorial: municipio, uf, regiao ou brasil.",
+                    required=False,
+                    default=_downloads.IbgeAreaTerritorialDataSource.DEFAULT_LEVEL,
+                    allowed_values=["municipio", "uf", "regiao", "brasil"],
+                ),
+                SourceParameterSpec(
+                    name="keep_raw",
+                    phase="tecnica",
+                    param_type="boolean",
+                    description="Se true, salva o JSON bruto da resposta.",
+                    required=False,
+                    default=False,
+                ),
+                SourceParameterSpec(
+                    name="timeout",
+                    phase="tecnica",
+                    param_type="integer",
+                    description="HTTP timeout in seconds.",
+                    required=False,
+                    default=_downloads.IbgeAreaTerritorialDataSource.DEFAULT_TIMEOUT,
+                    minimum=1,
+                ),
+                SourceParameterSpec(
+                    name="api_base_url",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Optional IBGE API base URL override.",
+                    required=False,
+                    default=None,
+                ),
+            ],
+            normalize_params=_normalize_ibge_params,
+        ),
     ]

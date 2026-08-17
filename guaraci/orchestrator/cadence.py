@@ -84,6 +84,9 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         ibge_floor = {
             "ibge_pib_municipios": 2002,
             "ibge_populacao_idade_sexo": 2022,  # census reference year
+            "ibge_nascidos_vivos_rc": 2003,
+            "ibge_obitos_rc": 2003,
+            "ibge_area_territorial": 2022,  # census reference year, single period
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
     elif "opendatasus" in mode_l or "demas" in mode_l:
