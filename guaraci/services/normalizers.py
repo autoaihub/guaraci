@@ -159,6 +159,50 @@ def _normalize_opendatasus_params(params: Dict[str, object]) -> Dict[str, object
     return normalized
 
 
+def _normalize_portal_files_params(params: Dict[str, object]) -> Dict[str, object]:
+    """Normalise params for the bulk-file 'opendatasus files' sources."""
+    normalized = dict(params)
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    resource_filter = normalized.get("resource_filter")
+    if isinstance(resource_filter, str):
+        cleaned = resource_filter.strip()
+        normalized["resource_filter"] = cleaned if cleaned else None
+
+    api_base_url = normalized.get("api_base_url")
+    if isinstance(api_base_url, str):
+        normalized["api_base_url"] = api_base_url.strip() or None
+
+    for key in ("start_year", "end_year", "timeout"):
+        value = normalized.get(key)
+        if value is None or isinstance(value, bool):
+            continue
+        if isinstance(value, str):
+            stripped = value.strip()
+            if not stripped:
+                normalized[key] = None
+                continue
+            normalized[key] = int(stripped)
+            continue
+        normalized[key] = int(value)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
+
+
 def _normalize_ibge_params(params: Dict[str, object]) -> Dict[str, object]:
     normalized = dict(params)
 

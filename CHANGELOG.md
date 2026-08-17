@@ -30,6 +30,45 @@
   `docs/DATA_DICTIONARY.md` updated for the 3 new sources; source count in
   the site copy raised from 91 to 94.
 
+### Added — bulk-file transport for dadosabertos.saude.gov.br (SRAG, SISAGUA)
+- New transport `PortalFileDataSource` (`guaraci/opendatasus/portal_files.py`)
+  for portal "packages" whose resources are whole files (CSV/Parquet/JSON/XML,
+  sometimes zipped) hosted on a public S3 bucket, not a CKAN datastore or a
+  paginated DEMAS JSON API (the CKAN API on the current portal host is dead —
+  `ckan-dadosabertos.saude.gov.br` doesn't resolve and
+  `dadosabertos.saude.gov.br/api/3/action/...` returns 404). Discovery is a
+  stdlib-only (`html.parser`) 2-hop HTML scrape: dataset page -> resource page
+  -> S3 URL. Downloads are cached by basename (idempotent re-runs).
+- Registered 6 new sources (mode `opendatasus files`) via
+  `guaraci/services/sources/opendatasus_files.py`: `srag_arquivos` (annual
+  SRAG "banco vivo" bulk, 2019–2026) and 5 of the 14 SISAGUA packages —
+  `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`,
+  `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`,
+  `sisagua_populacao_abastecida`. `DownloadService.discover()` now dispatches
+  generically to any source adapter exposing its own `discover()` (previously
+  hardcoded to DATASUS FTP + `sih`), wiring `guaraci fetch discover` and
+  `POST /sources/{s}/discovery` for the new sources.
+- Orchestrator: `CADENCE_OVERRIDES` now sets `Cadence.MONTHLY` for the 5
+  SISAGUA sources (the generic `opendatasus` mode default of WEEKLY is tuned
+  for the DEMAS/CKAN record APIs, not SISAGUA's actual publication rhythm);
+  SRAG keeps WEEKLY (its "banco vivo" current year republishes weekly).
+- SIOPS was investigated but not registered: the portal dataset only exposes
+  a metadata PDF via S3, and the source's own API
+  (`siops-consulta-publica-api.saude.gov.br`) does not publish a discoverable
+  Swagger/OpenAPI spec. Tracked as a pendency in `docs/handoffs/_QUADRO.md`,
+  along with the remaining 9 SISAGUA packages (same transport, trivial specs).
+- Docs: new `docs/SOURCES_AND_FILTERS.md` §3.5; `scripts/build_site_catalog.py`
+  `CURATED` updated and `site/assets/catalog-data.js` regenerated (88 sources
+  total, `?v=` bumped); "91 sources" marketing copy on the site corrected to
+  the actual registered count (88 — it was already stale before this change).
+- Incidental fix: removed 5 dead `CURATED` entries in
+  `scripts/build_site_catalog.py` (`arboviroses_chikungunya`,
+  `arboviroses_dengue`, `arboviroses_febre_amarela_humanos_primatas_nao_humanos`,
+  `vigilancia_e_meio_ambiente_mpox`, `vacinacao_esavi`) referencing source
+  names that no longer exist in the registry (superseded by the plain
+  `dengue`/`chikungunya`/`febre_amarela`/`mpox`/`esavi` entries); this was
+  silently blocking `python scripts/build_site_catalog.py` before this change.
+
 ### Added — versioned SIH-RD column mapping
 - Added `DEFAULT_SIH_RD_COLUMN_MAP` and `apply_sih_column_map()` / `SihDataSource.apply_column_map()` in `guaraci/datasus/sih.py` for standardizing SIH-RD field names (`N_AIH` -> `numero_aih`, `DT_INTER` -> `data_internacao`, `MUNIC_RES` -> `municipio_residencia`, `DIAG_PRINC` -> `diagnostico_principal`, etc.), backed by unit regression tests in `tests/test_sih_column_map.py`.
 

@@ -31,7 +31,7 @@ from guaraci.nasa import (
     NasaGpmDataSource,
     NasaPowerDataSource,
 )
-from guaraci.opendatasus import OpenDataSUSDataSource
+from guaraci.opendatasus import OpenDataSUSDataSource, PortalFileDataSource
 from guaraci.snis import SinisaDataSource, SnisDataSource
 
 # Reexport dos normalizadores (movidos para guaraci/services/normalizers.py)
@@ -44,6 +44,7 @@ from guaraci.services.normalizers import (  # noqa: F401  (reexports)
     _normalize_nasa_gpm_params,
     _normalize_nasa_power_params,
     _normalize_opendatasus_params,
+    _normalize_portal_files_params,
     _normalize_sih_params,
     _normalize_sim_params,
     _normalize_sinan_params,
@@ -794,6 +795,86 @@ class ApiDownloadSource:
         return self._download(progress_callback=progress_callback, **kwargs)
 
 
+class PortalFileDownloadSource:
+    """Adapter for bulk file datasources (S3-backed, scraped from a portal page).
+
+    Same shape as :class:`OpenDataSUSDownloadSource`, plus a ``discover``
+    method so ``DownloadService.discover`` can preflight resources (list of
+    files matched) without downloading — see
+    :meth:`guaraci.opendatasus.portal_files.PortalFileDataSource.discover`.
+    """
+
+    def __init__(
+        self,
+        descriptor: SourceDescriptor,
+        datasource_cls: Callable[..., Any],
+        params_schema: Sequence[SourceParameterSpec],
+        fixed_dataset: Optional[str] = None,
+        normalize_params: Optional[Callable[[Dict[str, object]], Dict[str, object]]] = None,
+    ) -> None:
+        self.descriptor = descriptor
+        self._datasource_cls = datasource_cls
+        self._params_schema = list(params_schema)
+        self._fixed_dataset = fixed_dataset.strip().lower() if fixed_dataset else None
+        self._normalize_params = normalize_params
+
+    @property
+    def fixed_dataset(self) -> Optional[str]:
+        return self._fixed_dataset
+
+    def params_schema(self) -> List[SourceParameterSpec]:
+        return list(self._params_schema)
+
+    def validate_params(self, params: Mapping[str, object]) -> None:
+        prepared = self._prepare_kwargs(params)
+        prepared.pop("dataset", None)
+        validate_source_params(params=prepared, specs=self._params_schema, reject_unknown=True)
+
+    def _prepare_kwargs(self, kwargs: Mapping[str, object]) -> Dict[str, object]:
+        prepared = dict(kwargs)
+        if self._normalize_params is not None:
+            prepared = self._normalize_params(prepared)
+        return prepared
+
+    def _download(
+        self,
+        *,
+        progress_callback: Optional[Callable[[Dict[str, object]], None]],
+        **kwargs: object,
+    ) -> JobResult:
+        output_dir = kwargs.get("output_dir")
+        datasource = self._datasource_cls(output_path=output_dir)
+        prepared = self._prepare_kwargs(dict(kwargs))
+        prepared.pop("output_dir", None)
+        if self._fixed_dataset is not None:
+            prepared["dataset"] = self._fixed_dataset
+        if progress_callback is not None:
+            prepared["progress_callback"] = progress_callback
+        payload = datasource.download(**prepared)
+        return JobResult.from_payload(source=self.descriptor.source, payload=payload)
+
+    def download(self, **kwargs: object) -> JobResult:
+        return self._download(progress_callback=None, **kwargs)
+
+    def download_with_progress(
+        self,
+        progress_callback: Callable[[Dict[str, object]], None],
+        **kwargs: object,
+    ) -> JobResult:
+        return self._download(progress_callback=progress_callback, **kwargs)
+
+    def discover(self, *, fetch_sizes: bool = False, **kwargs: object) -> Dict[str, object]:
+        output_dir = kwargs.pop("output_dir", None)
+        datasource = self._datasource_cls(output_path=output_dir)
+        prepared = self._prepare_kwargs(dict(kwargs))
+        prepared.pop("output_dir", None)
+        prepared.pop("output_format", None)
+        prepared.pop("keep_raw", None)
+        if self._fixed_dataset is not None:
+            prepared["dataset"] = self._fixed_dataset
+        return dict(datasource.discover(fetch_sizes=fetch_sizes, **prepared))
+
+
 # Deprecated: nome antigo do adapter (também servia IBGE, o que era enganoso).
 # Mantido como alias por uma release para consumidores externos.
 NasaDownloadSource = ApiDownloadSource
@@ -934,21 +1015,29 @@ class DownloadService:
                 )
             )
 
-        if key != "sih":
-            raise ValueError(f"Discovery is not supported for source '{source}'.")
+        if key == "sih":
+            prepared = _normalize_sih_params(dict(kwargs))
+            output_dir = prepared.pop("output_dir", None)
+            download_kwargs, _ = PysusDownloadSource._split_download_and_postprocess_kwargs(
+                PysusDownloadSource(
+                    descriptor=SourceDescriptor(source="sih", title="SIH", mode="pysus ftp"),
+                    datasource_cls=SihDataSource,
+                    params_schema=[],
+                ),
+                prepared,
+            )
+            datasource = SihDataSource(output_path=output_dir)
+            return dict(datasource.discover(**download_kwargs))
 
-        prepared = _normalize_sih_params(dict(kwargs))
-        output_dir = prepared.pop("output_dir", None)
-        download_kwargs, _ = PysusDownloadSource._split_download_and_postprocess_kwargs(
-            PysusDownloadSource(
-                descriptor=SourceDescriptor(source="sih", title="SIH", mode="pysus ftp"),
-                datasource_cls=SihDataSource,
-                params_schema=[],
-            ),
-            prepared,
-        )
-        datasource = SihDataSource(output_path=output_dir)
-        return dict(datasource.discover(**download_kwargs))
+        # Generic dispatch: any registered source whose adapter exposes its own
+        # ``discover(fetch_sizes=..., **kwargs)`` (e.g. PortalFileDownloadSource
+        # for the bulk-file opendatasus sources) is preflighted directly.
+        selected = self._get_registered_source(source)
+        discover_fn = getattr(selected, "discover", None)
+        if callable(discover_fn):
+            return dict(discover_fn(fetch_sizes=fetch_sizes, **kwargs))
+
+        raise ValueError(f"Discovery is not supported for source '{source}'.")
 
     def download_snis(
         self,

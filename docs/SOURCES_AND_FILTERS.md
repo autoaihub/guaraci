@@ -30,6 +30,19 @@ they expose more convenient query layers.
 - `srag_demas` (`opendatasus api`) — same
 - `sindrome_gripal_leve` (`opendatasus api`) — same
 - OpenDataSUS DEMAS sources generated from `guaraci/opendatasus/utils/swagger.json`
+- `srag_arquivos` (`opendatasus files`) — primary: `dadosabertos.saude.gov.br/dataset/srag-2019-a-2026`
+  (SRAG annual "banco vivo" bulk files, S3-hosted; discovered by scraping the
+  portal, not a CKAN/DEMAS API — see §3.5)
+- `sisagua_controle_mensal_parametros_basicos` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-controle-mensal-parametros-basicos`
+- `sisagua_controle_semestral` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-controle-semestral`
+- `sisagua_vigilancia_parametros_basicos` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-vigilancia-parametros-basicos`
+- `sisagua_tratamento_agua` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-tratamento-de-agua`
+- `sisagua_populacao_abastecida` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-populacao-abastecida`
 - `sinan` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINAN/`
 - `sim` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIM/`
 - `sih` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIHSUS/`
@@ -148,7 +161,60 @@ OpenDataSUS notes:
 - `max_pages` may generate an `export_warning` if the query was truncated before exhausting remote pages.
 - If export fails with `keep_raw=false`, the warning advises re-running with `keep_raw=true` to preserve a raw snapshot.
 
-### 3.5 Auto-generated OpenDataSUS DEMAS sources
+### 3.5 OpenDataSUS Bulk Files (`srag_arquivos`, `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`)
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | download | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | export | `csv`, `parquet`, `sqlite` — converts the raw resource; omit to keep it as-is |
+| `start_year` | integer | download | Initial year filter; no-op for the two cumulative SISAGUA sources below |
+| `end_year` | integer | download | Final year filter; no-op for the two cumulative SISAGUA sources below |
+| `resource_filter` | string | local refinement | Substring filter (case-insensitive) on the resource's display name, in addition to the year filter |
+| `keep_raw` | boolean | download | Keep the originally downloaded raw file after a successful `output_format` conversion, default `false` (large files are discarded once converted) |
+| `timeout` | integer | download | HTTP timeout in seconds for portal/S3 requests |
+| `api_base_url` | string | download | Optional `dadosabertos.saude.gov.br` base URL override |
+
+Bulk-files notes:
+- Different transport from the record-oriented OpenDataSUS sources above:
+  each "dataset" here is a handful of whole-file resources (CSV/Parquet/JSON/
+  XML, sometimes zipped) hosted on a public S3 bucket
+  (`s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/...`), not a CKAN datastore
+  or a paginated DEMAS JSON API. The CKAN API on the current portal host is
+  unavailable (verified 2026-08-17: `ckan-dadosabertos.saude.gov.br` does not
+  resolve; `dadosabertos.saude.gov.br/api/3/action/...` returns 404).
+- Discovery is a 2-hop HTML scrape (dataset page -> resource page -> S3 URL),
+  stdlib-only (`html.parser`), implemented in
+  `guaraci/opendatasus/portal_files.py`. `guaraci fetch discover
+  <source> --set start_year=... --set end_year=...` lists matching resources
+  (name/format/year/URL, optionally size with `--sizes`) without downloading.
+- One resource is selected per year (or one overall, for the two cumulative
+  SISAGUA packages that have no year segmentation), preferring the highest
+  format in the source's `format_priority` (`parquet` > `csv` > `json` >
+  `xml` for SRAG; SISAGUA has no parquet, so `csv` > `json` > `xml`).
+- **SISAGUA files are `.zip` archives**, not raw CSV/Parquet directly
+  (verified live 2026-08-17 — e.g. `cadastro_populacao_abastecida_csv.zip`).
+  `output_format` conversion is only implemented for raw `csv`/`parquet`
+  resources; requesting a conversion on a SISAGUA `.zip` resource produces an
+  `export_warning` rather than a silent failure (the raw `.zip` is still
+  materialized on disk).
+- Idempotency is by basename under `output_dir`: a second run with the same
+  params skips files that already exist. SRAG's current ("banco vivo") year
+  basename embeds its extraction date and changes weekly, so it naturally
+  re-downloads; other years are stable until the portal republishes them.
+- `sisagua_controle_mensal_parametros_basicos` is a GRANDE dataset
+  (potentially millions of rows per year) — always scope `start_year`/
+  `end_year` narrowly; the schema description and `discover()` payload both
+  carry a warning note.
+- Only 5 of the 14 SISAGUA packages listed on the portal are registered so
+  far (the ones judged most broadly useful); the remaining 9 use the exact
+  same transport and are a trivial follow-up — see `docs/handoffs/_QUADRO.md`.
+- SIOPS was investigated but NOT registered: its portal dataset only exposes
+  a metadata PDF via S3 (no tabular resource), and its own API
+  (`siops-consulta-publica-api.saude.gov.br`) does not publish a discoverable
+  Swagger/OpenAPI spec (`/swagger-resources` returns `[]`; all standard
+  springdoc paths return 404) — see `docs/handoffs/_QUADRO.md`.
+
+### 3.6 Auto-generated OpenDataSUS DEMAS sources
 
 These sources are generated from the local DEMAS Swagger catalog.
 
@@ -177,7 +243,7 @@ Source-specific parameters:
 - Unknown parameters are rejected by the standard schema validation path.
 - Contract tests verify every generated source against the local Swagger catalog; live upstream availability can be checked with `scripts/smoke_opendatasus_sources.py`.
 
-### 3.6 SINAN (`sinan`)
+### 3.7 SINAN (`sinan`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -197,7 +263,7 @@ Notes:
 - The standalone `ano` field was removed from the jobs/UI schema.
 - The jobs/UI temporal window is defined by `start_year` and `end_year`.
 
-### 3.7 SIM (`sim`)
+### 3.8 SIM (`sim`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -213,7 +279,7 @@ Notes:
 | `causa_basica` | string | export | Basic cause of death |
 | `ano_obito` | integer | export | Year of death |
 
-### 3.8 SIH (`sih`)
+### 3.9 SIH (`sih`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -238,7 +304,7 @@ Note:
 - Use `POST /sources/sih/discovery` to inspect file count, estimated byte size,
   grouping, and a sample before creating large SIH jobs.
 
-### 3.9 NASA POWER (`nasa_power`)
+### 3.10 NASA POWER (`nasa_power`)
 
 Single-point climate series from the NASA POWER API (no authentication).
 
@@ -270,7 +336,7 @@ NASA POWER notes:
 - Like OpenDataSUS, leaving both `output_format` empty and `keep_raw=false`
   produces only a manifest and emits an `export_warning`.
 
-### 3.10 NASA FIRMS (`nasa_firms`)
+### 3.11 NASA FIRMS (`nasa_firms`)
 
 Active-fire / thermal-anomaly detections from the NASA FIRMS CSV API.
 
@@ -300,7 +366,7 @@ NASA FIRMS notes:
 - `NRT` products are near-real-time; `SP` products are standard-processing
   (archive) and lag by a longer interval.
 
-### 3.11 NASA GPM IMERG (`nasa_gpm`)
+### 3.12 NASA GPM IMERG (`nasa_gpm`)
 
 Daily GPM IMERG precipitation for a single point, via GES DISC OPeNDAP
 subsetting (no HDF5/NetCDF download or parsing; no extra dependency).
@@ -332,7 +398,7 @@ NASA GPM notes:
 - Half-hourly and monthly products are not exposed yet (daily only); the
   Giovanni time-series API was evaluated and rejected (server-side 500s).
 
-### 3.12 IBGE Population Estimates (`ibge_populacao`)
+### 3.13 IBGE Population Estimates (`ibge_populacao`)
 
 Annual TCU population estimates by locality x year, from SIDRA aggregate table
 6579 (variable 9324). The keyless JSON aggregates API is swept one year at a time.
@@ -348,7 +414,7 @@ Annual TCU population estimates by locality x year, from SIDRA aggregate table
 | `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
 | `api_base_url` | string | tecnica | Optional SIDRA base URL override |
 
-### 3.13 IBGE Municipal GDP / PIB (`ibge_pib_municipios`)
+### 3.14 IBGE Municipal GDP / PIB (`ibge_pib_municipios`)
 
 Municipal GDP (PIB dos Municípios) from SIDRA table 5938 (variable 37), in
 R$ 1000. Same base schema and phases as `ibge_populacao`, with `start_year` /
@@ -365,7 +431,7 @@ R$ 1000. Same base schema and phases as `ibge_populacao`, with `start_year` /
 | `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
 | `api_base_url` | string | tecnica | Optional SIDRA base URL override |
 
-### 3.14 IBGE Census Population by Sex and Age (`ibge_populacao_idade_sexo`)
+### 3.15 IBGE Census Population by Sex and Age (`ibge_populacao_idade_sexo`)
 
 Census population (2022 reference) from SIDRA table 9514 (variable 93), split by
 sex and age classification — the denominators for age-standardised rates. The

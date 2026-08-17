@@ -31,7 +31,18 @@ _SIM_MIN_YEAR = 1979
 _SIH_MIN_YEAR = 1992
 
 # Edit here to re-tune how often a source is re-checked for new data.
-CADENCE_OVERRIDES: Dict[str, Cadence] = {}
+# SISAGUA bulk-file sources publish (at most) monthly/semestral batches on
+# the portal; the "opendatasus" mode default (WEEKLY) is tuned for the
+# DEMAS/CKAN record APIs and would poll SISAGUA far more often than it ever
+# changes. SRAG keeps the WEEKLY default (the "banco vivo" current year is
+# republished weekly).
+CADENCE_OVERRIDES: Dict[str, Cadence] = {
+    "sisagua_controle_mensal_parametros_basicos": Cadence.MONTHLY,
+    "sisagua_controle_semestral": Cadence.MONTHLY,
+    "sisagua_vigilancia_parametros_basicos": Cadence.MONTHLY,
+    "sisagua_tratamento_agua": Cadence.MONTHLY,
+    "sisagua_populacao_abastecida": Cadence.MONTHLY,
+}
 
 
 @dataclass(frozen=True)
