@@ -1,20 +1,20 @@
-"""HTTP client for the NASA POWER API.
+"""HTTP clients for NASA APIs (POWER, FIRMS, GES DISC).
 
-NASA POWER (https://power.larc.nasa.gov) is an open, keyless REST service.
-This client only needs the standard library; it mirrors the error taxonomy
-used by :class:`guaraci.opendatasus.client.OpenDataSUSClient` (category /
-retryable / hint) so the jobs layer can classify failures consistently.
+NASA POWER (https://power.larc.nasa.gov) is an open, keyless REST service;
+FIRMS uses a MAP_KEY embedded in the path; GES DISC uses an Earthdata Login
+bearer token. All three share the request/decode/classify/retry
+infrastructure from :mod:`guaraci.core.http` and the error taxonomy
+(category / retryable / hint) used by the jobs layer.
 """
 
 from __future__ import annotations
 
 import http.cookiejar
 import json
-import socket
 from http.client import HTTPMessage
-from typing import IO, Any, Dict, Mapping, Sequence
+from typing import IO, Dict, Mapping, Sequence
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urlencode
+from urllib.parse import quote, urlencode, urlparse
 from urllib.request import (
     HTTPCookieProcessor,
     HTTPRedirectHandler,
@@ -23,39 +23,21 @@ from urllib.request import (
     urlopen,
 )
 
+from guaraci.core.http import (
+    DEFAULT_MAX_ATTEMPTS,
+    ApiClientError,
+    classify_http_status,
+    decode_json_mapping,
+    decode_text,
+    is_timeout_reason,
+    open_response,
+    read_http_error_body,
+    request_with_retry,
+)
 
-class NasaPowerClientError(RuntimeError):
+
+class NasaPowerClientError(ApiClientError):
     """Raised when NASA POWER API operations fail."""
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        category: str = "api_error",
-        retryable: bool = False,
-        hint: str | None = None,
-    ) -> None:
-        self.message = str(message).strip()
-        self.category = category
-        self.retryable = retryable
-        self.hint = str(hint).strip() if hint else None
-        super().__init__(self._compose_message())
-
-    def _compose_message(self) -> str:
-        if not self.hint:
-            return self.message
-        return f"{self.message} Hint: {self.hint}"
-
-    def with_context(self, context: str) -> "NasaPowerClientError":
-        context_text = str(context).strip()
-        if not context_text:
-            return self
-        return NasaPowerClientError(
-            f"{context_text}. {self.message}",
-            category=self.category,
-            retryable=self.retryable,
-            hint=self.hint,
-        )
 
 
 class NasaPowerClient:
@@ -70,12 +52,14 @@ class NasaPowerClient:
         *,
         base_url: str | None = None,
         timeout_seconds: int = 120,
+        max_attempts: int = DEFAULT_MAX_ATTEMPTS,
     ) -> None:
         selected_url = (base_url or self.DEFAULT_BASE_URL).strip().rstrip("/")
         if not selected_url:
             raise ValueError("NASA POWER base URL cannot be empty.")
         self.base_url = selected_url
         self.timeout_seconds = max(1, int(timeout_seconds))
+        self.max_attempts = max(1, int(max_attempts))
 
     def temporal_point(
         self,
@@ -141,32 +125,28 @@ class NasaPowerClient:
                 "User-Agent": "guaraci/0.6.0",
             },
         )
-        try:
-            with urlopen(request, timeout=self.timeout_seconds) as response:
-                raw_bytes = response.read()
-                content_type = str(response.headers.get("Content-Type", "")).lower()
-                payload = self._decode_json_payload(
-                    raw_bytes, content_type=content_type
-                )
-        except HTTPError as exc:
+
+        def on_http_error(exc: HTTPError) -> NasaPowerClientError:
             message = self._extract_http_error_message(exc)
             category, retryable, hint = self._classify_http_error(exc.code)
-            raise NasaPowerClientError(
+            return NasaPowerClientError(
                 f"NASA POWER request failed ({exc.code}): {message}",
                 category=category,
                 retryable=retryable,
                 hint=hint,
-            ) from exc
-        except URLError as exc:
+            )
+
+        def on_url_error(exc: URLError) -> NasaPowerClientError:
             category, hint = self._classify_url_error_reason(exc.reason)
-            raise NasaPowerClientError(
+            return NasaPowerClientError(
                 f"{connection_error_prefix}: {exc.reason}",
                 category=category,
                 retryable=True,
                 hint=hint,
-            ) from exc
-        except (TimeoutError, socket.timeout) as exc:
-            raise NasaPowerClientError(
+            )
+
+        def on_timeout(exc: Exception) -> NasaPowerClientError:
+            return NasaPowerClientError(
                 f"{connection_error_prefix}: request timed out after "
                 f"{self.timeout_seconds} seconds",
                 category="timeout",
@@ -175,86 +155,58 @@ class NasaPowerClient:
                     "Retry with a narrower date window if the upstream service "
                     "remains slow."
                 ),
-            ) from exc
-
-        if not isinstance(payload, dict):
-            raise NasaPowerClientError(
-                "Unexpected NASA POWER response format.",
-                category="response_format",
-                hint="The upstream endpoint should return a JSON object payload.",
             )
-        return payload
 
-    @staticmethod
-    def _decode_json_payload(
-        raw_bytes: bytes, *, content_type: str
-    ) -> Dict[str, Any]:
-        try:
-            text = raw_bytes.decode("utf-8-sig")
-        except UnicodeDecodeError:
-            text = raw_bytes.decode("utf-8", errors="replace")
-
-        try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
-            sample = text.strip().replace("\n", " ")[:220]
-            message = (
-                "NASA POWER returned a non-JSON response. "
-                f"Content-Type: '{content_type or 'unknown'}'. "
-                f"Body snippet: '{sample}'."
-                if sample
-                else (
-                    "NASA POWER returned an empty or non-JSON response. "
-                    f"Content-Type: '{content_type or 'unknown'}'."
-                )
+        def send() -> Dict[str, object]:
+            raw_bytes, headers = open_response(
+                lambda req, timeout: urlopen(req, timeout=timeout),
+                request,
+                timeout=self.timeout_seconds,
+                on_http_error=on_http_error,
+                on_url_error=on_url_error,
+                on_timeout=on_timeout,
             )
-            raise NasaPowerClientError(
-                message,
-                category="response_format",
-                hint=(
-                    "Check the base URL; valid endpoint is "
-                    "https://power.larc.nasa.gov/api/temporal/."
-                ),
-            ) from exc
+            content_type = ""
+            if headers is not None:
+                content_type = str(headers.get("Content-Type", "")).lower()
+            return self._decode_json_payload(raw_bytes, content_type=content_type)
 
-        if not isinstance(payload, Mapping):
-            raise NasaPowerClientError(
-                "Unexpected NASA POWER response format.",
-                category="response_format",
-                hint="The upstream endpoint should return a JSON object payload.",
-            )
-        return dict(payload)
+        return request_with_retry(send, max_attempts=self.max_attempts)
 
     @staticmethod
-    def _classify_http_error(code: int) -> tuple[str, bool, str]:
-        if code in {400, 422}:
-            return (
-                "configuration",
-                False,
-                "Check parameters, latitude/longitude ranges, the date window, "
-                "and the temporal resolution.",
-            )
-        if code == 404:
-            return (
-                "configuration",
-                False,
-                "Check the base URL and temporal path (daily or monthly).",
-            )
-        if code in {408, 429} or 500 <= code <= 599:
-            return (
-                "http_error",
-                True,
-                "Retry later or reduce the query window if NASA POWER is busy.",
-            )
-        return (
-            "http_error",
-            False,
-            "Check request parameters and endpoint compatibility before retrying.",
+    def _decode_json_payload(raw_bytes: bytes, *, content_type: str) -> Dict[str, object]:
+        return decode_json_mapping(
+            raw_bytes,
+            content_type=content_type,
+            error_cls=NasaPowerClientError,
+            service_label="NASA POWER",
+            non_json_hint=(
+                "Check the base URL; valid endpoint is "
+                "https://power.larc.nasa.gov/api/temporal/."
+            ),
         )
 
     @staticmethod
+    def _classify_http_error(code: int) -> tuple[str, bool, str]:
+        category, retryable = classify_http_status(
+            code, configuration_codes=frozenset({400, 404, 422})
+        )
+        if code in {400, 422}:
+            hint = (
+                "Check parameters, latitude/longitude ranges, the date window, "
+                "and the temporal resolution."
+            )
+        elif code == 404:
+            hint = "Check the base URL and temporal path (daily or monthly)."
+        elif retryable:
+            hint = "Retry later or reduce the query window if NASA POWER is busy."
+        else:
+            hint = "Check request parameters and endpoint compatibility before retrying."
+        return category, retryable, hint
+
+    @staticmethod
     def _classify_url_error_reason(reason: object) -> tuple[str, str]:
-        if isinstance(reason, (TimeoutError, socket.timeout)):
+        if is_timeout_reason(reason):
             return (
                 "timeout",
                 "Retry with a narrower date window if the service remains slow.",
@@ -267,16 +219,13 @@ class NasaPowerClient:
 
     @staticmethod
     def _extract_http_error_message(exc: HTTPError) -> str:
-        try:
-            raw = exc.read().decode("utf-8")
-        except Exception:
-            return "unknown error"
-        if not raw.strip():
-            return "unknown error"
+        raw = read_http_error_body(exc)
+        if raw == "unknown error":
+            return raw
         try:
             payload = json.loads(raw)
         except Exception:
-            return raw.strip()
+            return raw
         if isinstance(payload, Mapping):
             messages = payload.get("messages")
             if isinstance(messages, list) and messages:
@@ -284,41 +233,11 @@ class NasaPowerClient:
             detail = payload.get("detail") or payload.get("error")
             if detail:
                 return str(detail)
-        return raw.strip()
+        return raw
 
 
-class NasaFirmsClientError(RuntimeError):
+class NasaFirmsClientError(ApiClientError):
     """Raised when NASA FIRMS API operations fail."""
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        category: str = "api_error",
-        retryable: bool = False,
-        hint: str | None = None,
-    ) -> None:
-        self.message = str(message).strip()
-        self.category = category
-        self.retryable = retryable
-        self.hint = str(hint).strip() if hint else None
-        super().__init__(self._compose_message())
-
-    def _compose_message(self) -> str:
-        if not self.hint:
-            return self.message
-        return f"{self.message} Hint: {self.hint}"
-
-    def with_context(self, context: str) -> "NasaFirmsClientError":
-        context_text = str(context).strip()
-        if not context_text:
-            return self
-        return NasaFirmsClientError(
-            f"{context_text}. {self.message}",
-            category=self.category,
-            retryable=self.retryable,
-            hint=self.hint,
-        )
 
 
 class NasaFirmsClient:
@@ -336,12 +255,14 @@ class NasaFirmsClient:
         *,
         base_url: str | None = None,
         timeout_seconds: int = 120,
+        max_attempts: int = DEFAULT_MAX_ATTEMPTS,
     ) -> None:
         selected_url = (base_url or self.DEFAULT_BASE_URL).strip().rstrip("/")
         if not selected_url:
             raise ValueError("NASA FIRMS base URL cannot be empty.")
         self.base_url = selected_url
         self.timeout_seconds = max(1, int(timeout_seconds))
+        self.max_attempts = max(1, int(max_attempts))
 
     def fetch_area_csv(
         self,
@@ -385,39 +306,47 @@ class NasaFirmsClient:
                 "User-Agent": "guaraci/0.6.0",
             },
         )
-        try:
-            with urlopen(request, timeout=self.timeout_seconds) as response:
-                raw_bytes: bytes = response.read()
-        except HTTPError as exc:
+
+        def on_http_error(exc: HTTPError) -> NasaFirmsClientError:
             message = self._redact(self._extract_http_error_message(exc), secret)
             category, retryable, hint = self._classify_http_error(exc.code)
-            raise NasaFirmsClientError(
+            return NasaFirmsClientError(
                 f"NASA FIRMS request failed ({exc.code}): {message}",
                 category=category,
                 retryable=retryable,
                 hint=hint,
-            ) from exc
-        except URLError as exc:
+            )
+
+        def on_url_error(exc: URLError) -> NasaFirmsClientError:
             category, hint = self._classify_url_error_reason(exc.reason)
-            raise NasaFirmsClientError(
+            return NasaFirmsClientError(
                 f"Could not connect to NASA FIRMS endpoint '{self.base_url}': "
                 f"{self._redact(str(exc.reason), secret)}",
                 category=category,
                 retryable=True,
                 hint=hint,
-            ) from exc
-        except (TimeoutError, socket.timeout) as exc:
-            raise NasaFirmsClientError(
+            )
+
+        def on_timeout(exc: Exception) -> NasaFirmsClientError:
+            return NasaFirmsClientError(
                 f"NASA FIRMS request timed out after {self.timeout_seconds} seconds",
                 category="timeout",
                 retryable=True,
                 hint="Retry with a narrower date window if the service is slow.",
-            ) from exc
+            )
 
-        try:
-            return raw_bytes.decode("utf-8-sig")
-        except UnicodeDecodeError:
-            return raw_bytes.decode("utf-8", errors="replace")
+        def send() -> str:
+            raw_bytes, _headers = open_response(
+                lambda req, timeout: urlopen(req, timeout=timeout),
+                request,
+                timeout=self.timeout_seconds,
+                on_http_error=on_http_error,
+                on_url_error=on_url_error,
+                on_timeout=on_timeout,
+            )
+            return decode_text(raw_bytes)
+
+        return request_with_retry(send, max_attempts=self.max_attempts)
 
     @staticmethod
     def _redact(text: str, secret: str) -> str:
@@ -427,34 +356,25 @@ class NasaFirmsClient:
 
     @staticmethod
     def _classify_http_error(code: int) -> tuple[str, bool, str]:
-        if code in {400, 401, 403}:
-            return (
-                "configuration",
-                False,
-                "Check the MAP_KEY (GUARACI_FIRMS_MAP_KEY), source, and area or "
-                "country code.",
-            )
-        if code == 404:
-            return (
-                "configuration",
-                False,
-                "Check the base URL, source product, and endpoint family.",
-            )
-        if code in {408, 429} or 500 <= code <= 599:
-            return (
-                "http_error",
-                True,
-                "Retry later; FIRMS rate-limits MAP_KEYs and may be busy.",
-            )
-        return (
-            "http_error",
-            False,
-            "Check request parameters and endpoint compatibility before retrying.",
+        category, retryable = classify_http_status(
+            code, configuration_codes=frozenset({400, 401, 403, 404})
         )
+        if code in {400, 401, 403}:
+            hint = (
+                "Check the MAP_KEY (GUARACI_FIRMS_MAP_KEY), source, and area or "
+                "country code."
+            )
+        elif code == 404:
+            hint = "Check the base URL, source product, and endpoint family."
+        elif retryable:
+            hint = "Retry later; FIRMS rate-limits MAP_KEYs and may be busy."
+        else:
+            hint = "Check request parameters and endpoint compatibility before retrying."
+        return category, retryable, hint
 
     @staticmethod
     def _classify_url_error_reason(reason: object) -> tuple[str, str]:
-        if isinstance(reason, (TimeoutError, socket.timeout)):
+        if is_timeout_reason(reason):
             return (
                 "timeout",
                 "Retry with a narrower date window if the service remains slow.",
@@ -466,45 +386,11 @@ class NasaFirmsClient:
 
     @staticmethod
     def _extract_http_error_message(exc: HTTPError) -> str:
-        try:
-            raw = exc.read().decode("utf-8")
-        except Exception:
-            return "unknown error"
-        return raw.strip() or "unknown error"
+        return read_http_error_body(exc)
 
 
-class NasaGesDiscClientError(RuntimeError):
+class NasaGesDiscClientError(ApiClientError):
     """Raised when NASA GES DISC OPeNDAP operations fail."""
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        category: str = "api_error",
-        retryable: bool = False,
-        hint: str | None = None,
-    ) -> None:
-        self.message = str(message).strip()
-        self.category = category
-        self.retryable = retryable
-        self.hint = str(hint).strip() if hint else None
-        super().__init__(self._compose_message())
-
-    def _compose_message(self) -> str:
-        if not self.hint:
-            return self.message
-        return f"{self.message} Hint: {self.hint}"
-
-    def with_context(self, context: str) -> "NasaGesDiscClientError":
-        context_text = str(context).strip()
-        if not context_text:
-            return self
-        return NasaGesDiscClientError(
-            f"{context_text}. {self.message}",
-            category=self.category,
-            retryable=self.retryable,
-            hint=self.hint,
-        )
 
 
 class _KeepAuthRedirectHandler(HTTPRedirectHandler):
@@ -513,11 +399,25 @@ class _KeepAuthRedirectHandler(HTTPRedirectHandler):
     urllib drops the ``Authorization`` header on cross-host redirects, which
     breaks the Earthdata URS OAuth handoff. Re-adding it on each redirect lets
     the bearer token survive the GES DISC -> URS -> GES DISC chain.
+
+    The token is only re-attached for trusted NASA Earthdata hosts; redirects
+    to any other host are followed without the ``Authorization`` header so
+    the secret never leaks to third parties.
     """
+
+    _TRUSTED_HOST = "urs.earthdata.nasa.gov"
+    _TRUSTED_SUFFIXES = (".earthdata.nasa.gov", ".gesdisc.eosdis.nasa.gov")
 
     def __init__(self, token: str) -> None:
         super().__init__()
         self._token = token
+
+    @classmethod
+    def _is_trusted_host(cls, url: str) -> bool:
+        host = (urlparse(url).hostname or "").lower()
+        if host == cls._TRUSTED_HOST:
+            return True
+        return host.endswith(cls._TRUSTED_SUFFIXES)
 
     def redirect_request(
         self,
@@ -529,7 +429,7 @@ class _KeepAuthRedirectHandler(HTTPRedirectHandler):
         newurl: str,
     ) -> Request | None:
         new = super().redirect_request(req, fp, code, msg, headers, newurl)
-        if new is not None:
+        if new is not None and self._is_trusted_host(newurl):
             new.add_header("Authorization", f"Bearer {self._token}")
         return new
 
@@ -550,6 +450,7 @@ class NasaGesDiscClient:
         token: str,
         base_url: str | None = None,
         timeout_seconds: int = 120,
+        max_attempts: int = DEFAULT_MAX_ATTEMPTS,
     ) -> None:
         clean = str(token).strip()
         if not clean:
@@ -560,6 +461,7 @@ class NasaGesDiscClient:
             raise ValueError("NASA GES DISC base URL cannot be empty.")
         self.base_url = selected_url
         self.timeout_seconds = max(1, int(timeout_seconds))
+        self.max_attempts = max(1, int(max_attempts))
         self._opener = build_opener(
             _KeepAuthRedirectHandler(self._token),
             HTTPCookieProcessor(http.cookiejar.CookieJar()),
@@ -582,32 +484,45 @@ class NasaGesDiscClient:
                 "User-Agent": "guaraci/0.6.0",
             },
         )
-        try:
-            with self._opener.open(request, timeout=self.timeout_seconds) as response:
-                raw: bytes = response.read()
-        except HTTPError as exc:
+
+        def on_http_error(exc: HTTPError) -> NasaGesDiscClientError:
             category, retryable, hint = self._classify_http_error(exc.code)
-            raise NasaGesDiscClientError(
+            return NasaGesDiscClientError(
                 f"NASA GES DISC request failed ({exc.code}).",
                 category=category,
                 retryable=retryable,
                 hint=hint,
-            ) from exc
-        except URLError as exc:
-            raise NasaGesDiscClientError(
+            )
+
+        def on_url_error(exc: URLError) -> NasaGesDiscClientError:
+            return NasaGesDiscClientError(
                 f"Could not connect to NASA GES DISC endpoint '{self.base_url}': "
                 f"{self._redact(str(exc.reason))}",
                 category="connectivity",
                 retryable=True,
                 hint="Check internet access, DNS, and firewall/proxy rules.",
-            ) from exc
-        except (TimeoutError, socket.timeout) as exc:
-            raise NasaGesDiscClientError(
+            )
+
+        def on_timeout(exc: Exception) -> NasaGesDiscClientError:
+            return NasaGesDiscClientError(
                 f"NASA GES DISC request timed out after {self.timeout_seconds}s",
                 category="timeout",
                 retryable=True,
                 hint="Retry with a narrower date window if the service is slow.",
-            ) from exc
+            )
+
+        def send() -> bytes:
+            raw_bytes, _headers = open_response(
+                self._opener.open,
+                request,
+                timeout=self.timeout_seconds,
+                on_http_error=on_http_error,
+                on_url_error=on_url_error,
+                on_timeout=on_timeout,
+            )
+            return raw_bytes
+
+        raw = request_with_retry(send, max_attempts=self.max_attempts)
 
         text = raw.decode("utf-8", errors="replace")
         if not text.lstrip().lower().startswith("dataset:"):
@@ -628,25 +543,22 @@ class NasaGesDiscClient:
 
     @staticmethod
     def _classify_http_error(code: int) -> tuple[str, bool, str]:
+        category, retryable = classify_http_status(
+            code, configuration_codes=frozenset({401, 403, 404})
+        )
         if code in {401, 403}:
-            return (
-                "configuration",
-                False,
+            hint = (
                 "Authorize the 'NASA GESDISC DATA ARCHIVE' application in your "
                 "Earthdata profile (urs.earthdata.nasa.gov -> Applications -> "
-                "Authorized Apps) and verify GUARACI_EARTHDATA_TOKEN is valid.",
+                "Authorized Apps) and verify GUARACI_EARTHDATA_TOKEN is valid."
             )
-        if code == 404:
-            return (
-                "configuration",
-                False,
+        elif code == 404:
+            hint = (
                 "Check the product, date, and granule path (the granule may not "
-                "exist for that date or version).",
+                "exist for that date or version)."
             )
-        if code in {408, 429} or 500 <= code <= 599:
-            return ("http_error", True, "Retry later; GES DISC may be busy.")
-        return (
-            "http_error",
-            False,
-            "Check request parameters and endpoint compatibility before retrying.",
-        )
+        elif retryable:
+            hint = "Retry later; GES DISC may be busy."
+        else:
+            hint = "Check request parameters and endpoint compatibility before retrying."
+        return category, retryable, hint

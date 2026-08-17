@@ -1,48 +1,31 @@
 """HTTP client for the IBGE SIDRA v3 aggregates API.
 
 SIDRA (https://servicodados.ibge.gov.br/api/v3/agregados) is an open, keyless
-JSON service. This client needs only the standard library and mirrors the error
-taxonomy (category / retryable / hint) used by the NASA and OpenDataSUS clients
-so the jobs layer classifies failures consistently.
+JSON service. This client needs only the standard library and shares the error
+taxonomy (category / retryable / hint) and retry infrastructure of
+:mod:`guaraci.core.http` with the NASA and OpenDataSUS clients so the jobs
+layer classifies failures consistently.
 """
 from __future__ import annotations
 
 import gzip
 import json
-import socket
 from typing import Any, List, Optional
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+from guaraci.core.http import (
+    DEFAULT_MAX_ATTEMPTS,
+    ApiClientError,
+    classify_http_status,
+    open_response,
+    request_with_retry,
+)
 
-class IbgeClientError(RuntimeError):
+
+class IbgeClientError(ApiClientError):
     """Raised when IBGE SIDRA API operations fail."""
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        category: str = "api_error",
-        retryable: bool = False,
-        hint: str | None = None,
-    ) -> None:
-        self.message = str(message).strip()
-        self.category = category
-        self.retryable = retryable
-        self.hint = str(hint).strip() if hint else None
-        super().__init__(self.message if not self.hint else f"{self.message} Hint: {self.hint}")
-
-    def with_context(self, context: str) -> "IbgeClientError":
-        text = str(context).strip()
-        if not text:
-            return self
-        return IbgeClientError(
-            f"{text}. {self.message}",
-            category=self.category,
-            retryable=self.retryable,
-            hint=self.hint,
-        )
 
 
 class IbgeSidraClient:
@@ -50,12 +33,19 @@ class IbgeSidraClient:
 
     DEFAULT_BASE_URL = "https://servicodados.ibge.gov.br"
 
-    def __init__(self, *, base_url: str | None = None, timeout_seconds: int = 120) -> None:
+    def __init__(
+        self,
+        *,
+        base_url: str | None = None,
+        timeout_seconds: int = 120,
+        max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    ) -> None:
         selected = (base_url or self.DEFAULT_BASE_URL).strip().rstrip("/")
         if not selected:
             raise ValueError("IBGE base URL cannot be empty.")
         self.base_url = selected
         self.timeout_seconds = max(1, int(timeout_seconds))
+        self.max_attempts = max(1, int(max_attempts))
 
     def aggregate(
         self,
@@ -96,46 +86,60 @@ class IbgeSidraClient:
             url,
             headers={"Accept": "application/json", "User-Agent": "guaraci/0.6.0"},
         )
-        try:
-            with urlopen(request, timeout=self.timeout_seconds) as response:
-                raw = response.read()
-                encoding = (response.headers.get("Content-Encoding") or "").lower()
-        except HTTPError as exc:
-            retryable = exc.code in {408, 429} or 500 <= exc.code <= 599
-            raise IbgeClientError(
+
+        def on_http_error(exc: HTTPError) -> IbgeClientError:
+            category, retryable = classify_http_status(exc.code)
+            return IbgeClientError(
                 f"IBGE request failed ({exc.code}).",
                 category="http_error" if retryable else "configuration",
                 retryable=retryable,
                 hint="Check the table, variable, period, and locality filter.",
-            ) from exc
-        except URLError as exc:
-            raise IbgeClientError(
+            )
+
+        def on_url_error(exc: URLError) -> IbgeClientError:
+            return IbgeClientError(
                 f"Could not connect to IBGE endpoint '{self.base_url}': {exc.reason}",
                 category="connectivity",
                 retryable=True,
                 hint="Check internet access, DNS, and firewall/proxy rules.",
-            ) from exc
-        except (TimeoutError, socket.timeout) as exc:
-            raise IbgeClientError(
+            )
+
+        def on_timeout(exc: Exception) -> IbgeClientError:
+            return IbgeClientError(
                 f"IBGE request timed out after {self.timeout_seconds} seconds.",
                 category="timeout",
                 retryable=True,
                 hint="Retry later or narrow the request if the service is slow.",
-            ) from exc
+            )
 
-        # The IBGE CDN intermittently gzips responses (even unsolicited), so
-        # decompress by header or by magic bytes before decoding.
-        if "gzip" in encoding or raw[:2] == b"\x1f\x8b":
+        def send() -> Any:
+            raw, headers = open_response(
+                lambda req, timeout: urlopen(req, timeout=timeout),
+                request,
+                timeout=self.timeout_seconds,
+                on_http_error=on_http_error,
+                on_url_error=on_url_error,
+                on_timeout=on_timeout,
+            )
+            encoding = ""
+            if headers is not None:
+                encoding = str(headers.get("Content-Encoding") or "").lower()
+
+            # The IBGE CDN intermittently gzips responses (even unsolicited),
+            # so decompress by header or by magic bytes before decoding.
+            if "gzip" in encoding or raw[:2] == b"\x1f\x8b":
+                try:
+                    raw = gzip.decompress(raw)
+                except OSError:
+                    pass
+
             try:
-                raw = gzip.decompress(raw)
-            except OSError:
-                pass
+                return json.loads(raw.decode("utf-8-sig"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise IbgeClientError(
+                    "IBGE returned a non-JSON response.",
+                    category="response_format",
+                    hint="Check the base URL and the aggregates endpoint path.",
+                ) from exc
 
-        try:
-            return json.loads(raw.decode("utf-8-sig"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-            raise IbgeClientError(
-                "IBGE returned a non-JSON response.",
-                category="response_format",
-                hint="Check the base URL and the aggregates endpoint path.",
-            ) from exc
+        return request_with_retry(send, max_attempts=self.max_attempts)
