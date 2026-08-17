@@ -60,6 +60,15 @@ they expose more convenient query layers.
 - `ibge_populacao_idade_sexo` (`ibge api`) — primary: same SIDRA API
   (census population by sex and age, table 9514; denominator/socioeconomic
   layers for health rates)
+- `ibge_nascidos_vivos_rc` (`ibge api`) — primary: same SIDRA API
+  (registro civil, live births by month/sex, table 2680; counterpoint to
+  DATASUS SINASC)
+- `ibge_obitos_rc` (`ibge api`) — primary: same SIDRA API
+  (registro civil, deaths by month/sex, table 2681; counterpoint to
+  DATASUS SIM)
+- `ibge_area_territorial` (`ibge api`) — primary: same SIDRA API
+  (area / density / population, census-2022 reference, table 4714; spatial
+  denominator layer)
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -375,11 +384,89 @@ default level is `uf` (municipal breakdown is a much larger extract).
 | `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
 | `api_base_url` | string | tecnica | Optional SIDRA base URL override |
 
+### 3.15 IBGE Nascidos Vivos — Registro Civil (`ibge_nascidos_vivos_rc`)
+
+Live births by year, from SIDRA table 2680 (variable 218) — "ocorridos no ano,
+por mês do nascimento[...]". Annual periods 2003-2024. Captures **cartorial
+registration** (the civil registry), a counterpoint to DATASUS SINASC, which
+captures the health-system side (declaração de nascido vivo). Reference total
+verified live 2026-08-17: Brasil, 2023, `mes`/`sexo`=`total` → **2 523 267**
+live births.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year (`2003`+) |
+| `end_year` | integer | coleta | Final year |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `mes` | string | coleta | Month-of-birth slice: `total` (default, matches the annual table 2679) or `all` (monthly breakdown) |
+| `sexo` | string | coleta | Sex slice: `total` (default), `ambos`, `homens`, `mulheres` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+`mes != "total"` combined with `level="municipio"` is rejected up front
+(`ValueError`) — confirmed live 2026-08-17 that SIDRA returns HTTP 500 for
+`N6[all]` × all 13 month categories (5570 municipalities × 13 is over the
+aggregate limit); `N3[all]` (UF) × all months works fine. Use a coarser level
+for the monthly breakdown.
+
+### 3.16 IBGE Óbitos — Registro Civil (`ibge_obitos_rc`)
+
+Deaths by year, from SIDRA table 2681 (variable 343) — "ocorridos no ano, por
+mês de ocorrência[...]". Annual periods 2003-2024. Same civil-registry
+counterpoint role as `ibge_nascidos_vivos_rc`, but versus DATASUS SIM.
+Reference total verified live 2026-08-17: Brasil, 2023, `mes`/`sexo`=`total`
+→ **1 429 575** deaths.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year (`2003`+) |
+| `end_year` | integer | coleta | Final year |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `mes` | string | coleta | Month-of-occurrence slice: `total` (default, matches the annual table 2684) or `all` |
+| `sexo` | string | coleta | Sex slice: `total` (default), `ambos`, `homens`, `mulheres` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+Same `mes`/`level="municipio"` guardrail as `ibge_nascidos_vivos_rc` (SIDRA
+500 confirmed live for the same combination on table 2681).
+
+### 3.17 IBGE Área Territorial e Densidade (`ibge_area_territorial`)
+
+Municipal/UF/regional area, resident population and demographic density, from
+SIDRA table 4714 — bundles three variables (`93` população residente, `614`
+densidade demográfica, `6318` área da unidade territorial em km²) in one
+request via SIDRA's `|`-joined variable list. **Single period, 2022** (census
+reference — verified live 2026-08-17 that `periodicidade.inicio ==
+periodicidade.fim == 2022`); `start_year`/`end_year` must both be `2022`. The
+spatial denominator layer for rate standardisation. Reference total verified
+live 2026-08-17: Brasil, 2022 → área territorial **8 510 417.771 km²**.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Must be `2022` (only period published) |
+| `end_year` | integer | coleta | Must be `2022` |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
 IBGE notes:
 - Output is one tidy row per `(nivel, localidade_id, ano[, classification …])`:
   `nivel, localidade_id, localidade_nome, ano, [<classif> …], variavel_id,
   unidade, valor`. For `ibge_populacao_idade_sexo` the classification columns
-  are `sexo`, `idade`, and `forma_de_declaracao_da_idade`.
+  are `sexo`, `idade`, and `forma_de_declaracao_da_idade`; for
+  `ibge_nascidos_vivos_rc`/`ibge_obitos_rc` they are `mes_do_nascimento` (or
+  `mes_de_ocorrencia`) and `sexo`; `ibge_area_territorial` has no
+  classifications, and `variavel_id` distinguishes the three bundled metrics
+  (`93`/`614`/`6318`).
 - SIDRA missing markers (`-`, `..`, `...`, `x`) become null; a year with no data
   is skipped with a warning, not a failure.
 - No credential is required (keyless API). Like OpenDataSUS and NASA, leaving
