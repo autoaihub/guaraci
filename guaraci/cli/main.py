@@ -23,13 +23,16 @@ console = Console()
 @click.group()
 @click.version_option(version=__version__, prog_name="Guaraci")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
-def app(verbose: bool):
+@click.pass_context
+def app(ctx: click.Context, verbose: bool):
     """
     🇧🇷 Guaraci - Brazilian Public Data Integration Platform
 
     A comprehensive toolkit for accessing, integrating, and analyzing
     Brazilian public data with focus on health and epidemiology.
     """
+    ctx.ensure_object(dict)
+    ctx.obj["verbose"] = verbose
     if verbose:
         console.print(f"[dim]Guaraci v{__version__} - Verbose mode enabled[/dim]")
 
@@ -58,7 +61,12 @@ def info():
     console.print("• [cyan]datasus[/cyan] - 11 sistemas DATASUS via FTP direto (SINASC, SIA, CNES, PNI, …)")
     console.print("• [cyan]fetch[/cyan]  - busca genérica schema-driven de QUALQUER fonte (OpenDataSUS, NASA, …)")
     console.print("• [cyan]orchestrate[/cyan] - varre TODAS as fontes p/ a árvore bronze (backfill/update + ledger)")
-    console.print("• [cyan]api[/cyan]   - HTTP API (FastAPI) em guaraci.api.main:app")
+    console.print()
+    console.print("[bold]HTTP API:[/bold]")
+    console.print(
+        "  A API FastAPI não é um subcomando; suba com: "
+        "[cyan]uvicorn guaraci.api.main:app[/cyan]"
+    )
     console.print()
     console.print("[bold]Quick Start:[/bold]")
     console.print("  guaraci sinan download 2020 2022 --diseases DENG ZIKA")

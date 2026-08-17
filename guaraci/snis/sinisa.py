@@ -27,6 +27,7 @@ from loguru import logger
 from guaraci.core.config import config
 from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
+from guaraci.core.results import JobResult
 
 
 @dataclass(frozen=True)
@@ -132,9 +133,12 @@ class SinisaDataSource(DataSource):
         overwrite: bool = False,
         timeout: int = 120,
         progress_callback: Optional[ProgressCallback] = None,
-    ) -> Dict[str, object]:
+    ) -> JobResult:
         """
         Download raw SINISA files from the results page.
+
+        Returns a :class:`JobResult` (a ``Mapping``, so key access such as
+        ``result["documents_found"]`` keeps working for legacy callers).
 
         Parameters
         ----------
@@ -214,14 +218,17 @@ class SinisaDataSource(DataSource):
             },
         )
 
-        return {
-            "documents_found": len(documents),
-            "downloaded_count": len(state.downloaded),
-            "skipped_count": len(state.skipped),
-            "failed_count": len(state.failed),
-            "manifest_path": str(manifest_path),
-            "output_dir": str(base_dir),
-        }
+        return JobResult.from_payload(
+            source=self.name,
+            payload={
+                "documents_found": len(documents),
+                "downloaded_count": len(state.downloaded),
+                "skipped_count": len(state.skipped),
+                "failed_count": len(state.failed),
+                "manifest_path": str(manifest_path),
+                "output_dir": str(base_dir),
+            },
+        )
 
     def list_documents(
         self,

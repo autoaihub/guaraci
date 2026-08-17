@@ -13,6 +13,7 @@ from loguru import logger
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+from guaraci.cli._common import current_verbose, raise_cli_error, resolve_verbose
 from guaraci.snis import (
     SinisaDataSource,
     SnisDataSource,
@@ -24,9 +25,10 @@ console = Console()
 
 @click.group()
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
-def snis(verbose: bool) -> None:
+@click.pass_context
+def snis(ctx: click.Context, verbose: bool) -> None:
     """SNIS data operations for the Guaraci platform."""
-    if verbose:
+    if resolve_verbose(ctx, verbose):
         logger.remove()
         logger.add(lambda msg: console.print(msg, end=""), level="DEBUG")
 
@@ -90,7 +92,6 @@ def download(
         ) as progress:
             task = progress.add_task("baixando", total=None)
             summary = snis_ds.download(
-                output_dir=output_dir,
                 results_url=results_url,
                 file_kinds=list(file_kinds) if file_kinds else None,
                 modules=list(modules) if modules else None,
@@ -112,8 +113,7 @@ def download(
         console.print(f"Manifest: {summary.manifest_path}")
     except Exception as exc:
         logger.error(f"SNIS download failed: {exc}")
-        console.print(f"[red]ERROR Error: {exc}[/red]")
-        raise click.Abort()
+        raise_cli_error(exc, current_verbose())
 
 
 @snis.command(name="download-legacy")
@@ -178,8 +178,7 @@ def download_legacy(
         console.print(f"Output: {output_csv}")
     except Exception as exc:
         logger.error(f"Legacy SNIS download failed: {exc}")
-        console.print(f"[red]ERROR Error: {exc}[/red]")
-        raise click.Abort()
+        raise_cli_error(exc, current_verbose())
 
 
 @snis.command(name="schema-legacy")
@@ -207,8 +206,7 @@ def schema_legacy(
         console.print(f"[green]SUCCESS Schema saved to {output_path}[/green]")
     except Exception as exc:
         logger.error(f"Legacy SNIS schema export failed: {exc}")
-        console.print(f"[red]ERROR Error: {exc}[/red]")
-        raise click.Abort()
+        raise_cli_error(exc, current_verbose())
 
 
 @snis.command(name="sinisa-list")
@@ -263,8 +261,7 @@ def sinisa_list(
             console.print(f"    {doc.url}", markup=False)
     except Exception as exc:
         logger.error(f"SINISA listing failed: {exc}")
-        console.print(f"[red]ERROR Error: {exc}[/red]")
-        raise click.Abort()
+        raise_cli_error(exc, current_verbose())
 
 
 @snis.command(name="sinisa-download")
@@ -325,7 +322,6 @@ def sinisa_download(
         ) as progress:
             task = progress.add_task("baixando", total=None)
             summary = sinisa_ds.download(
-                output_dir=output_dir,
                 results_url=results_url,
                 file_kinds=list(file_kinds) if file_kinds else None,
                 modules=list(modules) if modules else None,
@@ -338,17 +334,16 @@ def sinisa_download(
         console.print("[green]SUCCESS SINISA raw download completed![/green]")
         console.print(
             "Found: {found} | Downloaded: {downloaded} | Skipped: {skipped} | Failed: {failed}".format(
-                found=summary["documents_found"],
-                downloaded=summary["downloaded_count"],
-                skipped=summary["skipped_count"],
-                failed=summary["failed_count"],
+                found=summary.documents_found,
+                downloaded=summary.downloaded_count,
+                skipped=summary.skipped_count,
+                failed=summary.failed_count,
             )
         )
-        console.print(f"Manifest: {summary['manifest_path']}")
+        console.print(f"Manifest: {summary.manifest_path}")
     except Exception as exc:
         logger.error(f"SINISA raw download failed: {exc}")
-        console.print(f"[red]ERROR Error: {exc}[/red]")
-        raise click.Abort()
+        raise_cli_error(exc, current_verbose())
 
 
 if __name__ == "__main__":

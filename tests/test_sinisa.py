@@ -140,6 +140,50 @@ def test_extract_zip_blocks_path_traversal(tmp_path):
     assert not outside_file.exists()
 
 
+def test_sinisa_download_returns_job_result(monkeypatch, tmp_path):
+    """SinisaDataSource.download now matches SnisDataSource: it returns a
+    JobResult, and key access keeps working (JobResult is a Mapping)."""
+    from guaraci.core.results import JobResult
+    from guaraci.snis.sinisa import SinisaDocumentLink
+
+    ds = SinisaDataSource(output_path=str(tmp_path / "sinisa"))
+    doc = SinisaDocumentLink(
+        url="https://example.org/arquivos/SINISA_AGUA_Planilhas_2023.zip",
+        text="Planilhas Agua 2023",
+        kind="planilhas",
+        module="agua",
+    )
+    fake_state = SimpleNamespace(
+        downloaded=["a.zip"],
+        skipped=[],
+        extracted=["a"],
+        failed=[],
+    )
+
+    monkeypatch.setattr(ds, "list_documents", lambda **kwargs: [doc])
+    monkeypatch.setattr(
+        ds,
+        "_prepare_output_dirs",
+        lambda **kwargs: (tmp_path, tmp_path / "raw", tmp_path / "extracted"),
+    )
+    monkeypatch.setattr(ds, "_download_documents", lambda **kwargs: fake_state)
+    monkeypatch.setattr(
+        ds, "_write_manifest", lambda **kwargs: tmp_path / "manifest.json"
+    )
+
+    result = ds.download()
+
+    assert isinstance(result, JobResult)
+    assert result.source == "sinisa"
+    assert result.documents_found == 1
+    assert result.downloaded_count == 1
+    assert result.failed_count == 0
+    # Backwards-compatible mapping access for legacy consumers.
+    assert result["documents_found"] == 1
+    assert result["manifest_path"] == str(tmp_path / "manifest.json")
+    assert result["output_dir"] == str(tmp_path)
+
+
 def test_build_manifest_includes_standard_schema():
     ds = SinisaDataSource(output_path="data/test_sinisa")
     state = SimpleNamespace(

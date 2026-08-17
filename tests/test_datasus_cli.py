@@ -54,6 +54,56 @@ def test_download_omits_unprovided_optional_params(monkeypatch) -> None:
     assert "output_format" not in captured["kwargs"]
 
 
+def test_download_prints_structured_summary(monkeypatch) -> None:
+    from guaraci.core.results import JobResult
+
+    class FakeService:
+        def run(self, source, **kwargs):
+            return JobResult(
+                source="sia",
+                documents_found=3,
+                downloaded_count=3,
+                metadata={"exported_files": ["/tmp/sia.csv"]},
+            )
+
+    monkeypatch.setattr("guaraci.services.downloads.DownloadService", FakeService)
+
+    result = CliRunner().invoke(datasus, ["download", "sia", "2024", "2024"])
+    assert result.exit_code == 0, result.output
+    # Friendly summary instead of a raw repr dump.
+    assert "JobResult(" not in result.output
+    assert "status=" in result.output
+    assert "downloaded=3" in result.output
+    assert "/tmp/sia.csv" in result.output
+
+
+def test_download_json_flag_prints_machine_readable(monkeypatch) -> None:
+    import json
+
+    from guaraci.core.results import JobResult
+
+    class FakeService:
+        def run(self, source, **kwargs):
+            return JobResult(source="sia", documents_found=2, downloaded_count=2)
+
+    monkeypatch.setattr("guaraci.services.downloads.DownloadService", FakeService)
+
+    result = CliRunner().invoke(datasus, ["download", "sia", "2024", "2024", "--json"])
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output)
+    assert payload["source"] == "sia"
+    assert payload["downloaded_count"] == 2
+    assert payload["status"] == "success"
+
+
+def test_download_format_is_validated() -> None:
+    result = CliRunner().invoke(
+        datasus, ["download", "sia", "2024", "2024", "--format", "xml"]
+    )
+    assert result.exit_code != 0
+    assert "Invalid value" in result.output
+
+
 def test_download_rejects_unknown_source() -> None:
     result = CliRunner().invoke(datasus, ["download", "nope", "2020", "2020"])
     assert result.exit_code != 0

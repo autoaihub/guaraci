@@ -10,10 +10,22 @@ from typing import List, Optional
 import click
 from loguru import logger
 from rich.console import Console
-from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
+from guaraci.cli._common import (
+    current_verbose,
+    download_progress,
+    format_option,
+    json_option,
+    output_dir_option,
+    print_json,
+    raise_cli_error,
+    resolve_verbose,
+    states_option,
+)
 from guaraci.core.config import config
+from guaraci.core.results import JobResult
 from guaraci.datasus.sim import SimDataSource
 
 console = Console()
@@ -21,16 +33,12 @@ console = Console()
 
 @click.group()
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
-@click.option("--config-file", type=click.Path(exists=True), help="Custom config file path")
-def sim(verbose: bool, config_file: Optional[str]):
+@click.pass_context
+def sim(ctx: click.Context, verbose: bool):
     """SIM data operations for Guaraci platform."""
-    if verbose:
+    if resolve_verbose(ctx, verbose):
         logger.remove()
         logger.add(lambda msg: console.print(msg, end=""), level="DEBUG")
-
-    if config_file:
-        # Custom config handling could be added here in the future
-        console.print(f"[dim]Using custom config file: {config_file}[/dim]")
 
 
 @sim.command()
@@ -42,20 +50,15 @@ def sim(verbose: bool, config_file: Optional[str]):
     multiple=True,
     help="SIM groups to download (e.g., CID10 CID9). Default: CID10 only.",
 )
-@click.option("--states", "-s", multiple=True, help="States (UF codes) to download, e.g. SP RJ")
-@click.option("--output-dir", type=click.Path(), help="Output directory")
-@click.option(
-    "--format",
-    "output_format",
-    type=click.Choice(["csv", "parquet", "sqlite"]),
-    default="csv",
-    help="Output format",
-)
+@states_option
+@output_dir_option
+@format_option
 @click.option("--uf", help="Filter by state (UF) for exported data")
 @click.option("--municipio", "-m", help="Filter by municipality substring")
 @click.option("--sexo", type=click.Choice(["M", "F"]), help="Filter by sex")
 @click.option("--causa-basica", "-c", help="Filter by basic cause of death (CAUSABAS)")
 @click.option("--ano-obito", "-a", type=int, help="Filter by year of death")
+@json_option
 def download(
     start_year: int,
     end_year: int,
@@ -68,54 +71,52 @@ def download(
     sexo: Optional[str],
     causa_basica: Optional[str],
     ano_obito: Optional[int],
+    as_json: bool,
 ):
     """Download SIM data for specified years, groups and states."""
-    console.print("[bold blue]Guaraci SIM Downloader[/bold blue]")
-    console.print(f"Years: {start_year}-{end_year}")
+    verbose = current_verbose()
+    if not as_json:
+        console.print("[bold blue]Guaraci SIM Downloader[/bold blue]")
+        console.print(f"Years: {start_year}-{end_year}")
 
     try:
         sim_ds = SimDataSource(output_path=output_dir or str(config.get_datasus_path("sim")))
         group_list: List[str] = list(groups) if groups else sim_ds.DEFAULT_GROUPS.copy()
         state_list: Optional[List[str]] = list(states) if states else None
 
-        progress_state = {"task": None}
-
-        def progress_callback(completed: int, total: int) -> None:
-            if total <= 0:
-                return
-            if progress_state["task"] is None:
-                progress_state["task"] = progress.add_task(
-                    "Downloading SIM data...",
-                    total=total,
-                )
-            progress.update(progress_state["task"], completed=completed)
-
-        with Progress(
-            SpinnerColumn(),
-            BarColumn(bar_width=None),
-            TextColumn("{task.completed}/{task.total} files"),
-            console=console,
-            transient=True,
-        ) as progress:
+        if as_json:
             download_info = sim_ds.download(
-                start_year,
-                end_year,
-                groups=group_list,
-                states=state_list,
-                progress_callback=progress_callback,
+                start_year, end_year, groups=group_list, states=state_list
             )
+        else:
+            with download_progress(console, "Downloading SIM data...") as progress_callback:
+                download_info = sim_ds.download(
+                    start_year,
+                    end_year,
+                    groups=group_list,
+                    states=state_list,
+                    progress_callback=progress_callback,
+                )
 
         if download_info["total_files"] == 0:
-            console.print("[yellow]No SIM files available for the requested parameters.[/yellow]")
+            if as_json:
+                print_json(JobResult.from_payload(source="sim", payload=download_info))
+            else:
+                console.print(
+                    "[yellow]No SIM files available for the requested parameters.[/yellow]"
+                )
             return
 
-        if download_info["failed_downloads"]:
+        if download_info["failed_downloads"] and not as_json:
             console.print(
                 f"[yellow]WARNING: {len(download_info['failed_downloads'])} files failed during download[/yellow]"
             )
 
-        console.print("[blue]Processing and exporting SIM data...[/blue]")
+        if not as_json:
+            console.print("[blue]Processing and exporting SIM data...[/blue]")
 
+        exported_files: List[str] = []
+        failed_groups: List[str] = []
         for group in group_list:
             try:
                 df = sim_ds.load_dataframe(group)
@@ -133,32 +134,56 @@ def download(
                     )
 
                 if len(df) == 0:
-                    console.print(f"[yellow]WARNING {group}: No data found[/yellow]")
+                    if not as_json:
+                        console.print(f"[yellow]WARNING {group}: No data found[/yellow]")
                     continue
 
                 output_name = f"{group}_{start_year}_{end_year}"
                 exported_path = sim_ds.export(df, format=output_format, name=output_name)
 
                 if exported_path:
-                    console.print(
-                        f"[green]SUCCESS {group}: {len(df)} records exported to "
-                        f"{exported_path.name}[/green]"
-                    )
-                else:
+                    exported_files.append(str(exported_path))
+                    if not as_json:
+                        console.print(
+                            f"[green]SUCCESS {group}: {len(df)} records exported to "
+                            f"{exported_path.name}[/green]"
+                        )
+                elif not as_json:
                     console.print(f"[yellow]WARNING {group}: Export skipped (no data).[/yellow]")
 
             except Exception as exc:  # pragma: no cover - CLI/runtime only
-                console.print(f"[red]ERROR {group}: Failed to process - {exc}[/red]")
+                failed_groups.append(group)
+                if not as_json:
+                    console.print(f"[red]ERROR {group}: Failed to process - {exc}[/red]")
 
-        console.print("[green]SUCCESS SIM download and export completed![/green]")
+        if as_json:
+            print_json(
+                JobResult.from_payload(
+                    source="sim",
+                    payload={
+                        **dict(download_info),
+                        "exported_files": exported_files,
+                        "failed_groups": failed_groups,
+                    },
+                )
+            )
+        elif not failed_groups:
+            console.print("[green]SUCCESS SIM download and export completed![/green]")
 
+        if failed_groups:
+            raise click.ClickException(
+                f"{len(failed_groups)} group(s) failed during processing: "
+                f"{', '.join(failed_groups)}"
+            )
+
+    except click.ClickException:
+        raise
     except Exception as exc:
         logger.error(f"SIM download failed: {exc}")
-        console.print(f"[red]ERROR Error: {exc}[/red]")
-        raise click.Abort()
+        raise_cli_error(exc, verbose)
 
 
-@sim.command()
+@sim.command("filter")
 @click.argument("group")
 @click.option("--uf", help="Filter by state (UF)")
 @click.option("--sexo", type=click.Choice(["M", "F"]), help="Filter by sex")
@@ -166,14 +191,8 @@ def download(
 @click.option("--municipio", help="Filter by municipality")
 @click.option("--causa-basica", help="Filter by basic cause of death (CAUSABAS)")
 @click.option("--output", "-o", help="Output file name")
-@click.option(
-    "--format",
-    "output_format",
-    type=click.Choice(["csv", "parquet", "sqlite"]),
-    default="csv",
-    help="Output format",
-)
-def filter(
+@format_option
+def filter_cmd(
     group: str,
     uf: Optional[str],
     sexo: Optional[str],
@@ -214,8 +233,7 @@ def filter(
 
     except Exception as exc:
         logger.error(f"SIM filtering failed: {exc}")
-        console.print(f"[red]ERROR Error: {exc}[/red]")
-        raise click.Abort()
+        raise_cli_error(exc, current_verbose())
 
 
 @sim.command()
@@ -249,8 +267,7 @@ def summary(group: str, group_by: str, metric: str):
 
     except Exception as exc:
         logger.error(f"SIM summary failed: {exc}")
-        console.print(f"[red]ERROR Error: {exc}[/red]")
-        raise click.Abort()
+        raise_cli_error(exc, current_verbose())
 
 
 @sim.command()
@@ -273,10 +290,8 @@ def info(group: str):
 
     except Exception as exc:
         logger.error(f"SIM info retrieval failed: {exc}")
-        console.print(f"[red]ERROR Error: {exc}[/red]")
-        raise click.Abort()
+        raise_cli_error(exc, current_verbose())
 
 
 if __name__ == "__main__":  # pragma: no cover
     sim()
-

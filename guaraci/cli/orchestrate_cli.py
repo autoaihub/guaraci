@@ -121,6 +121,17 @@ def _print_report(report, *, dry_run: bool) -> None:
         console.print(f"[red]plan error {err['source']}: {err['error']}[/red]")
 
 
+def _fail_on_errors(report) -> None:
+    """Exit 1 when the sweep had source errors or failed/error units."""
+    error_units = report.totals.get("error", 0)
+    if report.source_errors or error_units:
+        console.print(
+            f"[red]run finished with errors[/red]: "
+            f"{len(report.source_errors)} source error(s), {error_units} error unit(s)"
+        )
+        raise SystemExit(1)
+
+
 def _progress(profile, rows) -> None:
     counts = Counter(r.status for r in rows)
     console.print(
@@ -162,6 +173,7 @@ def backfill_cmd(source: Tuple[str, ...], bronze_root: Optional[str], tier: str,
     orch = Orchestrator(bronze_root=root, tiers=_tiers(tier))
     report = orch.backfill(_sources_opt(source), dry_run=dry_run, progress=_progress)
     _print_report(report, dry_run=dry_run)
+    _fail_on_errors(report)
 
 
 @orchestrate.command(name="update")
@@ -176,6 +188,7 @@ def update_cmd(source: Tuple[str, ...], bronze_root: Optional[str], tier: str, d
     orch = Orchestrator(bronze_root=root, tiers=_tiers(tier))
     report = orch.update(_sources_opt(source), dry_run=dry_run, progress=_progress)
     _print_report(report, dry_run=dry_run)
+    _fail_on_errors(report)
 
 
 @orchestrate.command(name="status")

@@ -15,6 +15,7 @@ import click
 from rich.console import Console
 from rich.table import Table
 
+from guaraci.cli._common import EXPORT_FORMATS, json_option, print_json, result_to_dict
 from guaraci.datasus.ftp import specs
 
 console = Console()
@@ -52,8 +53,15 @@ def list_sources() -> None:
 @click.argument("end_year", type=int)
 @click.option("--groups", "-g", multiple=True, help="Group codes (only for multi-group systems).")
 @click.option("--states", "-s", multiple=True, help="UF filter (only for state-level systems).")
-@click.option("--format", "output_format", default=None, help="Export format: csv, parquet, or sqlite.")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(list(EXPORT_FORMATS)),
+    default=None,
+    help="Export format: csv, parquet, or sqlite.",
+)
 @click.option("--output-dir", "-o", default=None, help="Output directory.")
+@json_option
 def download(
     source: str,
     start_year: int,
@@ -62,6 +70,7 @@ def download(
     states: Tuple[str, ...],
     output_format: Optional[str],
     output_dir: Optional[str],
+    as_json: bool,
 ) -> None:
     """Download a SOURCE window, e.g. ``guaraci datasus download sinasc 2018 2020``."""
     # Import here so `guaraci datasus list` stays fast and import-light.
@@ -82,10 +91,30 @@ def download(
     if output_dir:
         kwargs["output_dir"] = output_dir
 
-    console.print(f"[bold]Downloading {source}[/bold] {start_year}-{end_year} …")
+    if not as_json:
+        console.print(f"[bold]Downloading {source}[/bold] {start_year}-{end_year} …")
     result = DownloadService().run(source.strip().lower(), **kwargs)
-    payload = getattr(result, "payload", result)
-    console.print(payload)
+
+    if as_json:
+        print_json(result)
+        return
+
+    payload = result_to_dict(result)
+    console.print(
+        f"[bold]{payload.get('source', source)}[/bold]: "
+        f"status=[cyan]{payload.get('status', '?')}[/cyan] | "
+        f"found={payload.get('documents_found', 0)} | "
+        f"downloaded={payload.get('downloaded_count', 0)} | "
+        f"skipped={payload.get('skipped_count', 0)} | "
+        f"failed={payload.get('failed_count', 0)}"
+    )
+    exported = payload.get("exported_files") or []
+    if exported:
+        console.print(f"[green]OK[/green] - wrote {len(exported)} file(s):")
+        for path in exported:
+            console.print(f"  {path}")
+    if payload.get("manifest_path"):
+        console.print(f"  manifest: {payload['manifest_path']}")
 
 
 @datasus.command()

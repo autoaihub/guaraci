@@ -147,6 +147,57 @@ def test_fetch_run_explicit_format_is_injected(monkeypatch):
     assert captured.get("output_format") == "parquet"
 
 
+def test_fetch_run_payload_dump_only_with_verbose(monkeypatch):
+    """The raw payload dict is only printed under --verbose."""
+    from guaraci.services import downloads as downloads_module
+
+    monkeypatch.setattr(
+        downloads_module.DownloadService,
+        "validate_source_params",
+        lambda self, source, params: None,
+    )
+
+    def _run(self, source, **kwargs):
+        return {"exported_files": [], "secret_marker_key": "xyz"}
+
+    monkeypatch.setattr(downloads_module.DownloadService, "run", _run)
+
+    quiet = CliRunner().invoke(fetch, ["run", "nasa_power", "--set", "latitude=-23.55"])
+    assert quiet.exit_code == 0
+    assert "secret_marker_key" not in quiet.output
+
+    verbose = CliRunner().invoke(
+        fetch, ["run", "nasa_power", "--set", "latitude=-23.55", "--verbose"]
+    )
+    assert verbose.exit_code == 0
+    assert "secret_marker_key" in verbose.output
+
+
+def test_fetch_run_json_flag(monkeypatch):
+    import json
+
+    from guaraci.services import downloads as downloads_module
+
+    monkeypatch.setattr(
+        downloads_module.DownloadService,
+        "validate_source_params",
+        lambda self, source, params: None,
+    )
+
+    def _run(self, source, **kwargs):
+        return {"exported_files": ["/tmp/x.parquet"], "documents_found": 1}
+
+    monkeypatch.setattr(downloads_module.DownloadService, "run", _run)
+
+    result = CliRunner().invoke(
+        fetch, ["run", "nasa_power", "--set", "latitude=-23.55", "--json"]
+    )
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output)
+    assert payload["exported_files"] == ["/tmp/x.parquet"]
+    assert payload["documents_found"] == 1
+
+
 def test_human_bytes():
     from guaraci.cli.fetch_cli import _human_bytes
 

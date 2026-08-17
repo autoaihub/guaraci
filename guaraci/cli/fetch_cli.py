@@ -27,6 +27,8 @@ import click
 from rich.console import Console
 from rich.table import Table
 
+from guaraci.cli._common import json_option, print_json, result_to_dict
+
 console = Console()
 
 _TRUE = {"1", "true", "t", "yes", "y", "on"}
@@ -143,11 +145,21 @@ def schema_cmd(source: str) -> None:
     default=None,
     help="Output directory (defaults to the Guaraci data dir if omitted).",
 )
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    default=False,
+    help="Also print the full raw result payload.",
+)
+@json_option
 def run_cmd(
     source: str,
     sets: Tuple[str, ...],
     output_format: str,
     output_dir: Optional[str],
+    verbose: bool,
+    as_json: bool,
 ) -> None:
     """Fetch SOURCE, optionally exporting a dataset with --format.
 
@@ -184,7 +196,11 @@ def run_cmd(
         raise click.BadParameter(str(exc))
     result = service.run(canonical, **kwargs)
 
-    payload = result.to_dict() if hasattr(result, "to_dict") else dict(result)
+    if as_json:
+        print_json(result)
+        return
+
+    payload = result_to_dict(result)
     exported = payload.get("exported_files") or []
     if exported:
         console.print(f"[green]OK[/green] - wrote {len(exported)} file(s):")
@@ -196,7 +212,8 @@ def run_cmd(
             "downloads raw files)"
         )
         console.print(f"[yellow]No exported dataset[/yellow] - {warning}")
-    console.print(payload)
+    if verbose:
+        console.print(payload)
 
 
 def _human_bytes(value: object) -> str:
