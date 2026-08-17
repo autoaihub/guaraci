@@ -66,8 +66,8 @@ img { max-width: 100%; }
 .nav-inner { display: flex; align-items: center; gap: 28px; padding: 14px 0; }
 .nav-brand { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; color: var(--txt); }
 .nav-brand img, .nav-brand svg { width: 40px; height: 40px; border-radius: 11px; }
-.nav-links { display: flex; gap: 4px; margin-left: auto; align-items: center; }
-.nav-links a { color: var(--txt-2); font-weight: 500; font-size: .92rem; padding: 8px 13px; border-radius: 10px; transition: .2s; }
+.nav-links { display: flex; gap: 4px; margin-left: auto; align-items: center; flex-wrap: nowrap; }
+.nav-links a { color: var(--txt-2); font-weight: 500; font-size: .92rem; padding: 8px 13px; border-radius: 10px; transition: .2s; white-space: nowrap; flex-shrink: 0; }
 .nav-links a:hover { color: var(--txt); background: var(--surface-2); }
 .btn { display: inline-flex; align-items: center; gap: 9px; font-weight: 600; border-radius: 999px; padding: 13px 26px; font-size: .97rem; transition: .22s ease; border: 0; cursor: pointer; font-family: var(--font-body); }
 .btn-sun { background: var(--sun); color: #1c1204; box-shadow: 0 8px 32px rgba(247, 164, 29, .3); }
@@ -447,14 +447,17 @@ footer a:hover { color: var(--sun-2); }
   .flow-link { min-height: 34px; width: 2px; min-width: 2px; margin-inline: auto; }
   .flow-link::after { animation: none; }
 }
-@media (max-width: 760px) {
+@media (max-width: 1100px) {
   .nav-links {
     display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column;
     align-items: stretch; padding: 14px 22px 22px; gap: 6px;
     background: rgba(4, 18, 15, .97); border-bottom: 1px solid var(--line); backdrop-filter: blur(16px);
   }
+  .nav-links a { white-space: normal; }
   .nav-links.open { display: flex; }
   .nav-toggle { display: block; }
+}
+@media (max-width: 760px) {
   section { padding: 72px 0; }
   .duo, .metrics, .areas, .bases-grid, .who, .partners-grid { grid-template-columns: 1fr; }
   .step { padding-left: 72px; }
