@@ -51,6 +51,7 @@ G_OUT = "Outras áreas do catálogo aberto"
 G_IBGE = "IBGE · população e economia"
 G_NASA = "NASA · clima e ambiente"
 G_SAN = "Saneamento · gov.br"
+G_AMB = "Ambiental · clima e território (Brasil)"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -159,6 +160,8 @@ CURATED = {
     "nasa_power": ("POWER", "Temperatura, radiação solar e vento", G_NASA, "NASA (EUA)", "clima"),
     "nasa_gpm": ("GPM IMERG", "Precipitação estimada por satélite", G_NASA, "NASA (EUA)", "clima"),
     "nasa_firms": ("FIRMS", "Focos de incêndio detectados por satélite", G_NASA, "NASA (EUA)", "clima"),
+    # Ambiental (fontes brasileiras primárias)
+    "inmet_estacoes": ("Estações Automáticas (INMET)", "Séries horárias históricas das estações meteorológicas automáticas", G_AMB, "INMET", "clima"),
     # Saneamento
     "snis": ("SNIS", "Sistema Nacional de Informações sobre Saneamento", G_SAN, "Governo federal — gov.br (SNIS/SINISA)", "san"),
     "sinisa": ("SINISA", "Sistema Nacional de Informações em Saneamento Básico", G_SAN, "Governo federal — gov.br (SNIS/SINISA)", "san"),
