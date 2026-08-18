@@ -13,13 +13,9 @@ HOST_DOWNLOADS_DIR="${HOST_DOWNLOADS_DIR:-${HOST_DESKTOP_DIR}/Guaraci Downloads}
 REBUILD="${REBUILD:-0}"
 ACCESS_LOG="${ACCESS_LOG:-0}"
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "[guaraci] Docker CLI não encontrado." >&2
-  exit 1
-fi
-
-if ! docker info >/dev/null 2>&1; then
-  echo "[guaraci] Docker não está ativo." >&2
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if ! "$SCRIPT_DIR/check-docker.sh"; then
+  echo "[guaraci] Docker não está pronto (veja o diagnóstico acima). Resolva e rode novamente." >&2
   exit 1
 fi
 

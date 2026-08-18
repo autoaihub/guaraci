@@ -31,7 +31,18 @@ _SIM_MIN_YEAR = 1979
 _SIH_MIN_YEAR = 1992
 
 # Edit here to re-tune how often a source is re-checked for new data.
-CADENCE_OVERRIDES: Dict[str, Cadence] = {}
+# SISAGUA bulk-file sources publish (at most) monthly/semestral batches on
+# the portal; the "opendatasus" mode default (WEEKLY) is tuned for the
+# DEMAS/CKAN record APIs and would poll SISAGUA far more often than it ever
+# changes. SRAG keeps the WEEKLY default (the "banco vivo" current year is
+# republished weekly).
+CADENCE_OVERRIDES: Dict[str, Cadence] = {
+    "sisagua_controle_mensal_parametros_basicos": Cadence.MONTHLY,
+    "sisagua_controle_semestral": Cadence.MONTHLY,
+    "sisagua_vigilancia_parametros_basicos": Cadence.MONTHLY,
+    "sisagua_tratamento_agua": Cadence.MONTHLY,
+    "sisagua_populacao_abastecida": Cadence.MONTHLY,
+}
 
 
 @dataclass(frozen=True)
@@ -93,6 +104,9 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         ibge_floor = {
             "ibge_pib_municipios": 2002,
             "ibge_populacao_idade_sexo": 2022,  # census reference year
+            "ibge_nascidos_vivos_rc": 2003,
+            "ibge_obitos_rc": 2003,
+            "ibge_area_territorial": 2022,  # census reference year, single period
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
     elif "opendatasus" in mode_l or "demas" in mode_l:

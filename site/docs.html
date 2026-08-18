@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/site.css?v=20260811b" rel="stylesheet">
+  <link href="assets/site.css?v=20260817a" rel="stylesheet">
 </head>
 <body class="docs-body">
 <div id="scroll-progress"></div>
@@ -82,6 +82,13 @@
         <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>git clone https://github.com/autoaihub/guaraci.git</span></div><div><span class="ps1">&gt;</span> <span class="cmd" data-type>cd guaraci</span></div></div>
       </div>
 
+      <h3>1.15 Verifique o Docker antes de continuar</h3>
+      <p>A causa mais comum de falha na instalação é o <strong>Docker Desktop não estar pronto</strong> (fechado, ainda abrindo, ou engine sem responder) — não um problema do Guaraci. Rode o diagnóstico abaixo primeiro, sempre que algo travar:</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>.\scripts\desktop\check-docker.cmd</span></div><div class="out" data-print="500">[OK]    Docker CLI instalado</div><div class="out" data-print="500">[OK]    Docker Desktop rodando (engine responde)</div><div class="out" data-print="500"><span class="ok">✔ Docker está pronto.</span></div></div>
+      </div>
+      <p>No Linux/macOS: <code>./scripts/desktop/check-docker.sh</code>. O script diz exatamente o que está falho e como corrigir — se ele passar (<code>[OK]</code> em tudo) e o Guaraci mesmo assim der erro, o problema é do Guaraci, não do Docker.</p>
+
       <h3>1.2 Monte a imagem (uma única vez)</h3>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
         <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>docker build -t guaraci .</span></div><div class="out" data-print="500">[+] Building… <span class="ok">✔ concluído</span></div></div>
@@ -109,6 +116,7 @@
       <div class="doc-table-wrap"><table class="doc-table">
         <thead><tr><th>Sintoma</th><th>Solução</th></tr></thead>
         <tbody>
+          <tr><td><code>500 Internal Server Error</code> / <code>...docker...ping</code> ao rodar <code>docker build</code> ou <code>docker run</code></td><td>O Docker Desktop não está pronto, não o Guaraci. Rode <code>.\scripts\desktop\check-docker.cmd</code> (ou <code>.sh</code>) — ele aponta o item exato que falhou. Normalmente basta abrir o Docker Desktop e esperar o ícone da baleia parar de "Starting..."; se travar, reinicie com <code>wsl --shutdown</code> e abra de novo.</td></tr>
           <tr><td>Porta 8002 ocupada (<em>port is already allocated</em>)</td><td>Pare o contêiner antigo com <code>stop-guaraci</code> ou suba em outra porta: <code>start-guaraci.cmd (edite HostPort) ou powershell -ExecutionPolicy Bypass -File scripts/desktop/start-guaraci.ps1 -HostPort 8003</code>.</td></tr>
           <tr><td>UI sem dados ou "Guaraci UI not found"</td><td>Confira o volume (<code>-v "${PWD}:/app"</code>) e as permissões de escrita da pasta <code>data/</code>.</td></tr>
           <tr><td>"PySUS is required for SIH functionality"</td><td>Reconstrua a imagem com <code>docker build --no-cache -t guaraci .</code>.</td></tr>
@@ -253,9 +261,9 @@
   </div>
 </footer>
 
-<script src="assets/catalog-data.js?v=20260811b"></script>
-<script src="assets/site.js?v=20260811b"></script>
-<script src="assets/docs.js?v=20260811b"></script>
+<script src="assets/catalog-data.js?v=20260817c"></script>
+<script src="assets/site.js?v=20260817b"></script>
+<script src="assets/docs.js?v=20260817b"></script>
 
 <div class="gtranslate_wrapper"></div>
 <script>window.gtranslateSettings = {"default_language":"pt","languages":["en","fr","de", "pt", "it","es"],"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"left","switcher_vertical_position":"bottom","alt_flags":{"en":"usa","pt":"brazil"}}</script>

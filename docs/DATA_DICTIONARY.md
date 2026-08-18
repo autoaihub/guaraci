@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 91 sources cataloged; 77 sampled with real field names.
+- 94 sources cataloged; 80 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -223,6 +223,24 @@ to refresh.
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+
+## ibge_area_territorial
+
+- **Status:** ok (3 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `variavel_id`, `unidade`, `valor`
+
+## ibge_nascidos_vivos_rc
+
+- **Status:** ok (1 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `mes`, `sexo`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `mes_do_nascimento`, `sexo`, `local_do_nascimento`, `numero_de_nascidos_por_parto`, `idade_da_mae_na_ocasiao_do_parto`, `variavel_id`, `unidade`, `valor`
+
+## ibge_obitos_rc
+
+- **Status:** ok (1 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `mes`, `sexo`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `mes_de_ocorrencia`, `sexo`, `local_de_ocorrencia`, `idade_do_a_falecido_a`, `natureza_do_obito`, `variavel_id`, `unidade`, `valor`
 
 ## ibge_pib_municipios
 

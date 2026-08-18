@@ -18,15 +18,10 @@ function Fail([string]$Message) {
   exit 1
 }
 
-if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-  Fail "Docker CLI não encontrado. Instale o Docker Desktop."
-}
-
-try {
-  docker info | Out-Null
-}
-catch {
-  Fail "Docker não está ativo. Abra o Docker Desktop e tente novamente."
+$checkDockerScript = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "check-docker.ps1"
+& $checkDockerScript
+if ($LASTEXITCODE -ne 0) {
+  Fail "Docker nao esta pronto (veja o diagnostico acima). Resolva e rode novamente."
 }
 
 $projectPath = (Resolve-Path $ProjectDir).Path

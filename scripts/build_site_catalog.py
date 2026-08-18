@@ -78,18 +78,22 @@ CURATED = {
     "mpox": ("Mpox", "Casos notificados de mpox", G_VIG, SVS, "saude"),
     "sindrome_gripal_leve": ("Síndrome gripal leve", "Notificações de síndrome gripal leve", G_VIG, SVS, "saude"),
     "srag_demas": ("SRAG", "Síndrome respiratória aguda grave", G_VIG, SVS, "saude"),
+    "srag_arquivos": ("SRAG — bancos anuais", "Bancos anuais consolidados (2019–2026), arquivo bruto do portal", G_VIG, SVS, "saude"),
     "esavi": ("ESAVI", "Eventos adversos pós-vacinação", G_VIG, SVS, "saude"),
     "doses_aplicadas_pni": ("Doses aplicadas (PNI)", "Painel de vacinação — doses aplicadas", G_VIG, PNI_M, "saude"),
     # Arboviroses · catálogo aberto
-    "arboviroses_chikungunya": ("Chikungunya (catálogo aberto)", "Endpoint adicional no catálogo aberto", G_ARBO, SVS, "saude"),
-    "arboviroses_dengue": ("Dengue (catálogo aberto)", "Endpoint adicional no catálogo aberto", G_ARBO, SVS, "saude"),
-    "arboviroses_febre_amarela_humanos_primatas_nao_humanos": ("Febre amarela (catálogo aberto)", "Humanos e primatas não humanos", G_ARBO, SVS, "saude"),
+    # (pre-Fase-A cleanup: "arboviroses_chikungunya"/"arboviroses_dengue"/
+    # "arboviroses_febre_amarela_humanos_primatas_nao_humanos" no longer exist
+    # as registered sources — superseded by the manual "chikungunya"/"dengue"/
+    # "febre_amarela" entries under "Emergências e vigilância" above; removed
+    # here since they were blocking `python scripts/build_site_catalog.py`
+    # with an unrelated pre-existing "entradas CURATED sem fonte" error.)
     # Vigilância e meio ambiente
-    "vigilancia_e_meio_ambiente_mpox": ("Mpox (catálogo aberto)", "Endpoint via catálogo aberto", G_VMA, SVS, "saude"),
+    # ("vigilancia_e_meio_ambiente_mpox" removed for the same reason — see note above.)
     "vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_mortalidade": ("Mortalidade (catálogo aberto)", "Sistema de informação sobre mortalidade via catálogo aberto", G_VMA, SVS, "saude"),
     "vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos": ("Nascidos vivos (catálogo aberto)", "Sistema de informação sobre nascidos vivos via catálogo aberto", G_VMA, SVS, "saude"),
     # Vacinação
-    "vacinacao_esavi": ("ESAVI (catálogo aberto)", "Endpoint via catálogo aberto", G_VAC, PNI_M, "saude"),
+    # ("vacinacao_esavi" removed for the same reason — see note above.)
     "vacinacao_sistema_de_informacao_de_insumos_estrategicos": ("Insumos estratégicos de vacinação", "Estoque e distribuição de insumos", G_VAC, PNI_M, "saude"),
     # CNES · catálogo aberto
     "cnes_estabelecimentos": ("Estabelecimentos de saúde", "Cadastro nacional via catálogo aberto", G_CNES, "Ministério da Saúde (CNES)", "saude"),
@@ -109,6 +113,7 @@ CURATED = {
     "sisagua_controle_mensal_plano_amostragem": ("Controle mensal — plano de amostragem", "Planos de amostragem dos sistemas", G_SIS, AMB, "saude"),
     "sisagua_populacao_abastecida": ("População abastecida", "População atendida por sistema", G_SIS, AMB, "saude"),
     "sisagua_tratamento_de_agua": ("Tratamento de água", "Formas de tratamento aplicadas", G_SIS, AMB, "saude"),
+    "sisagua_tratamento_agua": ("Tratamento de água — cadastro", "Cadastro de tratamento de água, arquivo bruto do portal", G_SIS, AMB, "saude"),
     "sisagua_vigilancia_cianobacterias_e_cianotoxinas": ("Vigilância — cianobactérias e cianotoxinas", "Monitoramento de cianobactérias", G_SIS, AMB, "saude"),
     "sisagua_vigilancia_demais_parametros": ("Vigilância — demais parâmetros", "Parâmetros complementares de vigilância", G_SIS, AMB, "saude"),
     # Saúde indígena
@@ -156,6 +161,9 @@ CURATED = {
     "ibge_populacao": ("População estimada", "Estimativas anuais de população", G_IBGE, "IBGE", "pop"),
     "ibge_populacao_idade_sexo": ("População por idade e sexo (Censo)", "Pirâmide etária do Censo", G_IBGE, "IBGE", "pop"),
     "ibge_pib_municipios": ("PIB dos municípios", "Produto interno bruto municipal", G_IBGE, "IBGE", "pop"),
+    "ibge_nascidos_vivos_rc": ("Nascidos vivos (registro civil)", "Nascimentos por mês/sexo — registro cartorial", G_IBGE, "IBGE", "pop"),
+    "ibge_obitos_rc": ("Óbitos (registro civil)", "Óbitos por mês/sexo — registro cartorial", G_IBGE, "IBGE", "pop"),
+    "ibge_area_territorial": ("Área territorial e densidade", "Área, população e densidade demográfica (Censo 2022)", G_IBGE, "IBGE", "pop"),
     # NASA
     "nasa_power": ("POWER", "Temperatura, radiação solar e vento", G_NASA, "NASA (EUA)", "clima"),
     "nasa_gpm": ("GPM IMERG", "Precipitação estimada por satélite", G_NASA, "NASA (EUA)", "clima"),
