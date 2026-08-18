@@ -29,6 +29,7 @@ from guaraci.orchestrator.model import Cadence, Kind
 _SINAN_MIN_YEAR = 2001
 _SIM_MIN_YEAR = 1979
 _SIH_MIN_YEAR = 1992
+_INMET_MIN_YEAR = 2000
 
 # Edit here to re-tune how often a source is re-checked for new data.
 CADENCE_OVERRIDES: Dict[str, Cadence] = {}
@@ -86,6 +87,11 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_populacao_idade_sexo": 2022,  # census reference year
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
+    elif name.startswith("inmet"):
+        # Annual ZIP per year (all automatic stations); the current year is
+        # re-checked by Content-Length since INMET republishes it as more
+        # months land (see guaraci/inmet/datasource.py).
+        profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, _INMET_MIN_YEAR)
     elif "opendatasus" in mode_l or "demas" in mode_l:
         # Date-window API sources; min_year is read from the schema by the planner.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.WEEKLY, None)
