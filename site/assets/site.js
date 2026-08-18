@@ -153,7 +153,7 @@
     });
   });
 
-  /* ── Explorador das 91 bases ── */
+  /* ── Explorador das 88 bases ── */
   const grid = document.getElementById("bases-grid");
   if (grid && typeof GUARACI_BASES !== "undefined") {
     const input = document.getElementById("bases-search");

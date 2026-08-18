@@ -139,6 +139,28 @@ def test_cadence_override(monkeypatch):
     assert profile_for("sih", "pysus ftp").cadence is Cadence.DAILY
 
 
+def test_profile_resolution_for_portal_file_sources():
+    """Fase A: bulk-file sources ('opendatasus files' mode) resolve like the
+    DEMAS/CKAN API sources (Kind.API_WINDOW), but SISAGUA gets a MONTHLY
+    override (see CADENCE_OVERRIDES) since SRAG keeps the WEEKLY default.
+    """
+    srag = profile_for("srag_arquivos", "opendatasus files")
+    assert srag.kind is Kind.API_WINDOW
+    assert srag.cadence is Cadence.WEEKLY
+    assert srag.auto is True
+
+    for name in (
+        "sisagua_controle_mensal_parametros_basicos",
+        "sisagua_controle_semestral",
+        "sisagua_vigilancia_parametros_basicos",
+        "sisagua_tratamento_agua",
+        "sisagua_populacao_abastecida",
+    ):
+        profile = profile_for(name, "opendatasus files")
+        assert profile.kind is Kind.API_WINDOW
+        assert profile.cadence is Cadence.MONTHLY, name
+
+
 def test_fetchunit_granularity_and_key():
     monthly = FetchUnit("sih", Kind.FTP_SIH, group="RD", state="PR", year=2024, month=1)
     annual = FetchUnit("sinan", Kind.FTP_SINAN, group="DENG", year=2024)

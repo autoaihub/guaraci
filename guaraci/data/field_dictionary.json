@@ -1760,6 +1760,89 @@
     "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.",
     "status": "empty"
   },
+  "ibge_area_territorial": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 3,
+    "status": "ok"
+  },
+  "ibge_nascidos_vivos_rc": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "mes_do_nascimento",
+      "sexo",
+      "local_do_nascimento",
+      "numero_de_nascidos_por_parto",
+      "idade_da_mae_na_ocasiao_do_parto",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "mes",
+      "sexo",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 1,
+    "status": "ok"
+  },
+  "ibge_obitos_rc": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "mes_de_ocorrencia",
+      "sexo",
+      "local_de_ocorrencia",
+      "idade_do_a_falecido_a",
+      "natureza_do_obito",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "mes",
+      "sexo",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 1,
+    "status": "ok"
+  },
   "ibge_pib_municipios": {
     "fields": [
       "nivel",
