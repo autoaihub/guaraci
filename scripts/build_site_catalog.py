@@ -51,6 +51,7 @@ G_OUT = "Outras áreas do catálogo aberto"
 G_IBGE = "IBGE · população e economia"
 G_NASA = "NASA · clima e ambiente"
 G_SAN = "Saneamento · gov.br"
+G_AMB = "Ambiental · Brasil"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -167,6 +168,8 @@ CURATED = {
     "nasa_power": ("POWER", "Temperatura, radiação solar e vento", G_NASA, "NASA (EUA)", "clima"),
     "nasa_gpm": ("GPM IMERG", "Precipitação estimada por satélite", G_NASA, "NASA (EUA)", "clima"),
     "nasa_firms": ("FIRMS", "Focos de incêndio detectados por satélite", G_NASA, "NASA (EUA)", "clima"),
+    # Ambiental (Brasil)
+    "inpe_queimadas": ("Queimadas (BDQueimadas)", "Focos de incêndio do programa nacional do INPE", G_AMB, "INPE", "clima"),
     # Saneamento
     "snis": ("SNIS", "Sistema Nacional de Informações sobre Saneamento", G_SAN, "Governo federal — gov.br (SNIS/SINISA)", "san"),
     "sinisa": ("SINISA", "Sistema Nacional de Informações em Saneamento Básico", G_SAN, "Governo federal — gov.br (SNIS/SINISA)", "san"),
@@ -180,6 +183,7 @@ MODE_LABEL = {
     "nasa power api": "API NASA POWER",
     "nasa gpm api": "API NASA GPM",
     "nasa firms api": "API NASA FIRMS",
+    "inpe queimadas api": "API INPE Queimadas",
     "gov.br crawl": "Crawler gov.br",
 }
 
