@@ -356,6 +356,65 @@ def _normalize_nasa_firms_params(params: Dict[str, object]) -> Dict[str, object]
     return normalized
 
 
+def _normalize_ana_hidro_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+
+    station_ids = normalized.get("station_ids")
+    if isinstance(station_ids, list):
+        normalized["station_ids"] = [
+            str(item).strip() for item in station_ids if str(item).strip()
+        ]
+
+    for key in ("variable", "detail"):
+        value = normalized.get(key)
+        if isinstance(value, str):
+            cleaned = value.strip().lower()
+            if cleaned:
+                normalized[key] = cleaned
+
+    tipo_filtro_data = normalized.get("tipo_filtro_data")
+    if isinstance(tipo_filtro_data, str):
+        cleaned = tipo_filtro_data.strip().upper()
+        if cleaned:
+            normalized["tipo_filtro_data"] = cleaned
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    for key in ("start_date", "end_date", "api_base_url"):
+        value = normalized.get(key)
+        if isinstance(value, str):
+            cleaned = value.strip()
+            normalized[key] = cleaned if cleaned else None
+
+    # Empty/invalid timeout is dropped so the datasource default applies.
+    timeout = normalized.get("timeout")
+    if isinstance(timeout, str):
+        stripped = timeout.strip()
+        if stripped:
+            normalized["timeout"] = int(stripped)
+        else:
+            normalized.pop("timeout", None)
+    elif isinstance(timeout, bool):
+        normalized.pop("timeout", None)
+    elif isinstance(timeout, (int, float)):
+        normalized["timeout"] = int(timeout)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
+
+
 def _normalize_nasa_gpm_params(params: Dict[str, object]) -> Dict[str, object]:
     normalized = dict(params)
 

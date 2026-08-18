@@ -30,6 +30,21 @@
   `inpe_queimadas` entry; `docs/SOURCES_AND_FILTERS.md` and
   `field_dictionary.json` updated.
 
+### Added — ANA HidroWebService telemetric stations (`ana_hidro`)
+- Added `guaraci/ana/client.py` (`AnaHidroClient`, OAuth token acquisition/
+  auto-renewal, 30-day-window telemetric series calls) and
+  `guaraci/ana/hidro.py` (`AnaHidroDataSource`) plus registration in
+  `guaraci/services/sources/ana.py` (`source="ana_hidro"`, mode
+  `"ana hidro api"`, `auto=False`). Endpoints and the exact query-parameter
+  contract were locked by reading the live OpenAPI document at
+  `https://www.ana.gov.br/hidrowebservice/api-docs`. Credentials
+  (`GUARACI_ANA_ID`/`GUARACI_ANA_SENHA`) are required and were not yet
+  available (operator's ANA e-mail registration pending); the connector
+  ships with offline fake-client tests only and an opt-in
+  `GUARACI_ANA_SMOKE=1` live smoke test that additionally skips without
+  credentials. See `docs/SOURCES_AND_FILTERS.md` §3.15 for the full
+  parameter table and the known gaps (response field names unverified live).
+
 ### Added — IBGE registro civil + território (Fase C)
 - `ibge_nascidos_vivos_rc` (`guaraci/ibge/registro_civil.py`) — live births by
   month/sex, SIDRA table 2680 (variable 218), registro civil; a counterpoint

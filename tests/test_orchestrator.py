@@ -125,6 +125,8 @@ def test_profile_resolution_across_shapes():
     assert profile_for("dengue", "opendatasus api").kind is Kind.API_WINDOW
     nasa = profile_for("nasa_power", "nasa")
     assert nasa.kind is Kind.API_POINT and nasa.auto is False
+    ana = profile_for("ana_hidro", "ana hidro api")
+    assert ana.kind is Kind.API_POINT and ana.auto is False
     assert profile_for("snis", "gov.br crawl").kind is Kind.CRAWLER
     assert profile_for("mystery", "???").kind is Kind.UNKNOWN
     inpe = profile_for("inpe_queimadas", "inpe queimadas api")

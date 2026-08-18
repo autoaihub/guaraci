@@ -11,6 +11,7 @@ to refresh.
 
 ## Caveats (honest)
 
+- `ana_hidro` (needs_credential): ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 - `atencao_primaria_pmmb` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb' at endpoint '/atencao-primaria/pmmb' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not found on the server. If you entered the URL
 - `atencao_primaria_pmmb_profissionais_ativos` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb-profissionais-ativos' at endpoint '/atencao-primaria/pmmb-profissionais-ativos' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not fo
 - `economia_da_saude_bps` (error): OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {"message": "Ao menos um dos par\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado."} Hint: Check request parameters and endpoint compatibi
@@ -30,6 +31,12 @@ to refresh.
 
 `ok` = sampled, fields captured · `empty`/`error`/`needs_credential` = see note ·
 `filters_only` = not sampled.
+
+## ana_hidro
+
+- **Status:** needs_credential
+- **Filters:** `output_dir`, `output_format`, `station_ids`, `start_date`, `end_date`, `variable`, `detail`, `tipo_filtro_data`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 
 ## arboviroses_chikungunya
 

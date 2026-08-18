@@ -9,6 +9,7 @@ from typing import List
 
 from guaraci.services.downloads import DownloadSource
 from guaraci.services.sources import (
+    ana,
     datasus_ftp,
     datasus_pysus,
     govbr,
@@ -36,4 +37,5 @@ def build_default_sources() -> List[DownloadSource]:
         *nasa.build_sources(),
         *ibge.build_sources(),
         *inpe.build_sources(),
+        *ana.build_sources(),
     ]
