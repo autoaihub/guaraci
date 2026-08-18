@@ -1834,6 +1834,34 @@
     "rows_sampled": 42,
     "status": "ok"
   },
+  "inpe_queimadas": {
+    "fields": [
+      "id_bdq",
+      "foco_id",
+      "lat",
+      "lon",
+      "data_pas",
+      "pais",
+      "estado",
+      "municipio",
+      "bioma",
+      "queimadas_produto"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "months",
+      "dataset",
+      "states",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 341237,
+    "status": "ok"
+  },
   "macrorregiao_e_regiao_de_saude_municipio": {
     "fields": [
       "codigo_regiao_pais",

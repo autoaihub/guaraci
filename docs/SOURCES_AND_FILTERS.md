@@ -60,6 +60,13 @@ they expose more convenient query layers.
 - `ibge_populacao_idade_sexo` (`ibge api`) — primary: same SIDRA API
   (census population by sex and age, table 9514; denominator/socioeconomic
   layers for health rates)
+- `inpe_queimadas` (`inpe queimadas api`) — primary: `dataserver-coids.inpe.br`
+  (INPE Queimadas/BDQueimadas fire-spot detections; annual reference product
+  since 2003, monthly product since 2023). Complements — does not replace —
+  `nasa_firms`: FIRMS is NASA's global near-real-time MODIS/VIIRS feed,
+  while INPE Queimadas is Brazil's own national program with its own
+  satellite-reference methodology and locally derived `bioma`/`municipio`
+  classification.
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -385,6 +392,41 @@ IBGE notes:
 - No credential is required (keyless API). Like OpenDataSUS and NASA, leaving
   `output_format` empty and `keep_raw=false` produces only a manifest and emits
   an `export_warning`.
+
+### 3.15 INPE Queimadas (`inpe_queimadas`)
+
+Fire-spot ("focos de queimada") detections published by INPE's BDQueimadas
+program at `dataserver-coids.inpe.br` (Apache-style file index — years/months
+are discovered by parsing the index page, never hardcoded). No credential
+required.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year; `2003`+ (confirmed live) |
+| `end_year` | integer | coleta | Final year (default: `start_year`) |
+| `months` | string_list | coleta | Optional months `1`-`12`. Switches to the monthly product (`mensal/Brasil`, available from 2023 onward, own schema with `risco_fogo`/`frp`/`precipitacao`); `dataset` is ignored when set |
+| `dataset` | string | coleta | `referencia_anual` (default, `Brasil_sat_ref`) or `todos_satelites` (`Brasil_todos_sats`); ignored when `months` is set |
+| `states` | string_list | coleta | Optional post-download filter on the `estado` column (the downloaded file is always Brazil-wide); accepts UF codes or full names |
+| `keep_raw` | boolean | tecnica | Save the raw ZIP/CSV bytes per file; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `180`) |
+| `api_base_url` | string | tecnica | Optional file-server base URL override |
+
+INPE Queimadas notes:
+- Annual output columns: `id_bdq, foco_id, lat, lon, data_pas, pais, estado,
+  municipio, bioma` (plus `queimadas_produto` provenance). Monthly output
+  columns differ: `id, lat, lon, data_hora_gmt, satelite, municipio, estado,
+  pais, municipio_id, estado_id, pais_id, numero_dias_sem_chuva,
+  precipitacao, risco_fogo, bioma, frp` — the monthly file is INPE's blended
+  near-real-time product, not a finer-grained cut of the annual series.
+  Requesting years+months outside 2023+ is skipped with a warning, not a
+  failure.
+- Complements — does not replace — `nasa_firms`: FIRMS is NASA's global
+  near-real-time MODIS/VIIRS feed; INPE Queimadas is Brazil's own national
+  program with its own satellite-reference methodology.
+- No credential is required. Leaving `output_format` empty and
+  `keep_raw=false` produces only a manifest and emits an `export_warning`.
 
 ## 4. UI and API Versus Direct CLI
 
