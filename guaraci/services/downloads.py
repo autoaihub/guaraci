@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Seque
 
 from loguru import logger
 
+from guaraci.ana import AnaHidroDataSource
 from guaraci.core.contracts import DownloadManifest, SourceParameterSpec, validate_source_params
 from guaraci.core.results import JobResult
 from guaraci.core.security import ensure_allowed_crawl_url, ensure_allowed_output_dir
@@ -26,6 +27,8 @@ from guaraci.ibge import (
     IbgePopulacaoDataSource,
     IbgePopulacaoIdadeSexoDataSource,
 )
+from guaraci.inmet import InmetEstacoesDataSource
+from guaraci.inpe import InpeQueimadasDataSource
 from guaraci.nasa import (
     NasaFirmsDataSource,
     NasaGpmDataSource,
@@ -38,8 +41,11 @@ from guaraci.snis import SinisaDataSource, SnisDataSource
 # para compatibilidade: o registry gerado (opendatasus_registry.py) importa
 # _normalize_opendatasus_params deste modulo.
 from guaraci.services.normalizers import (  # noqa: F401  (reexports)
+    _normalize_ana_hidro_params,
     _normalize_ftp_params,
     _normalize_ibge_params,
+    _normalize_inmet_params,
+    _normalize_inpe_queimadas_params,
     _normalize_nasa_firms_params,
     _normalize_nasa_gpm_params,
     _normalize_nasa_power_params,

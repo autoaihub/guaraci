@@ -1,4 +1,4 @@
-"""Gera site/assets/catalog-data.js — catálogo detalhado das 91 fontes do Guaraci.
+"""Gera site/assets/catalog-data.js — catálogo detalhado das 94 fontes do Guaraci.
 
 Fontes de verdade:
 - DownloadService: parâmetros (tipo, default, allowed_values, min/max, fase) e modo.
@@ -51,6 +51,7 @@ G_OUT = "Outras áreas do catálogo aberto"
 G_IBGE = "IBGE · população e economia"
 G_NASA = "NASA · clima e ambiente"
 G_SAN = "Saneamento · gov.br"
+G_AMB = "Ambiental · clima, água e território"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -167,9 +168,15 @@ CURATED = {
     "nasa_power": ("POWER", "Temperatura, radiação solar e vento", G_NASA, "NASA (EUA)", "clima"),
     "nasa_gpm": ("GPM IMERG", "Precipitação estimada por satélite", G_NASA, "NASA (EUA)", "clima"),
     "nasa_firms": ("FIRMS", "Focos de incêndio detectados por satélite", G_NASA, "NASA (EUA)", "clima"),
+    # Ambiental (fontes brasileiras primárias)
+    "inmet_estacoes": ("Estações Automáticas (INMET)", "Séries horárias históricas das estações meteorológicas automáticas", G_AMB, "INMET", "clima"),
+    # Ambiental (Brasil)
+    "inpe_queimadas": ("Queimadas (BDQueimadas)", "Focos de incêndio do programa nacional do INPE", G_AMB, "INPE", "clima"),
     # Saneamento
     "snis": ("SNIS", "Sistema Nacional de Informações sobre Saneamento", G_SAN, "Governo federal — gov.br (SNIS/SINISA)", "san"),
     "sinisa": ("SINISA", "Sistema Nacional de Informações em Saneamento Básico", G_SAN, "Governo federal — gov.br (SNIS/SINISA)", "san"),
+    # Ambiental (INPE/INMET/ANA)
+    "ana_hidro": ("ANA HidroWebService", "Séries telemétricas de chuva, nível e vazão por estação", G_AMB, "ANA — Agência Nacional de Águas", "clima"),
 }
 
 MODE_LABEL = {
@@ -180,7 +187,9 @@ MODE_LABEL = {
     "nasa power api": "API NASA POWER",
     "nasa gpm api": "API NASA GPM",
     "nasa firms api": "API NASA FIRMS",
+    "inpe queimadas api": "API INPE Queimadas",
     "gov.br crawl": "Crawler gov.br",
+    "ana hidro api": "API ANA HidroWebService",
 }
 
 CADENCE_PT = {
@@ -209,6 +218,13 @@ def cli_example(key: str, params: list) -> str:
         parts.append("--set latitude=-23.55 --set longitude=-46.63")
     if "start_date" in names and "start_year" not in names:
         parts.append("--set start_date=2024-01-01 --set end_date=2024-03-31")
+    if "station_ids" in names:
+        parts.append("--set station_ids=12345678")
+    if "variable" in names and "latitude" not in names:
+        for p in params:
+            if p["name"] == "variable" and p.get("allowed_values"):
+                parts.append(f"--set variable={p['allowed_values'][0]}")
+                break
     parts.append("--format csv")
     return " ".join(parts)
 
@@ -269,7 +285,7 @@ def main() -> None:
     payload = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     OUT.write_text(
         "// GERADO por scripts/build_site_catalog.py — não editar à mão.\n"
-        "// Catálogo detalhado das 91 fontes: parâmetros (DownloadService), campos\n"
+        "// Catálogo detalhado das 94 fontes: parâmetros (DownloadService), campos\n"
         "// amostrados (field_dictionary.json), cadência (orquestrador) e discover FTP.\n"
         f"const GUARACI_CATALOG = {payload};\n"
         "const GUARACI_BASES = Object.values(GUARACI_CATALOG);\n",

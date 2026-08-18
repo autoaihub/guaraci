@@ -29,6 +29,7 @@ from guaraci.orchestrator.model import Cadence, Kind
 _SINAN_MIN_YEAR = 2001
 _SIM_MIN_YEAR = 1979
 _SIH_MIN_YEAR = 1992
+_INMET_MIN_YEAR = 2000
 
 # Edit here to re-tune how often a source is re-checked for new data.
 # SISAGUA bulk-file sources publish (at most) monthly/semestral batches on
@@ -99,6 +100,15 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             auto=False,
             note="needs latitude/longitude - collect on demand, not swept",
         )
+    elif name.startswith("ana"):
+        profile = SourceProfile(
+            name,
+            Kind.API_POINT,
+            Cadence.IRREGULAR,
+            None,
+            auto=False,
+            note="needs station_ids - collect on demand, not swept",
+        )
     elif name.startswith("ibge"):
         # Annual IBGE (SIDRA); backfill floor differs per table.
         ibge_floor = {
@@ -109,6 +119,15 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_area_territorial": 2022,  # census reference year, single period
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
+    elif name.startswith("inmet"):
+        # Annual ZIP per year (all automatic stations); the current year is
+        # re-checked by Content-Length since INMET republishes it as more
+        # months land (see guaraci/inmet/datasource.py).
+        profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, _INMET_MIN_YEAR)
+    elif name.startswith("inpe"):
+        # INPE Queimadas: annual files (2003+), re-checked monthly since the
+        # current year's file is republished as new detections arrive.
+        profile = SourceProfile(name, Kind.API_WINDOW, Cadence.MONTHLY, 2003)
     elif "opendatasus" in mode_l or "demas" in mode_l:
         # Date-window API sources; min_year is read from the schema by the planner.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.WEEKLY, None)

@@ -92,6 +92,9 @@ they expose more convenient query layers.
 - `ibge_populacao_idade_sexo` (`ibge api`) — primary: same SIDRA API
   (census population by sex and age, table 9514; denominator/socioeconomic
   layers for health rates)
+- `inmet_estacoes` (`inmet portal zip`) — primary: `portal.inmet.gov.br`
+  (INMET automatic weather stations, hourly historical series, one ZIP per
+  year 2000-present; no third-party mirror involved)
 - `ibge_nascidos_vivos_rc` (`ibge api`) — primary: same SIDRA API
   (registro civil, live births by month/sex, table 2680; counterpoint to
   DATASUS SINASC)
@@ -101,6 +104,17 @@ they expose more convenient query layers.
 - `ibge_area_territorial` (`ibge api`) — primary: same SIDRA API
   (area / density / population, census-2022 reference, table 4714; spatial
   denominator layer)
+- `ana_hidro` (`ana hidro api`) — primary: `www.ana.gov.br/hidrowebservice`
+  (ANA/SNIRH HidroWebService telemetric stations: chuva/nível/vazão; requires
+  an identifier+password credential obtained by e-mail registration with ANA;
+  experimental — live payload validation is pending that registration)
+- `inpe_queimadas` (`inpe queimadas api`) — primary: `dataserver-coids.inpe.br`
+  (INPE Queimadas/BDQueimadas fire-spot detections; annual reference product
+  since 2003, monthly product since 2023). Complements — does not replace —
+  `nasa_firms`: FIRMS is NASA's global near-real-time MODIS/VIIRS feed,
+  while INPE Queimadas is Brazil's own national program with its own
+  satellite-reference methodology and locally derived `bioma`/`municipio`
+  classification.
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -567,6 +581,123 @@ IBGE notes:
 - No credential is required (keyless API). Like OpenDataSUS and NASA, leaving
   `output_format` empty and `keep_raw=false` produces only a manifest and emits
   an `export_warning`.
+
+### 3.15 INMET Automatic Weather Stations (`inmet_estacoes`)
+
+Hourly historical series from INMET's automatic weather station network.
+There is no JSON API: INMET publishes one ZIP per year at
+`https://portal.inmet.gov.br/uploads/dadoshistoricos/<AAAA>.zip` holding one
+CSV per station (verified live 2026-08-17/18, years 2000-2026; the current
+year is a partial, growing archive republished as more months land).
+### 3.15 ANA HidroWebService (`ana_hidro`)
+
+Telemetric hydrological series (rain, river level, flow) for one or more ANA/
+SNIRH stations, via the new `www.ana.gov.br/hidrowebservice` REST API. The
+legacy `telemetriaws1.ana.gov.br` webservice was discontinued 2026-06-30 and
+is not used.
+### 3.18 INPE Queimadas (`inpe_queimadas`)
+
+Fire-spot ("focos de queimada") detections published by INPE's BDQueimadas
+program at `dataserver-coids.inpe.br` (Apache-style file index — years/months
+are discovered by parsing the index page, never hardcoded). No credential
+required.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year (2000+) |
+| `end_year` | integer | coleta | Final year; defaults to `start_year` |
+| `ufs` | string_list | coleta | UFs to extract from the yearly ZIP (filtered by station filename); omitted/empty = every station in Brazil |
+| `variables` | string_list | coleta | Optional column projection (slug of the original CSV header, e.g. `precipitacao_total_horario_mm`, `temperatura_do_ar_bulbo_seco_horaria_c`); omitted = all columns |
+| `keep_raw` | boolean | tecnica | Also keep the original per-station CSVs extracted to disk; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `180`) |
+| `api_base_url` | string | tecnica | Optional INMET portal base URL override |
+
+INMET notes:
+- **Size**: one year's ZIP holds every automatic station in Brazil — ≈90 MB
+  for a full recent year (594 stations), ≈530 KB for the earliest year (2000,
+  5 stations). Use `ufs` to keep the extracted/parsed volume small; the ZIP
+  itself is always downloaded whole (INMET does not offer per-station
+  archives) and cached under `<output_dir>/raw/<year>.zip`.
+- **Idempotency / re-check**: a cached ZIP for a past year is never
+  re-downloaded. The current year is reconciled by `Content-Length` (a HEAD
+  probe) since INMET republishes it with more months over the year.
+- Each station CSV starts with 8 metadata lines (region, UF, station name,
+  WMO code, latitude, longitude, altitude, foundation date) confirmed on the
+  real 2000 and 2025 archives, followed by the tabular header and hourly
+  rows. Source encoding is `latin-1`, field separator `;`, decimal separator
+  `,`. Missing values are an empty string in recent years and the sentinel
+  `-9999` in the earliest (2000-era) files; both are parsed as null.
+- Output is one tidy row per `(station, date, hour)`: `year, uf, region,
+  station_name, station_code, latitude, longitude, altitude, founded_date,
+  date, hour_utc, timestamp`, plus one column per measured variable (slugified
+  from the CSV header, e.g. `precipitacao_total_horario_mm`,
+  `umidade_relativa_do_ar_horaria`).
+- No credential required (keyless, direct file download). Like NASA/IBGE,
+  leaving `output_format` empty and `keep_raw=false` produces only a manifest
+  and emits an `export_warning`.
+| `station_ids` | string_list | coleta | Required. Telemetric station codes; there is no automatic sweep — the station must be known up front |
+| `start_date` | string | coleta | Window start (`YYYY-MM-DD`); sliced internally into <=30-day chunks (the API's per-request ceiling) |
+| `end_date` | string | coleta | Window end (`YYYY-MM-DD`) |
+| `variable` | string | coleta | Required. `chuvas`, `vazoes`, or `cotas` (nível) — labels the request/output; the API itself returns combined station readings |
+| `detail` | string | coleta | `adotada` (default, consolidated readings) or `detalhada` (also includes raw sensor readings) |
+| `tipo_filtro_data` | string | tecnica | `DATA_LEITURA` (default) or `DATA_ULTIMA_ATUALIZACAO` |
+| `keep_raw` | boolean | tecnica | Save the raw JSON responses; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional HidroWebService base URL override |
+
+ANA notes:
+- **Credential required.** Identifier + password are obtained by e-mail
+  registration with ANA (per the official HidroWebService manual) and read
+  only from `GUARACI_ANA_ID`/`GUARACI_ANA_SENHA` — never a job parameter and
+  never written to the manifest. **As of this integration, the operator's
+  registration was still pending**, so the connector has offline (fake
+  client) test coverage only; the opt-in live smoke test
+  (`GUARACI_ANA_SMOKE=1`) additionally skips unless both env vars are set.
+- Auth (`GET /EstacoesTelemetricas/OAUth/v1`, credentials in the
+  `Identificador`/`Senha` headers) returns a `tokenautenticacao` valid for 60
+  minutes; the client renews it automatically (proactively, and once more on
+  an HTTP 401) and sends it as `Authorization: Bearer <token>` on every
+  subsequent call.
+- Endpoints, header contracts, and exact (Portuguese, accented) query
+  parameter names for the two telemetric series endpoints
+  (`HidroinfoanaSerieTelemetricaAdotada/v1` and `.../Detalhada/v1`) were
+  locked by reading the live public OpenAPI document at
+  `https://www.ana.gov.br/hidrowebservice/api-docs` (the Swagger UI itself is
+  a client-rendered SPA that does not expose this via a simple fetch).
+- **Response field names are NOT locked.** The OpenAPI document types the
+  payload (`Devolucao.items`) as an opaque `object` with no published
+  properties, and no credential was available to inspect a real response.
+  The datasource therefore does not hardcode a wide-format column layout: it
+  flattens whatever the API returns per record into snake_cased columns,
+  plus request metadata (`station_id`, `variable`, `detail`, `chunk_start`,
+  `chunk_end`) and a best-effort `timestamp` column detected by scanning key
+  names. **Re-verify the column mapping against a live payload once the
+  operator's ANA credentials exist.**
+| `start_year` | integer | coleta | Initial year; `2003`+ (confirmed live) |
+| `end_year` | integer | coleta | Final year (default: `start_year`) |
+| `months` | string_list | coleta | Optional months `1`-`12`. Switches to the monthly product (`mensal/Brasil`, available from 2023 onward, own schema with `risco_fogo`/`frp`/`precipitacao`); `dataset` is ignored when set |
+| `dataset` | string | coleta | `referencia_anual` (default, `Brasil_sat_ref`) or `todos_satelites` (`Brasil_todos_sats`); ignored when `months` is set |
+| `states` | string_list | coleta | Optional post-download filter on the `estado` column (the downloaded file is always Brazil-wide); accepts UF codes or full names |
+| `keep_raw` | boolean | tecnica | Save the raw ZIP/CSV bytes per file; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `180`) |
+| `api_base_url` | string | tecnica | Optional file-server base URL override |
+
+INPE Queimadas notes:
+- Annual output columns: `id_bdq, foco_id, lat, lon, data_pas, pais, estado,
+  municipio, bioma` (plus `queimadas_produto` provenance). Monthly output
+  columns differ: `id, lat, lon, data_hora_gmt, satelite, municipio, estado,
+  pais, municipio_id, estado_id, pais_id, numero_dias_sem_chuva,
+  precipitacao, risco_fogo, bioma, frp` — the monthly file is INPE's blended
+  near-real-time product, not a finer-grained cut of the annual series.
+  Requesting years+months outside 2023+ is skipped with a warning, not a
+  failure.
+- Complements — does not replace — `nasa_firms`: FIRMS is NASA's global
+  near-real-time MODIS/VIIRS feed; INPE Queimadas is Brazil's own national
+  program with its own satellite-reference methodology.
+- No credential is required. Leaving `output_format` empty and
+  `keep_raw=false` produces only a manifest and emits an `export_warning`.
 
 ## 4. UI and API Versus Direct CLI
 

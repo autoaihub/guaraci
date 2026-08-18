@@ -7,10 +7,11 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 96 sources cataloged; 71 sampled with real field names.
+- 99 sources cataloged; 73 sampled with real field names.
 
 ## Caveats (honest)
 
+- `ana_hidro` (needs_credential): ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 - `atencao_primaria_pmmb` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb' at endpoint '/atencao-primaria/pmmb' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not found on the server. If you entered the URL
 - `atencao_primaria_pmmb_profissionais_ativos` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb-profissionais-ativos' at endpoint '/atencao-primaria/pmmb-profissionais-ativos' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not fo
 - `economia_da_saude_bps` (error): OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {"message": "Ao menos um dos par\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado."} Hint: Check request parameters and endpoint compatibi
@@ -41,6 +42,12 @@ to refresh.
 
 `ok` = sampled, fields captured · `empty`/`error`/`needs_credential` = see note ·
 `filters_only` = not sampled.
+
+## ana_hidro
+
+- **Status:** needs_credential
+- **Filters:** `output_dir`, `output_format`, `station_ids`, `start_date`, `end_date`, `variable`, `detail`, `tipo_filtro_data`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 
 ## arboviroses_chikungunya
 
@@ -263,6 +270,18 @@ to refresh.
 - **Status:** ok (42 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `sexo`, `faixa_etaria`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `sexo`, `idade`, `forma_de_declaracao_da_idade`, `variavel_id`, `unidade`, `valor`
+
+## inmet_estacoes
+
+- **Status:** ok (8760 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `ufs`, `variables`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `year`, `uf`, `region`, `station_name`, `station_code`, `latitude`, `longitude`, `altitude`, `founded_date`, `date`, `hour_utc`, `timestamp`, `precipitacao_total_horario_mm`, `pressao_atmosferica_ao_nivel_da_estacao_horaria_mb`, `pressao_atmosferica_max_na_hora_ant_aut_mb`, `pressao_atmosferica_min_na_hora_ant_aut_mb`, `radiacao_global_kj_m`, `temperatura_do_ar_bulbo_seco_horaria_c`, `temperatura_do_ponto_de_orvalho_c`, `temperatura_maxima_na_hora_ant_aut_c`, `temperatura_minima_na_hora_ant_aut_c`, `temperatura_orvalho_max_na_hora_ant_aut_c`, `temperatura_orvalho_min_na_hora_ant_aut_c`, `umidade_rel_max_na_hora_ant_aut`, `umidade_rel_min_na_hora_ant_aut`, `umidade_relativa_do_ar_horaria`, `vento_direcao_horaria_gr_gr`, `vento_rajada_maxima_m_s`, `vento_velocidade_horaria_m_s`
+
+## inpe_queimadas
+
+- **Status:** ok (341237 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `months`, `dataset`, `states`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `id_bdq`, `foco_id`, `lat`, `lon`, `data_pas`, `pais`, `estado`, `municipio`, `bioma`, `queimadas_produto`
 
 ## macrorregiao_e_regiao_de_saude_municipio
 

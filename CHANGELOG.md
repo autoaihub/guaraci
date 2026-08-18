@@ -92,6 +92,65 @@
   de erro claro foi adicionado. Descrições dos parâmetros `resource_id`/
   `api_base_url` em `guaraci/services/sources/opendatasus.py` atualizadas para
   não anunciar CKAN como um modo utilizável.
+### Added — INMET automatic weather stations (Fase B2, ambiental)
+- New `inmet_estacoes` source (`guaraci/inmet/`: `client.py` + `parser.py` +
+  `datasource.py`) downloading INMET's per-year ZIP archives of every
+  automatic weather station (`portal.inmet.gov.br/uploads/dadoshistoricos/
+  <AAAA>.zip`, years 2000-present) and parsing the hourly station CSVs (8
+  metadata lines + tabular header, `latin-1`, `;`-separated, comma decimals)
+  into a tidy table. Params: `start_year`/`end_year` (2000+), `ufs` (filters
+  which station CSVs are extracted from the yearly ZIP), `variables`
+  (optional column projection). The current year is reconciled by
+  `Content-Length` since INMET republishes it as more months land; past years
+  are cached and never re-downloaded. Registered in the orchestrator
+  (`Kind.API_WINDOW` / `Cadence.ANNUAL`, floor 2000) and in `docs/
+  SOURCES_AND_FILTERS.md` §3.15. Offline tests cover the parser (both the
+  2000-era `-9999`/`HH:MM` format and the current `""`/`HHMM UTC` format,
+  verified against the real archives), the streaming client, the datasource,
+  and service registration; a `GUARACI_INMET_SMOKE=1` opt-in test validates
+  one live year/UF.
+### Added — INPE Queimadas (Fase B1)
+- New package `guaraci/inpe/` (`client.py` + `queimadas.py`), same pattern as
+  `guaraci/nasa/`: thin urllib client + datasource, registered via
+  `ApiDownloadSource` in `guaraci/services/sources/inpe.py` (mode
+  `inpe queimadas api`).
+- `inpe_queimadas` — fire-spot ("focos de queimada") detections from INPE's
+  BDQueimadas program at `dataserver-coids.inpe.br`. Annual reference product
+  (`dataset=referencia_anual` → `Brasil_sat_ref`, or `todos_satelites` →
+  `Brasil_todos_sats`), years 2003+ confirmed live via directory-index parsing
+  (never hardcoded). Optional `months` param switches to the monthly product
+  (`mensal/Brasil`, available from 2023 onward, own schema with
+  `risco_fogo`/`frp`/`precipitacao`, ignores `dataset`). `states` filters
+  post-download on the `estado` column (UF code or full name).
+- Complements — does not replace — `nasa_firms`: FIRMS is NASA's global
+  near-real-time MODIS/VIIRS feed; INPE Queimadas is Brazil's own national
+  program with its own satellite-reference methodology and locally derived
+  `bioma`/`municipio` classification.
+- Cadence `MONTHLY` registered in `guaraci/orchestrator/cadence.py`
+  (`inpe*` name prefix, floor year 2003).
+- Offline tests (`tests/test_inpe_queimadas_client.py`,
+  `tests/test_inpe_queimadas_datasource.py`, fake HTTP, no network) plus an
+  opt-in live smoke test (`GUARACI_INPE_SMOKE=1`,
+  `tests/test_inpe_queimadas_smoke.py`) validated against the real server:
+  2003 annual reference → 341 237 detections.
+- Site catalog gains a new "Ambiental · Brasil" group (`G_AMB`) with the
+  `inpe_queimadas` entry; `docs/SOURCES_AND_FILTERS.md` and
+  `field_dictionary.json` updated.
+
+### Added — ANA HidroWebService telemetric stations (`ana_hidro`)
+- Added `guaraci/ana/client.py` (`AnaHidroClient`, OAuth token acquisition/
+  auto-renewal, 30-day-window telemetric series calls) and
+  `guaraci/ana/hidro.py` (`AnaHidroDataSource`) plus registration in
+  `guaraci/services/sources/ana.py` (`source="ana_hidro"`, mode
+  `"ana hidro api"`, `auto=False`). Endpoints and the exact query-parameter
+  contract were locked by reading the live OpenAPI document at
+  `https://www.ana.gov.br/hidrowebservice/api-docs`. Credentials
+  (`GUARACI_ANA_ID`/`GUARACI_ANA_SENHA`) are required and were not yet
+  available (operator's ANA e-mail registration pending); the connector
+  ships with offline fake-client tests only and an opt-in
+  `GUARACI_ANA_SMOKE=1` live smoke test that additionally skips without
+  credentials. See `docs/SOURCES_AND_FILTERS.md` §3.15 for the full
+  parameter table and the known gaps (response field names unverified live).
 
 ### Added — IBGE registro civil + território (Fase C)
 - `ibge_nascidos_vivos_rc` (`guaraci/ibge/registro_civil.py`) — live births by
