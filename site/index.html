@@ -236,6 +236,17 @@
             <div><span class="ps1">&gt;</span> <span class="cmd" data-type>cd guaraci</span></div>
           </div>
         </div>
+        <p class="step-lead" style="margin-top:16px;">Antes de seguir, confirme que o Docker está pronto — assim, se algo travar mais adiante, você já sabe se a causa é o Docker ou o Guaraci:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
+          <div class="term-body">
+            <div><span class="ps1">&gt;</span> <span class="cmd" data-type>.\scripts\desktop\check-docker.cmd</span></div>
+            <div class="out" data-print="500">[OK]    Docker CLI instalado</div>
+            <div class="out" data-print="600">[OK]    Docker Desktop rodando (engine responde)</div>
+            <div class="out" data-print="700"><span class="ok">✔ Docker está pronto. Pode seguir com "docker build -t guaraci ."</span></div>
+          </div>
+        </div>
+        <div class="callout"><i class="bi bi-exclamation-triangle-fill"></i><span>Deu <strong>[FALHA]</strong> em alguma linha? O script mostra exatamente o que fazer (abrir o Docker Desktop, reiniciar etc.). Resolva antes de ir para o próximo passo — veja também <a href="docs.html#instalacao">problemas comuns</a>.</span></div>
       </div>
 
       <!-- Passo 3 -->
