@@ -1,4 +1,4 @@
-"""Gera site/assets/catalog-data.js — catálogo detalhado das 91 fontes do Guaraci.
+"""Gera site/assets/catalog-data.js — catálogo detalhado das 94 fontes do Guaraci.
 
 Fontes de verdade:
 - DownloadService: parâmetros (tipo, default, allowed_values, min/max, fase) e modo.
@@ -285,7 +285,7 @@ def main() -> None:
     payload = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     OUT.write_text(
         "// GERADO por scripts/build_site_catalog.py — não editar à mão.\n"
-        "// Catálogo detalhado das 91 fontes: parâmetros (DownloadService), campos\n"
+        "// Catálogo detalhado das 94 fontes: parâmetros (DownloadService), campos\n"
         "// amostrados (field_dictionary.json), cadência (orquestrador) e discover FTP.\n"
         f"const GUARACI_CATALOG = {payload};\n"
         "const GUARACI_BASES = Object.values(GUARACI_CATALOG);\n",
