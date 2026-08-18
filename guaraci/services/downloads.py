@@ -23,6 +23,7 @@ from guaraci.ibge import (
     IbgePopulacaoDataSource,
     IbgePopulacaoIdadeSexoDataSource,
 )
+from guaraci.inpe import InpeQueimadasDataSource
 from guaraci.nasa import (
     NasaFirmsDataSource,
     NasaGpmDataSource,
@@ -37,6 +38,7 @@ from guaraci.snis import SinisaDataSource, SnisDataSource
 from guaraci.services.normalizers import (  # noqa: F401  (reexports)
     _normalize_ftp_params,
     _normalize_ibge_params,
+    _normalize_inpe_queimadas_params,
     _normalize_nasa_firms_params,
     _normalize_nasa_gpm_params,
     _normalize_nasa_power_params,

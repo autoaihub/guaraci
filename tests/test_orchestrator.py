@@ -127,6 +127,11 @@ def test_profile_resolution_across_shapes():
     assert nasa.kind is Kind.API_POINT and nasa.auto is False
     assert profile_for("snis", "gov.br crawl").kind is Kind.CRAWLER
     assert profile_for("mystery", "???").kind is Kind.UNKNOWN
+    inpe = profile_for("inpe_queimadas", "inpe queimadas api")
+    assert inpe.kind is Kind.API_WINDOW
+    assert inpe.cadence is Cadence.MONTHLY
+    assert inpe.min_year == 2003
+    assert inpe.auto is True
 
 
 def test_cadence_override(monkeypatch):

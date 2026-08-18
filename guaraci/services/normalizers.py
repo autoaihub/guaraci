@@ -362,3 +362,73 @@ def _normalize_nasa_gpm_params(params: Dict[str, object]) -> Dict[str, object]:
         normalized["keep_raw"] = bool(keep_raw)
 
     return normalized
+
+
+def _normalize_inpe_queimadas_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+
+    dataset = normalized.get("dataset")
+    if isinstance(dataset, str):
+        cleaned = dataset.strip().lower()
+        if cleaned:
+            normalized["dataset"] = cleaned
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    api_base_url = normalized.get("api_base_url")
+    if isinstance(api_base_url, str):
+        normalized["api_base_url"] = api_base_url.strip() or None
+
+    for key in ("start_year", "end_year"):
+        value = normalized.get(key)
+        if isinstance(value, str) and value.strip():
+            try:
+                normalized[key] = int(value.strip())
+            except ValueError:
+                pass
+
+    months = normalized.get("months")
+    if isinstance(months, list):
+        parsed_months = []
+        for item in months:
+            raw = str(item).strip()
+            if raw:
+                try:
+                    parsed_months.append(int(raw))
+                except ValueError:
+                    pass
+        normalized["months"] = parsed_months
+
+    states = normalized.get("states")
+    if isinstance(states, list):
+        normalized["states"] = [
+            str(item).strip().upper() for item in states if str(item).strip()
+        ]
+
+    # Empty/invalid timeout is dropped so the datasource default applies.
+    timeout = normalized.get("timeout")
+    if isinstance(timeout, str):
+        stripped = timeout.strip()
+        if stripped:
+            normalized["timeout"] = int(stripped)
+        else:
+            normalized.pop("timeout", None)
+    elif isinstance(timeout, bool):
+        normalized.pop("timeout", None)
+    elif isinstance(timeout, (int, float)):
+        normalized["timeout"] = int(timeout)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized

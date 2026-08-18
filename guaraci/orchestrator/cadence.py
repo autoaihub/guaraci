@@ -86,6 +86,10 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_populacao_idade_sexo": 2022,  # census reference year
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
+    elif name.startswith("inpe"):
+        # INPE Queimadas: annual files (2003+), re-checked monthly since the
+        # current year's file is republished as new detections arrive.
+        profile = SourceProfile(name, Kind.API_WINDOW, Cadence.MONTHLY, 2003)
     elif "opendatasus" in mode_l or "demas" in mode_l:
         # Date-window API sources; min_year is read from the schema by the planner.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.WEEKLY, None)
