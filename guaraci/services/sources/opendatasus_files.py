@@ -233,4 +233,174 @@ def build_sources() -> List[DownloadSource]:
             fixed_dataset="sisagua_populacao_abastecida",
             normalize_params=_normalize_portal_files_params,
         ),
+        # Remaining 9 SISAGUA packages (slugs confirmados ao vivo 2026-08-18).
+        # Every one is cumulative (no year partitioning in the resource
+        # name) except "plano de amostragem", which is year-segmented like
+        # the other "controle mensal" packages above.
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sisagua_controle_mensal_demais_parametros",
+                title="SISAGUA - Controle Mensal - Demais Parametros",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=None,  # verificado ao vivo 2026-08-18: sem particionamento por ano
+                default_start_year=current_year,
+                default_end_year=current_year,
+                cumulative=True,
+                large_dataset_note=(
+                    "ATENCAO: dataset GRANDE (potencialmente milhoes de "
+                    "linhas, ~138MB comprimido)."
+                ),
+            ),
+            fixed_dataset="sisagua_controle_mensal_demais_parametros",
+            normalize_params=_normalize_portal_files_params,
+        ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sisagua_controle_mensal_amostras_fora_do_padrao",
+                title="SISAGUA - Controle Mensal - Amostras Fora do Padrao",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=None,  # verificado ao vivo 2026-08-18: sem particionamento por ano
+                default_start_year=current_year,
+                default_end_year=current_year,
+                cumulative=True,
+                large_dataset_note=(
+                    "ATENCAO: dataset GRANDE (potencialmente milhoes de "
+                    "linhas, ~43MB comprimido)."
+                ),
+            ),
+            fixed_dataset="sisagua_controle_mensal_amostras_fora_do_padrao",
+            normalize_params=_normalize_portal_files_params,
+        ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sisagua_controle_mensal_plano_amostragem",
+                title="SISAGUA - Controle Mensal - Plano de Amostragem",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=2014,  # verificado ao vivo 2026-08-18 (recursos anuais 2014-2026)
+                default_start_year=current_year,
+                default_end_year=current_year,
+                large_dataset_note=(
+                    "ATENCAO: dataset GRANDE (potencialmente milhoes de "
+                    "linhas por ano) - prefira um recorte de ano por vez."
+                ),
+            ),
+            fixed_dataset="sisagua_controle_mensal_plano_amostragem",
+            normalize_params=_normalize_portal_files_params,
+        ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sisagua_controle_mensal_infraestrutura_operacional",
+                title="SISAGUA - Controle Mensal - Infraestrutura Operacional",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=None,  # verificado ao vivo 2026-08-18: sem particionamento por ano
+                default_start_year=current_year,
+                default_end_year=current_year,
+                cumulative=True,
+                large_dataset_note=(
+                    "ATENCAO: dataset GRANDE (potencialmente milhoes de "
+                    "linhas, ~39MB comprimido)."
+                ),
+            ),
+            fixed_dataset="sisagua_controle_mensal_infraestrutura_operacional",
+            normalize_params=_normalize_portal_files_params,
+        ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sisagua_vigilancia_demais_parametros",
+                title="SISAGUA - Vigilancia - Demais Parametros",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=None,  # verificado ao vivo 2026-08-18: sem particionamento por ano
+                default_start_year=current_year,
+                default_end_year=current_year,
+                cumulative=True,
+                large_dataset_note=(
+                    "Dataset GRANDE (potencialmente milhoes de linhas, "
+                    "~98MB comprimido)."
+                ),
+            ),
+            fixed_dataset="sisagua_vigilancia_demais_parametros",
+            normalize_params=_normalize_portal_files_params,
+        ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sisagua_vigilancia_cianobacterias_e_cianotoxinas",
+                title="SISAGUA - Vigilancia - Cianobacterias e Cianotoxinas",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=None,  # verificado ao vivo 2026-08-18: sem particionamento por ano
+                default_start_year=current_year,
+                default_end_year=current_year,
+                cumulative=True,
+            ),
+            fixed_dataset="sisagua_vigilancia_cianobacterias_e_cianotoxinas",
+            normalize_params=_normalize_portal_files_params,
+        ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sisagua_pontos_de_captacao",
+                title="SISAGUA - Pontos de Captacao",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=None,  # verificado ao vivo 2026-08-18: sem particionamento por ano
+                default_start_year=current_year,
+                default_end_year=current_year,
+                cumulative=True,
+                large_dataset_note=(
+                    "~53MB comprimido (verificado ao vivo 2026-08-18)."
+                ),
+            ),
+            fixed_dataset="sisagua_pontos_de_captacao",
+            normalize_params=_normalize_portal_files_params,
+        ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sisagua_cadastro_carro_pipa_procedencia",
+                title="SISAGUA - Cadastro Carro Pipa - Procedencia",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=None,  # verificado ao vivo 2026-08-18: sem particionamento por ano
+                default_start_year=current_year,
+                default_end_year=current_year,
+                cumulative=True,
+            ),
+            fixed_dataset="sisagua_cadastro_carro_pipa_procedencia",
+            normalize_params=_normalize_portal_files_params,
+        ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sisagua_cadastro_carro_pipa_populacao",
+                title="SISAGUA - Cadastro Carro Pipa - Populacao",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=None,  # verificado ao vivo 2026-08-18: sem particionamento por ano
+                default_start_year=current_year,
+                default_end_year=current_year,
+                cumulative=True,
+            ),
+            fixed_dataset="sisagua_cadastro_carro_pipa_populacao",
+            normalize_params=_normalize_portal_files_params,
+        ),
     ]

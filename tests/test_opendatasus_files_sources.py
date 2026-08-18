@@ -24,6 +24,15 @@ EXPECTED_SOURCES = [
     "sisagua_vigilancia_parametros_basicos",
     "sisagua_tratamento_agua",
     "sisagua_populacao_abastecida",
+    "sisagua_controle_mensal_demais_parametros",
+    "sisagua_controle_mensal_amostras_fora_do_padrao",
+    "sisagua_controle_mensal_plano_amostragem",
+    "sisagua_controle_mensal_infraestrutura_operacional",
+    "sisagua_vigilancia_demais_parametros",
+    "sisagua_vigilancia_cianobacterias_e_cianotoxinas",
+    "sisagua_pontos_de_captacao",
+    "sisagua_cadastro_carro_pipa_procedencia",
+    "sisagua_cadastro_carro_pipa_populacao",
 ]
 
 

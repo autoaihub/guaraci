@@ -426,6 +426,84 @@ PACKAGE_SPECS: Dict[str, PortalFilePackageSpec] = {
         exclude_terms=_SISAGUA_EXCLUDE_TERMS,
         format_priority=_SISAGUA_FORMAT_PRIORITY,
     ),
+    # Remaining 9 SISAGUA packages (verified live 2026-08-18). Every one of
+    # them ships a single cumulative file per format (no year segmentation
+    # in the resource name) EXCEPT "plano de amostragem", which is
+    # year-segmented 2014-2026 like the other "controle mensal" packages
+    # registered above.
+    "sisagua_controle_mensal_demais_parametros": PortalFilePackageSpec(
+        slug="sisagua-controle-mensal-demais-parametros",
+        exclude_terms=_SISAGUA_EXCLUDE_TERMS,
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+        large_dataset_note=(
+            "SISAGUA controle mensal e um dataset GRANDE (potencialmente "
+            "milhoes de linhas; ~138MB comprimido, verificado ao vivo "
+            "2026-08-18). Prefira baixar em um output_dir dedicado."
+        ),
+    ),
+    "sisagua_controle_mensal_amostras_fora_do_padrao": PortalFilePackageSpec(
+        slug="sisagua-controle-mensal-amostras-fora-do-padrao",
+        exclude_terms=_SISAGUA_EXCLUDE_TERMS,
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+        large_dataset_note=(
+            "SISAGUA controle mensal e um dataset GRANDE (potencialmente "
+            "milhoes de linhas; ~43MB comprimido, verificado ao vivo "
+            "2026-08-18)."
+        ),
+    ),
+    "sisagua_controle_mensal_plano_amostragem": PortalFilePackageSpec(
+        slug="sisagua-controle-mensal-plano-amostragem",
+        exclude_terms=_SISAGUA_EXCLUDE_TERMS,
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+        large_dataset_note=(
+            "SISAGUA controle mensal e um dataset GRANDE (potencialmente "
+            "milhoes de linhas por ano, ano-segmentado desde 2014 - "
+            "verificado ao vivo 2026-08-18). Prefira um recorte de ano por vez."
+        ),
+    ),
+    "sisagua_controle_mensal_infraestrutura_operacional": PortalFilePackageSpec(
+        slug="sisagua-controle-mensal-infraestrutura-operacional",
+        exclude_terms=_SISAGUA_EXCLUDE_TERMS,
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+        large_dataset_note=(
+            "SISAGUA controle mensal e um dataset GRANDE (potencialmente "
+            "milhoes de linhas; ~39MB comprimido, verificado ao vivo "
+            "2026-08-18)."
+        ),
+    ),
+    "sisagua_vigilancia_demais_parametros": PortalFilePackageSpec(
+        slug="sisagua-vigilancia-demais-parametros",
+        exclude_terms=_SISAGUA_EXCLUDE_TERMS,
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+        large_dataset_note=(
+            "Dataset GRANDE (potencialmente milhoes de linhas; ~98MB "
+            "comprimido, verificado ao vivo 2026-08-18)."
+        ),
+    ),
+    "sisagua_vigilancia_cianobacterias_e_cianotoxinas": PortalFilePackageSpec(
+        slug="sisagua-vigilancia-cianobacterias-e-cianotoxinas",
+        exclude_terms=_SISAGUA_EXCLUDE_TERMS,
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+    ),
+    "sisagua_pontos_de_captacao": PortalFilePackageSpec(
+        slug="sisagua-pontos-de-captacao",
+        exclude_terms=_SISAGUA_EXCLUDE_TERMS,
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+        large_dataset_note=(
+            "~53MB comprimido (verificado ao vivo 2026-08-18) - considere "
+            "um output_dir dedicado."
+        ),
+    ),
+    "sisagua_cadastro_carro_pipa_procedencia": PortalFilePackageSpec(
+        slug="sisagua-cadastro-carro-pipa-procedencia",
+        exclude_terms=_SISAGUA_EXCLUDE_TERMS,
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+    ),
+    "sisagua_cadastro_carro_pipa_populacao": PortalFilePackageSpec(
+        slug="sisagua-cadastro-carro-pipa-populacao",
+        exclude_terms=_SISAGUA_EXCLUDE_TERMS,
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+    ),
 }
 
 

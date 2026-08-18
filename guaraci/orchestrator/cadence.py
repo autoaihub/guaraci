@@ -42,6 +42,15 @@ CADENCE_OVERRIDES: Dict[str, Cadence] = {
     "sisagua_vigilancia_parametros_basicos": Cadence.MONTHLY,
     "sisagua_tratamento_agua": Cadence.MONTHLY,
     "sisagua_populacao_abastecida": Cadence.MONTHLY,
+    "sisagua_controle_mensal_demais_parametros": Cadence.MONTHLY,
+    "sisagua_controle_mensal_amostras_fora_do_padrao": Cadence.MONTHLY,
+    "sisagua_controle_mensal_plano_amostragem": Cadence.MONTHLY,
+    "sisagua_controle_mensal_infraestrutura_operacional": Cadence.MONTHLY,
+    "sisagua_vigilancia_demais_parametros": Cadence.MONTHLY,
+    "sisagua_vigilancia_cianobacterias_e_cianotoxinas": Cadence.MONTHLY,
+    "sisagua_pontos_de_captacao": Cadence.MONTHLY,
+    "sisagua_cadastro_carro_pipa_procedencia": Cadence.MONTHLY,
+    "sisagua_cadastro_carro_pipa_populacao": Cadence.MONTHLY,
 }
 
 

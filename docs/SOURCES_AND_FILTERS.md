@@ -43,6 +43,25 @@ they expose more convenient query layers.
   `dadosabertos.saude.gov.br/dataset/sisagua-tratamento-de-agua`
 - `sisagua_populacao_abastecida` (`opendatasus files`) — primary:
   `dadosabertos.saude.gov.br/dataset/sisagua-populacao-abastecida`
+- `sisagua_controle_mensal_demais_parametros` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-controle-mensal-demais-parametros`
+- `sisagua_controle_mensal_amostras_fora_do_padrao` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-controle-mensal-amostras-fora-do-padrao`
+- `sisagua_controle_mensal_plano_amostragem` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-controle-mensal-plano-amostragem`
+  (year-segmented 2014-2026, like the other "controle mensal" packages)
+- `sisagua_controle_mensal_infraestrutura_operacional` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-controle-mensal-infraestrutura-operacional`
+- `sisagua_vigilancia_demais_parametros` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-vigilancia-demais-parametros`
+- `sisagua_vigilancia_cianobacterias_e_cianotoxinas` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-vigilancia-cianobacterias-e-cianotoxinas`
+- `sisagua_pontos_de_captacao` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-pontos-de-captacao`
+- `sisagua_cadastro_carro_pipa_procedencia` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-cadastro-carro-pipa-procedencia`
+- `sisagua_cadastro_carro_pipa_populacao` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-cadastro-carro-pipa-populacao`
 - `sinan` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINAN/`
 - `sim` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIM/`
 - `sih` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIHSUS/`
@@ -161,14 +180,14 @@ OpenDataSUS notes:
 - `max_pages` may generate an `export_warning` if the query was truncated before exhausting remote pages.
 - If export fails with `keep_raw=false`, the warning advises re-running with `keep_raw=true` to preserve a raw snapshot.
 
-### 3.5 OpenDataSUS Bulk Files (`srag_arquivos`, `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`)
+### 3.5 OpenDataSUS Bulk Files (`srag_arquivos` + all 14 SISAGUA packages: `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`, `sisagua_controle_mensal_demais_parametros`, `sisagua_controle_mensal_amostras_fora_do_padrao`, `sisagua_controle_mensal_plano_amostragem`, `sisagua_controle_mensal_infraestrutura_operacional`, `sisagua_vigilancia_demais_parametros`, `sisagua_vigilancia_cianobacterias_e_cianotoxinas`, `sisagua_pontos_de_captacao`, `sisagua_cadastro_carro_pipa_procedencia`, `sisagua_cadastro_carro_pipa_populacao`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
 | `output_dir` | string | download | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
 | `output_format` | string | export | `csv`, `parquet`, `sqlite` — converts the raw resource; omit to keep it as-is |
-| `start_year` | integer | download | Initial year filter; no-op for the two cumulative SISAGUA sources below |
-| `end_year` | integer | download | Final year filter; no-op for the two cumulative SISAGUA sources below |
+| `start_year` | integer | download | Initial year filter; no-op for the cumulative SISAGUA sources (all except the "controle mensal" packages, which are year-segmented) |
+| `end_year` | integer | download | Final year filter; same cumulative-source caveat as `start_year` |
 | `resource_filter` | string | local refinement | Substring filter (case-insensitive) on the resource's display name, in addition to the year filter |
 | `keep_raw` | boolean | download | Keep the originally downloaded raw file after a successful `output_format` conversion, default `false` (large files are discarded once converted) |
 | `timeout` | integer | download | HTTP timeout in seconds for portal/S3 requests |
@@ -187,10 +206,16 @@ Bulk-files notes:
   `guaraci/opendatasus/portal_files.py`. `guaraci fetch discover
   <source> --set start_year=... --set end_year=...` lists matching resources
   (name/format/year/URL, optionally size with `--sizes`) without downloading.
-- One resource is selected per year (or one overall, for the two cumulative
-  SISAGUA packages that have no year segmentation), preferring the highest
-  format in the source's `format_priority` (`parquet` > `csv` > `json` >
-  `xml` for SRAG; SISAGUA has no parquet, so `csv` > `json` > `xml`).
+- One resource is selected per year (or one overall, for the cumulative
+  SISAGUA packages that have no year segmentation). Only
+  `sisagua_controle_mensal_parametros_basicos` and
+  `sisagua_controle_mensal_plano_amostragem` are year-segmented (2014-2026,
+  verified live); every other SISAGUA package (including the other three
+  "controle mensal" ones — demais parâmetros, amostras fora do padrão,
+  infraestrutura operacional) is cumulative with no year in the resource
+  name. Selection prefers the highest format in the source's
+  `format_priority` (`parquet` > `csv` > `json` > `xml` for SRAG; SISAGUA has
+  no parquet, so `csv` > `json` > `xml`).
 - **SISAGUA files are `.zip` archives**, not raw CSV/Parquet directly
   (verified live 2026-08-17 — e.g. `cadastro_populacao_abastecida_csv.zip`).
   `output_format` conversion is only implemented for raw `csv`/`parquet`
@@ -201,13 +226,17 @@ Bulk-files notes:
   params skips files that already exist. SRAG's current ("banco vivo") year
   basename embeds its extraction date and changes weekly, so it naturally
   re-downloads; other years are stable until the portal republishes them.
-- `sisagua_controle_mensal_parametros_basicos` is a GRANDE dataset
-  (potentially millions of rows per year) — always scope `start_year`/
-  `end_year` narrowly; the schema description and `discover()` payload both
-  carry a warning note.
-- Only 5 of the 14 SISAGUA packages listed on the portal are registered so
-  far (the ones judged most broadly useful); the remaining 9 use the exact
-  same transport and are a trivial follow-up — see `docs/handoffs/_QUADRO.md`.
+- `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_mensal_demais_parametros`,
+  `sisagua_controle_mensal_amostras_fora_do_padrao`,
+  `sisagua_controle_mensal_infraestrutura_operacional`,
+  `sisagua_controle_mensal_plano_amostragem` and `sisagua_vigilancia_demais_parametros`
+  are GRANDE datasets (potentially millions of rows; compressed sizes of
+  ~39-138MB verified live 2026-08-18) — always scope `start_year`/`end_year`
+  narrowly for the year-segmented ones; the schema description and
+  `discover()` payload both carry a warning note.
+- All 14 SISAGUA packages listed on the portal are now registered
+  (verified live 2026-08-18); SIOPS remains the only investigated-but-not-
+  registered dataset in this family (see below).
 - SIOPS was investigated but NOT registered: its portal dataset only exposes
   a metadata PDF via S3 (no tabular resource), and its own API
   (`siops-consulta-publica-api.saude.gov.br`) does not publish a discoverable
