@@ -79,6 +79,15 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             auto=False,
             note="needs latitude/longitude - collect on demand, not swept",
         )
+    elif name.startswith("ana"):
+        profile = SourceProfile(
+            name,
+            Kind.API_POINT,
+            Cadence.IRREGULAR,
+            None,
+            auto=False,
+            note="needs station_ids - collect on demand, not swept",
+        )
     elif name.startswith("ibge"):
         # Annual IBGE (SIDRA); backfill floor differs per table.
         ibge_floor = {
