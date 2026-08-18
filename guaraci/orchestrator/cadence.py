@@ -32,7 +32,18 @@ _SIH_MIN_YEAR = 1992
 _INMET_MIN_YEAR = 2000
 
 # Edit here to re-tune how often a source is re-checked for new data.
-CADENCE_OVERRIDES: Dict[str, Cadence] = {}
+# SISAGUA bulk-file sources publish (at most) monthly/semestral batches on
+# the portal; the "opendatasus" mode default (WEEKLY) is tuned for the
+# DEMAS/CKAN record APIs and would poll SISAGUA far more often than it ever
+# changes. SRAG keeps the WEEKLY default (the "banco vivo" current year is
+# republished weekly).
+CADENCE_OVERRIDES: Dict[str, Cadence] = {
+    "sisagua_controle_mensal_parametros_basicos": Cadence.MONTHLY,
+    "sisagua_controle_semestral": Cadence.MONTHLY,
+    "sisagua_vigilancia_parametros_basicos": Cadence.MONTHLY,
+    "sisagua_tratamento_agua": Cadence.MONTHLY,
+    "sisagua_populacao_abastecida": Cadence.MONTHLY,
+}
 
 
 @dataclass(frozen=True)
@@ -80,11 +91,23 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             auto=False,
             note="needs latitude/longitude - collect on demand, not swept",
         )
+    elif name.startswith("ana"):
+        profile = SourceProfile(
+            name,
+            Kind.API_POINT,
+            Cadence.IRREGULAR,
+            None,
+            auto=False,
+            note="needs station_ids - collect on demand, not swept",
+        )
     elif name.startswith("ibge"):
         # Annual IBGE (SIDRA); backfill floor differs per table.
         ibge_floor = {
             "ibge_pib_municipios": 2002,
             "ibge_populacao_idade_sexo": 2022,  # census reference year
+            "ibge_nascidos_vivos_rc": 2003,
+            "ibge_obitos_rc": 2003,
+            "ibge_area_territorial": 2022,  # census reference year, single period
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
     elif name.startswith("inmet"):
@@ -92,6 +115,10 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         # re-checked by Content-Length since INMET republishes it as more
         # months land (see guaraci/inmet/datasource.py).
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, _INMET_MIN_YEAR)
+    elif name.startswith("inpe"):
+        # INPE Queimadas: annual files (2003+), re-checked monthly since the
+        # current year's file is republished as new detections arrive.
+        profile = SourceProfile(name, Kind.API_WINDOW, Cadence.MONTHLY, 2003)
     elif "opendatasus" in mode_l or "demas" in mode_l:
         # Date-window API sources; min_year is read from the schema by the planner.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.WEEKLY, None)

@@ -19,6 +19,115 @@
   verified against the real archives), the streaming client, the datasource,
   and service registration; a `GUARACI_INMET_SMOKE=1` opt-in test validates
   one live year/UF.
+### Added — INPE Queimadas (Fase B1)
+- New package `guaraci/inpe/` (`client.py` + `queimadas.py`), same pattern as
+  `guaraci/nasa/`: thin urllib client + datasource, registered via
+  `ApiDownloadSource` in `guaraci/services/sources/inpe.py` (mode
+  `inpe queimadas api`).
+- `inpe_queimadas` — fire-spot ("focos de queimada") detections from INPE's
+  BDQueimadas program at `dataserver-coids.inpe.br`. Annual reference product
+  (`dataset=referencia_anual` → `Brasil_sat_ref`, or `todos_satelites` →
+  `Brasil_todos_sats`), years 2003+ confirmed live via directory-index parsing
+  (never hardcoded). Optional `months` param switches to the monthly product
+  (`mensal/Brasil`, available from 2023 onward, own schema with
+  `risco_fogo`/`frp`/`precipitacao`, ignores `dataset`). `states` filters
+  post-download on the `estado` column (UF code or full name).
+- Complements — does not replace — `nasa_firms`: FIRMS is NASA's global
+  near-real-time MODIS/VIIRS feed; INPE Queimadas is Brazil's own national
+  program with its own satellite-reference methodology and locally derived
+  `bioma`/`municipio` classification.
+- Cadence `MONTHLY` registered in `guaraci/orchestrator/cadence.py`
+  (`inpe*` name prefix, floor year 2003).
+- Offline tests (`tests/test_inpe_queimadas_client.py`,
+  `tests/test_inpe_queimadas_datasource.py`, fake HTTP, no network) plus an
+  opt-in live smoke test (`GUARACI_INPE_SMOKE=1`,
+  `tests/test_inpe_queimadas_smoke.py`) validated against the real server:
+  2003 annual reference → 341 237 detections.
+- Site catalog gains a new "Ambiental · Brasil" group (`G_AMB`) with the
+  `inpe_queimadas` entry; `docs/SOURCES_AND_FILTERS.md` and
+  `field_dictionary.json` updated.
+
+### Added — ANA HidroWebService telemetric stations (`ana_hidro`)
+- Added `guaraci/ana/client.py` (`AnaHidroClient`, OAuth token acquisition/
+  auto-renewal, 30-day-window telemetric series calls) and
+  `guaraci/ana/hidro.py` (`AnaHidroDataSource`) plus registration in
+  `guaraci/services/sources/ana.py` (`source="ana_hidro"`, mode
+  `"ana hidro api"`, `auto=False`). Endpoints and the exact query-parameter
+  contract were locked by reading the live OpenAPI document at
+  `https://www.ana.gov.br/hidrowebservice/api-docs`. Credentials
+  (`GUARACI_ANA_ID`/`GUARACI_ANA_SENHA`) are required and were not yet
+  available (operator's ANA e-mail registration pending); the connector
+  ships with offline fake-client tests only and an opt-in
+  `GUARACI_ANA_SMOKE=1` live smoke test that additionally skips without
+  credentials. See `docs/SOURCES_AND_FILTERS.md` §3.15 for the full
+  parameter table and the known gaps (response field names unverified live).
+
+### Added — IBGE registro civil + território (Fase C)
+- `ibge_nascidos_vivos_rc` (`guaraci/ibge/registro_civil.py`) — live births by
+  month/sex, SIDRA table 2680 (variable 218), registro civil; a counterpoint
+  to DATASUS SINASC. Reference verified live 2026-08-17: Brasil 2023,
+  `mes`/`sexo`=`total` → 2 523 267.
+- `ibge_obitos_rc` — deaths by month/sex, SIDRA table 2681 (variable 343),
+  registro civil; counterpoint to DATASUS SIM. Reference verified live
+  2026-08-17: Brasil 2023, `mes`/`sexo`=`total` → 1 429 575.
+- `ibge_area_territorial` (`guaraci/ibge/territorio.py`) — area / density /
+  population from SIDRA table 4714 (variables 93/614/6318 bundled in one
+  request via SIDRA's `|`-joined variable list), single period 2022 (census
+  reference). Reference verified live 2026-08-17: Brasil área territorial
+  8 510 417.771 km².
+- Both registro-civil sources reject `mes != "total"` at `level="municipio"`
+  up front (`ValueError`) — confirmed live that SIDRA returns HTTP 500 for the
+  municipal x all-months combination (5570 municipalities x 13 categories
+  exceeds the aggregate limit); UF/região/Brasil accept the monthly
+  breakdown.
+- Registered in `guaraci/services/sources/ibge.py` (mode `ibge api`); backfill
+  floors added to `ibge_floor` in `guaraci/orchestrator/cadence.py` (2003 for
+  both registro-civil sources, 2022 — census year — for área territorial).
+- Offline tests in `tests/test_ibge_registro_civil_territorio.py` (fake SIDRA
+  client) plus 3 new opt-in live smoke tests in `tests/test_ibge_smoke.py`
+  (`GUARACI_IBGE_SMOKE=1`).
+- Site catalog, `docs/SOURCES_AND_FILTERS.md` and `field_dictionary.json` /
+  `docs/DATA_DICTIONARY.md` updated for the 3 new sources; source count in
+  the site copy raised from 91 to 94.
+
+### Added — bulk-file transport for dadosabertos.saude.gov.br (SRAG, SISAGUA)
+- New transport `PortalFileDataSource` (`guaraci/opendatasus/portal_files.py`)
+  for portal "packages" whose resources are whole files (CSV/Parquet/JSON/XML,
+  sometimes zipped) hosted on a public S3 bucket, not a CKAN datastore or a
+  paginated DEMAS JSON API (the CKAN API on the current portal host is dead —
+  `ckan-dadosabertos.saude.gov.br` doesn't resolve and
+  `dadosabertos.saude.gov.br/api/3/action/...` returns 404). Discovery is a
+  stdlib-only (`html.parser`) 2-hop HTML scrape: dataset page -> resource page
+  -> S3 URL. Downloads are cached by basename (idempotent re-runs).
+- Registered 6 new sources (mode `opendatasus files`) via
+  `guaraci/services/sources/opendatasus_files.py`: `srag_arquivos` (annual
+  SRAG "banco vivo" bulk, 2019–2026) and 5 of the 14 SISAGUA packages —
+  `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`,
+  `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`,
+  `sisagua_populacao_abastecida`. `DownloadService.discover()` now dispatches
+  generically to any source adapter exposing its own `discover()` (previously
+  hardcoded to DATASUS FTP + `sih`), wiring `guaraci fetch discover` and
+  `POST /sources/{s}/discovery` for the new sources.
+- Orchestrator: `CADENCE_OVERRIDES` now sets `Cadence.MONTHLY` for the 5
+  SISAGUA sources (the generic `opendatasus` mode default of WEEKLY is tuned
+  for the DEMAS/CKAN record APIs, not SISAGUA's actual publication rhythm);
+  SRAG keeps WEEKLY (its "banco vivo" current year republishes weekly).
+- SIOPS was investigated but not registered: the portal dataset only exposes
+  a metadata PDF via S3, and the source's own API
+  (`siops-consulta-publica-api.saude.gov.br`) does not publish a discoverable
+  Swagger/OpenAPI spec. Tracked as a pendency in `docs/handoffs/_QUADRO.md`,
+  along with the remaining 9 SISAGUA packages (same transport, trivial specs).
+- Docs: new `docs/SOURCES_AND_FILTERS.md` §3.5; `scripts/build_site_catalog.py`
+  `CURATED` updated and `site/assets/catalog-data.js` regenerated (88 sources
+  total, `?v=` bumped); "91 sources" marketing copy on the site corrected to
+  the actual registered count (88 — it was already stale before this change).
+- Incidental fix: removed 5 dead `CURATED` entries in
+  `scripts/build_site_catalog.py` (`arboviroses_chikungunya`,
+  `arboviroses_dengue`, `arboviroses_febre_amarela_humanos_primatas_nao_humanos`,
+  `vigilancia_e_meio_ambiente_mpox`, `vacinacao_esavi`) referencing source
+  names that no longer exist in the registry (superseded by the plain
+  `dengue`/`chikungunya`/`febre_amarela`/`mpox`/`esavi` entries); this was
+  silently blocking `python scripts/build_site_catalog.py` before this change.
 
 ### Added — versioned SIH-RD column mapping
 - Added `DEFAULT_SIH_RD_COLUMN_MAP` and `apply_sih_column_map()` / `SihDataSource.apply_column_map()` in `guaraci/datasus/sih.py` for standardizing SIH-RD field names (`N_AIH` -> `numero_aih`, `DT_INTER` -> `data_internacao`, `MUNIC_RES` -> `municipio_residencia`, `DIAG_PRINC` -> `diagnostico_principal`, etc.), backed by unit regression tests in `tests/test_sih_column_map.py`.

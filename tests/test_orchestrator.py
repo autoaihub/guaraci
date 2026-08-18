@@ -125,6 +125,8 @@ def test_profile_resolution_across_shapes():
     assert profile_for("dengue", "opendatasus api").kind is Kind.API_WINDOW
     nasa = profile_for("nasa_power", "nasa")
     assert nasa.kind is Kind.API_POINT and nasa.auto is False
+    ana = profile_for("ana_hidro", "ana hidro api")
+    assert ana.kind is Kind.API_POINT and ana.auto is False
     assert profile_for("snis", "gov.br crawl").kind is Kind.CRAWLER
     assert profile_for("mystery", "???").kind is Kind.UNKNOWN
     inmet = profile_for("inmet_estacoes", "inmet portal zip")
@@ -132,11 +134,38 @@ def test_profile_resolution_across_shapes():
     assert inmet.cadence is Cadence.ANNUAL
     assert inmet.min_year == 2000
     assert inmet.auto is True
+    inpe = profile_for("inpe_queimadas", "inpe queimadas api")
+    assert inpe.kind is Kind.API_WINDOW
+    assert inpe.cadence is Cadence.MONTHLY
+    assert inpe.min_year == 2003
+    assert inpe.auto is True
 
 
 def test_cadence_override(monkeypatch):
     monkeypatch.setitem(CADENCE_OVERRIDES, "sih", Cadence.DAILY)
     assert profile_for("sih", "pysus ftp").cadence is Cadence.DAILY
+
+
+def test_profile_resolution_for_portal_file_sources():
+    """Fase A: bulk-file sources ('opendatasus files' mode) resolve like the
+    DEMAS/CKAN API sources (Kind.API_WINDOW), but SISAGUA gets a MONTHLY
+    override (see CADENCE_OVERRIDES) since SRAG keeps the WEEKLY default.
+    """
+    srag = profile_for("srag_arquivos", "opendatasus files")
+    assert srag.kind is Kind.API_WINDOW
+    assert srag.cadence is Cadence.WEEKLY
+    assert srag.auto is True
+
+    for name in (
+        "sisagua_controle_mensal_parametros_basicos",
+        "sisagua_controle_semestral",
+        "sisagua_vigilancia_parametros_basicos",
+        "sisagua_tratamento_agua",
+        "sisagua_populacao_abastecida",
+    ):
+        profile = profile_for(name, "opendatasus files")
+        assert profile.kind is Kind.API_WINDOW
+        assert profile.cadence is Cadence.MONTHLY, name
 
 
 def test_fetchunit_granularity_and_key():

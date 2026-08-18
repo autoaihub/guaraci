@@ -6,14 +6,13 @@
   <title>Guaraci | Dados públicos do Brasil em um só lugar</title>
   <meta name="description" content="O Guaraci reúne 91 conjuntos de dados públicos brasileiros — saúde, população, clima, saneamento e território — direto das fontes oficiais, com interface web e acesso gratuito.">
   <meta property="og:title" content="Guaraci | Dados públicos do Brasil em um só lugar">
-  <meta property="og:description" content="91 conjuntos de dados públicos, direto das fontes oficiais, com interface web gratuita. Um projeto AutoAI-Pandemics (ICMC-USP).">
-  <meta property="og:type" content="website">
+  <meta property="og:description" content="91 conjuntos de dados públicos, direto das fontes oficiais, com interface web gratuita. Um projeto AutoAI-Pandemics (ICMC-USP).">  <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/logo-guaraci.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/site.css?v=20260811b" rel="stylesheet">
+  <link href="assets/site.css?v=20260817a" rel="stylesheet">
 </head>
 <body>
 <div id="scroll-progress"></div>
@@ -164,8 +163,8 @@
       <p class="sec-lead">As fontes vão do nascimento ao cuidado em saúde, passando por população e economia, clima, saneamento e território.</p>
     </div>
     <div class="areas">
-      <div class="area reveal"><div class="ico"><i class="bi bi-heart-pulse-fill"></i></div><h3>Saúde pública</h3><p>Doenças, internações, óbitos, nascimentos, vacinação, vigilância epidemiológica (dengue, chikungunya, zika, febre amarela, mpox), qualidade da água e unidades do SUS.</p><span class="count">83 fontes do Ministério da Saúde</span></div>
-      <div class="area reveal" data-delay="80"><div class="ico"><i class="bi bi-people-fill"></i></div><h3>População e economia</h3><p>Estimativas de população, Censo por idade e sexo e PIB dos municípios — o contexto que dá sentido aos indicadores.</p><span class="count">3 fontes do IBGE</span></div>
+      <div class="area reveal"><div class="ico"><i class="bi bi-heart-pulse-fill"></i></div><h3>Saúde pública</h3><p>Doenças, internações, óbitos, nascimentos, vacinação, vigilância epidemiológica (dengue, chikungunya, zika, febre amarela, mpox), qualidade da água e unidades do SUS.</p><span class="count">80 fontes do Ministério da Saúde</span></div>
+      <div class="area reveal" data-delay="80"><div class="ico"><i class="bi bi-people-fill"></i></div><h3>População e economia</h3><p>Estimativas de população, Censo por idade e sexo e PIB dos municípios — o contexto que dá sentido aos indicadores.</p><span class="count">6 fontes do IBGE</span></div>
       <div class="area reveal" data-delay="160"><div class="ico"><i class="bi bi-cloud-drizzle-fill"></i></div><h3>Clima e ambiente</h3><p>Temperatura, chuva e focos de incêndio, para relacionar condições ambientais com saúde e qualidade de vida.</p><span class="count">3 fontes da NASA</span></div>
       <div class="area reveal" data-delay="240"><div class="ico"><i class="bi bi-droplet-fill"></i></div><h3>Saneamento</h3><p>Informações nacionais de água, esgoto e serviços de saneamento — base para avaliar desigualdades e riscos.</p><span class="count">2 fontes (gov.br)</span></div>
       <div class="area reveal" data-delay="320"><div class="ico"><i class="bi bi-geo-alt-fill"></i></div><h3>Território</h3><p>Todas as áreas se cruzam por município, estado e região — permitindo comparar realidades locais em todo o Brasil.</p><span class="count">Cobertura nacional</span></div>
@@ -237,6 +236,17 @@
             <div><span class="ps1">&gt;</span> <span class="cmd" data-type>cd guaraci</span></div>
           </div>
         </div>
+        <p class="step-lead" style="margin-top:16px;">Antes de seguir, confirme que o Docker está pronto — assim, se algo travar mais adiante, você já sabe se a causa é o Docker ou o Guaraci:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell — guaraci</span></div>
+          <div class="term-body">
+            <div><span class="ps1">&gt;</span> <span class="cmd" data-type>.\scripts\desktop\check-docker.cmd</span></div>
+            <div class="out" data-print="500">[OK]    Docker CLI instalado</div>
+            <div class="out" data-print="600">[OK]    Docker Desktop rodando (engine responde)</div>
+            <div class="out" data-print="700"><span class="ok">✔ Docker está pronto. Pode seguir com "docker build -t guaraci ."</span></div>
+          </div>
+        </div>
+        <div class="callout"><i class="bi bi-exclamation-triangle-fill"></i><span>Deu <strong>[FALHA]</strong> em alguma linha? O script mostra exatamente o que fazer (abrir o Docker Desktop, reiniciar etc.). Resolva antes de ir para o próximo passo — veja também <a href="docs.html#instalacao">problemas comuns</a>.</span></div>
       </div>
 
       <!-- Passo 3 -->
@@ -472,9 +482,8 @@
   </div>
 </div>
 
-<script src="assets/catalog-data.js?v=20260811b"></script>
-<script src="assets/site.js?v=20260811b"></script>
-
+<script src="assets/catalog-data.js?v=20260818a"></script>
+<script src="assets/site.js?v=20260817a"></script>
 <div class="gtranslate_wrapper"></div>
 <script>window.gtranslateSettings = {"default_language":"pt","languages":["en","fr","de", "pt", "it","es"],"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"left","switcher_vertical_position":"bottom","alt_flags":{"en":"usa","pt":"brazil"}}</script>
 <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>

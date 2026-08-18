@@ -159,10 +159,54 @@ def _normalize_opendatasus_params(params: Dict[str, object]) -> Dict[str, object
     return normalized
 
 
+def _normalize_portal_files_params(params: Dict[str, object]) -> Dict[str, object]:
+    """Normalise params for the bulk-file 'opendatasus files' sources."""
+    normalized = dict(params)
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    resource_filter = normalized.get("resource_filter")
+    if isinstance(resource_filter, str):
+        cleaned = resource_filter.strip()
+        normalized["resource_filter"] = cleaned if cleaned else None
+
+    api_base_url = normalized.get("api_base_url")
+    if isinstance(api_base_url, str):
+        normalized["api_base_url"] = api_base_url.strip() or None
+
+    for key in ("start_year", "end_year", "timeout"):
+        value = normalized.get(key)
+        if value is None or isinstance(value, bool):
+            continue
+        if isinstance(value, str):
+            stripped = value.strip()
+            if not stripped:
+                normalized[key] = None
+                continue
+            normalized[key] = int(stripped)
+            continue
+        normalized[key] = int(value)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
+
+
 def _normalize_ibge_params(params: Dict[str, object]) -> Dict[str, object]:
     normalized = dict(params)
 
-    for key in ("level", "sexo", "faixa_etaria"):
+    for key in ("level", "sexo", "faixa_etaria", "mes"):
         value = normalized.get(key)
         if isinstance(value, str):
             cleaned = value.strip().lower()
@@ -369,6 +413,65 @@ def _normalize_inmet_params(params: Dict[str, object]) -> Dict[str, object]:
     return normalized
 
 
+def _normalize_ana_hidro_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+
+    station_ids = normalized.get("station_ids")
+    if isinstance(station_ids, list):
+        normalized["station_ids"] = [
+            str(item).strip() for item in station_ids if str(item).strip()
+        ]
+
+    for key in ("variable", "detail"):
+        value = normalized.get(key)
+        if isinstance(value, str):
+            cleaned = value.strip().lower()
+            if cleaned:
+                normalized[key] = cleaned
+
+    tipo_filtro_data = normalized.get("tipo_filtro_data")
+    if isinstance(tipo_filtro_data, str):
+        cleaned = tipo_filtro_data.strip().upper()
+        if cleaned:
+            normalized["tipo_filtro_data"] = cleaned
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    for key in ("start_date", "end_date", "api_base_url"):
+        value = normalized.get(key)
+        if isinstance(value, str):
+            cleaned = value.strip()
+            normalized[key] = cleaned if cleaned else None
+
+    # Empty/invalid timeout is dropped so the datasource default applies.
+    timeout = normalized.get("timeout")
+    if isinstance(timeout, str):
+        stripped = timeout.strip()
+        if stripped:
+            normalized["timeout"] = int(stripped)
+        else:
+            normalized.pop("timeout", None)
+    elif isinstance(timeout, bool):
+        normalized.pop("timeout", None)
+    elif isinstance(timeout, (int, float)):
+        normalized["timeout"] = int(timeout)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
+
+
 def _normalize_nasa_gpm_params(params: Dict[str, object]) -> Dict[str, object]:
     normalized = dict(params)
 
@@ -394,6 +497,76 @@ def _normalize_nasa_gpm_params(params: Dict[str, object]) -> Dict[str, object]:
         if isinstance(value, str):
             cleaned = value.strip()
             normalized[key] = cleaned if cleaned else None
+
+    # Empty/invalid timeout is dropped so the datasource default applies.
+    timeout = normalized.get("timeout")
+    if isinstance(timeout, str):
+        stripped = timeout.strip()
+        if stripped:
+            normalized["timeout"] = int(stripped)
+        else:
+            normalized.pop("timeout", None)
+    elif isinstance(timeout, bool):
+        normalized.pop("timeout", None)
+    elif isinstance(timeout, (int, float)):
+        normalized["timeout"] = int(timeout)
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        lowered = keep_raw.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            normalized["keep_raw"] = True
+        elif lowered in {"0", "false", "no", "n", "off", ""}:
+            normalized["keep_raw"] = False
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized
+
+
+def _normalize_inpe_queimadas_params(params: Dict[str, object]) -> Dict[str, object]:
+    normalized = dict(params)
+
+    dataset = normalized.get("dataset")
+    if isinstance(dataset, str):
+        cleaned = dataset.strip().lower()
+        if cleaned:
+            normalized["dataset"] = cleaned
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    api_base_url = normalized.get("api_base_url")
+    if isinstance(api_base_url, str):
+        normalized["api_base_url"] = api_base_url.strip() or None
+
+    for key in ("start_year", "end_year"):
+        value = normalized.get(key)
+        if isinstance(value, str) and value.strip():
+            try:
+                normalized[key] = int(value.strip())
+            except ValueError:
+                pass
+
+    months = normalized.get("months")
+    if isinstance(months, list):
+        parsed_months = []
+        for item in months:
+            raw = str(item).strip()
+            if raw:
+                try:
+                    parsed_months.append(int(raw))
+                except ValueError:
+                    pass
+        normalized["months"] = parsed_months
+
+    states = normalized.get("states")
+    if isinstance(states, list):
+        normalized["states"] = [
+            str(item).strip().upper() for item in states if str(item).strip()
+        ]
 
     # Empty/invalid timeout is dropped so the datasource default applies.
     timeout = normalized.get("timeout")

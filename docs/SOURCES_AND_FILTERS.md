@@ -30,6 +30,19 @@ they expose more convenient query layers.
 - `srag_demas` (`opendatasus api`) — same
 - `sindrome_gripal_leve` (`opendatasus api`) — same
 - OpenDataSUS DEMAS sources generated from `guaraci/opendatasus/utils/swagger.json`
+- `srag_arquivos` (`opendatasus files`) — primary: `dadosabertos.saude.gov.br/dataset/srag-2019-a-2026`
+  (SRAG annual "banco vivo" bulk files, S3-hosted; discovered by scraping the
+  portal, not a CKAN/DEMAS API — see §3.5)
+- `sisagua_controle_mensal_parametros_basicos` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-controle-mensal-parametros-basicos`
+- `sisagua_controle_semestral` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-controle-semestral`
+- `sisagua_vigilancia_parametros_basicos` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-vigilancia-parametros-basicos`
+- `sisagua_tratamento_agua` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-tratamento-de-agua`
+- `sisagua_populacao_abastecida` (`opendatasus files`) — primary:
+  `dadosabertos.saude.gov.br/dataset/sisagua-populacao-abastecida`
 - `sinan` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINAN/`
 - `sim` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIM/`
 - `sih` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIHSUS/`
@@ -63,6 +76,26 @@ they expose more convenient query layers.
 - `inmet_estacoes` (`inmet portal zip`) — primary: `portal.inmet.gov.br`
   (INMET automatic weather stations, hourly historical series, one ZIP per
   year 2000-present; no third-party mirror involved)
+- `ibge_nascidos_vivos_rc` (`ibge api`) — primary: same SIDRA API
+  (registro civil, live births by month/sex, table 2680; counterpoint to
+  DATASUS SINASC)
+- `ibge_obitos_rc` (`ibge api`) — primary: same SIDRA API
+  (registro civil, deaths by month/sex, table 2681; counterpoint to
+  DATASUS SIM)
+- `ibge_area_territorial` (`ibge api`) — primary: same SIDRA API
+  (area / density / population, census-2022 reference, table 4714; spatial
+  denominator layer)
+- `ana_hidro` (`ana hidro api`) — primary: `www.ana.gov.br/hidrowebservice`
+  (ANA/SNIRH HidroWebService telemetric stations: chuva/nível/vazão; requires
+  an identifier+password credential obtained by e-mail registration with ANA;
+  experimental — live payload validation is pending that registration)
+- `inpe_queimadas` (`inpe queimadas api`) — primary: `dataserver-coids.inpe.br`
+  (INPE Queimadas/BDQueimadas fire-spot detections; annual reference product
+  since 2003, monthly product since 2023). Complements — does not replace —
+  `nasa_firms`: FIRMS is NASA's global near-real-time MODIS/VIIRS feed,
+  while INPE Queimadas is Brazil's own national program with its own
+  satellite-reference methodology and locally derived `bioma`/`municipio`
+  classification.
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -142,7 +175,60 @@ OpenDataSUS notes:
 - `max_pages` may generate an `export_warning` if the query was truncated before exhausting remote pages.
 - If export fails with `keep_raw=false`, the warning advises re-running with `keep_raw=true` to preserve a raw snapshot.
 
-### 3.5 Auto-generated OpenDataSUS DEMAS sources
+### 3.5 OpenDataSUS Bulk Files (`srag_arquivos`, `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`)
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | download | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | export | `csv`, `parquet`, `sqlite` — converts the raw resource; omit to keep it as-is |
+| `start_year` | integer | download | Initial year filter; no-op for the two cumulative SISAGUA sources below |
+| `end_year` | integer | download | Final year filter; no-op for the two cumulative SISAGUA sources below |
+| `resource_filter` | string | local refinement | Substring filter (case-insensitive) on the resource's display name, in addition to the year filter |
+| `keep_raw` | boolean | download | Keep the originally downloaded raw file after a successful `output_format` conversion, default `false` (large files are discarded once converted) |
+| `timeout` | integer | download | HTTP timeout in seconds for portal/S3 requests |
+| `api_base_url` | string | download | Optional `dadosabertos.saude.gov.br` base URL override |
+
+Bulk-files notes:
+- Different transport from the record-oriented OpenDataSUS sources above:
+  each "dataset" here is a handful of whole-file resources (CSV/Parquet/JSON/
+  XML, sometimes zipped) hosted on a public S3 bucket
+  (`s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/...`), not a CKAN datastore
+  or a paginated DEMAS JSON API. The CKAN API on the current portal host is
+  unavailable (verified 2026-08-17: `ckan-dadosabertos.saude.gov.br` does not
+  resolve; `dadosabertos.saude.gov.br/api/3/action/...` returns 404).
+- Discovery is a 2-hop HTML scrape (dataset page -> resource page -> S3 URL),
+  stdlib-only (`html.parser`), implemented in
+  `guaraci/opendatasus/portal_files.py`. `guaraci fetch discover
+  <source> --set start_year=... --set end_year=...` lists matching resources
+  (name/format/year/URL, optionally size with `--sizes`) without downloading.
+- One resource is selected per year (or one overall, for the two cumulative
+  SISAGUA packages that have no year segmentation), preferring the highest
+  format in the source's `format_priority` (`parquet` > `csv` > `json` >
+  `xml` for SRAG; SISAGUA has no parquet, so `csv` > `json` > `xml`).
+- **SISAGUA files are `.zip` archives**, not raw CSV/Parquet directly
+  (verified live 2026-08-17 — e.g. `cadastro_populacao_abastecida_csv.zip`).
+  `output_format` conversion is only implemented for raw `csv`/`parquet`
+  resources; requesting a conversion on a SISAGUA `.zip` resource produces an
+  `export_warning` rather than a silent failure (the raw `.zip` is still
+  materialized on disk).
+- Idempotency is by basename under `output_dir`: a second run with the same
+  params skips files that already exist. SRAG's current ("banco vivo") year
+  basename embeds its extraction date and changes weekly, so it naturally
+  re-downloads; other years are stable until the portal republishes them.
+- `sisagua_controle_mensal_parametros_basicos` is a GRANDE dataset
+  (potentially millions of rows per year) — always scope `start_year`/
+  `end_year` narrowly; the schema description and `discover()` payload both
+  carry a warning note.
+- Only 5 of the 14 SISAGUA packages listed on the portal are registered so
+  far (the ones judged most broadly useful); the remaining 9 use the exact
+  same transport and are a trivial follow-up — see `docs/handoffs/_QUADRO.md`.
+- SIOPS was investigated but NOT registered: its portal dataset only exposes
+  a metadata PDF via S3 (no tabular resource), and its own API
+  (`siops-consulta-publica-api.saude.gov.br`) does not publish a discoverable
+  Swagger/OpenAPI spec (`/swagger-resources` returns `[]`; all standard
+  springdoc paths return 404) — see `docs/handoffs/_QUADRO.md`.
+
+### 3.6 Auto-generated OpenDataSUS DEMAS sources
 
 These sources are generated from the local DEMAS Swagger catalog.
 
@@ -171,7 +257,7 @@ Source-specific parameters:
 - Unknown parameters are rejected by the standard schema validation path.
 - Contract tests verify every generated source against the local Swagger catalog; live upstream availability can be checked with `scripts/smoke_opendatasus_sources.py`.
 
-### 3.6 SINAN (`sinan`)
+### 3.7 SINAN (`sinan`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -191,7 +277,7 @@ Notes:
 - The standalone `ano` field was removed from the jobs/UI schema.
 - The jobs/UI temporal window is defined by `start_year` and `end_year`.
 
-### 3.7 SIM (`sim`)
+### 3.8 SIM (`sim`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -207,7 +293,7 @@ Notes:
 | `causa_basica` | string | export | Basic cause of death |
 | `ano_obito` | integer | export | Year of death |
 
-### 3.8 SIH (`sih`)
+### 3.9 SIH (`sih`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -232,7 +318,7 @@ Note:
 - Use `POST /sources/sih/discovery` to inspect file count, estimated byte size,
   grouping, and a sample before creating large SIH jobs.
 
-### 3.9 NASA POWER (`nasa_power`)
+### 3.10 NASA POWER (`nasa_power`)
 
 Single-point climate series from the NASA POWER API (no authentication).
 
@@ -264,7 +350,7 @@ NASA POWER notes:
 - Like OpenDataSUS, leaving both `output_format` empty and `keep_raw=false`
   produces only a manifest and emits an `export_warning`.
 
-### 3.10 NASA FIRMS (`nasa_firms`)
+### 3.11 NASA FIRMS (`nasa_firms`)
 
 Active-fire / thermal-anomaly detections from the NASA FIRMS CSV API.
 
@@ -294,7 +380,7 @@ NASA FIRMS notes:
 - `NRT` products are near-real-time; `SP` products are standard-processing
   (archive) and lag by a longer interval.
 
-### 3.11 NASA GPM IMERG (`nasa_gpm`)
+### 3.12 NASA GPM IMERG (`nasa_gpm`)
 
 Daily GPM IMERG precipitation for a single point, via GES DISC OPeNDAP
 subsetting (no HDF5/NetCDF download or parsing; no extra dependency).
@@ -326,7 +412,7 @@ NASA GPM notes:
 - Half-hourly and monthly products are not exposed yet (daily only); the
   Giovanni time-series API was evaluated and rejected (server-side 500s).
 
-### 3.12 IBGE Population Estimates (`ibge_populacao`)
+### 3.13 IBGE Population Estimates (`ibge_populacao`)
 
 Annual TCU population estimates by locality x year, from SIDRA aggregate table
 6579 (variable 9324). The keyless JSON aggregates API is swept one year at a time.
@@ -342,7 +428,7 @@ Annual TCU population estimates by locality x year, from SIDRA aggregate table
 | `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
 | `api_base_url` | string | tecnica | Optional SIDRA base URL override |
 
-### 3.13 IBGE Municipal GDP / PIB (`ibge_pib_municipios`)
+### 3.14 IBGE Municipal GDP / PIB (`ibge_pib_municipios`)
 
 Municipal GDP (PIB dos Municípios) from SIDRA table 5938 (variable 37), in
 R$ 1000. Same base schema and phases as `ibge_populacao`, with `start_year` /
@@ -359,7 +445,7 @@ R$ 1000. Same base schema and phases as `ibge_populacao`, with `start_year` /
 | `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
 | `api_base_url` | string | tecnica | Optional SIDRA base URL override |
 
-### 3.14 IBGE Census Population by Sex and Age (`ibge_populacao_idade_sexo`)
+### 3.15 IBGE Census Population by Sex and Age (`ibge_populacao_idade_sexo`)
 
 Census population (2022 reference) from SIDRA table 9514 (variable 93), split by
 sex and age classification — the denominators for age-standardised rates. The
@@ -378,11 +464,89 @@ default level is `uf` (municipal breakdown is a much larger extract).
 | `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
 | `api_base_url` | string | tecnica | Optional SIDRA base URL override |
 
+### 3.15 IBGE Nascidos Vivos — Registro Civil (`ibge_nascidos_vivos_rc`)
+
+Live births by year, from SIDRA table 2680 (variable 218) — "ocorridos no ano,
+por mês do nascimento[...]". Annual periods 2003-2024. Captures **cartorial
+registration** (the civil registry), a counterpoint to DATASUS SINASC, which
+captures the health-system side (declaração de nascido vivo). Reference total
+verified live 2026-08-17: Brasil, 2023, `mes`/`sexo`=`total` → **2 523 267**
+live births.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year (`2003`+) |
+| `end_year` | integer | coleta | Final year |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `mes` | string | coleta | Month-of-birth slice: `total` (default, matches the annual table 2679) or `all` (monthly breakdown) |
+| `sexo` | string | coleta | Sex slice: `total` (default), `ambos`, `homens`, `mulheres` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+`mes != "total"` combined with `level="municipio"` is rejected up front
+(`ValueError`) — confirmed live 2026-08-17 that SIDRA returns HTTP 500 for
+`N6[all]` × all 13 month categories (5570 municipalities × 13 is over the
+aggregate limit); `N3[all]` (UF) × all months works fine. Use a coarser level
+for the monthly breakdown.
+
+### 3.16 IBGE Óbitos — Registro Civil (`ibge_obitos_rc`)
+
+Deaths by year, from SIDRA table 2681 (variable 343) — "ocorridos no ano, por
+mês de ocorrência[...]". Annual periods 2003-2024. Same civil-registry
+counterpoint role as `ibge_nascidos_vivos_rc`, but versus DATASUS SIM.
+Reference total verified live 2026-08-17: Brasil, 2023, `mes`/`sexo`=`total`
+→ **1 429 575** deaths.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year (`2003`+) |
+| `end_year` | integer | coleta | Final year |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `mes` | string | coleta | Month-of-occurrence slice: `total` (default, matches the annual table 2684) or `all` |
+| `sexo` | string | coleta | Sex slice: `total` (default), `ambos`, `homens`, `mulheres` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+Same `mes`/`level="municipio"` guardrail as `ibge_nascidos_vivos_rc` (SIDRA
+500 confirmed live for the same combination on table 2681).
+
+### 3.17 IBGE Área Territorial e Densidade (`ibge_area_territorial`)
+
+Municipal/UF/regional area, resident population and demographic density, from
+SIDRA table 4714 — bundles three variables (`93` população residente, `614`
+densidade demográfica, `6318` área da unidade territorial em km²) in one
+request via SIDRA's `|`-joined variable list. **Single period, 2022** (census
+reference — verified live 2026-08-17 that `periodicidade.inicio ==
+periodicidade.fim == 2022`); `start_year`/`end_year` must both be `2022`. The
+spatial denominator layer for rate standardisation. Reference total verified
+live 2026-08-17: Brasil, 2022 → área territorial **8 510 417.771 km²**.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Must be `2022` (only period published) |
+| `end_year` | integer | coleta | Must be `2022` |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
 IBGE notes:
 - Output is one tidy row per `(nivel, localidade_id, ano[, classification …])`:
   `nivel, localidade_id, localidade_nome, ano, [<classif> …], variavel_id,
   unidade, valor`. For `ibge_populacao_idade_sexo` the classification columns
-  are `sexo`, `idade`, and `forma_de_declaracao_da_idade`.
+  are `sexo`, `idade`, and `forma_de_declaracao_da_idade`; for
+  `ibge_nascidos_vivos_rc`/`ibge_obitos_rc` they are `mes_do_nascimento` (or
+  `mes_de_ocorrencia`) and `sexo`; `ibge_area_territorial` has no
+  classifications, and `variavel_id` distinguishes the three bundled metrics
+  (`93`/`614`/`6318`).
 - SIDRA missing markers (`-`, `..`, `...`, `x`) become null; a year with no data
   is skipped with a warning, not a failure.
 - No credential is required (keyless API). Like OpenDataSUS and NASA, leaving
@@ -396,6 +560,18 @@ There is no JSON API: INMET publishes one ZIP per year at
 `https://portal.inmet.gov.br/uploads/dadoshistoricos/<AAAA>.zip` holding one
 CSV per station (verified live 2026-08-17/18, years 2000-2026; the current
 year is a partial, growing archive republished as more months land).
+### 3.15 ANA HidroWebService (`ana_hidro`)
+
+Telemetric hydrological series (rain, river level, flow) for one or more ANA/
+SNIRH stations, via the new `www.ana.gov.br/hidrowebservice` REST API. The
+legacy `telemetriaws1.ana.gov.br` webservice was discontinued 2026-06-30 and
+is not used.
+### 3.18 INPE Queimadas (`inpe_queimadas`)
+
+Fire-spot ("focos de queimada") detections published by INPE's BDQueimadas
+program at `dataserver-coids.inpe.br` (Apache-style file index — years/months
+are discovered by parsing the index page, never hardcoded). No credential
+required.
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -432,6 +608,67 @@ INMET notes:
 - No credential required (keyless, direct file download). Like NASA/IBGE,
   leaving `output_format` empty and `keep_raw=false` produces only a manifest
   and emits an `export_warning`.
+| `station_ids` | string_list | coleta | Required. Telemetric station codes; there is no automatic sweep — the station must be known up front |
+| `start_date` | string | coleta | Window start (`YYYY-MM-DD`); sliced internally into <=30-day chunks (the API's per-request ceiling) |
+| `end_date` | string | coleta | Window end (`YYYY-MM-DD`) |
+| `variable` | string | coleta | Required. `chuvas`, `vazoes`, or `cotas` (nível) — labels the request/output; the API itself returns combined station readings |
+| `detail` | string | coleta | `adotada` (default, consolidated readings) or `detalhada` (also includes raw sensor readings) |
+| `tipo_filtro_data` | string | tecnica | `DATA_LEITURA` (default) or `DATA_ULTIMA_ATUALIZACAO` |
+| `keep_raw` | boolean | tecnica | Save the raw JSON responses; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional HidroWebService base URL override |
+
+ANA notes:
+- **Credential required.** Identifier + password are obtained by e-mail
+  registration with ANA (per the official HidroWebService manual) and read
+  only from `GUARACI_ANA_ID`/`GUARACI_ANA_SENHA` — never a job parameter and
+  never written to the manifest. **As of this integration, the operator's
+  registration was still pending**, so the connector has offline (fake
+  client) test coverage only; the opt-in live smoke test
+  (`GUARACI_ANA_SMOKE=1`) additionally skips unless both env vars are set.
+- Auth (`GET /EstacoesTelemetricas/OAUth/v1`, credentials in the
+  `Identificador`/`Senha` headers) returns a `tokenautenticacao` valid for 60
+  minutes; the client renews it automatically (proactively, and once more on
+  an HTTP 401) and sends it as `Authorization: Bearer <token>` on every
+  subsequent call.
+- Endpoints, header contracts, and exact (Portuguese, accented) query
+  parameter names for the two telemetric series endpoints
+  (`HidroinfoanaSerieTelemetricaAdotada/v1` and `.../Detalhada/v1`) were
+  locked by reading the live public OpenAPI document at
+  `https://www.ana.gov.br/hidrowebservice/api-docs` (the Swagger UI itself is
+  a client-rendered SPA that does not expose this via a simple fetch).
+- **Response field names are NOT locked.** The OpenAPI document types the
+  payload (`Devolucao.items`) as an opaque `object` with no published
+  properties, and no credential was available to inspect a real response.
+  The datasource therefore does not hardcode a wide-format column layout: it
+  flattens whatever the API returns per record into snake_cased columns,
+  plus request metadata (`station_id`, `variable`, `detail`, `chunk_start`,
+  `chunk_end`) and a best-effort `timestamp` column detected by scanning key
+  names. **Re-verify the column mapping against a live payload once the
+  operator's ANA credentials exist.**
+| `start_year` | integer | coleta | Initial year; `2003`+ (confirmed live) |
+| `end_year` | integer | coleta | Final year (default: `start_year`) |
+| `months` | string_list | coleta | Optional months `1`-`12`. Switches to the monthly product (`mensal/Brasil`, available from 2023 onward, own schema with `risco_fogo`/`frp`/`precipitacao`); `dataset` is ignored when set |
+| `dataset` | string | coleta | `referencia_anual` (default, `Brasil_sat_ref`) or `todos_satelites` (`Brasil_todos_sats`); ignored when `months` is set |
+| `states` | string_list | coleta | Optional post-download filter on the `estado` column (the downloaded file is always Brazil-wide); accepts UF codes or full names |
+| `keep_raw` | boolean | tecnica | Save the raw ZIP/CSV bytes per file; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `180`) |
+| `api_base_url` | string | tecnica | Optional file-server base URL override |
+
+INPE Queimadas notes:
+- Annual output columns: `id_bdq, foco_id, lat, lon, data_pas, pais, estado,
+  municipio, bioma` (plus `queimadas_produto` provenance). Monthly output
+  columns differ: `id, lat, lon, data_hora_gmt, satelite, municipio, estado,
+  pais, municipio_id, estado_id, pais_id, numero_dias_sem_chuva,
+  precipitacao, risco_fogo, bioma, frp` — the monthly file is INPE's blended
+  near-real-time product, not a finer-grained cut of the annual series.
+  Requesting years+months outside 2023+ is skipped with a warning, not a
+  failure.
+- Complements — does not replace — `nasa_firms`: FIRMS is NASA's global
+  near-real-time MODIS/VIIRS feed; INPE Queimadas is Brazil's own national
+  program with its own satellite-reference methodology.
+- No credential is required. Leaving `output_format` empty and
+  `keep_raw=false` produces only a manifest and emits an `export_warning`.
 
 ## 4. UI and API Versus Direct CLI
 

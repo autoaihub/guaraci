@@ -8,9 +8,11 @@ to refresh.
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
 - 92 sources cataloged; 78 sampled with real field names.
+- 94 sources cataloged; 80 sampled with real field names.
 
 ## Caveats (honest)
 
+- `ana_hidro` (needs_credential): ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 - `atencao_primaria_pmmb` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb' at endpoint '/atencao-primaria/pmmb' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not found on the server. If you entered the URL
 - `atencao_primaria_pmmb_profissionais_ativos` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb-profissionais-ativos' at endpoint '/atencao-primaria/pmmb-profissionais-ativos' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not fo
 - `economia_da_saude_bps` (error): OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {"message": "Ao menos um dos par\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado."} Hint: Check request parameters and endpoint compatibi
@@ -30,6 +32,12 @@ to refresh.
 
 `ok` = sampled, fields captured · `empty`/`error`/`needs_credential` = see note ·
 `filters_only` = not sampled.
+
+## ana_hidro
+
+- **Status:** needs_credential
+- **Filters:** `output_dir`, `output_format`, `station_ids`, `start_date`, `end_date`, `variable`, `detail`, `tipo_filtro_data`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 
 ## arboviroses_chikungunya
 
@@ -216,6 +224,24 @@ to refresh.
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+
+## ibge_area_territorial
+
+- **Status:** ok (3 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `variavel_id`, `unidade`, `valor`
+
+## ibge_nascidos_vivos_rc
+
+- **Status:** ok (1 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `mes`, `sexo`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `mes_do_nascimento`, `sexo`, `local_do_nascimento`, `numero_de_nascidos_por_parto`, `idade_da_mae_na_ocasiao_do_parto`, `variavel_id`, `unidade`, `valor`
+
+## ibge_obitos_rc
+
+- **Status:** ok (1 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `mes`, `sexo`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `mes_de_ocorrencia`, `sexo`, `local_de_ocorrencia`, `idade_do_a_falecido_a`, `natureza_do_obito`, `variavel_id`, `unidade`, `valor`
 
 ## ibge_pib_municipios
 
