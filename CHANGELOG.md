@@ -2,6 +2,97 @@
 
 ## [Unreleased]
 
+### Added — 9 fontes SISAGUA restantes (bulk-file, Fase A follow-up)
+- Registradas as 9 fontes SISAGUA que faltavam no transporte
+  `PortalFileDataSource`: `sisagua_controle_mensal_demais_parametros`,
+  `sisagua_controle_mensal_amostras_fora_do_padrao`,
+  `sisagua_controle_mensal_plano_amostragem`,
+  `sisagua_controle_mensal_infraestrutura_operacional`,
+  `sisagua_vigilancia_demais_parametros`,
+  `sisagua_vigilancia_cianobacterias_e_cianotoxinas`,
+  `sisagua_pontos_de_captacao`, `sisagua_cadastro_carro_pipa_procedencia`,
+  `sisagua_cadastro_carro_pipa_populacao`. Todos os 9 slugs confirmados ao
+  vivo 2026-08-18. Apenas `sisagua_controle_mensal_plano_amostragem` é
+  ano-segmentado (2014-2026, como `controle_mensal_parametros_basicos`); os
+  outros 8 são cumulativos sem particionamento por ano (como
+  `tratamento_agua`/`populacao_abastecida`) — confirmado ao vivo parseando
+  cada dataset page antes de fixar `min_year`/`cumulative`, não assumido.
+  Tamanhos comprimidos verificados ao vivo variam de ~39KB
+  (`cadastro_carro_pipa_procedencia`) a ~138MB
+  (`controle_mensal_demais_parametros`); `large_dataset_note` adicionada às
+  fontes acima de ~35MB. Todas as 14 fontes SISAGUA do portal agora estão
+  registradas. Cadência `MONTHLY` via `CADENCE_OVERRIDES`
+  (`guaraci/orchestrator/cadence.py`). Discover ao vivo validado para
+  `sisagua_pontos_de_captacao` via `DownloadService.discover()` end-to-end.
+  Achado colateral: essas 9 fontes já existiam sob o mesmo nome como fontes
+  DEMAS auto-geradas (`guaraci/services/opendatasus_registry.py`, a partir do
+  swagger DEMAS) — o dedup existente em
+  `DownloadService._default_sources()` agora as sombreia corretamente pelo
+  transporte bulk-file (mesmo mecanismo que já protegia as 5 fontes SISAGUA
+  registradas antes desta rodada).
+- `scripts/build_site_catalog.py` rodou de ponta a ponta sem erro nesta
+  rodada (91 fontes registradas no total, número real impresso pelo script —
+  não igual ao "94" mencionado numa entrega anterior deste changelog, que não
+  foi reconciliado contra o total de agora; a suposta trava de `SystemExit`
+  por chaves órfãs no `CURATED`, documentada no quadro em rodadas anteriores,
+  não reproduziu nesta execução). `site/assets/catalog-data.js` regenerado;
+  `?v=` de `index.html`/`docs.html` avançado para `20260818a`.
+
+### Added — categoria/sampler de amostragem para a família `opendatasus files`
+- `guaraci/services/dictionary_sampling.py::classify_source` agora reconhece
+  a família `opendatasus files` (SRAG + as 14 fontes SISAGUA) e
+  `sample_opendatasus_files()` baixa o menor recurso conhecido (via
+  `discover(..., fetch_sizes=True)`, sem baixar nada acima de um teto de
+  20MB) e lê as colunas reais do arquivo materializado
+  (`.zip`→CSV/`.csv`/`.parquet`; CSVs SISAGUA são `;`-delimitados e
+  latin-1 — confirmado ao vivo). `scripts/sample_sources.py` foi conectado a
+  esse sampler.
+- Achado ao rodar a amostragem: os 14 `field_dictionary.json` de SISAGUA já
+  existentes eram **incorretos** — relíquias do primeiro commit do
+  dicionário (antes de o transporte bulk-file existir), amostrados contra o
+  antigo endpoint DEMAS auto-gerado (mesmo nome, schema diferente:
+  `codigo_ibge`/`uf` em vez dos parâmetros reais `start_year`/`end_year`/
+  `resource_filter`). Corrigidos nesta rodada:
+  - Amostradas com sucesso (campos reais, arquivo pequeno o bastante):
+    `sisagua_cadastro_carro_pipa_procedencia` (39KB; **CSV sem cabeçalho**,
+    verificado ao vivo — colunas ficam `column_1..column_13`),
+    `sisagua_cadastro_carro_pipa_populacao` (93KB), e
+    `sisagua_vigilancia_cianobacterias_e_cianotoxinas` (2.2MB). `srag_arquivos`
+    também ganhou amostra real (um ano histórico pequeno o bastante).
+  - Limpas para `status: empty` com nota honesta de tamanho (menor recorte
+    real ainda grande demais para o teto de 20MB):
+    `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`,
+    `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`,
+    `sisagua_populacao_abastecida`, `sisagua_controle_mensal_demais_parametros`,
+    `sisagua_controle_mensal_amostras_fora_do_padrao`,
+    `sisagua_controle_mensal_infraestrutura_operacional`,
+    `sisagua_controle_mensal_plano_amostragem`,
+    `sisagua_vigilancia_demais_parametros`, `sisagua_pontos_de_captacao`
+    (52.6MB comprimido — acima do teto).
+- `docs/DATA_DICTIONARY.md` regenerado via `dictionary_io.py` (mesmo caminho
+  de código de sempre — nunca diverge de `field_dictionary.json`).
+- Pendência restante (registrada no quadro): INPE/INMET/IBGE novas continuam
+  com entrada manual no dicionário; não integradas ao sampler automático
+  nesta rodada (fora do escopo mínimo pedido — "pelo menos a família
+  opendatasus files").
+
+### Fixed — host CKAN do OpenDataSUS desativado com erro claro
+- `OpenDataSUSClient.__init__` agora recusa construir um cliente em modo CKAN
+  (`base_url` contendo `/api/3/action`) com um `OpenDataSUSClientError`
+  (subclasse de `RuntimeError`) explicando que
+  `ckan-dadosabertos.saude.gov.br` não resolve DNS (re-verificado ao vivo
+  2026-08-18) e que o portal atual não expõe API CKAN — em vez de deixar a
+  primeira chamada de rede falhar com um erro de DNS opaco. Nenhum host CKAN
+  substituto foi inventado.
+- Investigado: `doses_aplicadas_pni` (único dataset com `ckan_supported=True`)
+  já usa DEMAS por padrão (`api_base_url=None` → `OpenDataSUSClient.DEFAULT_BASE_URL`,
+  que é DEMAS) — o caminho CKAN só era alcançável se alguém passasse
+  explicitamente `api_base_url` apontando para o host morto. Não havia
+  necessidade de mover rota nenhuma para DEMAS (já está lá); apenas o guard-rail
+  de erro claro foi adicionado. Descrições dos parâmetros `resource_id`/
+  `api_base_url` em `guaraci/services/sources/opendatasus.py` atualizadas para
+  não anunciar CKAN como um modo utilizável.
+
 ### Added — IBGE registro civil + território (Fase C)
 - `ibge_nascidos_vivos_rc` (`guaraci/ibge/registro_civil.py`) — live births by
   month/sex, SIDRA table 2680 (variable 218), registro civil; a counterpoint
