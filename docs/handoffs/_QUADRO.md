@@ -33,6 +33,7 @@ _Nada em aberto no momento — os bloqueios (validar `column_map` do SIH; amostr
 | Empacotamento durável p/ submódulo (submódulo fixo × `pip install @ git+` × editable) | feedback de agente | Decidir só **depois** do Guaraci estabilizar; por ora, editable-install local serve. |
 | `downloads.py` (3113 linhas) — fatiar o registry repetitivo | feedback de agente | Otimização prematura: 90% é schema. Só se doer. |
 | Deletar branches stale (`feat/nasa-clima`, `feat/datasus-ftp-direto`) | higiene git | `main` é a viva; manter `archive/*`/`safety/*`. Aguarda ok. |
+| **Bug pré-existente:** `scripts/build_site_catalog.py` falha (`SystemExit`) por 5 entradas órfãs no `CURATED` (`arboviroses_chikungunya`, `arboviroses_dengue`, `arboviroses_febre_amarela_humanos_primatas_nao_humanos`, `vacinacao_esavi`, `vigilancia_e_meio_ambiente_mpox`) que não têm mais fonte correspondente em `DownloadService.list_sources()` | Fase B2 (INMET), 2026-08-18 | Não introduzido por esta entrega — confirmado reproduzindo o script no estado do `main` antes de qualquer mudança da Fase B. Bloqueia a regeneração de `site/assets/catalog-data.js` até alguém podar/realinhar essas 5 chaves do `CURATED` (ou os sources correspondentes forem re-registrados). A entrada `inmet_estacoes` foi validada isoladamente (schema/cadência/CURATED resolvem sem erro) mas o `catalog-data.js` não pôde ser regenerado de ponta a ponta por causa deste bug alheio. |
 
 ## 🗄️ Defasado (morto — mantido por memória)
 
