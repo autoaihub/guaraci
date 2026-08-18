@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Added — ANA HidroWebService telemetric stations (`ana_hidro`)
+- Added `guaraci/ana/client.py` (`AnaHidroClient`, OAuth token acquisition/
+  auto-renewal, 30-day-window telemetric series calls) and
+  `guaraci/ana/hidro.py` (`AnaHidroDataSource`) plus registration in
+  `guaraci/services/sources/ana.py` (`source="ana_hidro"`, mode
+  `"ana hidro api"`, `auto=False`). Endpoints and the exact query-parameter
+  contract were locked by reading the live OpenAPI document at
+  `https://www.ana.gov.br/hidrowebservice/api-docs`. Credentials
+  (`GUARACI_ANA_ID`/`GUARACI_ANA_SENHA`) are required and were not yet
+  available (operator's ANA e-mail registration pending); the connector
+  ships with offline fake-client tests only and an opt-in
+  `GUARACI_ANA_SMOKE=1` live smoke test that additionally skips without
+  credentials. See `docs/SOURCES_AND_FILTERS.md` §3.15 for the full
+  parameter table and the known gaps (response field names unverified live).
+
 ### Added — versioned SIH-RD column mapping
 - Added `DEFAULT_SIH_RD_COLUMN_MAP` and `apply_sih_column_map()` / `SihDataSource.apply_column_map()` in `guaraci/datasus/sih.py` for standardizing SIH-RD field names (`N_AIH` -> `numero_aih`, `DT_INTER` -> `data_internacao`, `MUNIC_RES` -> `municipio_residencia`, `DIAG_PRINC` -> `diagnostico_principal`, etc.), backed by unit regression tests in `tests/test_sih_column_map.py`.
 

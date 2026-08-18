@@ -51,6 +51,7 @@ G_OUT = "Outras áreas do catálogo aberto"
 G_IBGE = "IBGE · população e economia"
 G_NASA = "NASA · clima e ambiente"
 G_SAN = "Saneamento · gov.br"
+G_AMB = "Ambiental · clima, água e território"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -162,6 +163,8 @@ CURATED = {
     # Saneamento
     "snis": ("SNIS", "Sistema Nacional de Informações sobre Saneamento", G_SAN, "Governo federal — gov.br (SNIS/SINISA)", "san"),
     "sinisa": ("SINISA", "Sistema Nacional de Informações em Saneamento Básico", G_SAN, "Governo federal — gov.br (SNIS/SINISA)", "san"),
+    # Ambiental (INPE/INMET/ANA)
+    "ana_hidro": ("ANA HidroWebService", "Séries telemétricas de chuva, nível e vazão por estação", G_AMB, "ANA — Agência Nacional de Águas", "clima"),
 }
 
 MODE_LABEL = {
@@ -173,6 +176,7 @@ MODE_LABEL = {
     "nasa gpm api": "API NASA GPM",
     "nasa firms api": "API NASA FIRMS",
     "gov.br crawl": "Crawler gov.br",
+    "ana hidro api": "API ANA HidroWebService",
 }
 
 CADENCE_PT = {
@@ -201,6 +205,13 @@ def cli_example(key: str, params: list) -> str:
         parts.append("--set latitude=-23.55 --set longitude=-46.63")
     if "start_date" in names and "start_year" not in names:
         parts.append("--set start_date=2024-01-01 --set end_date=2024-03-31")
+    if "station_ids" in names:
+        parts.append("--set station_ids=12345678")
+    if "variable" in names and "latitude" not in names:
+        for p in params:
+            if p["name"] == "variable" and p.get("allowed_values"):
+                parts.append(f"--set variable={p['allowed_values'][0]}")
+                break
     parts.append("--format csv")
     return " ".join(parts)
 

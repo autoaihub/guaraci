@@ -60,6 +60,10 @@ they expose more convenient query layers.
 - `ibge_populacao_idade_sexo` (`ibge api`) — primary: same SIDRA API
   (census population by sex and age, table 9514; denominator/socioeconomic
   layers for health rates)
+- `ana_hidro` (`ana hidro api`) — primary: `www.ana.gov.br/hidrowebservice`
+  (ANA/SNIRH HidroWebService telemetric stations: chuva/nível/vazão; requires
+  an identifier+password credential obtained by e-mail registration with ANA;
+  experimental — live payload validation is pending that registration)
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -385,6 +389,56 @@ IBGE notes:
 - No credential is required (keyless API). Like OpenDataSUS and NASA, leaving
   `output_format` empty and `keep_raw=false` produces only a manifest and emits
   an `export_warning`.
+
+### 3.15 ANA HidroWebService (`ana_hidro`)
+
+Telemetric hydrological series (rain, river level, flow) for one or more ANA/
+SNIRH stations, via the new `www.ana.gov.br/hidrowebservice` REST API. The
+legacy `telemetriaws1.ana.gov.br` webservice was discontinued 2026-06-30 and
+is not used.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `station_ids` | string_list | coleta | Required. Telemetric station codes; there is no automatic sweep — the station must be known up front |
+| `start_date` | string | coleta | Window start (`YYYY-MM-DD`); sliced internally into <=30-day chunks (the API's per-request ceiling) |
+| `end_date` | string | coleta | Window end (`YYYY-MM-DD`) |
+| `variable` | string | coleta | Required. `chuvas`, `vazoes`, or `cotas` (nível) — labels the request/output; the API itself returns combined station readings |
+| `detail` | string | coleta | `adotada` (default, consolidated readings) or `detalhada` (also includes raw sensor readings) |
+| `tipo_filtro_data` | string | tecnica | `DATA_LEITURA` (default) or `DATA_ULTIMA_ATUALIZACAO` |
+| `keep_raw` | boolean | tecnica | Save the raw JSON responses; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional HidroWebService base URL override |
+
+ANA notes:
+- **Credential required.** Identifier + password are obtained by e-mail
+  registration with ANA (per the official HidroWebService manual) and read
+  only from `GUARACI_ANA_ID`/`GUARACI_ANA_SENHA` — never a job parameter and
+  never written to the manifest. **As of this integration, the operator's
+  registration was still pending**, so the connector has offline (fake
+  client) test coverage only; the opt-in live smoke test
+  (`GUARACI_ANA_SMOKE=1`) additionally skips unless both env vars are set.
+- Auth (`GET /EstacoesTelemetricas/OAUth/v1`, credentials in the
+  `Identificador`/`Senha` headers) returns a `tokenautenticacao` valid for 60
+  minutes; the client renews it automatically (proactively, and once more on
+  an HTTP 401) and sends it as `Authorization: Bearer <token>` on every
+  subsequent call.
+- Endpoints, header contracts, and exact (Portuguese, accented) query
+  parameter names for the two telemetric series endpoints
+  (`HidroinfoanaSerieTelemetricaAdotada/v1` and `.../Detalhada/v1`) were
+  locked by reading the live public OpenAPI document at
+  `https://www.ana.gov.br/hidrowebservice/api-docs` (the Swagger UI itself is
+  a client-rendered SPA that does not expose this via a simple fetch).
+- **Response field names are NOT locked.** The OpenAPI document types the
+  payload (`Devolucao.items`) as an opaque `object` with no published
+  properties, and no credential was available to inspect a real response.
+  The datasource therefore does not hardcode a wide-format column layout: it
+  flattens whatever the API returns per record into snake_cased columns,
+  plus request metadata (`station_id`, `variable`, `detail`, `chunk_start`,
+  `chunk_end`) and a best-effort `timestamp` column detected by scanning key
+  names. **Re-verify the column mapping against a live payload once the
+  operator's ANA credentials exist.**
 
 ## 4. UI and API Versus Direct CLI
 

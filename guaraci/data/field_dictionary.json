@@ -1,4 +1,21 @@
 {
+  "ana_hidro": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "station_ids",
+      "start_date",
+      "end_date",
+      "variable",
+      "detail",
+      "tipo_filtro_data",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.",
+    "status": "needs_credential"
+  },
   "arboviroses_chikungunya": {
     "fields": [
       "tp_not",
@@ -4641,4 +4658,4 @@
     "rows_sampled": 20,
     "status": "ok"
   }
-}
+}
