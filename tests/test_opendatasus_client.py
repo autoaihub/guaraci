@@ -10,6 +10,26 @@ import pytest
 from guaraci.opendatasus.client import OpenDataSUSClient, OpenDataSUSClientError
 
 
+def test_ckan_mode_is_deactivated_with_a_clear_error() -> None:
+    """CKAN host ('ckan-dadosabertos.saude.gov.br') is confirmed dead (DNS
+    failure, verified live 2026-08-17/2026-08-18) and has no replacement.
+    Constructing a client with a CKAN-shaped base_url must fail fast and
+    explain why, instead of the caller hitting an opaque DNS error later.
+    """
+    with pytest.raises(OpenDataSUSClientError) as excinfo:
+        OpenDataSUSClient(base_url=OpenDataSUSClient.DEFAULT_CKAN_BASE_URL)
+
+    error = excinfo.value
+    assert error.category == "configuration"
+    assert error.retryable is False
+    assert "deactivated" in str(error).lower()
+    assert "demas" in (error.hint or "").lower()
+    # ApiClientError subclasses RuntimeError — a caller catching plain
+    # RuntimeError (not knowing about the OpenDataSUS-specific subclass)
+    # still gets a real explanation, not a bare DNS traceback.
+    assert isinstance(error, RuntimeError)
+
+
 def test_decode_json_payload_non_json_is_classified_with_hint() -> None:
     with pytest.raises(OpenDataSUSClientError) as excinfo:
         OpenDataSUSClient._decode_json_payload(

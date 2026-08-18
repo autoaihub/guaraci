@@ -137,8 +137,10 @@ def build_sources() -> List[DownloadSource]:
                     phase="tecnica",
                     param_type="string",
                     description=(
-                        "Optional explicit resource id (CKAN mode). "
-                        "Ignored in DEMAS mode."
+                        "Optional explicit resource id. Reserved for a legacy "
+                        "CKAN mode that is currently deactivated (dead host, "
+                        "no known replacement) — has no effect in DEMAS mode, "
+                        "which is the only mode this source can use today."
                     ),
                     required=False,
                     default=None,
@@ -148,8 +150,10 @@ def build_sources() -> List[DownloadSource]:
                     phase="tecnica",
                     param_type="string",
                     description=(
-                        "Optional OpenDataSUS API base URL override "
-                        "(DEMAS: apidadosabertos.saude.gov.br | CKAN: .../api/3/action)."
+                        "Optional OpenDataSUS API base URL override. Only "
+                        "DEMAS (apidadosabertos.saude.gov.br) is supported — "
+                        "CKAN mode is deactivated (ckan-dadosabertos.saude.gov.br "
+                        "does not resolve; verified live 2026-08-17/2026-08-18)."
                     ),
                     required=False,
                     default=None,

@@ -27,9 +27,22 @@ class OpenDataSUSClientError(ApiClientError):
 
 
 class OpenDataSUSClient:
-    """Minimal client for OpenDataSUS endpoints (CKAN or DEMAS)."""
+    """Minimal client for OpenDataSUS endpoints (CKAN or DEMAS).
+
+    CKAN mode is DEACTIVATED (see ``__init__``): the only host that ever
+    served it, ``ckan-dadosabertos.saude.gov.br``, does not resolve via DNS
+    (verified live 2026-08-17 and re-verified 2026-08-18), and the current
+    portal (``dadosabertos.saude.gov.br``) does not expose a CKAN API either
+    (``/api/3/action/...`` returns 404 — verified live 2026-08-17). No
+    replacement CKAN host is known, so constructing a client with a CKAN-
+    shaped ``base_url`` fails fast with a clear error instead of the caller
+    hitting an opaque DNS/connection failure on the first real request.
+    """
 
     DEFAULT_BASE_URL = "https://apidadosabertos.saude.gov.br"
+    # Kept only for backward-compatible reference/error messages — this host
+    # is confirmed dead (see class docstring) and must NOT be used to build a
+    # working client. Do not replace with a guessed host.
     DEFAULT_CKAN_BASE_URL = "https://ckan-dadosabertos.saude.gov.br/api/3/action"
 
     def __init__(
@@ -43,6 +56,22 @@ class OpenDataSUSClient:
         if not selected_url:
             raise ValueError("OpenDataSUS base URL cannot be empty.")
         self.mode = "ckan" if "/api/3/action" in selected_url.lower() else "demas"
+        if self.mode == "ckan":
+            raise OpenDataSUSClientError(
+                "OpenDataSUS CKAN mode is deactivated: "
+                "'ckan-dadosabertos.saude.gov.br' does not resolve via DNS "
+                "(verified live 2026-08-17/2026-08-18) and the current portal "
+                "(dadosabertos.saude.gov.br) does not expose a CKAN API "
+                "('/api/3/action/...' returns 404). No replacement CKAN host "
+                "is known.",
+                category="configuration",
+                retryable=False,
+                hint=(
+                    "Use the DEMAS API instead: omit api_base_url, or pass "
+                    "api_base_url='https://apidadosabertos.saude.gov.br' "
+                    "explicitly."
+                ),
+            )
         parsed = urlparse(selected_url)
         if self.mode == "demas" and parsed.scheme and parsed.netloc:
             self.base_url = f"{parsed.scheme}://{parsed.netloc}"
