@@ -37,12 +37,14 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))  # allow `python scripts/sample_sources.py` without an editable install
 
+from guaraci.opendatasus.portal_files import PortalFileDataSource
 from guaraci.services.dictionary_io import atomic_write_json, load_field_dictionary, render_data_dictionary_md
 from guaraci.services.dictionary_sampling import (
     RateLimited,
     classify_source,
     sample_generic_demas,
     sample_govbr_single_document,
+    sample_opendatasus_files,
     schema_of,
 )
 from guaraci.services.downloads import DownloadService
@@ -125,7 +127,10 @@ def main(argv: List[str] | None = None) -> int:
             s for s in all_sources
             if args.force or results[s].get("status") not in RESOLVED_STATUSES
         ]
-        targets = [s for s in targets if classify_source(s) in ("demas_generic", "govbr")]
+        targets = [
+            s for s in targets
+            if classify_source(s) in ("demas_generic", "govbr", "opendatasus_files")
+        ]
         if args.limit is not None:
             targets = targets[: args.limit]
 
@@ -139,13 +144,15 @@ def main(argv: List[str] | None = None) -> int:
         category = classify_source(source)
         log(f"[{i}/{len(targets)}] {source} ({category})")
 
-        if category not in ("demas_generic", "govbr"):
+        if category not in ("demas_generic", "govbr", "opendatasus_files"):
             log(f"   -> skipped (category={category}, out of scope for this script)")
             continue
 
         try:
             if category == "govbr":
                 outcome = sample_govbr_single_document(GOVBR_CLASSES[source], source)
+            elif category == "opendatasus_files":
+                outcome = sample_opendatasus_files(PortalFileDataSource, source)
             else:
                 outcome = sample_generic_demas(svc, source)
             consecutive_rate_limits = 0

@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 94 sources cataloged; 80 sampled with real field names.
+- 96 sources cataloged; 71 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -21,6 +21,17 @@ to refresh.
 - `prevencao_e_promocao_distribuicao_epi_insumo` (error): OpenDataSUS DEMAS request failed for dataset 'prevencao-e-promocao/distribuicao_epi_insumo' at endpoint '/prevencao-e-promocao/distribuicao_epi_insumo' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was no
 - `saude_indigena_acompanhamento_obra_infraestrutura_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `sinisa` (error): expected name token at '<![:e\x90\x02ª/Ü4æ\x03\x17G\x92ý\x83\x0b¦'
+- `sisagua_controle_mensal_amostras_fora_do_padrao` (empty): smallest known resource is 37.2MB, over the 20MB sampling cap (39000038 bytes) - not downloaded
+- `sisagua_controle_mensal_demais_parametros` (empty): smallest known resource is 138.0MB, over the 20MB sampling cap (144713899 bytes) - not downloaded
+- `sisagua_controle_mensal_infraestrutura_operacional` (empty): smallest known resource is 36.4MB, over the 20MB sampling cap (38193694 bytes) - not downloaded
+- `sisagua_controle_mensal_parametros_basicos` (empty): smallest known resource is 37.7MB, over the 20MB sampling cap (39506123 bytes) - not downloaded
+- `sisagua_controle_mensal_plano_amostragem` (empty): smallest known resource is 77.2MB, over the 20MB sampling cap (80933173 bytes) - not downloaded
+- `sisagua_controle_semestral` (empty): smallest known resource is 25.8MB, over the 20MB sampling cap (27013997 bytes) - not downloaded
+- `sisagua_pontos_de_captacao` (empty): smallest known resource is 52.6MB, over the 20MB sampling cap (55156888 bytes) - not downloaded
+- `sisagua_populacao_abastecida` (empty): smallest known resource is 72.8MB, over the 20MB sampling cap (76384011 bytes) - not downloaded
+- `sisagua_tratamento_agua` (empty): smallest known resource is 78.0MB, over the 20MB sampling cap (81807480 bytes) - not downloaded
+- `sisagua_vigilancia_demais_parametros` (empty): smallest known resource is 98.0MB, over the 20MB sampling cap (102776276 bytes) - not downloaded
+- `sisagua_vigilancia_parametros_basicos` (empty): smallest known resource is 81.5MB, over the 20MB sampling cap (85434855 bytes) - not downloaded
 - `snis` (empty): no documents matched file_kinds=planilhas, module=gestao_municipal
 - `vacinacao_esavi` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
@@ -447,62 +458,76 @@ to refresh.
 ## sisagua_cadastro_carro_pipa_populacao
 
 - **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `tipo_de_responsavel`, `numero_da_autorizacao`, `nome_da_instituicao`, `codigo_do_carro_pipa`, `regiao_geografica`, `data_inicio_de_autorizacao`, `placa`, `finalidade`, `nome_do_responsavel_pelo_carro_pipa`, `municipio`, `cnpj_do_escritorio_regionallocal`, `tipo_da_instituicao`, `sigla_da_instituicao`, `regional_de_saude`, `codigo_ibge`, `data_de_preenchimento`, `nome_do_escritorio_regionallocal`, `data_fim_da_autorizacao`, `responsavel_pelas_informacoes`, `uf`, `n_de_pessoas_abastecidas_estimativa`, `data_de_criacao`, `cnpj_da_instituicao`
 
 ## sisagua_cadastro_carro_pipa_procedencia
 
 - **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `c011`, `c006`, `c009`, `c004`, `c003`, `c007`, `c005`, `c010`, `c000`, `c008`, `c012`, `c001`, `c002`
 
 ## sisagua_controle_mensal_amostras_fora_do_padrao
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `regiao_geografica`, `sigla_da_instituicao`, `data_de_preenchimento_do_relatorio_mensal`, `tipo_da_instituicao`, `latitude`, `codigo_forma_de_abastecimento`, `zona`, `parametro`, `cnpj_da_instituicao`, `nome_do_escritorio_regionallocal`, `ponto_de_monitoramento`, `area`, `providencia_do_controle`, `data_de_registro`, `nome_da_forma_de_abastecimento`, `categoria_area`, `resultado`, `local`, `regional_de_saude`, `mes_de_referencia`, `endereco`, `municipio`, `ano_de_referencia`, `nome_da_instituicao`, `longitude`, `data_da_coleta`, `cnpj_do_escritorio_regionallocal`, `codigo_ibge`, `tipo_da_forma_de_abastecimento`, `uf`, `tipo_do_local`
+- **Note:** smallest known resource is 37.2MB, over the 20MB sampling cap (39000038 bytes) - not downloaded
 
 ## sisagua_controle_mensal_demais_parametros
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `tipo_da_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `sigla_da_instituicao`, `regional_de_saude`, `regiao_geografica`, `unidade`, `data_da_coleta`, `nome_do_escritorio_regionallocal`, `nome_da_instituicao`, `data_de_registro`, `parametro`, `ano_de_referencia`, `codigo_forma_de_abastecimento`, `nome_do_manancial_superficial`, `tipo_de_captacao`, `data_de_preenchimento_do_relatorio_mensal`, `municipio`, `cnpj_da_instituicao`, `cnpj_do_escritorio_regionallocal`, `resultado`, `mes_de_referencia`, `tipo_da_instituicao`, `nome_do_ponto_de_captacao_subterranea`, `nome_da_eta__uta`, `categoria_do_manancial_superficial`, `uf`, `codigo_ibge`, `categoria_do_ponto_de_captacao_subterranea`
+- **Note:** smallest known resource is 138.0MB, over the 20MB sampling cap (144713899 bytes) - not downloaded
 
 ## sisagua_controle_mensal_infraestrutura_operacional
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `local`, `numero_de_eventos_de_falta_de_agua`, `cnpj_do_escritorio_regionallocal`, `area`, `nome_da_forma_de_abastecimento`, `tipo_da_forma_de_abastecimento`, `data_de_preenchimento_do_relatorio_mensal`, `numero_de_reclamacoes_de_cor_da_agua`, `mes_de_referencia`, `nome_do_escritorio_regionallocal`, `numero_de_reclamacao_de_gosto_e_ou_odor`, `ano_de_referencia`, `regiao_geografica`, `numero_de_reparos_na_rede_somente_para_saa`, `tipo_da_instituicao`, `tipo_do_local`, `categoria_area`, `zona`, `cnpj_da_instituicao`, `codigo_ibge`, `codigo_forma_de_abastecimento`, `sigla_da_instituicao`, `numero_de_eventos_de_intermitencia_somente_para_saa`, `nome_da_instituicao`, `regional_de_saude`, `uf`, `data_de_registro`, `municipio`
+- **Note:** smallest known resource is 36.4MB, over the 20MB sampling cap (38193694 bytes) - not downloaded
 
 ## sisagua_controle_mensal_parametros_basicos
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `uf`, `codigo_ibge`, `cnpj_da_instituicao`, `tipo_da_forma_de_abastecimento`, `ano_de_referencia`, `mes_de_referencia`, `parametro`, `valor_minimo`, `valor_maximo`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `regiao_geografica`, `uf`, `regional_de_saude`, `codigo_ibge`, `municipio`, `tipo_da_instituicao`, `sigla_da_instituicao`, `nome_da_instituicao`, `cnpj_da_instituicao`, `nome_do_escritorio_regional_local`, `cnpj_do_escritorio_regional_local`, `tipo_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `nome_da_eta_uta`, `tipo_de_filtracao`, `ano_de_referencia`, `mes_de_referencia`, `ponto_de_monitoramento`, `parametro`, `campo`, `valor`
+- **Note:** smallest known resource is 37.7MB, over the 20MB sampling cap (39506123 bytes) - not downloaded
 
 ## sisagua_controle_mensal_plano_amostragem
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `data_de_registro_no_sisagua`, `regiao_geografica`, `captacao_superficial`, `ano_de_referencia`, `cnpj_da_instituicao`, `razao_habitantesdomicilio`, `tipo_da_forma_de_abastecimento`, `uf`, `municipio`, `campo`, `nome_do_escritorio_regionallocal`, `codigo_ibge`, `parameto`, `captacao_de_agua_de_chuva`, `cnpj_do_escritorio_regionallocal`, `numero_de_economias_residenciais_domicilios_permanentes`, `nome_da_forma_de_abastecimento`, `ponto_de_monitoramento`, `nome_da_etauta`, `populacao_abastecida_estimada`, `codigo_forma_de_abastecimento`, `captacao_subterranea`, `regional_de_saude`, `tempo_medio_diario_de_funcionamento`, `nome_da_instiuicao`, `numero_de_filtros`, `tipo_de_filtracao`, `sigla_da_instituicao`, `tipo_da_instituicao`, `valor`
+- **Note:** smallest known resource is 77.2MB, over the 20MB sampling cap (80933173 bytes) - not downloaded
 
 ## sisagua_controle_semestral
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `uf`, `codigo_ibge`, `cnpj_da_instituicao`, `tipo_da_forma_de_abastecimento`, `ano_de_referencia`, `semestre_de_referencia`, `grupo_de_parametros`, `ld_minimo`, `ld_maximo`, `lq_minimo`, `lq_maximo`, `resultado_minimo`, `resultado_maximo`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `regiao_geografica`, `uf`, `regional_de_saude`, `municipio`, `codigo_ibge`, `tipo_da_instituicao`, `sigla_da_instituicao`, `nome_da_instituicao`, `cnpj_da_instituicao`, `nome_do_escritorio_regional_local`, `cnpj_do_escritorio_regional_local`, `tipo_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `nome_da_eta_uta`, `ano_de_referencia`, `semestre_de_referencia`, `data_de_registro`, `data_de_preenchimento_do_relatorio_semestral`, `data_da_coleta`, `data_da_analise`, `ponto_de_monitoramento`, `grupo_de_parametros`, `parametro`, `ld`, `lq`, `resultado`, `trimestre_de_referencia`, `tipo_de_captacao`, `categoria_do_manancial_superficial`, `nome_do_manancial_superficial`, `categoria_do_ponto_de_captacao_subterranea`, `nome_do_ponto_de_captacao_subterranea`, `amostra`, `unidade`, `vmp`
+- **Note:** smallest known resource is 25.8MB, over the 20MB sampling cap (27013997 bytes) - not downloaded
 
 ## sisagua_pontos_de_captacao
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `codigo_ibge`, `uf`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nome_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `municipio`, `regional_de_saude`, `codigo_do_ibge`, `tipo_da_forma_de_abastecimento`, `nome_do_escritorio_regional_local`, `cnpj_do_escritorio_regional_local`, `categoria_do_manancial_superficial`, `longitude`, `vazao`, `latitude`, `nome_da_instiuicao`, `regiao_geografica`, `categoria_do_ponto_de_captacao_subterraneo`, `tipo_da_instituicao`, `nome_do_manancial_superficial`, `tipo_de_captacao`, `nome_do_ponto_de_captacao_subterraneo`, `uf`, `nome_da_eta_uta`, `ano_de_referencia`, `sigla_da_instituicao`, `outorga`
+- **Note:** smallest known resource is 52.6MB, over the 20MB sampling cap (55156888 bytes) - not downloaded
 
 ## sisagua_populacao_abastecida
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `filtracao`, `numero_de_economias_residenciais_domicilios_permanentes`, `populacao_rural`, `cisterna`, `codigo_forma_de_abastecimento`, `caixa_dagua`, `pop_recebe_agua_de_saa`, `carro_pipa`, `regiao_geografica`, `numero_de_economias_residenciais_de_uso_ocasional`, `nome_da_forma_de_abastecimento`, `chafariz`, `regional_de_saude`, `data_de_preenchimento`, `tipo_da_forma_de_abastecimento`, `codigo_ibge`, `outro_tipo_de_suprimento`, `desinfeccao`, `municipio`, `ano_de_referencia`, `pop_recebe_agua_de_saasac`, `fonte`, `sem_reservacao`, `captacao_de_agua_de_chuva`, `tipo_da_instituicao`, `nome_da_instituicao`, `sigla_da_instituicao`, `populacao_urbana`, `canalizacao`, `uf`, `nome_do_escritorio_regionallocal`, `cnpj_do_escritorio_regionallocal`, `data_de_registro_no_sisagua`, `captacao_superficial`, `captacao_subterranea`, `cnpj_da_instituicao`, `populacao_estimada`
+- **Note:** smallest known resource is 72.8MB, over the 20MB sampling cap (76384011 bytes) - not downloaded
+
+## sisagua_tratamento_agua
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** smallest known resource is 78.0MB, over the 20MB sampling cap (81807480 bytes) - not downloaded
 
 ## sisagua_tratamento_de_agua
 
@@ -513,20 +538,22 @@ to refresh.
 ## sisagua_vigilancia_cianobacterias_e_cianotoxinas
 
 - **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `parametro_ciano`, `nome_da_etauta`, `hora_da_coleta`, `descricao_do_local`, `codigo_forma_de_abastecimento`, `tipo_da_forma_de_abastecimento`, `mes`, `data_da_coleta`, `regional_de_saude`, `categoria_area`, `resultado`, `motivo_da_coleta`, `data_de_registro_no_sisagua`, `grupo`, `ano`, `codigo_ibge`, `data_do_laudo`, `latitude`, `municipio`, `zona`, `local`, `nome_da_forma_de_abastecimento`, `tipo_do_local`, `uf`, `longitude`, `procedencia_da_coleta`, `area`, `numero_da_amostra`, `ponto_de_coleta`, `regiao_geografica`
 
 ## sisagua_vigilancia_demais_parametros
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `descricao_do_local`, `area`, `grupo_de_parametros`, `lq`, `longitude`, `parametro_demais_parametros`, `codigo_ibge`, `mes`, `latitude`, `resultado`, `data_da_coleta`, `procedencia_da_coleta`, `zona`, `numero_da_amostra`, `municipio`, `tipo_do_local`, `nome_da_forma_de_abastecimento`, `nome_da_etauta`, `uf`, `regional_de_saude`, `hora_da_coleta`, `tipo_da_forma_de_abastecimento`, `data_da_analise`, `ld`, `codigo_forma_de_abastecimento`, `motivo_da_coleta`, `local`, `regiao_geografica`, `categoria_area`, `ano`, `data_do_laudo`, `ponto_de_coleta`, `data_de_registro_no_sisagua`
+- **Note:** smallest known resource is 98.0MB, over the 20MB sampling cap (102776276 bytes) - not downloaded
 
 ## sisagua_vigilancia_parametros_basicos
 
-- **Status:** ok (10 rows sampled)
-- **Filters:** `uf`, `codigo_ibge`, `motivo_da_coleta`, `tipo_da_forma_de_abastecimento`, `ano`, `mes`, `procedencia_da_coleta`, `ponto_de_coleta`, `parametro`, `ld_minimo`, `ld_maximo`, `lq_minimo`, `lq_maximo`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `regiao_geografica`, `uf`, `regional_de_saude`, `municipio`, `codigo_ibge`, `numero_da_amostra`, `motivo_da_coleta`, `tipo_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `nome_da_eta_uta`, `ano`, `mes`, `data_da_coleta`, `hora_da_coleta`, `data_do_laudo`, `data_de_registro_no_sisagua`, `procedencia_da_coleta`, `ponto_de_coleta`, `descricao_do_local`, `zona`, `categoria_area`, `area`, `tipo_do_local`, `local`, `latitude`, `longitude`, `parametro`, `analise_realizada`, `data_da_analise`, `ld`, `lq`, `resultado`, `providencia`
+- **Note:** smallest known resource is 81.5MB, over the 20MB sampling cap (85434855 bytes) - not downloaded
 
 ## siscan
 
@@ -551,6 +578,12 @@ to refresh.
 - **Status:** empty
 - **Filters:** `output_dir`, `results_url`, `file_kinds`, `modules`, `extract_archives`, `overwrite`, `timeout`
 - **Note:** no documents matched file_kinds=planilhas, module=gestao_municipal
+
+## srag_arquivos
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `NU_NOTIFIC`, `DT_NOTIFIC`, `SEM_NOT`, `DT_SIN_PRI`, `SEM_PRI`, `SG_UF_NOT`, `ID_REGIONA`, `CO_REGIONA`, `ID_MUNICIP`, `CO_MUN_NOT`, `CS_SEXO`, `DT_NASC`, `NU_IDADE_N`, `TP_IDADE`, `COD_IDADE`, `CS_GESTANT`, `CS_RACA`, `CS_ETINIA`, `CS_ESCOL_N`, `ID_PAIS`, `CO_PAIS`, `SG_UF`, `ID_RG_RESI`, `CO_RG_RESI`, `ID_MN_RESI`, `CO_MUN_RES`, `CS_ZONA`, `NOSOCOMIAL`, `AVE_SUINO`, `FEBRE`, `TOSSE`, `GARGANTA`, `DISPNEIA`, `DESC_RESP`, `SATURACAO`, `DIARREIA`, `VOMITO`, `OUTRO_SIN`, `OUTRO_DES`, `FATOR_RISC`, `PUERPERA`, `CARDIOPATI`, `HEMATOLOGI`, `SIND_DOWN`, `HEPATICA`, `ASMA`, `DIABETES`, `NEUROLOGIC`, `PNEUMOPATI`, `IMUNODEPRE`, `RENAL`, `OBESIDADE`, `OBES_IMC`, `OUT_MORBI`, `MORB_DESC`, `TABAG`, `VACINA`, `DT_UT_DOSE`, `MAE_VAC`, `DT_VAC_MAE`, `M_AMAMENTA`, `DT_DOSEUNI`, `DT_1_DOSE`, `DT_2_DOSE`, `ANTIVIRAL`, `TP_ANTIVIR`, `OUT_ANTIV`, `DT_ANTIVIR`, `HOSPITAL`, `DT_INTERNA`, `SG_UF_INTE`, `ID_RG_INTE`, `CO_RG_INTE`, `ID_MN_INTE`, `CO_MU_INTE`, `NM_UN_INTE`, `UTI`, `DT_ENTUTI`, `DT_SAIDUTI`, `SUPORT_VEN`, `RAIOX_RES`, `RAIOX_OUT`, `DT_RAIOX`, `AMOSTRA`, `DT_COLETA`, `TP_AMOSTRA`, `OUT_AMOST`, `PCR_RESUL`, `DT_PCR`, `POS_PCRFLU`, `TP_FLU_PCR`, `PCR_FLUASU`, `FLUASU_OUT`, `PCR_FLUBLI`, `FLUBLI_OUT`, `POS_PCROUT`, `PCR_VSR`, `PCR_PARA1`, `PCR_PARA2`, `PCR_PARA3`, `PCR_PARA4`, `PCR_ADENO`, `PCR_METAP`, `PCR_BOCA`, `PCR_RINO`, `PCR_OUTRO`, `DS_PCR_OUT`, `CLASSI_FIN`, `CLASSI_OUT`, `CRITERIO`, `EVOLUCAO`, `DT_EVOLUCA`, `DT_ENCERRA`, `DT_DIGITA`, `HISTO_VGM`, `PAIS_VGM`, `CO_PS_VGM`, `LO_PS_VGM`, `DT_VGM`, `DT_RT_VGM`, `PCR_SARS2`, `PAC_COCBO`, `PAC_DSCBO`, `OUT_ANIM`, `DOR_ABD`, `FADIGA`, `PERD_OLFT`, `PERD_PALA`, `TOMO_RES`, `TOMO_OUT`, `DT_TOMO`, `TP_TES_AN`, `DT_RES_AN`, `RES_AN`, `POS_AN_FLU`, `TP_FLU_AN`, `POS_AN_OUT`, `AN_SARS2`, `AN_VSR`, `AN_PARA1`, `AN_PARA2`, `AN_PARA3`, `AN_ADENO`, `AN_OUTRO`, `DS_AN_OUT`, `TP_AM_SOR`, `SOR_OUT`, `DT_CO_SOR`, `TP_SOR`, `OUT_SOR`, `DT_RES`, `RES_IGG`, `RES_IGM`, `RES_IGA`, `POV_CT`, `TP_POV_CT`, `TEM_CPF`, `ESTRANG`, `VACINA_COV`, `DOSE_1_COV`, `DOSE_2_COV`, `DOSE_REF`, `DOSE_2REF`, `DOSE_ADIC`, `DOS_RE_BI`, `FAB_COV_1`, `FAB_COV_2`, `FAB_COVRF`, `FAB_COVRF2`, `FAB_ADIC`, `FAB_RE_BI`, `LOTE_1_COV`, `LOTE_2_COV`, `LOTE_REF`, `LOTE_REF2`, `LOTE_ADIC`, `LOT_RE_BI`, `FNT_IN_COV`, `TRAT_COV`, `TIPO_TRAT`, `DT_TRT_COV`, `OUT_TRAT`, `SURTO_SG`, `CO_DETEC`, `VG_OMS`, `VG_OMSOUT`, `VG_LIN`, `VG_MET`, `VG_METOUT`, `VG_DTRES`, `VG_ENC`, `VG_REINF`, `VG_CODEST`, `REINF`
 
 ## srag_demas
 
