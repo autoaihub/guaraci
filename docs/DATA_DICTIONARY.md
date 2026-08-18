@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 91 sources cataloged; 77 sampled with real field names.
+- 92 sources cataloged; 78 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -234,6 +234,12 @@ to refresh.
 - **Status:** ok (42 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `sexo`, `faixa_etaria`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `sexo`, `idade`, `forma_de_declaracao_da_idade`, `variavel_id`, `unidade`, `valor`
+
+## inmet_estacoes
+
+- **Status:** ok (8760 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `ufs`, `variables`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `year`, `uf`, `region`, `station_name`, `station_code`, `latitude`, `longitude`, `altitude`, `founded_date`, `date`, `hour_utc`, `timestamp`, `precipitacao_total_horario_mm`, `pressao_atmosferica_ao_nivel_da_estacao_horaria_mb`, `pressao_atmosferica_max_na_hora_ant_aut_mb`, `pressao_atmosferica_min_na_hora_ant_aut_mb`, `radiacao_global_kj_m`, `temperatura_do_ar_bulbo_seco_horaria_c`, `temperatura_do_ponto_de_orvalho_c`, `temperatura_maxima_na_hora_ant_aut_c`, `temperatura_minima_na_hora_ant_aut_c`, `temperatura_orvalho_max_na_hora_ant_aut_c`, `temperatura_orvalho_min_na_hora_ant_aut_c`, `umidade_rel_max_na_hora_ant_aut`, `umidade_rel_min_na_hora_ant_aut`, `umidade_relativa_do_ar_horaria`, `vento_direcao_horaria_gr_gr`, `vento_rajada_maxima_m_s`, `vento_velocidade_horaria_m_s`
 
 ## macrorregiao_e_regiao_de_saude_municipio
 

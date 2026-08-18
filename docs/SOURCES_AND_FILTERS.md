@@ -60,6 +60,9 @@ they expose more convenient query layers.
 - `ibge_populacao_idade_sexo` (`ibge api`) — primary: same SIDRA API
   (census population by sex and age, table 9514; denominator/socioeconomic
   layers for health rates)
+- `inmet_estacoes` (`inmet portal zip`) — primary: `portal.inmet.gov.br`
+  (INMET automatic weather stations, hourly historical series, one ZIP per
+  year 2000-present; no third-party mirror involved)
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -385,6 +388,50 @@ IBGE notes:
 - No credential is required (keyless API). Like OpenDataSUS and NASA, leaving
   `output_format` empty and `keep_raw=false` produces only a manifest and emits
   an `export_warning`.
+
+### 3.15 INMET Automatic Weather Stations (`inmet_estacoes`)
+
+Hourly historical series from INMET's automatic weather station network.
+There is no JSON API: INMET publishes one ZIP per year at
+`https://portal.inmet.gov.br/uploads/dadoshistoricos/<AAAA>.zip` holding one
+CSV per station (verified live 2026-08-17/18, years 2000-2026; the current
+year is a partial, growing archive republished as more months land).
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Initial year (2000+) |
+| `end_year` | integer | coleta | Final year; defaults to `start_year` |
+| `ufs` | string_list | coleta | UFs to extract from the yearly ZIP (filtered by station filename); omitted/empty = every station in Brazil |
+| `variables` | string_list | coleta | Optional column projection (slug of the original CSV header, e.g. `precipitacao_total_horario_mm`, `temperatura_do_ar_bulbo_seco_horaria_c`); omitted = all columns |
+| `keep_raw` | boolean | tecnica | Also keep the original per-station CSVs extracted to disk; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `180`) |
+| `api_base_url` | string | tecnica | Optional INMET portal base URL override |
+
+INMET notes:
+- **Size**: one year's ZIP holds every automatic station in Brazil — ≈90 MB
+  for a full recent year (594 stations), ≈530 KB for the earliest year (2000,
+  5 stations). Use `ufs` to keep the extracted/parsed volume small; the ZIP
+  itself is always downloaded whole (INMET does not offer per-station
+  archives) and cached under `<output_dir>/raw/<year>.zip`.
+- **Idempotency / re-check**: a cached ZIP for a past year is never
+  re-downloaded. The current year is reconciled by `Content-Length` (a HEAD
+  probe) since INMET republishes it with more months over the year.
+- Each station CSV starts with 8 metadata lines (region, UF, station name,
+  WMO code, latitude, longitude, altitude, foundation date) confirmed on the
+  real 2000 and 2025 archives, followed by the tabular header and hourly
+  rows. Source encoding is `latin-1`, field separator `;`, decimal separator
+  `,`. Missing values are an empty string in recent years and the sentinel
+  `-9999` in the earliest (2000-era) files; both are parsed as null.
+- Output is one tidy row per `(station, date, hour)`: `year, uf, region,
+  station_name, station_code, latitude, longitude, altitude, founded_date,
+  date, hour_utc, timestamp`, plus one column per measured variable (slugified
+  from the CSV header, e.g. `precipitacao_total_horario_mm`,
+  `umidade_relativa_do_ar_horaria`).
+- No credential required (keyless, direct file download). Like NASA/IBGE,
+  leaving `output_format` empty and `keep_raw=false` produces only a manifest
+  and emits an `export_warning`.
 
 ## 4. UI and API Versus Direct CLI
 

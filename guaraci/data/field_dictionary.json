@@ -1834,6 +1834,52 @@
     "rows_sampled": 42,
     "status": "ok"
   },
+  "inmet_estacoes": {
+    "fields": [
+      "year",
+      "uf",
+      "region",
+      "station_name",
+      "station_code",
+      "latitude",
+      "longitude",
+      "altitude",
+      "founded_date",
+      "date",
+      "hour_utc",
+      "timestamp",
+      "precipitacao_total_horario_mm",
+      "pressao_atmosferica_ao_nivel_da_estacao_horaria_mb",
+      "pressao_atmosferica_max_na_hora_ant_aut_mb",
+      "pressao_atmosferica_min_na_hora_ant_aut_mb",
+      "radiacao_global_kj_m",
+      "temperatura_do_ar_bulbo_seco_horaria_c",
+      "temperatura_do_ponto_de_orvalho_c",
+      "temperatura_maxima_na_hora_ant_aut_c",
+      "temperatura_minima_na_hora_ant_aut_c",
+      "temperatura_orvalho_max_na_hora_ant_aut_c",
+      "temperatura_orvalho_min_na_hora_ant_aut_c",
+      "umidade_rel_max_na_hora_ant_aut",
+      "umidade_rel_min_na_hora_ant_aut",
+      "umidade_relativa_do_ar_horaria",
+      "vento_direcao_horaria_gr_gr",
+      "vento_rajada_maxima_m_s",
+      "vento_velocidade_horaria_m_s"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "ufs",
+      "variables",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 8760,
+    "status": "ok"
+  },
   "macrorregiao_e_regiao_de_saude_municipio": {
     "fields": [
       "codigo_regiao_pais",

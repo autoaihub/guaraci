@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added — INMET automatic weather stations (Fase B2, ambiental)
+- New `inmet_estacoes` source (`guaraci/inmet/`: `client.py` + `parser.py` +
+  `datasource.py`) downloading INMET's per-year ZIP archives of every
+  automatic weather station (`portal.inmet.gov.br/uploads/dadoshistoricos/
+  <AAAA>.zip`, years 2000-present) and parsing the hourly station CSVs (8
+  metadata lines + tabular header, `latin-1`, `;`-separated, comma decimals)
+  into a tidy table. Params: `start_year`/`end_year` (2000+), `ufs` (filters
+  which station CSVs are extracted from the yearly ZIP), `variables`
+  (optional column projection). The current year is reconciled by
+  `Content-Length` since INMET republishes it as more months land; past years
+  are cached and never re-downloaded. Registered in the orchestrator
+  (`Kind.API_WINDOW` / `Cadence.ANNUAL`, floor 2000) and in `docs/
+  SOURCES_AND_FILTERS.md` §3.15. Offline tests cover the parser (both the
+  2000-era `-9999`/`HH:MM` format and the current `""`/`HHMM UTC` format,
+  verified against the real archives), the streaming client, the datasource,
+  and service registration; a `GUARACI_INMET_SMOKE=1` opt-in test validates
+  one live year/UF.
+
 ### Added — versioned SIH-RD column mapping
 - Added `DEFAULT_SIH_RD_COLUMN_MAP` and `apply_sih_column_map()` / `SihDataSource.apply_column_map()` in `guaraci/datasus/sih.py` for standardizing SIH-RD field names (`N_AIH` -> `numero_aih`, `DT_INTER` -> `data_internacao`, `MUNIC_RES` -> `municipio_residencia`, `DIAG_PRINC` -> `diagnostico_principal`, etc.), backed by unit regression tests in `tests/test_sih_column_map.py`.
 
