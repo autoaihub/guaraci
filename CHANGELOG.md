@@ -31,11 +31,9 @@
   transporte bulk-file (mesmo mecanismo que já protegia as 5 fontes SISAGUA
   registradas antes desta rodada).
 - `scripts/build_site_catalog.py` rodou de ponta a ponta sem erro nesta
-  rodada (91 fontes registradas no total, número real impresso pelo script —
-  não igual ao "94" mencionado numa entrega anterior deste changelog, que não
-  foi reconciliado contra o total de agora; a suposta trava de `SystemExit`
-  por chaves órfãs no `CURATED`, documentada no quadro em rodadas anteriores,
-  não reproduziu nesta execução). `site/assets/catalog-data.js` regenerado;
+  rodada (94 fontes registradas no total após a reconciliação com o `main`;
+  a suposta trava de `SystemExit` por chaves órfãs no `CURATED`, documentada
+  no quadro em rodadas anteriores, não reproduziu nesta execução). `site/assets/catalog-data.js` regenerado;
   `?v=` de `index.html`/`docs.html` avançado para `20260818a`.
 
 ### Added — categoria/sampler de amostragem para a família `opendatasus files`
@@ -178,7 +176,7 @@
   (`GUARACI_IBGE_SMOKE=1`).
 - Site catalog, `docs/SOURCES_AND_FILTERS.md` and `field_dictionary.json` /
   `docs/DATA_DICTIONARY.md` updated for the 3 new sources; source count in
-  the site copy raised from 91 to 94.
+  the site copy updated to the registered total.
 
 ### Added — bulk-file transport for dadosabertos.saude.gov.br (SRAG, SISAGUA)
 - New transport `PortalFileDataSource` (`guaraci/opendatasus/portal_files.py`)
@@ -208,9 +206,9 @@
   Swagger/OpenAPI spec. Tracked as a pendency in `docs/handoffs/_QUADRO.md`,
   along with the remaining 9 SISAGUA packages (same transport, trivial specs).
 - Docs: new `docs/SOURCES_AND_FILTERS.md` §3.5; `scripts/build_site_catalog.py`
-  `CURATED` updated and `site/assets/catalog-data.js` regenerated (88 sources
-  total, `?v=` bumped); "91 sources" marketing copy on the site corrected to
-  the actual registered count (88 — it was already stale before this change).
+  `CURATED` updated and `site/assets/catalog-data.js` regenerated (`?v=`
+  bumped); the source count shown on the site was synced with the registered
+  total.
 - Incidental fix: removed 5 dead `CURATED` entries in
   `scripts/build_site_catalog.py` (`arboviroses_chikungunya`,
   `arboviroses_dengue`, `arboviroses_febre_amarela_humanos_primatas_nao_humanos`,
