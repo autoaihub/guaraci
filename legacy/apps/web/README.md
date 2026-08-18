@@ -41,7 +41,7 @@ A nova UI:
 Para apontar para outro backend:
 
 ```powershell
-$env:GUARACI_API_URL = "http://10.0.0.5:8000"; npm run dev
+$env:GUARACI_API_URL = "http://localhost:8000"; npm run dev
 ```
 
 ## Build
