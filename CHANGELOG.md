@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+### Added — INPE Queimadas (Fase B1)
+- New package `guaraci/inpe/` (`client.py` + `queimadas.py`), same pattern as
+  `guaraci/nasa/`: thin urllib client + datasource, registered via
+  `ApiDownloadSource` in `guaraci/services/sources/inpe.py` (mode
+  `inpe queimadas api`).
+- `inpe_queimadas` — fire-spot ("focos de queimada") detections from INPE's
+  BDQueimadas program at `dataserver-coids.inpe.br`. Annual reference product
+  (`dataset=referencia_anual` → `Brasil_sat_ref`, or `todos_satelites` →
+  `Brasil_todos_sats`), years 2003+ confirmed live via directory-index parsing
+  (never hardcoded). Optional `months` param switches to the monthly product
+  (`mensal/Brasil`, available from 2023 onward, own schema with
+  `risco_fogo`/`frp`/`precipitacao`, ignores `dataset`). `states` filters
+  post-download on the `estado` column (UF code or full name).
+- Complements — does not replace — `nasa_firms`: FIRMS is NASA's global
+  near-real-time MODIS/VIIRS feed; INPE Queimadas is Brazil's own national
+  program with its own satellite-reference methodology and locally derived
+  `bioma`/`municipio` classification.
+- Cadence `MONTHLY` registered in `guaraci/orchestrator/cadence.py`
+  (`inpe*` name prefix, floor year 2003).
+- Offline tests (`tests/test_inpe_queimadas_client.py`,
+  `tests/test_inpe_queimadas_datasource.py`, fake HTTP, no network) plus an
+  opt-in live smoke test (`GUARACI_INPE_SMOKE=1`,
+  `tests/test_inpe_queimadas_smoke.py`) validated against the real server:
+  2003 annual reference → 341 237 detections.
+- Site catalog gains a new "Ambiental · Brasil" group (`G_AMB`) with the
+  `inpe_queimadas` entry; `docs/SOURCES_AND_FILTERS.md` and
+  `field_dictionary.json` updated.
+
 ### Added — IBGE registro civil + território (Fase C)
 - `ibge_nascidos_vivos_rc` (`guaraci/ibge/registro_civil.py`) — live births by
   month/sex, SIDRA table 2680 (variable 218), registro civil; a counterpoint
