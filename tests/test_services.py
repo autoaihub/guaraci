@@ -43,6 +43,23 @@ def test_list_sources_contains_expected_entries() -> None:
     assert titles == sorted(titles, key=str.lower)
 
 
+def test_supports_discovery_matches_discover_dispatch() -> None:
+    service = DownloadService()
+
+    assert service.supports_discovery("sih") is True
+    assert service.supports_discovery("sisagua_pontos_de_captacao") is True
+    assert service.supports_discovery("srag_arquivos") is True
+    assert service.supports_discovery("snis") is False
+
+
+def test_supports_discovery_agrees_with_discover_raising_for_unsupported_source() -> None:
+    service = DownloadService()
+
+    assert service.supports_discovery("snis") is False
+    with pytest.raises(ValueError):
+        service.discover("snis")
+
+
 def test_run_rejects_unknown_source() -> None:
     service = DownloadService()
 

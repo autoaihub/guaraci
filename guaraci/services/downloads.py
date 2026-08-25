@@ -999,11 +999,31 @@ class DownloadService:
                 return download_with_progress(progress_callback=progress_callback, **kwargs)
         return selected.download(**kwargs)
 
+    def supports_discovery(self, source: str) -> bool:
+        """Indica se ``discover()`` tem suporte para a fonte informada.
+
+        Usa a mesma lógica de despacho de ``discover()`` (FTP DATASUS, SIH,
+        ou qualquer adapter registrado que exponha seu próprio ``discover()``,
+        como as fontes ``PortalFileDownloadSource``), para que a API e a UI
+        consultem uma única fonte de verdade em vez de duplicar a regra.
+        """
+        key = self._normalize_source_name(source)
+        if key in _FTP_SOURCE_NAMES:
+            return True
+        if key == "sih":
+            return True
+        selected = self._get_registered_source(source)
+        discover_fn = getattr(selected, "discover", None)
+        return callable(discover_fn)
+
     def discover(
         self, source: str, *, fetch_sizes: bool = False, **kwargs: object
     ) -> Dict[str, object]:
         self.validate_source_params(source=source, params=kwargs)
         key = self._normalize_source_name(source)
+
+        if not self.supports_discovery(source):
+            raise ValueError(f"Discovery is not supported for source '{source}'.")
 
         if key in _FTP_SOURCE_NAMES:
             prepared = _normalize_ftp_params(dict(kwargs))

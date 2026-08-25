@@ -32,6 +32,7 @@ class SourceResponse(BaseModel):
     source: str
     title: str
     mode: str
+    supports_discovery: bool = False
 
 
 class SourceParamResponse(BaseModel):
@@ -170,7 +171,13 @@ def health() -> dict[str, str]:
 
 @app.get("/sources", response_model=List[SourceResponse])
 def list_sources() -> List[SourceResponse]:
-    return [SourceResponse(**item.__dict__) for item in download_service.list_sources()]
+    return [
+        SourceResponse(
+            **item.__dict__,
+            supports_discovery=download_service.supports_discovery(item.source),
+        )
+        for item in download_service.list_sources()
+    ]
 
 
 @app.get("/sources/{source}/schema", response_model=SourceSchemaResponse)

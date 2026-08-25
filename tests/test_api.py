@@ -56,6 +56,19 @@ def test_sources_endpoint(client: TestClient) -> None:
     assert "nasa_gpm" in names
 
 
+def test_sources_endpoint_reports_supports_discovery(client: TestClient) -> None:
+    response = client.get("/sources")
+
+    assert response.status_code == 200
+    payload = response.json()
+    by_source = {item["source"]: item["supports_discovery"] for item in payload}
+
+    assert by_source["sih"] is True
+    assert by_source["srag_arquivos"] is True
+    assert by_source["snis"] is False
+    assert sum(1 for value in by_source.values() if value) == 27
+
+
 def test_nasa_power_schema_endpoint(client: TestClient) -> None:
     response = client.get("/sources/nasa_power/schema")
 
