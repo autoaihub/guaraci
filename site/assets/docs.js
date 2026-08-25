@@ -45,8 +45,10 @@
     if (d.byGroup && Object.keys(d.byGroup).length > 1) {
       extra = " (" + Object.entries(d.byGroup).map(([g, n]) => g + ": " + n).join(" · ") + ")";
     }
-    return '<div class="src-live"><i class="bi bi-broadcast"></i> Conferido ao vivo no FTP do DATASUS: <strong>' +
-      d.files + " arquivo" + (d.files > 1 ? "s" : "") + " em " + d.year + "</strong>" + esc(extra) + "</div>";
+    // A frase separa as duas coisas que o card antes embaralhava: a conferência é
+    // recente, o arquivo não necessariamente.
+    return '<div class="src-live"><i class="bi bi-broadcast"></i> Conferido ao vivo no FTP do DATASUS: o ano mais recente com arquivos publicados é <strong>' +
+      d.year + "</strong> (" + d.files + " arquivo" + (d.files > 1 ? "s" : "") + ")" + esc(extra) + "</div>";
   }
 
   function fieldsBlock(src) {
@@ -95,8 +97,13 @@
     const basic = src.params.filter((p) => ["basico", "coleta", "download"].includes(p.phase));
     const other = src.params.filter((p) => !["basico", "coleta", "download"].includes(p.phase));
     const minYearStr = src.minYear ? "desde " + src.minYear : "período completo";
-    const currentYear = new Date().getFullYear();
-    const periodStr = src.minYear ? src.minYear + " a " + currentYear + " (corrente)" : "disponibilidade nativa da fonte";
+    // O fim da cobertura só é afirmado quando um discover real confirmou arquivos
+    // naquele ano. Sem essa medida, mostramos apenas o início: cravar o ano do
+    // relógio do navegador anunciava anos que a fonte nunca publicou.
+    const lastYear = src.discover && src.discover.files ? src.discover.year : null;
+    let periodStr = "disponibilidade nativa da fonte";
+    if (src.minYear && lastYear) periodStr = src.minYear + " a " + lastYear + " (último ano confirmado na fonte)";
+    else if (src.minYear) periodStr = "desde " + src.minYear;
 
     return '<article class="src-card" id="' + slug(src.key) + '" data-text="' +
       esc(norm(src.n + " " + src.key + " " + src.d + " " + src.g + " " + src.m + " " + src.fields.join(" "))) + '">' +

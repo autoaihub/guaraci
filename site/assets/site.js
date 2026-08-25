@@ -220,7 +220,7 @@
       const fieldsPrev = s.fields.slice(0, 14).map((f) => '<span class="field-chip">' + esc(f) + "</span>").join("");
       const extraFields = s.fields.length > 14 ? '<span class="field-chip more">+' + (s.fields.length - 14) + "</span>" : "";
       const live = s.discover && s.discover.files
-        ? '<div class="src-live"><i class="bi bi-broadcast"></i> Conferido ao vivo no FTP: <strong>' + s.discover.files + " arquivos em " + s.discover.year + "</strong></div>" : "";
+        ? '<div class="src-live"><i class="bi bi-broadcast"></i> Conferido ao vivo no FTP: ano mais recente com arquivos publicados é <strong>' + s.discover.year + "</strong> (" + s.discover.files + " arquivo" + (s.discover.files > 1 ? "s" : "") + ")</div>" : "";
       modalBody.innerHTML =
         '<span class="kicker" style="font-size:.7rem;">' + esc(s.g) + "</span>" +
         '<h3 id="modal-title">' + esc(s.n) + "</h3>" +

@@ -12,9 +12,12 @@ Fontes de verdade:
 Uso:
     python scripts/build_site_catalog.py            # gera o catálogo
     python scripts/build_site_catalog.py --live     # + discover ao vivo (FTP)
+    python scripts/build_site_catalog.py --refresh  # ignora o cache e reconsulta o FTP
+    python scripts/build_site_catalog.py --refresh=resp,sih   # só essas fontes
 """
 from __future__ import annotations
 
+import datetime
 import json
 import sys
 from pathlib import Path
@@ -236,6 +239,9 @@ def cli_example(key: str, params: list) -> str:
 
 def main() -> None:
     live = "--live" in sys.argv
+    refresh = parse_refresh(sys.argv[1:])
+    if refresh:
+        live = True
 
     from guaraci.services.downloads import DownloadService
     from guaraci.orchestrator.cadence import profile_for
@@ -245,7 +251,7 @@ def main() -> None:
     stats = json.loads(STATS.read_text(encoding="utf-8")) if STATS.exists() else {}
 
     if live:
-        stats = run_live_discover(service, stats)
+        stats = run_live_discover(service, stats, refresh)
 
     descriptors = {d.source: d for d in service.list_sources()}
     missing = [k for k in descriptors if k not in CURATED]
@@ -302,14 +308,18 @@ def main() -> None:
     print(f"    {n_fields} com campos amostrados, {n_disc} com discover ao vivo")
 
 
-# Anos candidatos por fonte (fontes legadas não têm dados recentes).
+# Anos candidatos por fonte (fontes legadas não têm dados recentes). O default
+# desce a partir do ano corrente: sem isso a lista envelhecia e o ano mais novo
+# nunca chegava a ser testado.
+DEFAULT_YEARS = [datetime.date.today().year - i for i in range(4)]
+
 YEAR_CANDIDATES = {
     "cih": [2010],
     "pni": [2021, 2019, 2015],
     "sinasc": [2022, 2021],
     "siscan": [2015],
     "sisprenatal": [2013],
-    "default": [2025, 2024, 2023],
+    "default": DEFAULT_YEARS,
 }
 
 
@@ -320,14 +330,28 @@ def _all_groups(service, key: str):
     return None
 
 
-def run_live_discover(service, stats: dict) -> dict:
+def parse_refresh(argv: list[str]) -> frozenset[str]:
+    """`--refresh` revalida todas as fontes FTP; `--refresh=a,b` só as citadas."""
+    keys: set[str] = set()
+    for arg in argv:
+        if arg == "--refresh":
+            keys.add("*")
+        elif arg.startswith("--refresh="):
+            keys.update(k.strip() for k in arg.split("=", 1)[1].split(",") if k.strip())
+    return frozenset(keys)
+
+
+def run_live_discover(service, stats: dict, refresh: frozenset[str] = frozenset()) -> dict:
     """Discover ao vivo (contagem de arquivos, sem download) nas fontes FTP."""
     ftp_sources = [
         d.source for d in service.list_sources()
         if d.mode in ("datasus ftp", "pysus ftp")
     ]
     for key in ftp_sources:
-        if stats.get(key, {}).get("files"):
+        stale = "*" in refresh or key in refresh
+        if stale:
+            stats.pop(key, None)
+        elif stats.get(key, {}).get("files"):
             print(f"cache: {key}")
             continue
         for year in YEAR_CANDIDATES.get(key, YEAR_CANDIDATES["default"]):
