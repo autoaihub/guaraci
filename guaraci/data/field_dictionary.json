@@ -1800,6 +1800,64 @@
     "rows_sampled": 3,
     "status": "ok"
   },
+  "ibge_casamentos": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "mes_do_registro",
+      "estado_civil_do_primeiro_conjuge",
+      "estado_civil_do_segundo_conjuge",
+      "grupo_de_idade_do_primeiro_conjuge",
+      "grupo_de_idade_do_segundo_conjuge",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "mes",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 1,
+    "status": "ok"
+  },
+  "ibge_divorcios": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "grupos_de_idade_do_marido_na_data_da_sentenca",
+      "grupos_de_idade_da_mulher_na_data_da_sentenca",
+      "tempo_transcorrido_entre_as_datas_do_casamento_e_da_sentenca",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "idade_marido",
+      "idade_mulher",
+      "tempo_decorrido",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 1,
+    "status": "ok"
+  },
   "ibge_nascidos_vivos_rc": {
     "fields": [
       "nivel",
@@ -1932,6 +1990,81 @@
       "api_base_url"
     ],
     "rows_sampled": 42,
+    "status": "ok"
+  },
+  "ibge_saneamento_agua": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "existencia_de_ligacao_a_rede_geral_de_distribuicao_de_agua_e_principal_forma_de_abastecimento_de_agua",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 1,
+    "status": "ok"
+  },
+  "ibge_saneamento_esgoto": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipo_de_esgotamento_sanitario",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 1,
+    "status": "ok"
+  },
+  "ibge_saneamento_lixo": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "destino_do_lixo",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "rows_sampled": 1,
     "status": "ok"
   },
   "inpe_queimadas": {

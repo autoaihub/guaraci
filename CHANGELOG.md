@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+### Added: 5 fontes IBGE novas (registro civil e saneamento domiciliar, Censo 2022)
+- `ibge_casamentos` (SIDRA tabela 4406, variável 4993): casamentos por mês do
+  registro, fechando a série de registro civil ao lado de
+  `ibge_nascidos_vivos_rc` e `ibge_obitos_rc`. Período anual 2013-2024,
+  confirmado ao vivo. Referência: Brasil, 2023, mes=total, 940 799
+  casamentos.
+- `ibge_divorcios` (SIDRA tabela 5937, variável 231): divórcios concedidos
+  em 1ª instância. Período anual 2014-2024, confirmado ao vivo. Referência:
+  Brasil, 2023, todas as classificações em total, 360 787 divórcios.
+- `ibge_saneamento_agua` (tabela 6803), `ibge_saneamento_esgoto` (tabela
+  6805) e `ibge_saneamento_lixo` (tabela 6892): domicílios particulares
+  permanentes ocupados por forma de abastecimento de água, tipo de
+  esgotamento sanitário e destino do lixo, do Censo 2022 (período único
+  2022, confirmado ao vivo). Camada de determinante social que casa com as
+  14 fontes SISAGUA já integradas. Referência comum, Brasil 2022, detalhe
+  total: 72 456 368 domicílios.
+- Todas as cinco seguem o padrão de guarda combinatória já usado em
+  `ibge_nascidos_vivos_rc`/`ibge_obitos_rc`: SIDRA rejeita (HTTP 500) o
+  cruzamento de nível municipal com a classificação completa em
+  `ibge_casamentos` (mês), `ibge_divorcios` (idade/tempo) e
+  `ibge_saneamento_agua`/`ibge_saneamento_esgoto` (categorias), confirmado
+  ao vivo; a exceção é `ibge_saneamento_lixo`, cujas 8 categorias completas
+  cabem mesmo em nível municipal (também confirmado ao vivo), então essa
+  fonte não tem a mesma restrição.
+- Testes offline novos em `tests/test_ibge_registro_civil_territorio.py`
+  (casamentos, divórcios) e `tests/test_ibge_saneamento.py` (as três fontes
+  de saneamento), mais 5 casos no smoke ao vivo opt-in
+  (`tests/test_ibge_smoke.py`, `GUARACI_IBGE_SMOKE=1`) validando os totais
+  nacionais de referência acima.
+- Cadência (`guaraci/orchestrator/cadence.py`), catálogo do site
+  (`scripts/build_site_catalog.py`, grupo "IBGE · população e economia"),
+  dicionário de campos (`guaraci/data/field_dictionary.json`) e
+  `docs/SOURCES_AND_FILTERS.md` atualizados. Catálogo do site regenerado:
+  94 → 99 fontes.
+
 ### Fixed: UX da interface web (botão de estimativa e filtro de lista)
 - `DownloadService.discover()` (`guaraci/services/downloads.py`) tinha sua
   regra de despacho duplicada em silêncio: a UI oferecia o botão "Estimar

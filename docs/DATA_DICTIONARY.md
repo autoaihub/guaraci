@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 99 sources cataloged; 73 sampled with real field names.
+- 99 sources cataloged; 78 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -241,6 +241,18 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `variavel_id`, `unidade`, `valor`
 
+## ibge_casamentos
+
+- **Status:** ok (1 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `mes`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `mes_do_registro`, `estado_civil_do_primeiro_conjuge`, `estado_civil_do_segundo_conjuge`, `grupo_de_idade_do_primeiro_conjuge`, `grupo_de_idade_do_segundo_conjuge`, `variavel_id`, `unidade`, `valor`
+
+## ibge_divorcios
+
+- **Status:** ok (1 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `idade_marido`, `idade_mulher`, `tempo_decorrido`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `grupos_de_idade_do_marido_na_data_da_sentenca`, `grupos_de_idade_da_mulher_na_data_da_sentenca`, `tempo_transcorrido_entre_as_datas_do_casamento_e_da_sentenca`, `variavel_id`, `unidade`, `valor`
+
 ## ibge_nascidos_vivos_rc
 
 - **Status:** ok (1 rows sampled)
@@ -270,6 +282,24 @@ to refresh.
 - **Status:** ok (42 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `sexo`, `faixa_etaria`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `sexo`, `idade`, `forma_de_declaracao_da_idade`, `variavel_id`, `unidade`, `valor`
+
+## ibge_saneamento_agua
+
+- **Status:** ok (1 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `existencia_de_ligacao_a_rede_geral_de_distribuicao_de_agua_e_principal_forma_de_abastecimento_de_agua`, `variavel_id`, `unidade`, `valor`
+
+## ibge_saneamento_esgoto
+
+- **Status:** ok (1 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `tipo_de_esgotamento_sanitario`, `variavel_id`, `unidade`, `valor`
+
+## ibge_saneamento_lixo
+
+- **Status:** ok (1 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `destino_do_lixo`, `variavel_id`, `unidade`, `valor`
 
 ## inmet_estacoes
 

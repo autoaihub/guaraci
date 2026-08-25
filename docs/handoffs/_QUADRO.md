@@ -10,7 +10,16 @@
 >
 > **Drenagem:** ao concluir um item, registre a entrega no `CHANGELOG.md` e remova a linha
 > na próxima reconciliação. O quadro mostra o presente em aberto; o passado vive no changelog.
-> **Última reconciliação:** 2026-08-18 — registradas as 9 fontes SISAGUA restantes (14/14 do portal agora ativas); nova categoria/sampler `opendatasus_files` em `dictionary_sampling.py` (3 SISAGUA pequenas + `srag_arquivos` amostrados com campos reais; 11 SISAGUA grandes corrigidos de "ok" fabricado — relíquia do dicionário pré-bulk-file — para "empty" honesto); host CKAN morto do OpenDataSUS agora falha com erro claro em vez de DNS opaco. `scripts/build_site_catalog.py` rodou de ponta a ponta (94 fontes após a reconciliação com o `main`).
+> **Última reconciliação:** 2026-08-25: 5 fontes IBGE novas registradas:
+> `ibge_casamentos` (tabela 4406), `ibge_divorcios` (tabela 5937),
+> `ibge_saneamento_agua`/`ibge_saneamento_esgoto`/`ibge_saneamento_lixo`
+> (tabelas 6803/6805/6892, Censo 2022). IDs de tabela/variável/classificação
+> travados ao vivo; totais nacionais de referência confirmados (casamentos
+> 940 799, divórcios 360 787, domicílios do Censo 72 456 368) e usados no
+> smoke opt-in. `scripts/build_site_catalog.py` rodou de ponta a ponta: 94 →
+> 99 fontes. Ver detalhe completo no `CHANGELOG.md`.
+>
+> **Reconciliação anterior:** 2026-08-18 — registradas as 9 fontes SISAGUA restantes (14/14 do portal agora ativas); nova categoria/sampler `opendatasus_files` em `dictionary_sampling.py` (3 SISAGUA pequenas + `srag_arquivos` amostrados com campos reais; 11 SISAGUA grandes corrigidos de "ok" fabricado, relíquia do dicionário pré-bulk-file, para "empty" honesto); host CKAN morto do OpenDataSUS agora falha com erro claro em vez de DNS opaco. `scripts/build_site_catalog.py` rodou de ponta a ponta (94 fontes após a reconciliação com o `main`).
 >
 > **Legenda:** 🔴 Prioridade · 🟡 Em andamento · ⚪ Pendente (backlog válido) · 🗄️ Defasado (morto, mantido por memória) · ✅ Concluído (transitório → changelog)
 

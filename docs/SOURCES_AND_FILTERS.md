@@ -104,6 +104,18 @@ they expose more convenient query layers.
 - `ibge_area_territorial` (`ibge api`) — primary: same SIDRA API
   (area / density / population, census-2022 reference, table 4714; spatial
   denominator layer)
+- `ibge_casamentos` (`ibge api`): primary: same SIDRA API
+  (registro civil, marriages by month of registration, table 4406; closes the
+  registro civil series alongside nascidos vivos e óbitos)
+- `ibge_divorcios` (`ibge api`): primary: same SIDRA API
+  (registro civil, divorces granted in 1st instance, table 5937)
+- `ibge_saneamento_agua` (`ibge api`): primary: same SIDRA API
+  (Censo 2022, households by main water supply, table 6803; determinant
+  social layer paired with SISAGUA)
+- `ibge_saneamento_esgoto` (`ibge api`): primary: same SIDRA API
+  (Censo 2022, households by sanitary sewage type, table 6805)
+- `ibge_saneamento_lixo` (`ibge api`): primary: same SIDRA API
+  (Censo 2022, households by garbage disposal, table 6892)
 - `ana_hidro` (`ana hidro api`) — primary: `www.ana.gov.br/hidrowebservice`
   (ANA/SNIRH HidroWebService telemetric stations: chuva/nível/vazão; requires
   an identifier+password credential obtained by e-mail registration with ANA;
@@ -567,15 +579,133 @@ live 2026-08-17: Brasil, 2022 → área territorial **8 510 417.771 km²**.
 | `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
 | `api_base_url` | string | tecnica | Optional SIDRA base URL override |
 
+### 3.18 IBGE Casamentos, Registro Civil (`ibge_casamentos`)
+
+Marriages by year, from SIDRA table 4406 (variable 4993): "por mês do
+registro, estado civil dos cônjuges, grupos de idade dos cônjuges e lugar do
+registro". Annual periods 2013-2024 (confirmed live 2026-08-25). Closes the
+registro civil series alongside `ibge_nascidos_vivos_rc` e `ibge_obitos_rc`.
+Only the month-of-registration axis is exposed; estado civil and grupo de
+idade of each spouse (four extra classifications, up to 39 age categories
+each) stay fixed at Total. Reference total verified live 2026-08-25: Brasil,
+2023, `mes="total"` → **940 799 casamentos**.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | From 2013 |
+| `end_year` | integer | coleta | Up to the current year |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `mes` | string | coleta | `total` (default) or `all`; `all` requires `level != municipio` (SIDRA 500 confirmed live for that combination) |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+### 3.19 IBGE Divórcios, Registro Civil (`ibge_divorcios`)
+
+Divorces granted in 1st instance, from SIDRA table 5937 (variable 231):
+"por grupos de idade do marido e da mulher na data da sentença, tempo
+transcorrido entre as datas do casamento e da sentença e lugar da ação do
+processo". Annual periods 2014-2024 (confirmed live 2026-08-25). Unlike the
+other registro civil sources, this table has no month axis; instead it has
+three age/time classifications, each guarded independently. Reference total
+verified live 2026-08-25: Brasil, 2023, all classifications `total` →
+**360 787 divórcios**.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | From 2014 |
+| `end_year` | integer | coleta | Up to the current year |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `idade_marido` | string | coleta | `total` (default) or `all`; any of the three axes set to `all` requires `level != municipio` |
+| `idade_mulher` | string | coleta | `total` (default) or `all` |
+| `tempo_decorrido` | string | coleta | `total` (default) or `all` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+### 3.20 IBGE Saneamento, Abastecimento de Água (`ibge_saneamento_agua`)
+
+Domicílios particulares permanentes ocupados por forma de abastecimento de
+água, do Censo 2022, SIDRA table 6803 (variable 381). **Single period,
+2022**; `start_year`/`end_year` must both be `2022`. The determinant social
+layer that pairs with the 14 SISAGUA sources and the arbovirus datasets.
+Reference total verified live 2026-08-25: Brasil, 2022, `detalhe="total"` →
+**72 456 368 domicílios**.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Must be `2022` (only period published) |
+| `end_year` | integer | coleta | Must be `2022` |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `detalhe` | string | coleta | `total` (default, 1 row/locality) or `all` (18 categories); `all` requires `level != municipio` (SIDRA 500 confirmed live) |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+### 3.21 IBGE Saneamento, Esgotamento Sanitário (`ibge_saneamento_esgoto`)
+
+Domicílios particulares permanentes ocupados por tipo de esgotamento
+sanitário, do Censo 2022, SIDRA table 6805 (variable 381). Same shape as
+`ibge_saneamento_agua`: single period 2022, `detalhe="all"` (10 categories)
+requires `level != municipio` (SIDRA 500 confirmed live). Reference total
+verified live 2026-08-25: Brasil, 2022, `detalhe="total"` → **72 456 368
+domicílios**.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Must be `2022` (only period published) |
+| `end_year` | integer | coleta | Must be `2022` |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `detalhe` | string | coleta | `total` (default) or `all` (10 categories); `all` requires `level != municipio` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
+### 3.22 IBGE Saneamento, Destino do Lixo (`ibge_saneamento_lixo`)
+
+Domicílios particulares permanentes ocupados por destino do lixo, do Censo
+2022, SIDRA table 6892 (variable 381). Single period 2022. Unlike agua e
+esgoto, `detalhe="all"` (8 categories) is confirmed live to work even at
+`level="municipio"` (200 OK, ~5.4 MB for 5570 municipalities), so there is
+no guard here. Reference total verified live 2026-08-25: Brasil, 2022,
+`detalhe="total"` → **72 456 368 domicílios**.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `start_year` | integer | coleta | Must be `2022` (only period published) |
+| `end_year` | integer | coleta | Must be `2022` |
+| `level` | string | coleta | Territorial level: `municipio` (default), `uf`, `regiao`, `brasil` |
+| `detalhe` | string | coleta | `total` (default) or `all` (8 categories); `all` also accepted at `level="municipio"` |
+| `keep_raw` | boolean | tecnica | Save the raw SIDRA JSON response; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional SIDRA base URL override |
+
 IBGE notes:
 - Output is one tidy row per `(nivel, localidade_id, ano[, classification …])`:
   `nivel, localidade_id, localidade_nome, ano, [<classif> …], variavel_id,
   unidade, valor`. For `ibge_populacao_idade_sexo` the classification columns
   are `sexo`, `idade`, and `forma_de_declaracao_da_idade`; for
   `ibge_nascidos_vivos_rc`/`ibge_obitos_rc` they are `mes_do_nascimento` (or
-  `mes_de_ocorrencia`) and `sexo`; `ibge_area_territorial` has no
-  classifications, and `variavel_id` distinguishes the three bundled metrics
-  (`93`/`614`/`6318`).
+  `mes_de_ocorrencia`) and `sexo`; `ibge_casamentos` has `mes_do_registro`,
+  `estado_civil_do_primeiro_conjuge`, `estado_civil_do_segundo_conjuge`,
+  `grupo_de_idade_do_primeiro_conjuge`, `grupo_de_idade_do_segundo_conjuge`;
+  `ibge_divorcios` has `grupos_de_idade_do_marido_na_data_da_sentenca`,
+  `grupos_de_idade_da_mulher_na_data_da_sentenca`,
+  `tempo_transcorrido_entre_as_datas_do_casamento_e_da_sentenca`; the three
+  `ibge_saneamento_*` sources each have one classification column (`existencia_de_ligacao_a_rede_geral_de_distribuicao_de_agua_e_principal_forma_de_abastecimento_de_agua`,
+  `tipo_de_esgotamento_sanitario`, `destino_do_lixo`, respectively);
+  `ibge_area_territorial` has no classifications, and `variavel_id`
+  distinguishes the three bundled metrics (`93`/`614`/`6318`).
 - SIDRA missing markers (`-`, `..`, `...`, `x`) become null; a year with no data
   is skipped with a warning, not a failure.
 - No credential is required (keyless API). Like OpenDataSUS and NASA, leaving
