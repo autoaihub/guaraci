@@ -117,6 +117,11 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_nascidos_vivos_rc": 2003,
             "ibge_obitos_rc": 2003,
             "ibge_area_territorial": 2022,  # census reference year, single period
+            "ibge_casamentos": 2013,
+            "ibge_divorcios": 2014,
+            "ibge_saneamento_agua": 2022,  # census reference year, single period
+            "ibge_saneamento_esgoto": 2022,  # census reference year, single period
+            "ibge_saneamento_lixo": 2022,  # census reference year, single period
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
     elif name.startswith("inmet"):

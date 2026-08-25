@@ -206,7 +206,16 @@ def _normalize_portal_files_params(params: Dict[str, object]) -> Dict[str, objec
 def _normalize_ibge_params(params: Dict[str, object]) -> Dict[str, object]:
     normalized = dict(params)
 
-    for key in ("level", "sexo", "faixa_etaria", "mes"):
+    for key in (
+        "level",
+        "sexo",
+        "faixa_etaria",
+        "mes",
+        "detalhe",
+        "idade_marido",
+        "idade_mulher",
+        "tempo_decorrido",
+    ):
         value = normalized.get(key)
         if isinstance(value, str):
             cleaned = value.strip().lower()

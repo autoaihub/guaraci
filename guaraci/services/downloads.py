@@ -21,11 +21,16 @@ from guaraci.datasus.ftp import specs as ftp_specs
 from guaraci.datasus.ftp_source import FtpDataSource
 from guaraci.ibge import (
     IbgeAreaTerritorialDataSource,
+    IbgeCasamentosDataSource,
+    IbgeDivorciosDataSource,
     IbgeNascidosVivosRcDataSource,
     IbgeObitosRcDataSource,
     IbgePibMunicipiosDataSource,
     IbgePopulacaoDataSource,
     IbgePopulacaoIdadeSexoDataSource,
+    IbgeSaneamentoAguaDataSource,
+    IbgeSaneamentoEsgotoDataSource,
+    IbgeSaneamentoLixoDataSource,
 )
 from guaraci.inmet import InmetEstacoesDataSource
 from guaraci.inpe import InpeQueimadasDataSource

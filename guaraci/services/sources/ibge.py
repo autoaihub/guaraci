@@ -601,4 +601,525 @@ def build_sources() -> List[DownloadSource]:
             ],
             normalize_params=_normalize_ibge_params,
         ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source="ibge_casamentos",
+                title="IBGE Casamentos (Registro Civil)",
+                mode="ibge api",
+            ),
+            datasource_cls=_downloads.IbgeCasamentosDataSource,
+            params_schema=[
+                SourceParameterSpec(
+                    name="output_dir",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Output directory for downloaded files.",
+                    required=False,
+                    default=None,
+                ),
+                SourceParameterSpec(
+                    name="output_format",
+                    phase="exportacao",
+                    param_type="string",
+                    description="Optional export format for the marriages table.",
+                    required=False,
+                    default=None,
+                    allowed_values=EXPORT_FORMAT_VALUES,
+                ),
+                SourceParameterSpec(
+                    name="start_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description=(
+                        "Ano inicial dos casamentos (IBGE SIDRA tabela 4406, "
+                        "registro civil, desde 2013)."
+                    ),
+                    required=False,
+                    default=last_year,
+                    minimum=2013,
+                    maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="end_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description="Ano final dos casamentos.",
+                    required=False,
+                    default=last_year,
+                    minimum=2013,
+                    maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="level",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Nível territorial: municipio, uf, regiao ou brasil. "
+                        "Com mes != total, apenas uf/regiao/brasil são aceitos "
+                        "(municipal x todos os meses excede o limite da SIDRA)."
+                    ),
+                    required=False,
+                    default=_downloads.IbgeCasamentosDataSource.DEFAULT_LEVEL,
+                    allowed_values=["municipio", "uf", "regiao", "brasil"],
+                ),
+                SourceParameterSpec(
+                    name="mes",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Recorte de mês do registro: total (padrão) ou all "
+                        "(quebra mensal; requer level != municipio)."
+                    ),
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "all"],
+                ),
+                SourceParameterSpec(
+                    name="keep_raw",
+                    phase="tecnica",
+                    param_type="boolean",
+                    description="Se true, salva o JSON bruto da resposta.",
+                    required=False,
+                    default=False,
+                ),
+                SourceParameterSpec(
+                    name="timeout",
+                    phase="tecnica",
+                    param_type="integer",
+                    description="HTTP timeout in seconds.",
+                    required=False,
+                    default=_downloads.IbgeCasamentosDataSource.DEFAULT_TIMEOUT,
+                    minimum=1,
+                ),
+                SourceParameterSpec(
+                    name="api_base_url",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Optional IBGE API base URL override.",
+                    required=False,
+                    default=None,
+                ),
+            ],
+            normalize_params=_normalize_ibge_params,
+        ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source="ibge_divorcios",
+                title="IBGE Divórcios (Registro Civil)",
+                mode="ibge api",
+            ),
+            datasource_cls=_downloads.IbgeDivorciosDataSource,
+            params_schema=[
+                SourceParameterSpec(
+                    name="output_dir",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Output directory for downloaded files.",
+                    required=False,
+                    default=None,
+                ),
+                SourceParameterSpec(
+                    name="output_format",
+                    phase="exportacao",
+                    param_type="string",
+                    description="Optional export format for the divorces table.",
+                    required=False,
+                    default=None,
+                    allowed_values=EXPORT_FORMAT_VALUES,
+                ),
+                SourceParameterSpec(
+                    name="start_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description=(
+                        "Ano inicial dos divórcios (IBGE SIDRA tabela 5937, "
+                        "registro civil, desde 2014)."
+                    ),
+                    required=False,
+                    default=last_year,
+                    minimum=2014,
+                    maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="end_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description="Ano final dos divórcios.",
+                    required=False,
+                    default=last_year,
+                    minimum=2014,
+                    maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="level",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Nível territorial: municipio, uf, regiao ou brasil. "
+                        "Com idade_marido/idade_mulher/tempo_decorrido != total, "
+                        "apenas uf/regiao/brasil são aceitos (municipal x quebra "
+                        "detalhada excede o limite da SIDRA)."
+                    ),
+                    required=False,
+                    default=_downloads.IbgeDivorciosDataSource.DEFAULT_LEVEL,
+                    allowed_values=["municipio", "uf", "regiao", "brasil"],
+                ),
+                SourceParameterSpec(
+                    name="idade_marido",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Recorte por grupo de idade do marido na sentença: "
+                        "total (padrão) ou all."
+                    ),
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "all"],
+                ),
+                SourceParameterSpec(
+                    name="idade_mulher",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Recorte por grupo de idade da mulher na sentença: "
+                        "total (padrão) ou all."
+                    ),
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "all"],
+                ),
+                SourceParameterSpec(
+                    name="tempo_decorrido",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Recorte por tempo transcorrido entre casamento e "
+                        "sentença: total (padrão) ou all."
+                    ),
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "all"],
+                ),
+                SourceParameterSpec(
+                    name="keep_raw",
+                    phase="tecnica",
+                    param_type="boolean",
+                    description="Se true, salva o JSON bruto da resposta.",
+                    required=False,
+                    default=False,
+                ),
+                SourceParameterSpec(
+                    name="timeout",
+                    phase="tecnica",
+                    param_type="integer",
+                    description="HTTP timeout in seconds.",
+                    required=False,
+                    default=_downloads.IbgeDivorciosDataSource.DEFAULT_TIMEOUT,
+                    minimum=1,
+                ),
+                SourceParameterSpec(
+                    name="api_base_url",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Optional IBGE API base URL override.",
+                    required=False,
+                    default=None,
+                ),
+            ],
+            normalize_params=_normalize_ibge_params,
+        ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source="ibge_saneamento_agua",
+                title="IBGE Saneamento: Abastecimento de Água (Censo 2022)",
+                mode="ibge api",
+            ),
+            datasource_cls=_downloads.IbgeSaneamentoAguaDataSource,
+            params_schema=[
+                SourceParameterSpec(
+                    name="output_dir",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Output directory for downloaded files.",
+                    required=False,
+                    default=None,
+                ),
+                SourceParameterSpec(
+                    name="output_format",
+                    phase="exportacao",
+                    param_type="string",
+                    description="Optional export format for the water supply table.",
+                    required=False,
+                    default=None,
+                    allowed_values=EXPORT_FORMAT_VALUES,
+                ),
+                SourceParameterSpec(
+                    name="start_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description=(
+                        "Ano da tabela (IBGE SIDRA 6803, abastecimento de água, "
+                        "referência do Censo 2022, único período publicado)."
+                    ),
+                    required=False,
+                    default=2022,
+                    minimum=2022,
+                    maximum=2022,
+                ),
+                SourceParameterSpec(
+                    name="end_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description="Ano final (deve ser igual a start_year, 2022).",
+                    required=False,
+                    default=2022,
+                    minimum=2022,
+                    maximum=2022,
+                ),
+                SourceParameterSpec(
+                    name="level",
+                    phase="coleta",
+                    param_type="string",
+                    description="Nível territorial: municipio, uf, regiao ou brasil.",
+                    required=False,
+                    default=_downloads.IbgeSaneamentoAguaDataSource.DEFAULT_LEVEL,
+                    allowed_values=["municipio", "uf", "regiao", "brasil"],
+                ),
+                SourceParameterSpec(
+                    name="detalhe",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Recorte da forma de abastecimento de água: total "
+                        "(padrão, 1 linha por localidade) ou all (18 categorias "
+                        "detalhadas; requer level != municipio)."
+                    ),
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "all"],
+                ),
+                SourceParameterSpec(
+                    name="keep_raw",
+                    phase="tecnica",
+                    param_type="boolean",
+                    description="Se true, salva o JSON bruto da resposta.",
+                    required=False,
+                    default=False,
+                ),
+                SourceParameterSpec(
+                    name="timeout",
+                    phase="tecnica",
+                    param_type="integer",
+                    description="HTTP timeout in seconds.",
+                    required=False,
+                    default=_downloads.IbgeSaneamentoAguaDataSource.DEFAULT_TIMEOUT,
+                    minimum=1,
+                ),
+                SourceParameterSpec(
+                    name="api_base_url",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Optional IBGE API base URL override.",
+                    required=False,
+                    default=None,
+                ),
+            ],
+            normalize_params=_normalize_ibge_params,
+        ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source="ibge_saneamento_esgoto",
+                title="IBGE Saneamento: Esgotamento Sanitário (Censo 2022)",
+                mode="ibge api",
+            ),
+            datasource_cls=_downloads.IbgeSaneamentoEsgotoDataSource,
+            params_schema=[
+                SourceParameterSpec(
+                    name="output_dir",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Output directory for downloaded files.",
+                    required=False,
+                    default=None,
+                ),
+                SourceParameterSpec(
+                    name="output_format",
+                    phase="exportacao",
+                    param_type="string",
+                    description="Optional export format for the sewage table.",
+                    required=False,
+                    default=None,
+                    allowed_values=EXPORT_FORMAT_VALUES,
+                ),
+                SourceParameterSpec(
+                    name="start_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description=(
+                        "Ano da tabela (IBGE SIDRA 6805, esgotamento sanitário, "
+                        "referência do Censo 2022, único período publicado)."
+                    ),
+                    required=False,
+                    default=2022,
+                    minimum=2022,
+                    maximum=2022,
+                ),
+                SourceParameterSpec(
+                    name="end_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description="Ano final (deve ser igual a start_year, 2022).",
+                    required=False,
+                    default=2022,
+                    minimum=2022,
+                    maximum=2022,
+                ),
+                SourceParameterSpec(
+                    name="level",
+                    phase="coleta",
+                    param_type="string",
+                    description="Nível territorial: municipio, uf, regiao ou brasil.",
+                    required=False,
+                    default=_downloads.IbgeSaneamentoEsgotoDataSource.DEFAULT_LEVEL,
+                    allowed_values=["municipio", "uf", "regiao", "brasil"],
+                ),
+                SourceParameterSpec(
+                    name="detalhe",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Recorte do tipo de esgotamento sanitário: total "
+                        "(padrão, 1 linha por localidade) ou all (10 categorias "
+                        "detalhadas; requer level != municipio)."
+                    ),
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "all"],
+                ),
+                SourceParameterSpec(
+                    name="keep_raw",
+                    phase="tecnica",
+                    param_type="boolean",
+                    description="Se true, salva o JSON bruto da resposta.",
+                    required=False,
+                    default=False,
+                ),
+                SourceParameterSpec(
+                    name="timeout",
+                    phase="tecnica",
+                    param_type="integer",
+                    description="HTTP timeout in seconds.",
+                    required=False,
+                    default=_downloads.IbgeSaneamentoEsgotoDataSource.DEFAULT_TIMEOUT,
+                    minimum=1,
+                ),
+                SourceParameterSpec(
+                    name="api_base_url",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Optional IBGE API base URL override.",
+                    required=False,
+                    default=None,
+                ),
+            ],
+            normalize_params=_normalize_ibge_params,
+        ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source="ibge_saneamento_lixo",
+                title="IBGE Saneamento: Destino do Lixo (Censo 2022)",
+                mode="ibge api",
+            ),
+            datasource_cls=_downloads.IbgeSaneamentoLixoDataSource,
+            params_schema=[
+                SourceParameterSpec(
+                    name="output_dir",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Output directory for downloaded files.",
+                    required=False,
+                    default=None,
+                ),
+                SourceParameterSpec(
+                    name="output_format",
+                    phase="exportacao",
+                    param_type="string",
+                    description="Optional export format for the garbage disposal table.",
+                    required=False,
+                    default=None,
+                    allowed_values=EXPORT_FORMAT_VALUES,
+                ),
+                SourceParameterSpec(
+                    name="start_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description=(
+                        "Ano da tabela (IBGE SIDRA 6892, destino do lixo, "
+                        "referência do Censo 2022, único período publicado)."
+                    ),
+                    required=False,
+                    default=2022,
+                    minimum=2022,
+                    maximum=2022,
+                ),
+                SourceParameterSpec(
+                    name="end_year",
+                    phase="coleta",
+                    param_type="integer",
+                    description="Ano final (deve ser igual a start_year, 2022).",
+                    required=False,
+                    default=2022,
+                    minimum=2022,
+                    maximum=2022,
+                ),
+                SourceParameterSpec(
+                    name="level",
+                    phase="coleta",
+                    param_type="string",
+                    description="Nível territorial: municipio, uf, regiao ou brasil.",
+                    required=False,
+                    default=_downloads.IbgeSaneamentoLixoDataSource.DEFAULT_LEVEL,
+                    allowed_values=["municipio", "uf", "regiao", "brasil"],
+                ),
+                SourceParameterSpec(
+                    name="detalhe",
+                    phase="coleta",
+                    param_type="string",
+                    description=(
+                        "Recorte do destino do lixo: total (padrão, 1 linha "
+                        "por localidade) ou all (8 categorias detalhadas; "
+                        "aceito também em level=municipio, confirmado ao vivo)."
+                    ),
+                    required=False,
+                    default="total",
+                    allowed_values=["total", "all"],
+                ),
+                SourceParameterSpec(
+                    name="keep_raw",
+                    phase="tecnica",
+                    param_type="boolean",
+                    description="Se true, salva o JSON bruto da resposta.",
+                    required=False,
+                    default=False,
+                ),
+                SourceParameterSpec(
+                    name="timeout",
+                    phase="tecnica",
+                    param_type="integer",
+                    description="HTTP timeout in seconds.",
+                    required=False,
+                    default=_downloads.IbgeSaneamentoLixoDataSource.DEFAULT_TIMEOUT,
+                    minimum=1,
+                ),
+                SourceParameterSpec(
+                    name="api_base_url",
+                    phase="tecnica",
+                    param_type="string",
+                    description="Optional IBGE API base URL override.",
+                    required=False,
+                    default=None,
+                ),
+            ],
+            normalize_params=_normalize_ibge_params,
+        ),
     ]
