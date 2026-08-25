@@ -1,4 +1,4 @@
-"""Gera site/assets/catalog-data.js — catálogo detalhado das 94 fontes do Guaraci.
+"""Gera site/assets/catalog-data.js — catálogo detalhado das fontes do Guaraci.
 
 Fontes de verdade:
 - DownloadService: parâmetros (tipo, default, allowed_values, min/max, fase) e modo.
@@ -164,6 +164,11 @@ CURATED = {
     "ibge_nascidos_vivos_rc": ("Nascidos vivos (registro civil)", "Nascimentos por mês/sexo — registro cartorial", G_IBGE, "IBGE", "pop"),
     "ibge_obitos_rc": ("Óbitos (registro civil)", "Óbitos por mês/sexo — registro cartorial", G_IBGE, "IBGE", "pop"),
     "ibge_area_territorial": ("Área territorial e densidade", "Área, população e densidade demográfica (Censo 2022)", G_IBGE, "IBGE", "pop"),
+    "ibge_casamentos": ("Casamentos (registro civil)", "Casamentos por mês do registro — registro cartorial", G_IBGE, "IBGE", "pop"),
+    "ibge_divorcios": ("Divórcios (registro civil)", "Divórcios concedidos em 1ª instância — registro cartorial", G_IBGE, "IBGE", "pop"),
+    "ibge_saneamento_agua": ("Saneamento: abastecimento de água (Censo)", "Domicílios por forma de abastecimento de água (Censo 2022)", G_IBGE, "IBGE", "san"),
+    "ibge_saneamento_esgoto": ("Saneamento: esgotamento sanitário (Censo)", "Domicílios por tipo de esgotamento sanitário (Censo 2022)", G_IBGE, "IBGE", "san"),
+    "ibge_saneamento_lixo": ("Saneamento: destino do lixo (Censo)", "Domicílios por destino do lixo (Censo 2022)", G_IBGE, "IBGE", "san"),
     # NASA
     "nasa_power": ("POWER", "Temperatura, radiação solar e vento", G_NASA, "NASA (EUA)", "clima"),
     "nasa_gpm": ("GPM IMERG", "Precipitação estimada por satélite", G_NASA, "NASA (EUA)", "clima"),
@@ -285,8 +290,8 @@ def main() -> None:
     payload = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     OUT.write_text(
         "// GERADO por scripts/build_site_catalog.py — não editar à mão.\n"
-        "// Catálogo detalhado das 94 fontes: parâmetros (DownloadService), campos\n"
-        "// amostrados (field_dictionary.json), cadência (orquestrador) e discover FTP.\n"
+        f"// Catálogo detalhado das {len(catalog)} fontes: parâmetros (DownloadService),\n"
+        "// campos amostrados (field_dictionary.json), cadência (orquestrador) e discover FTP.\n"
         f"const GUARACI_CATALOG = {payload};\n"
         "const GUARACI_BASES = Object.values(GUARACI_CATALOG);\n",
         encoding="utf-8",

@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Documentação | Guaraci</title>
-  <meta name="description" content="Documentação completa do Guaraci: instalação, interface web, linha de comando e o catálogo detalhado das 94 fontes de dados públicos — com todos os parâmetros e campos.">
+  <meta name="description" content="Documentação completa do Guaraci: instalação, interface web, linha de comando e o catálogo detalhado das 99 fontes de dados públicos — com todos os parâmetros e campos.">
   <link rel="icon" type="image/svg+xml" href="assets/logo-guaraci.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/site.css?v=20260818b" rel="stylesheet">
+  <link href="assets/site.css?v=20260825a" rel="stylesheet">
 </head>
 <body class="docs-body">
 <div id="scroll-progress"></div>
@@ -37,7 +37,7 @@
   <div class="container">
     <span class="kicker"><i class="bi bi-book-half"></i> Documentação</span>
     <h1>O guia completo do <span class="grad-text">Guaraci</span></h1>
-    <p class="sec-lead">Da instalação ao detalhe de cada campo: tudo o que você precisa para coletar dados públicos oficiais — pela interface web ou pela linha de comando. Sem pressa, sem jargão escondido, com cada uma das <strong>94 fontes</strong> documentada uma a uma.</p>
+    <p class="sec-lead">Da instalação ao detalhe de cada campo: tudo o que você precisa para coletar dados públicos oficiais — pela interface web ou pela linha de comando. Sem pressa, sem jargão escondido, com cada uma das <strong>99 fontes</strong> documentada uma a uma.</p>
   </div>
 </header>
 
@@ -53,7 +53,7 @@
     <a href="#credenciais">5 · Credenciais (NASA)</a>
     <a href="#orquestrador">6 · Orquestrador</a>
     <a href="#boas-praticas">7 · Boas práticas</a>
-    <a href="#catalogo">8 · Catálogo das 94 fontes</a>
+    <a href="#catalogo">8 · Catálogo das 99 fontes</a>
     <div id="side-groups"></div>
   </aside>
 
@@ -131,7 +131,7 @@
       <h2>2 · Interface web</h2>
       <p>Com o Guaraci no ar, a interface fica em <code>http://localhost:8002</code>. O fluxo inteiro acontece em uma tela:</p>
       <ol class="doc-steps">
-        <li><strong>Escolha a fonte.</strong> A lista traz as 94 fontes com busca. Cada uma expõe seus próprios parâmetros — o formulário se monta sozinho a partir do schema (o mesmo documentado no <a href="#catalogo">catálogo</a>).</li>
+        <li><strong>Escolha a fonte.</strong> A lista traz as 99 fontes com busca. Cada uma expõe seus próprios parâmetros — o formulário se monta sozinho a partir do schema (o mesmo documentado no <a href="#catalogo">catálogo</a>).</li>
         <li><strong>Preencha os filtros básicos.</strong> Período (anos), estados, grupos ou doenças, conforme a fonte. Os campos <em>avançados</em> (paginação, URL alternativa, snapshot bruto) ficam recolhidos — os padrões atendem a maioria dos casos.</li>
         <li><strong>Escolha o formato de exportação.</strong> <code>CSV</code> (abre no Excel), <code>Parquet</code> (análise de dados) ou <code>SQLite</code> (banco local). Sem formato, o Guaraci só coleta e registra o manifesto.</li>
         <li><strong>Crie o download e acompanhe.</strong> A barra de progresso e o log ao vivo mostram cada arquivo sendo buscado, validado e convertido. Jobs ficam no histórico — dá para repetir ou depurar depois.</li>
@@ -146,7 +146,7 @@
 
       <h3>3.1 <code>fetch list</code> — o que existe</h3>
       <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
-        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch list</span></div><div class="out" data-print="500">sih · sim · sinan · sinasc · dengue · nasa_power · ibge_populacao … <span class="hl">94 fontes</span></div></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch list</span></div><div class="out" data-print="500">sih · sim · sinan · sinasc · dengue · nasa_power · ibge_populacao … <span class="hl">99 fontes</span></div></div>
       </div>
 
       <h3>3.2 <code>fetch schema</code> — os parâmetros de uma fonte</h3>
@@ -231,7 +231,7 @@
     </section>
 
     <section class="doc-sec" id="catalogo">
-      <h2>8 · Catálogo das 94 fontes</h2>
+      <h2>8 · Catálogo das 99 fontes</h2>
       <p class="sec-lead" style="max-width:none;">Cada fonte abaixo documenta: o <strong>identificador canônico</strong> (o mesmo usado na interface, na API e no <code>fetch run</code>), transporte e fonte primária, cadência de atualização, <strong>todos os parâmetros</strong> com tipo, fase, padrão e valores aceitos, os <strong>campos reais</strong> observados em amostra e um exemplo de linha de comando pronto.</p>
       <div class="explorer-bar" style="margin-top:26px;">
         <div class="search-box">
@@ -261,9 +261,9 @@
   </div>
 </footer>
 
-<script src="assets/catalog-data.js?v=20260818b"></script>
-<script src="assets/site.js?v=20260818b"></script>
-<script src="assets/docs.js?v=20260818b"></script>
+<script src="assets/catalog-data.js?v=20260825a"></script>
+<script src="assets/site.js?v=20260825a"></script>
+<script src="assets/docs.js?v=20260825a"></script>
 
 <div class="gtranslate_wrapper"></div>
 <script>window.gtranslateSettings = {"default_language":"pt","languages":["en","fr","de", "pt", "it","es"],"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"left","switcher_vertical_position":"bottom","alt_flags":{"en":"usa","pt":"brazil"}}</script>
