@@ -605,6 +605,7 @@ async function selectSource(source) {
   renderDynamicFields(schema);
   renderSummary();
   document.getElementById("estimate-box").hidden = true;
+  document.getElementById("btn-estimate").hidden = !info.supports_discovery;
   document.getElementById("nc-step1").hidden = true;
   document.getElementById("nc-step2").hidden = false;
   document.getElementById("stp-1").className = "st is-done";
