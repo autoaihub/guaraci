@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### Fixed: UX da interface web (botão de estimativa e filtro de lista)
+- `DownloadService.discover()` (`guaraci/services/downloads.py`) tinha sua
+  regra de despacho duplicada em silêncio: a UI oferecia o botão "Estimar
+  volume" em todas as 94 fontes, mas apenas 27 suportam discovery (FTP
+  DATASUS, SIH e os adapters `PortalFileDownloadSource` de SISAGUA e
+  `srag_arquivos`); nas outras 67 o clique sempre terminava em "falha ao
+  estimar", parecendo bug do sistema. Extraído `DownloadService.
+  supports_discovery(source) -> bool` com a mesma lógica de despacho, agora
+  reutilizado por `discover()` e exposto no contrato de `GET /sources` como
+  o campo booleano `supports_discovery`, para que backend e frontend
+  consultem uma única fonte de verdade. `guaraci/api/static/app.js`
+  esconde `#btn-estimate` quando a fonte selecionada não suporta discovery
+  em vez de mostrar um botão que falha; o 400 do backend continua como
+  rede de segurança.
+- Filtros do tipo `string_list` com `allowed_values` (ex.: UF do FTP
+  DATASUS, com 27 opções) trocaram o `<select multiple>` aberto, que
+  ocupava muito espaço vertical e dependia de Ctrl+clique pouco descoberto
+  para multiseleção, por um dropdown fechado por padrão: um gatilho
+  compacto mostra um resumo do estado ("Todos", os valores quando são
+  poucos, ou "N selecionados") e abre um painel com checkboxes, mais campo
+  de busca quando há mais de 8 opções. Preserva "selecionar tudo" /
+  "limpar" e os defaults de `spec.default`. Navegável por teclado (Enter,
+  espaço e seta para baixo abrem o painel; Esc fecha), `aria-expanded` no
+  gatilho, fecha ao clicar fora ou pressionar Esc. Chaves novas de i18n
+  (`ms_all`, `ms_selected_n`, `ms_search_ph`, `ms_no_match`) em pt e en.
+  Sem dependências novas; segue as variáveis de `theme.css`.
+- Testes novos em `tests/test_services.py` e `tests/test_api.py` cobrem
+  `supports_discovery()` e o campo equivalente no `GET /sources` (27 das
+  94 fontes retornam `true`, confirmado ao vivo).
+
 ### Added — 9 fontes SISAGUA restantes (bulk-file, Fase A follow-up)
 - Registradas as 9 fontes SISAGUA que faltavam no transporte
   `PortalFileDataSource`: `sisagua_controle_mensal_demais_parametros`,

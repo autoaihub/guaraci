@@ -104,6 +104,10 @@ const I18N = {
     select_all: "Selecionar tudo",
     clear_sel: "Limpar",
     no_filter: "(sem filtro)",
+    ms_all: "Todos",
+    ms_selected_n: "{n} selecionados",
+    ms_search_ph: "Buscar opção…",
+    ms_no_match: "Nenhuma opção encontrada.",
     no_params: "Sem parâmetros configuráveis para esta fonte.",
     job_created: "Coleta criada: ",
     cancel_requested_for: "Cancelamento solicitado para ",
@@ -215,6 +219,10 @@ const I18N = {
     select_all: "Select all",
     clear_sel: "Clear",
     no_filter: "(no filter)",
+    ms_all: "All",
+    ms_selected_n: "{n} selected",
+    ms_search_ph: "Search option…",
+    ms_no_match: "No option found.",
     no_params: "No configurable parameters for this source.",
     job_created: "Download created: ",
     cancel_requested_for: "Cancellation requested for ",
@@ -669,6 +677,199 @@ function isAdvancedField(spec) {
   return true;
 }
 
+/* ═══ dropdown de multiseleção (string_list) ═══ */
+function closeAllMultiSelectDropdowns(except) {
+  document.querySelectorAll(".ms-dropdown.is-open").forEach((node) => {
+    if (node === except) return;
+    node.classList.remove("is-open");
+    const trigger = node.querySelector(".ms-trigger");
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
+  });
+}
+
+function multiSelectSummaryText(values, allowedCount) {
+  if (values.length === 0) return t("no_filter");
+  if (values.length === allowedCount) return t("ms_all");
+  if (values.length <= 3) return values.join(", ");
+  return tf("ms_selected_n", { n: values.length });
+}
+
+function createMultiSelectDropdown(spec) {
+  const wrap = document.createElement("div");
+  wrap.className = "ms-dropdown";
+
+  // <select multiple> oculto: continua sendo a fonte de verdade lida por
+  // buildPayload()/renderSummary() (dataset.role = "value"); os checkboxes
+  // visíveis só espelham o estado dele.
+  const select = document.createElement("select");
+  select.dataset.role = "value";
+  select.multiple = true;
+  select.className = "sr-only";
+  select.setAttribute("aria-hidden", "true");
+  select.tabIndex = -1;
+  spec.allowed_values.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = String(value);
+    option.textContent = String(value);
+    select.appendChild(option);
+  });
+  const defaults = Array.isArray(spec.default) ? spec.default.map(String) : [];
+  Array.from(select.options).forEach((option) => {
+    option.selected = defaults.includes(option.value);
+  });
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "ms-trigger";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+  const summarySpan = document.createElement("span");
+  summarySpan.className = "ms-summary";
+  trigger.appendChild(summarySpan);
+  const chevron = document.createElement("span");
+  chevron.className = "ms-chevron";
+  chevron.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6l4 4 4-4"/></svg>';
+  trigger.appendChild(chevron);
+
+  const panel = document.createElement("div");
+  panel.className = "ms-panel";
+
+  const actions = document.createElement("div");
+  actions.className = "ms-panel-actions";
+  const allBtn = document.createElement("button");
+  allBtn.type = "button";
+  allBtn.className = "mini-btn";
+  allBtn.textContent = t("select_all");
+  const clearBtn = document.createElement("button");
+  clearBtn.type = "button";
+  clearBtn.className = "mini-btn";
+  clearBtn.textContent = t("clear_sel");
+  actions.appendChild(allBtn);
+  actions.appendChild(clearBtn);
+  panel.appendChild(actions);
+
+  let searchInput = null;
+  const showSearch = spec.allowed_values.length > 8;
+  if (showSearch) {
+    const searchWrap = document.createElement("div");
+    searchWrap.className = "ms-search";
+    searchInput = document.createElement("input");
+    searchInput.type = "search";
+    searchInput.placeholder = t("ms_search_ph");
+    searchInput.setAttribute("aria-label", t("ms_search_ph"));
+    searchWrap.appendChild(searchInput);
+    panel.appendChild(searchWrap);
+  }
+
+  const optionsList = document.createElement("div");
+  optionsList.className = "ms-options";
+  optionsList.setAttribute("role", "listbox");
+  optionsList.setAttribute("aria-multiselectable", "true");
+
+  const checkboxes = [];
+  spec.allowed_values.forEach((value) => {
+    const strValue = String(value);
+    const label = document.createElement("label");
+    label.className = "ms-option";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = strValue;
+    checkbox.checked = defaults.includes(strValue);
+    checkbox.addEventListener("change", () => {
+      const option = Array.from(select.options).find((opt) => opt.value === strValue);
+      if (option) option.selected = checkbox.checked;
+      updateSummary();
+      renderSummary();
+    });
+    label.appendChild(checkbox);
+    label.append(" " + strValue);
+    optionsList.appendChild(label);
+    checkboxes.push({ value: strValue, node: label, checkbox });
+  });
+
+  const emptyMsg = document.createElement("div");
+  emptyMsg.className = "ms-empty";
+  emptyMsg.hidden = true;
+  emptyMsg.textContent = t("ms_no_match");
+  optionsList.appendChild(emptyMsg);
+  panel.appendChild(optionsList);
+
+  function updateSummary() {
+    const values = Array.from(select.selectedOptions).map((opt) => opt.value);
+    summarySpan.textContent = multiSelectSummaryText(values, spec.allowed_values.length);
+  }
+
+  allBtn.addEventListener("click", () => {
+    checkboxes.forEach(({ node, checkbox }) => {
+      if (node.classList.contains("is-hidden")) return;
+      checkbox.checked = true;
+      const option = Array.from(select.options).find((opt) => opt.value === checkbox.value);
+      if (option) option.selected = true;
+    });
+    updateSummary();
+    renderSummary();
+  });
+  clearBtn.addEventListener("click", () => {
+    checkboxes.forEach(({ checkbox }) => { checkbox.checked = false; });
+    Array.from(select.options).forEach((option) => { option.selected = false; });
+    updateSummary();
+    renderSummary();
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.trim().toLowerCase();
+      checkboxes.forEach(({ value, node }) => {
+        node.classList.toggle("is-hidden", query.length > 0 && !value.toLowerCase().includes(query));
+      });
+      const anyVisible = checkboxes.some(({ node }) => !node.classList.contains("is-hidden"));
+      emptyMsg.hidden = anyVisible;
+    });
+  }
+
+  function openPanel() {
+    closeAllMultiSelectDropdowns(wrap);
+    wrap.classList.add("is-open");
+    trigger.setAttribute("aria-expanded", "true");
+    if (searchInput) searchInput.focus();
+  }
+  function closePanel() {
+    wrap.classList.remove("is-open");
+    trigger.setAttribute("aria-expanded", "false");
+  }
+  trigger.addEventListener("click", () => {
+    if (wrap.classList.contains("is-open")) closePanel();
+    else openPanel();
+  });
+  trigger.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closePanel();
+      trigger.focus();
+    }
+    if ((event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") && !wrap.classList.contains("is-open")) {
+      event.preventDefault();
+      openPanel();
+    }
+  });
+
+  select.addEventListener("change", () => {
+    // mantém os checkboxes em sincronia caso o select seja alterado
+    // programaticamente (ex.: defaults aplicados após troca de idioma).
+    Array.from(select.options).forEach((option) => {
+      const entry = checkboxes.find((item) => item.value === option.value);
+      if (entry) entry.checkbox.checked = option.selected;
+    });
+    updateSummary();
+  });
+
+  updateSummary();
+
+  wrap.appendChild(select);
+  wrap.appendChild(trigger);
+  wrap.appendChild(panel);
+  return wrap;
+}
+
 function createFieldCard(spec) {
   const field = document.createElement("div");
   const isWide = spec.type === "string_list" || spec.name === "results_url" || spec.name === "output_dir";
@@ -753,45 +954,7 @@ function createFieldCard(spec) {
   }
 
   if (spec.type === "string_list" && Array.isArray(spec.allowed_values) && spec.allowed_values.length > 0) {
-    const actions = document.createElement("div");
-    actions.className = "mini-actions";
-    const allBtn = document.createElement("button");
-    allBtn.type = "button";
-    allBtn.className = "mini-btn";
-    allBtn.textContent = t("select_all");
-    const clearBtn = document.createElement("button");
-    clearBtn.type = "button";
-    clearBtn.className = "mini-btn";
-    clearBtn.textContent = t("clear_sel");
-    actions.appendChild(allBtn);
-    actions.appendChild(clearBtn);
-    field.appendChild(actions);
-
-    const select = document.createElement("select");
-    select.dataset.role = "value";
-    select.multiple = true;
-    select.className = "multi-select";
-    select.size = Math.min(12, Math.max(4, spec.allowed_values.length));
-    spec.allowed_values.forEach((value) => {
-      const option = document.createElement("option");
-      option.value = String(value);
-      option.textContent = String(value);
-      select.appendChild(option);
-    });
-    const defaults = Array.isArray(spec.default) ? spec.default.map(String) : [];
-    Array.from(select.options).forEach((option) => {
-      option.selected = defaults.includes(option.value);
-    });
-    select.addEventListener("change", renderSummary);
-    allBtn.addEventListener("click", () => {
-      Array.from(select.options).forEach((option) => { option.selected = true; });
-      renderSummary();
-    });
-    clearBtn.addEventListener("click", () => {
-      Array.from(select.options).forEach((option) => { option.selected = false; });
-      renderSummary();
-    });
-    field.appendChild(select);
+    field.appendChild(createMultiSelectDropdown(spec));
     return field;
   }
 
@@ -1316,7 +1479,13 @@ async function bootstrap() {
   document.getElementById("drawer-close").addEventListener("click", closeDrawer);
   document.getElementById("drawer-scrim").addEventListener("click", closeDrawer);
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeDrawer();
+    if (event.key === "Escape") {
+      closeDrawer();
+      closeAllMultiSelectDropdowns();
+    }
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".ms-dropdown")) closeAllMultiSelectDropdowns();
   });
   document.getElementById("d-cancel").addEventListener("click", () => cancelJob(selectedJobId));
   document.getElementById("d-retry").addEventListener("click", () => retryJob(selectedJobId));

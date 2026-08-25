@@ -435,6 +435,44 @@ body.drawer-open .drawer-scrim { opacity: 1; pointer-events: auto; }
 }
 .mini-btn:hover { color: var(--sun-2); border-color: rgba(247, 164, 29, .4); }
 
+/* ═══ dropdown de multiseleção (string_list) ═══ */
+.ms-dropdown { position: relative; }
+.ms-trigger {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  border: 1px solid var(--line-2); border-radius: var(--r-sm); background: var(--surface-2);
+  color: var(--ink); padding: 9px 12px; font-size: 13px; text-align: left; cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.ms-trigger:hover { border-color: rgba(247, 164, 29, .4); }
+.ms-trigger:focus-visible {
+  outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(20, 184, 166, .18);
+}
+.ms-trigger .ms-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-trigger .ms-chevron { flex: none; width: 12px; height: 12px; transition: transform .2s ease; color: var(--muted); }
+.ms-dropdown.is-open .ms-trigger .ms-chevron { transform: rotate(180deg); }
+.ms-panel {
+  position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: var(--shadow-2); padding: 10px; display: none;
+}
+.ms-dropdown.is-open .ms-panel { display: block; }
+.ms-panel-actions { display: flex; gap: 6px; margin-bottom: 8px; }
+.ms-search { margin-bottom: 8px; }
+.ms-search input {
+  width: 100%; border: 1px solid var(--line-2); border-radius: var(--r-sm); background: var(--surface-2);
+  color: var(--ink); padding: 7px 10px; font-size: 12.5px; outline: none;
+}
+.ms-search input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(20, 184, 166, .18); }
+.ms-options { max-height: 220px; overflow-y: auto; display: grid; gap: 2px; }
+.ms-option {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px;
+  font-size: 13px; color: var(--ink); cursor: pointer; user-select: none;
+}
+.ms-option:hover { background: var(--surface-2); }
+.ms-option input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--sun); flex: none; }
+.ms-option.is-hidden { display: none; }
+.ms-empty { font-size: 12px; color: var(--muted); padding: 6px 8px; }
+
 .hint-icon {
   position: relative; display: inline-flex; align-items: center; justify-content: center;
   width: 17px; height: 17px; border-radius: 999px;
