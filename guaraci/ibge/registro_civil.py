@@ -1,6 +1,7 @@
-"""IBGE Registro Civil — nascidos vivos e óbitos (SIDRA tabelas 2680 / 2681).
+"""IBGE Registro Civil: nascidos vivos, óbitos, casamentos e divórcios
+(SIDRA tabelas 2680 / 2681 / 4406 / 5937).
 
-Both tables publish one aggregate per year (periods 2003-2024, confirmed live
+The two registration tables (2680/2681) publish one aggregate per year (periods 2003-2024, confirmed live
 2026-08-17 via ``GET /api/v3/agregados/<tabela>/metadados``), each pre-split by
 five classifications (month of event, sex, and three others). Because the
 period axis is already annual, choosing the *mensal* table (2680/2681) over
@@ -27,8 +28,13 @@ idade) stay fixed at Total — not exposed yet, to keep the combinatorics honest
 (``docs/PLANO_NOVAS_FONTES.md`` Fase C).
 
 Registro civil (cartorial) is a counterpoint to DATASUS SINASC/SIM, which
-capture the health-system side (declaração de nascido vivo / óbito) — the two
+capture the health-system side (declaração de nascido vivo / óbito): the two
 can diverge (late/underregistration) and comparing them is itself a signal.
+
+Casamentos (table 4406) and divórcios (table 5937), verified live
+2026-08-25, close the registro civil series (births, deaths, nuptiality).
+See :class:`IbgeCasamentosDataSource` and :class:`IbgeDivorciosDataSource`
+docstrings for their combinatorics limits.
 """
 from __future__ import annotations
 
@@ -137,3 +143,188 @@ class IbgeObitosRcDataSource(_CivilRegistrySource):
         client: Optional[IbgeSidraClient] = None,
     ) -> None:
         super().__init__(name="ibge_obitos_rc", output_path=output_path, client=client)
+
+
+class IbgeCasamentosDataSource(SidraAggregateSource):
+    """Marriages by month of registration (SIDRA table 4406, var 4993).
+
+    "Casamentos, por mês do registro, estado civil dos cônjuges, grupos de
+    idade dos cônjuges e lugar do registro." Annual periods 2013-2024
+    (confirmed live 2026-08-25 via ``GET /api/v3/agregados/4406/metadados``).
+    Closes the registro civil trio alongside ``ibge_nascidos_vivos_rc`` and
+    ``ibge_obitos_rc``.
+
+    Only the month-of-registration classification (236) is exposed as
+    ``mes``, mirroring the nascidos vivos / óbitos guard: the other four
+    classifications (estado civil and grupo de idade of each spouse, up to
+    39 age categories each) stay fixed at "Total": exposing them would
+    multiply the combinatorics well past what SIDRA tolerates at municipal
+    level, and there is no health-analysis use case yet that needs them.
+
+    Confirmed live 2026-08-25 against ``N6[all]`` (5570 municipalities),
+    year 2023:
+
+    * ``mes=Total`` (default) -> 200 OK, ~677 KB.
+    * ``mes=all`` (13 categories) -> **HTTP 500** (SIDRA aggregate limit).
+    * ``N3[all]`` (27 UFs) x ``mes=all`` -> 200 OK.
+
+    So ``mes != "total"`` together with ``level="municipio"`` is rejected up
+    front, exactly like the nascidos vivos / óbitos sources.
+
+    Reference total (Brasil, 2023, mes=Total, verified live 2026-08-25):
+    940 799 marriages.
+    """
+
+    TABLE = "4406"
+    VARIABLE = "4993"
+    DEFAULT_LEVEL = "municipio"
+    MES_CLASSIFICACAO_ID = "236"
+    # Estado civil (664/665) and grupo de idade (666/667) of each spouse,
+    # fixed at Total, not exposed yet (see class docstring).
+    OUTRAS_CLASSIFICACOES = "664[0]|665[0]|666[0]|667[0]"
+    MES: Dict[str, str] = {"total": "0", "all": "all", "todos": "all"}
+
+    def __init__(
+        self,
+        output_path: Optional[str] = None,
+        *,
+        client: Optional[IbgeSidraClient] = None,
+    ) -> None:
+        super().__init__(name="ibge_casamentos", output_path=output_path, client=client)
+
+    def download(
+        self,
+        *,
+        start_year: object,
+        end_year: object,
+        level: str = DEFAULT_LEVEL,
+        mes: str = "total",
+        output_format: Optional[str] = None,
+        keep_raw: bool = False,
+        api_base_url: Optional[str] = None,
+        timeout: int = SidraAggregateSource.DEFAULT_TIMEOUT,
+        progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
+    ) -> Dict[str, object]:
+        level_key = str(level).strip().lower()
+        mes_norm = str(mes).strip().lower()
+        mes_token = self.MES.get(mes_norm)
+        if mes_token is None:
+            raise ValueError(f"Unsupported mes '{mes}'. Allowed: {', '.join(sorted(set(self.MES)))}")
+        if mes_token != "0" and level_key in ("municipio", "n6"):
+            raise ValueError(
+                "Parameter 'mes' != 'total' is not supported together with "
+                "level='municipio' (SIDRA rejects the combinatorial request, "
+                "confirmed live). Use level='uf'/'regiao'/'brasil' for the "
+                "monthly breakdown, or keep mes='total' for the municipal one."
+            )
+        classificacao = f"{self.MES_CLASSIFICACAO_ID}[{mes_token}]|{self.OUTRAS_CLASSIFICACOES}"
+        return self._collect(
+            start_year=start_year,
+            end_year=end_year,
+            level=level,
+            classificacao=classificacao,
+            output_format=output_format,
+            keep_raw=keep_raw,
+            api_base_url=api_base_url,
+            timeout=timeout,
+            progress_callback=progress_callback,
+        )
+
+
+class IbgeDivorciosDataSource(SidraAggregateSource):
+    """Divorces granted in 1st instance (SIDRA table 5937, var 231).
+
+    "Divórcios concedidos em 1ª instância, por grupos de idade do marido e
+    da mulher na data da sentença, tempo transcorrido entre as datas do
+    casamento e da sentença e lugar da ação do processo." Annual periods
+    2014-2024 (confirmed live 2026-08-25). Closes the registro civil trio
+    together with ``ibge_casamentos``: divórcios are a judicial process (not
+    a cartório registration), so this table's shape has three age/time
+    classifications instead of a month-of-registration one: there is no
+    "mes" axis here at all.
+
+    Confirmed live 2026-08-25 against ``N6[all]`` (5570 municipalities),
+    year 2023:
+
+    * All three classifications at Total (default) -> 200 OK, ~679 KB.
+    * Any one classification set to ``all`` (idade do marido: 15 cats,
+      idade da mulher: 15 cats, or tempo transcorrido: 32 cats) -> **HTTP
+      500** (SIDRA aggregate limit).
+    * ``N3[all]`` (27 UFs) x tempo transcorrido=all -> 200 OK.
+
+    So ``idade_marido``/``idade_mulher``/``tempo_decorrido`` != "total"
+    together with ``level="municipio"`` is rejected up front, mirroring the
+    guard used for the other registro civil sources.
+
+    Reference total (Brasil, 2023, all classifications=Total, verified live
+    2026-08-25): 360 787 divorces.
+    """
+
+    TABLE = "5937"
+    VARIABLE = "231"
+    DEFAULT_LEVEL = "municipio"
+    IDADE_MARIDO_ID = "274"
+    IDADE_MULHER_ID = "275"
+    TEMPO_ID = "276"
+    DETALHE: Dict[str, str] = {"total": "0", "all": "all", "todos": "all"}
+
+    def __init__(
+        self,
+        output_path: Optional[str] = None,
+        *,
+        client: Optional[IbgeSidraClient] = None,
+    ) -> None:
+        super().__init__(name="ibge_divorcios", output_path=output_path, client=client)
+
+    def _token(self, param_name: str, value: str) -> tuple[str, str]:
+        normalized = str(value).strip().lower()
+        token = self.DETALHE.get(normalized)
+        if token is None:
+            raise ValueError(
+                f"Unsupported {param_name} '{value}'. Allowed: {', '.join(sorted(set(self.DETALHE)))}"
+            )
+        return token, normalized
+
+    def download(
+        self,
+        *,
+        start_year: object,
+        end_year: object,
+        level: str = DEFAULT_LEVEL,
+        idade_marido: str = "total",
+        idade_mulher: str = "total",
+        tempo_decorrido: str = "total",
+        output_format: Optional[str] = None,
+        keep_raw: bool = False,
+        api_base_url: Optional[str] = None,
+        timeout: int = SidraAggregateSource.DEFAULT_TIMEOUT,
+        progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
+    ) -> Dict[str, object]:
+        level_key = str(level).strip().lower()
+        marido_token, marido_norm = self._token("idade_marido", idade_marido)
+        mulher_token, mulher_norm = self._token("idade_mulher", idade_mulher)
+        tempo_token, tempo_norm = self._token("tempo_decorrido", tempo_decorrido)
+        if "all" in (marido_norm, mulher_norm, tempo_norm) and level_key in ("municipio", "n6"):
+            raise ValueError(
+                "Parameters 'idade_marido'/'idade_mulher'/'tempo_decorrido' != "
+                "'total' are not supported together with level='municipio' "
+                "(SIDRA rejects the combinatorial request, confirmed live). "
+                "Use level='uf'/'regiao'/'brasil' for the detailed breakdown, "
+                "or keep all three at 'total' for the municipal one."
+            )
+        classificacao = (
+            f"{self.IDADE_MARIDO_ID}[{marido_token}]|"
+            f"{self.IDADE_MULHER_ID}[{mulher_token}]|"
+            f"{self.TEMPO_ID}[{tempo_token}]"
+        )
+        return self._collect(
+            start_year=start_year,
+            end_year=end_year,
+            level=level,
+            classificacao=classificacao,
+            output_format=output_format,
+            keep_raw=keep_raw,
+            api_base_url=api_base_url,
+            timeout=timeout,
+            progress_callback=progress_callback,
+        )

@@ -12,11 +12,16 @@ import pytest
 
 from guaraci.ibge import (
     IbgeAreaTerritorialDataSource,
+    IbgeCasamentosDataSource,
+    IbgeDivorciosDataSource,
     IbgeNascidosVivosRcDataSource,
     IbgeObitosRcDataSource,
     IbgePibMunicipiosDataSource,
     IbgePopulacaoDataSource,
     IbgePopulacaoIdadeSexoDataSource,
+    IbgeSaneamentoAguaDataSource,
+    IbgeSaneamentoEsgotoDataSource,
+    IbgeSaneamentoLixoDataSource,
 )
 
 SMOKE = os.environ.get("GUARACI_IBGE_SMOKE") == "1"
@@ -81,3 +86,52 @@ def test_live_area_territorial_brazil(tmp_path):
     area_row = df.filter(df["variavel_id"] == "6318").row(0, named=True)
     assert area_row["localidade_nome"] == "Brasil"
     assert area_row["valor"] == pytest.approx(8_510_417.771, abs=1.0)
+
+
+def test_live_casamentos_brazil_2023(tmp_path):
+    # Reference verified live 2026-08-25: Brasil, 2023, mes=Total -> 940 799.
+    ds = IbgeCasamentosDataSource(output_path=str(tmp_path))
+    ds.download(start_year=2023, end_year=2023, level="brasil")
+    row = ds.load_dataframe().row(0, named=True)
+    assert row["localidade_nome"] == "Brasil"
+    assert row["valor"] == 940_799
+
+
+def test_live_divorcios_brazil_2023(tmp_path):
+    # Reference verified live 2026-08-25: Brasil, 2023, todas classificacoes
+    # em Total -> 360 787.
+    ds = IbgeDivorciosDataSource(output_path=str(tmp_path))
+    ds.download(start_year=2023, end_year=2023, level="brasil")
+    row = ds.load_dataframe().row(0, named=True)
+    assert row["localidade_nome"] == "Brasil"
+    assert row["valor"] == 360_787
+
+
+def test_live_saneamento_agua_brazil_2022(tmp_path):
+    # Reference verified live 2026-08-25: Brasil, 2022, detalhe=total ->
+    # 72 456 368 domicilios.
+    ds = IbgeSaneamentoAguaDataSource(output_path=str(tmp_path))
+    ds.download(level="brasil")
+    row = ds.load_dataframe().row(0, named=True)
+    assert row["localidade_nome"] == "Brasil"
+    assert row["valor"] == 72_456_368
+
+
+def test_live_saneamento_esgoto_brazil_2022(tmp_path):
+    # Reference verified live 2026-08-25: Brasil, 2022, detalhe=total ->
+    # 72 456 368 domicilios.
+    ds = IbgeSaneamentoEsgotoDataSource(output_path=str(tmp_path))
+    ds.download(level="brasil")
+    row = ds.load_dataframe().row(0, named=True)
+    assert row["localidade_nome"] == "Brasil"
+    assert row["valor"] == 72_456_368
+
+
+def test_live_saneamento_lixo_brazil_2022(tmp_path):
+    # Reference verified live 2026-08-25: Brasil, 2022, detalhe=total ->
+    # 72 456 368 domicilios.
+    ds = IbgeSaneamentoLixoDataSource(output_path=str(tmp_path))
+    ds.download(level="brasil")
+    row = ds.load_dataframe().row(0, named=True)
+    assert row["localidade_nome"] == "Brasil"
+    assert row["valor"] == 72_456_368
