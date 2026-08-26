@@ -1,5 +1,7 @@
 # Guaraci
 
+[![Clones](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fautoaihub%2Fguaraci%2Fmain%2F.github%2Ftraffic%2Fclones-badge.json)](.github/traffic/clones.json)
+
 | Quick Access | Resource |
 | --- | --- |
 | License | [MIT License](LICENSE) |
