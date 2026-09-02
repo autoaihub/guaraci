@@ -404,6 +404,26 @@ class DownloadJobService:
                 self._append_event_locked(job, level="info", message="Job started.", event="started")
                 self._persist_jobs_locked()
 
+            # Avisos de pre-voo (ex.: teto de paginacao que trunca o download)
+            # entram no log ANTES do primeiro byte, para o usuario poder
+            # cancelar em vez de descobrir o truncamento no fim. Calculado fora
+            # do lock: uma fonte futura pode fazer I/O aqui.
+            # getattr: o servico de download e injetavel (testes e integracoes
+            # passam dublês que nao implementam pre-voo).
+            preflight_getter = getattr(self._download_service, "preflight_warnings", None)
+            preflight = preflight_getter(source, **params) if callable(preflight_getter) else []
+            if preflight:
+                with self._lock:
+                    job = self._jobs[job_id]
+                    for message in preflight:
+                        self._append_event_locked(
+                            job,
+                            level="warning",
+                            message=message,
+                            event="preflight_warning",
+                        )
+                    self._persist_jobs_locked()
+
             try:
                 result = self._download_service.run(
                     source,

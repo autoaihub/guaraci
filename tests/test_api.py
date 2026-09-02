@@ -582,3 +582,30 @@ def test_list_jobs_endpoint(client: TestClient, monkeypatch) -> None:
     payload = response.json()
     assert len(payload) == 2
     assert {item["job_id"] for item in payload} == {"job-a", "job-b"}
+
+
+def test_source_preflight_endpoint_warns_before_the_download(
+    client: TestClient, monkeypatch  # noqa: ANN001
+) -> None:
+    from guaraci.opendatasus.datasource import OpenDataSUSDataSource
+
+    monkeypatch.setattr(
+        OpenDataSUSDataSource, "_probe_demas_truncation", lambda self, **kwargs: True
+    )
+    response = client.post(
+        "/sources/srag_demas/preflight",
+        json={"params": {"start_year": 2024, "end_year": 2024}},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["source"] == "srag_demas"
+    assert any("VAI TRUNCAR" in item for item in payload["warnings"])
+    assert any("srag_arquivos" in item for item in payload["warnings"])
+
+
+def test_source_preflight_endpoint_is_quiet_for_plain_sources(client: TestClient) -> None:
+    response = client.post("/sources/snis/preflight", json={"params": {}})
+
+    assert response.status_code == 200
+    assert response.json()["warnings"] == []

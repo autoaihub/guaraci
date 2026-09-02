@@ -133,7 +133,7 @@ def _normalize_opendatasus_params(params: Dict[str, object]) -> Dict[str, object
             cleaned_value = value.strip()
             normalized[key] = cleaned_value if cleaned_value else None
 
-    for key in ("start_year", "end_year", "batch_size", "max_pages"):
+    for key in ("start_year", "end_year", "batch_size", "max_pages", "concurrency"):
         value = normalized.get(key)
         if value is None or isinstance(value, bool):
             continue

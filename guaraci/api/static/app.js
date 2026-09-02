@@ -77,6 +77,8 @@ const I18N = {
     estimate_result: "<strong>{docs} arquivos{size}</strong> estimados na fonte para esses filtros.",
     estimate_size: " · ~{size}",
     estimate_fail: "Não foi possível estimar: {err}",
+    preflight_title: "Atenção antes de iniciar:",
+    preflight_confirm: "Iniciar a coleta mesmo assim?",
     btn_submit: "Iniciar coleta",
     btn_change_source: "← Trocar fonte",
     btn_cancel: "Cancelar",
@@ -192,6 +194,8 @@ const I18N = {
     estimate_result: "<strong>{docs} files{size}</strong> estimated at the source for these filters.",
     estimate_size: " · ~{size}",
     estimate_fail: "Could not estimate: {err}",
+    preflight_title: "Heads-up before starting:",
+    preflight_confirm: "Start the download anyway?",
     btn_submit: "Start download",
     btn_change_source: "← Change source",
     btn_cancel: "Cancel",
@@ -1331,12 +1335,36 @@ async function refreshDrawerDetails(jobId) {
 }
 
 /* ═══ ações ═══ */
+/* Avisos de pré-voo: pergunta à API o que se sabe ANTES de baixar (ex.: teto
+   de paginação que trunca o resultado). Falha de rede aqui não bloqueia a
+   coleta — o mesmo aviso reaparece no log do job. */
+async function fetchPreflightWarnings(payload) {
+  try {
+    const response = await fetch("/sources/" + encodeURIComponent(currentSource) + "/preflight", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ params: payload.params })
+    });
+    if (!response.ok) return [];
+    const raw = await response.json();
+    return Array.isArray(raw.warnings) ? raw.warnings : [];
+  } catch (error) {
+    return [];
+  }
+}
+
 async function submitJob() {
   if (!currentSource) return;
   const payload = buildPayload();
   const btn = document.getElementById("btn-submit");
   btn.disabled = true;
   try {
+    const warnings = await fetchPreflightWarnings(payload);
+    if (warnings.length > 0) {
+      const text = t("preflight_title") + "\n\n- " + warnings.join("\n\n- ") +
+        "\n\n" + t("preflight_confirm");
+      if (!window.confirm(text)) return;
+    }
     const response = await fetch("/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -675,6 +675,27 @@ class PysusDownloadSource:
             return []
 
 
+def _build_concurrency_param(datasource_cls: Any) -> SourceParameterSpec:
+    """Páginas buscadas em paralelo no modo DEMAS.
+
+    O teto sai da medição, não de palpite: acima de ~16 conexões o próprio
+    servidor passa a devolver menos linhas por segundo.
+    """
+    return SourceParameterSpec(
+        name="concurrency",
+        phase="tecnica",
+        param_type="integer",
+        description=(
+            "Páginas buscadas em paralelo na API DEMAS. 1 desliga o paralelismo; "
+            "acima do máximo a própria API rende menos."
+        ),
+        required=False,
+        default=getattr(datasource_cls, "DEFAULT_CONCURRENCY", 1),
+        minimum=1,
+        maximum=getattr(datasource_cls, "MAX_CONCURRENCY", 1),
+    )
+
+
 class OpenDataSUSDownloadSource:
     """Adapter for OpenDataSUS API-backed datasources."""
 
@@ -689,6 +710,10 @@ class OpenDataSUSDownloadSource:
         self.descriptor = descriptor
         self._datasource_cls = datasource_cls
         self._params_schema = list(params_schema)
+        # Declarado aqui, e não repetido nas ~100 fontes do registry: toda fonte
+        # OpenDataSUS pagina pelo mesmo motor, então a concorrência é a mesma.
+        if not any(item.name == "concurrency" for item in self._params_schema):
+            self._params_schema.append(_build_concurrency_param(datasource_cls))
         self._fixed_dataset = fixed_dataset.strip().lower() if fixed_dataset else None
         self._normalize_params = normalize_params
 
@@ -703,6 +728,13 @@ class OpenDataSUSDownloadSource:
     def validate_params(self, params: Mapping[str, object]) -> None:
         prepared = self._prepare_kwargs(params)
         validate_source_params(params=prepared, specs=self._params_schema, reject_unknown=True)
+        # Refinamentos que a fonte nao consegue honrar sao recusados aqui para
+        # virar erro de parametro na CLI/UI, em vez de um job que falha depois.
+        checker = getattr(self._datasource_cls, "check_unsupported_refinements", None)
+        if callable(checker):
+            checker(dataset=self._fixed_dataset, **{
+                key: value for key, value in prepared.items() if key != "dataset"
+            })
         for name in self._required_path_params():
             value = prepared.get(name)
             if value is None or (isinstance(value, str) and not value.strip()):
@@ -733,6 +765,21 @@ class OpenDataSUSDownloadSource:
             prepared["progress_callback"] = progress_callback
         payload = datasource.download(**prepared)
         return JobResult.from_payload(source=self.descriptor.source, payload=payload)
+
+    def preflight_warnings(self, **kwargs: object) -> List[str]:
+        """Avisos que a datasource conhece antes de baixar qualquer byte.
+
+        Instancia a datasource como o download faz, porque o pre-voo pode
+        precisar falar com a API (a sonda de truncamento faz um request).
+        """
+        if not hasattr(self._datasource_cls, "preflight_warnings"):
+            return []
+        prepared = self._prepare_kwargs(dict(kwargs))
+        output_dir = prepared.pop("output_dir", None)
+        if self._fixed_dataset is not None:
+            prepared["dataset"] = self._fixed_dataset
+        datasource = self._datasource_cls(output_path=output_dir)
+        return [str(item) for item in datasource.preflight_warnings(**prepared)]
 
     def _required_path_params(self) -> List[str]:
         if not self._fixed_dataset:
@@ -988,6 +1035,25 @@ class DownloadService:
         ensure_allowed_output_dir(params.get("output_dir"))
         selected = self._get_registered_source(source)
         selected.validate_params(params)
+
+    def preflight_warnings(self, source: str, **kwargs: object) -> List[str]:
+        """Avisos a mostrar no DISPARO do download (CLI e UI), nao no fim dele.
+
+        Truncamento por paginacao so seria descoberto depois de uma execucao
+        longa; quem chama isso avisa antes de comecar.
+        """
+        try:
+            selected = self._get_registered_source(source)
+        except (KeyError, ValueError):
+            return []
+        getter = getattr(selected, "preflight_warnings", None)
+        if not callable(getter):
+            return []
+        try:
+            return [str(item) for item in getter(**kwargs)]
+        except Exception:
+            # Pre-voo e informativo: nunca pode derrubar o download em si.
+            return []
 
     def run(
         self,

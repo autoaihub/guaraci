@@ -5,8 +5,10 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from hashlib import sha256
 from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Optional
 from urllib.parse import quote
@@ -34,6 +36,17 @@ class OpenDataSUSDatasetSpec:
     demas_strategy: str = "pni_yearly"
     demas_static_path: Optional[str] = None
     ckan_supported: bool = True
+    # Alguns endpoints DEMAS expoem uma coluna de data inutilizavel como filtro
+    # (ver srag_demas). Nesses casos o refinamento local start_date/end_date
+    # descartaria quase tudo em silencio, entao ele e recusado na entrada.
+    date_filter_supported: bool = True
+    date_filter_note: Optional[str] = None
+    # Preenchido quando o dataset e grande o bastante para bater no teto de
+    # max_pages x batch_size numa execucao normal. Vira aviso de pre-voo.
+    large_dataset_note: Optional[str] = None
+    # Fonte de arquivos em lote que entrega os mesmos dados sem paginar. Quando
+    # existe, subir max_pages e o conselho errado (ver srag_demas).
+    bulk_alternative: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -51,6 +64,29 @@ class OpenDataSUSDataSource(DataSource):
 
     DEFAULT_DATASET = "doses_aplicadas_pni"
     DEFAULT_MAX_PAGES = 250
+    # Acima disso o modo DEMAS para de acumular linhas em memória e passa a
+    # servir export/load_dataframe direto do spool em disco. O buffer existe só
+    # para poupar o round-trip de disco em download pequeno, então o teto é
+    # baixo de propósito: uma linha de SRAG ocupa ~8 KB como dict Python, e é
+    # esse acúmulo que fazia o bloco 2019-2026 inteiro projetar ~37 GB.
+    MAX_RECORDS_IN_MEMORY = 10_000
+    # Lote do sink de conversão. Pequeno de propósito: é o que mantém o pico do
+    # export plano em vez de proporcional ao dataset.
+    SPOOL_STREAM_BATCH = 1024
+    SPOOL_PARQUET_ROW_GROUP = 10_000
+    # Páginas DEMAS buscadas em paralelo. Medido ao vivo em 2026-09-02 no
+    # endpoint de SRAG: 1 conexão rende ~200 linhas/s, 8 rendem ~1.200 e 16-24
+    # estabilizam em ~1.400; com 32 o servidor piora (~1.000). O default fica no
+    # joelho da curva, longe do ponto em que a API pública começa a sofrer.
+    DEFAULT_CONCURRENCY = 8
+    MAX_CONCURRENCY = 16
+    # Blocos do endpoint DEMAS de SRAG. Cada bloco e um endpoint unico: pedir
+    # start_year=2024 seleciona o bloco 2019-2026 inteiro, sem recorte remoto.
+    SRAG_BLOCKS: tuple[tuple[int, int, str], ...] = (
+        (2009, 2012, "2009-2012"),
+        (2013, 2018, "2013-2018"),
+        (2019, 2026, "2019-2026"),
+    )
     LOCAL_SWAGGER_PATH = Path(__file__).resolve().parent / "utils" / "swagger.json"
     DATASET_SPECS: Dict[str, OpenDataSUSDatasetSpec] = {
         "doses_aplicadas_pni": OpenDataSUSDatasetSpec(
@@ -103,6 +139,27 @@ class OpenDataSUSDataSource(DataSource):
             demas_strategy="block_ranges",
             demas_static_path="/vigilancia-e-meio-ambiente/srag",
             ckan_supported=False,
+            date_filter_supported=False,
+            bulk_alternative="srag_arquivos",
+            large_dataset_note=(
+                "Medido ao vivo em 2026-09-02: o bloco 2019-2026 tem ~4.445.000 linhas e a "
+                "API entrega no maximo 1000 por request. Esgotar o bloco leva ~1,6h na "
+                "concorrencia padrao (770 linhas/s) e ~6h sem paralelismo. Os MESMOS dados "
+                "saem em parquet pela fonte 'srag_arquivos': ~347 MB para 2019-2026 inteiro, "
+                "em minutos, e la a coluna DT_NOTIFIC e uma data real, nao o marcador de "
+                "temporada."
+            ),
+            date_filter_note=(
+                "O endpoint DEMAS srag-2019-2026 nao devolve dt_notific como data real: "
+                "a coluna vem colapsada no marcador de temporada (verificado ao vivo em "
+                "2026-09-02 — 997 das 1000 linhas da primeira pagina com dt_notific="
+                "2018-12-30, e a pagina em offset 1.000.000 inteira com 2019-12-29 "
+                "enquanto dt_sin_pri da mesma linha e 2020-11-18). Recortar por data "
+                "nessa coluna descartaria quase todos os registros sem aviso. Para "
+                "recorte por ano use a fonte 'srag_arquivos', que baixa os arquivos "
+                "completos do portal. O refinamento por 'uf' continua valido (sg_uf e "
+                "preenchido normalmente)."
+            ),
         ),
         "febre_amarela": OpenDataSUSDatasetSpec(
             package_id="arboviroses-febre-amarela",
@@ -142,9 +199,187 @@ class OpenDataSUSDataSource(DataSource):
         super().__init__(name="opendatasus", output_path=output_path)
         self._client = client
         self._data_by_dataset: Dict[str, List[Dict[str, object]]] = {}
+        self._spool_by_dataset: Dict[str, Path] = {}
         self._latest_dataset: Optional[str] = None
         self._demas_catalog = load_local_pni_catalog(self.LOCAL_SWAGGER_PATH)
         self._demas_get_params_by_path = load_local_get_params_catalog(self.LOCAL_SWAGGER_PATH)
+
+    @classmethod
+    def check_unsupported_refinements(
+        cls,
+        *,
+        dataset: Optional[str] = None,
+        start_date: object = None,
+        end_date: object = None,
+        **_ignored: object,
+    ) -> None:
+        """Recusa refinamentos que a fonte nao consegue honrar.
+
+        Roda na validacao de parametros (antes de criar o job) e de novo dentro
+        de download(), para que chamadas diretas a datasource nao escapem.
+        """
+        spec = cls.DATASET_SPECS.get((dataset or "").strip().lower())
+        if spec is None or spec.date_filter_supported:
+            return
+        has_start = start_date is not None and str(start_date).strip() != ""
+        has_end = end_date is not None and str(end_date).strip() != ""
+        if not (has_start or has_end):
+            return
+        note = spec.date_filter_note or (
+            "The date column exposed by this endpoint is not usable as a filter."
+        )
+        raise ValueError(
+            "Refinamento por data nao e suportado para o dataset "
+            f"'{(dataset or '').strip().lower()}'. {note}"
+        )
+
+    # Sonda de truncamento: quantos endpoints checar e por quanto tempo. Um
+    # request no offset do teto responde em ~0,4-1,0s e diz, com certeza, se
+    # existe dado alem do que esta execucao vai baixar.
+    TRUNCATION_PROBE_ENDPOINTS = 3
+    TRUNCATION_PROBE_TIMEOUT_SECONDS = 20
+
+    def preflight_warnings(
+        self,
+        *,
+        dataset: Optional[str] = None,
+        start_year: Optional[int] = None,
+        end_year: Optional[int] = None,
+        batch_size: object = 1000,
+        max_pages: object = None,
+        api_base_url: Optional[str] = None,
+        **api_params: object,
+    ) -> List[str]:
+        """Avisos conhecidos ANTES de disparar o download.
+
+        A API DEMAS nao expoe contagem total, entao um truncamento so apareceria
+        no fim de um download longo — tarde demais para o usuario desistir. Em
+        vez de adivinhar pelo nome da fonte, aqui a gente pergunta: um unico
+        request no offset do teto revela se existe dado alem dele.
+        """
+
+        warnings: List[str] = []
+        dataset_key = (dataset or "").strip().lower()
+        spec = self.DATASET_SPECS.get(dataset_key) or self._try_build_generic_spec(dataset_key)
+        if spec is None:
+            return warnings
+
+        page_size = min(max(1, int(batch_size or 1000)), 1000)
+        pages = min(max(1, int(max_pages or self.DEFAULT_MAX_PAGES)), 200000)
+        row_cap = page_size * pages
+        row_cap_label = f"{row_cap:,}".replace(",", ".")
+
+        if self._probe_demas_truncation(
+            spec=spec,
+            dataset=dataset_key,
+            start_year=start_year,
+            end_year=end_year,
+            row_cap=row_cap,
+            api_base_url=api_base_url,
+            api_params=api_params,
+        ):
+            remedy = (
+                f"Use a fonte '{spec.bulk_alternative}', que baixa os arquivos completos "
+                "sem paginar."
+                if spec.bulk_alternative
+                else "Aumente max_pages para levar o download ate o fim (ele escreve em "
+                "disco por pagina e retoma se cair) ou reduza a janela consultada."
+            )
+            note = f" {spec.large_dataset_note}" if spec.large_dataset_note else ""
+            warnings.append(
+                f"ESTA EXECUCAO VAI TRUNCAR: a fonte tem mais que o teto de {row_cap_label} "
+                f"linhas por endpoint (max_pages={pages} x batch_size={page_size}), "
+                f"verificado agora na propria API. O download para no teto e o arquivo sai "
+                f"incompleto, sem erro. {remedy}{note}"
+            )
+
+        if spec.demas_strategy == "block_ranges" and start_year and end_year:
+            covered = [
+                block
+                for block in self.SRAG_BLOCKS
+                if max(int(start_year), block[0]) <= min(int(end_year), block[1])
+            ]
+            widened = [
+                block
+                for block in covered
+                if block[0] < int(start_year) or block[1] > int(end_year)
+            ]
+            if widened:
+                labels = ", ".join(block[2] for block in covered)
+                warnings.append(
+                    f"O endpoint DEMAS e segmentado em blocos fixos ({labels}), nao por ano: "
+                    f"a janela pedida ({start_year}-{end_year}) vai baixar o bloco inteiro, "
+                    "e nao ha filtro remoto de ano para reduzir isso."
+                )
+
+        return warnings
+
+    def _probe_demas_truncation(
+        self,
+        *,
+        spec: OpenDataSUSDatasetSpec,
+        dataset: str,
+        start_year: Optional[int],
+        end_year: Optional[int],
+        row_cap: int,
+        api_base_url: Optional[str],
+        api_params: Mapping[str, object],
+    ) -> bool:
+        """Existe dado alem do teto desta execucao?
+
+        Um request por endpoint, com ``offset`` no teto e ``limit=1``: se vier
+        linha, o download vai truncar — certeza, nao suspeita. Qualquer falha
+        aqui devolve False, porque pre-voo nunca pode impedir o download.
+        """
+        try:
+            # Cliente proprio, com timeout curto e sem retry: um disparo nao pode
+            # ficar preso em pre-voo se a API estiver lenta ou fora do ar.
+            if api_base_url and api_base_url.strip():
+                client = OpenDataSUSClient(
+                    base_url=api_base_url,
+                    timeout_seconds=self.TRUNCATION_PROBE_TIMEOUT_SECONDS,
+                    max_attempts=1,
+                )
+            elif self._client is not None:
+                client = self._client
+            else:
+                client = OpenDataSUSClient(
+                    timeout_seconds=self.TRUNCATION_PROBE_TIMEOUT_SECONDS,
+                    max_attempts=1,
+                )
+            if client.mode != "demas":
+                return False
+            normalized = self._normalize_demas_api_params(dict(api_params))
+            start, end = self._normalize_year_window(start_year=start_year, end_year=end_year)
+            endpoints = self._resolve_demas_endpoints(
+                spec=spec,
+                dataset=dataset,
+                start_year=start,
+                end_year=end,
+                api_params=normalized,
+            )[: self.TRUNCATION_PROBE_ENDPOINTS]
+        except Exception:  # noqa: BLE001
+            return False
+
+        if not endpoints:
+            return False
+
+        def probe(endpoint_spec: DemasEndpointPlan) -> bool:
+            params = dict(endpoint_spec.query_params)
+            params.update({"limit": 1, "offset": row_cap})
+            try:
+                payload = client.demas_get(endpoint_spec.path, params=params)
+            except Exception:  # noqa: BLE001
+                return False
+            return bool(self._extract_demas_rows(payload))
+
+        try:
+            if len(endpoints) == 1:
+                return probe(endpoints[0])
+            with ThreadPoolExecutor(max_workers=len(endpoints)) as pool:
+                return any(pool.map(probe, endpoints))
+        except Exception:  # noqa: BLE001
+            return False
 
     def download(
         self,
@@ -159,6 +394,7 @@ class OpenDataSUSDataSource(DataSource):
         resource_id: Optional[str] = None,
         api_base_url: Optional[str] = None,
         max_pages: int = DEFAULT_MAX_PAGES,
+        concurrency: int = DEFAULT_CONCURRENCY,
         keep_raw: bool = False,
         progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
         **api_params: object,
@@ -204,6 +440,12 @@ class OpenDataSUSDataSource(DataSource):
                 "Parameter 'end_date' must be within the selected start_year/end_year range."
             )
 
+        self.check_unsupported_refinements(
+            dataset=dataset_key,
+            start_date=start,
+            end_date=end,
+        )
+
         uf_clean = self._normalize_uf(uf)
         fetch_batch_size = max(1, int(batch_size))
         max_pages_value = max(1, int(max_pages))
@@ -226,6 +468,7 @@ class OpenDataSUSDataSource(DataSource):
                 uf=uf_clean,
                 batch_size=fetch_batch_size,
                 max_pages=max_pages_value,
+                concurrency=concurrency,
                 requested_format=requested_format,
                 resource_id=resource_id,
                 keep_raw=keep_raw_value,
@@ -389,6 +632,8 @@ class OpenDataSUSDataSource(DataSource):
             "keep_raw": keep_raw_value,
             "output_format": requested_format,
             "exported_files": exported_files,
+            "truncated": False,
+            "warnings": list(warnings),
         }
         export_warning = self._combine_warnings(warnings)
         if export_warning:
@@ -407,6 +652,11 @@ class OpenDataSUSDataSource(DataSource):
                 f"Dataset '{selected}' not available in memory. Run download() for this dataset first."
             )
         if not records:
+            # Download grande: o buffer em memória foi descartado durante a
+            # coleta e o spool em disco é quem tem a série completa.
+            spool_path = self._spool_by_dataset.get(selected)
+            if spool_path is not None and spool_path.exists():
+                return self._read_spool_dataframe(spool_path)
             return pl.DataFrame()
         return pl.DataFrame(records)
 
@@ -514,6 +764,7 @@ class OpenDataSUSDataSource(DataSource):
         uf: Optional[str],
         batch_size: int,
         max_pages: int,
+        concurrency: int,
         requested_format: Optional[str],
         resource_id: Optional[str],
         keep_raw: bool,
@@ -531,6 +782,7 @@ class OpenDataSUSDataSource(DataSource):
         years = list(range(start_year, end_year + 1))
         page_size = min(max(1, int(batch_size)), 1000)
         max_pages_per_year = min(max(1, int(max_pages)), 200000)
+        workers = min(max(1, int(concurrency)), self.MAX_CONCURRENCY)
         estimated_pages_total = max(1, len(endpoints) * max_pages_per_year)
 
         if progress_callback is not None:
@@ -542,94 +794,186 @@ class OpenDataSUSDataSource(DataSource):
                 }
             )
 
-        records: List[Dict[str, object]] = []
-        pages_scanned = 0
-        truncated = False
-
-        for endpoint_spec in endpoints:
-            endpoint = endpoint_spec.path
-            uf_param_name = self._select_uf_param(endpoint_spec.uf_params)
-            for page in range(max_pages_per_year):
-                params: Dict[str, object] = dict(endpoint_spec.query_params)
-                params.update(
-                    {
-                        "limit": page_size,
-                        # DEMAS offset conta LINHAS, não páginas (o swagger diz
-                        # "Número da página", mas limit=5&offset=1 sobrepõe 4 das
-                        # 5 linhas de offset=0). Avançar de 1 em 1 rebaixaria a
-                        # mesma janela e cobriria page_size vezes menos dados.
-                        "offset": page * page_size,
-                    }
-                )
-                if uf and uf_param_name:
-                    params[uf_param_name] = uf
-
-                try:
-                    payload = client.demas_get(endpoint, params=params)
-                except OpenDataSUSClientError as exc:
-                    raise self._annotate_client_error(
-                        exc,
-                        context=(
-                            "OpenDataSUS DEMAS request failed for "
-                            f"dataset '{dataset}' at endpoint '{endpoint}' page {page + 1}"
-                        ),
-                    ) from exc
-                fetched = self._extract_demas_rows(payload)
-                if not fetched:
-                    break
-
-                filtered_rows = self._filter_demas_rows(
-                    rows=fetched,
-                    start=start,
-                    end=end,
-                    uf=uf,
-                )
-                records.extend(filtered_rows)
-                pages_scanned += 1
-
-                if progress_callback is not None:
-                    page_label = f"{endpoint_spec.label}_page_{page + 1}"
-                    progress_callback(
-                        {
-                            "event": "file_completed",
-                            "source": dataset,
-                            "documents_total": estimated_pages_total,
-                            "document_index": pages_scanned,
-                            "file_path": page_label,
-                        }
-                    )
-
-                if len(fetched) < page_size:
-                    break
-            else:
-                truncated = True
-
-        self._data_by_dataset[dataset] = records
-        self._latest_dataset = dataset
-
+        # O stem sai antes do loop porque nomeia o spool: as páginas são escritas
+        # em disco à medida que chegam, e o mesmo arquivo é o snapshot bruto
+        # quando keep_raw=True. Acumular tudo em memória antes de escrever era um
+        # teto real — 4,45M linhas de SRAG a ~8 KB por dict dariam ~36 GB.
         artifact_stem = self._build_artifact_stem(
             dataset=dataset,
             start=effective_start,
             end=effective_end,
             uf=uf,
         )
+        # Spool e checkpoint são nomeados pela identidade da CONSULTA, não pelo
+        # stem do artefato — este carrega timestamp, então nunca casaria entre
+        # duas execuções e a retomada jamais encontraria o trabalho anterior.
+        fingerprint = self._demas_fingerprint(
+            dataset=dataset,
+            endpoints=endpoints,
+            page_size=page_size,
+            uf=uf,
+            start=start,
+            end=end,
+        )
+        spool_path = self._demas_spool_path(fingerprint)
+        checkpoint_path = self._demas_checkpoint_path(fingerprint)
+        resumed_from = self._resume_demas_checkpoint(
+            checkpoint_path=checkpoint_path,
+            spool_path=spool_path,
+            fingerprint=fingerprint,
+        )
+
+        records: List[Dict[str, object]] = []
+        buffer_dropped = False
+        pages_scanned = 0
+        truncated = False
+        records_written = 0
+        first_endpoint_index = 0
+        first_page_index = 0
+
+        if resumed_from is not None:
+            records_written = int(resumed_from["rows_written"])
+            first_endpoint_index = int(resumed_from["endpoint_index"])
+            first_page_index = int(resumed_from["pages_done"])
+            # O que já foi para o disco não volta para a memória: a partir daqui
+            # o spool é a única fonte completa dos registros.
+            buffer_dropped = records_written > 0
+
+        with spool_path.open("ab") as spool:
+            for endpoint_index, endpoint_spec in enumerate(endpoints):
+                if endpoint_index < first_endpoint_index:
+                    continue
+                uf_param_name = self._select_uf_param(endpoint_spec.uf_params)
+                page_start = first_page_index if endpoint_index == first_endpoint_index else 0
+                if page_start >= max_pages_per_year:
+                    truncated = True
+                    continue
+
+                next_page = page_start
+                reached_end = False
+                while next_page < max_pages_per_year and not reached_end:
+                    # As páginas de uma onda são buscadas em paralelo, mas
+                    # gravadas em ordem: o spool continua sequencial e o
+                    # checkpoint segue significando "as N primeiras páginas
+                    # estão no disco", que é o que a retomada precisa.
+                    wave = list(
+                        range(next_page, min(next_page + workers, max_pages_per_year))
+                    )
+                    fetched_pages = self._fetch_demas_wave(
+                        client=client,
+                        endpoint_spec=endpoint_spec,
+                        pages=wave,
+                        page_size=page_size,
+                        uf=uf,
+                        uf_param_name=uf_param_name,
+                        workers=workers,
+                    )
+
+                    for page, fetched, error in fetched_pages:
+                        if error is not None:
+                            # O prefixo bem-sucedido já está gravado e
+                            # checkpointado; a falha sobe como sempre subiu.
+                            if isinstance(error, OpenDataSUSClientError):
+                                raise self._annotate_client_error(
+                                    error,
+                                    context=(
+                                        "OpenDataSUS DEMAS request failed for dataset "
+                                        f"'{dataset}' at endpoint '{endpoint_spec.path}' "
+                                        f"page {page + 1}"
+                                    ),
+                                ) from error
+                            raise error
+                        if not fetched:
+                            reached_end = True
+                            break
+
+                        filtered_rows = self._filter_demas_rows(
+                            rows=fetched,
+                            start=start,
+                            end=end,
+                            uf=uf,
+                        )
+                        for row in filtered_rows:
+                            spool.write(json.dumps(row, ensure_ascii=False).encode("utf-8"))
+                            spool.write(b"\n")
+                        spool.flush()
+                        records_written += len(filtered_rows)
+
+                        # Buffer em memória só para downloads pequenos, onde
+                        # load_dataframe()/export seguem servidos sem reler o disco.
+                        if not buffer_dropped:
+                            records.extend(filtered_rows)
+                            if len(records) > self.MAX_RECORDS_IN_MEMORY:
+                                records = []
+                                buffer_dropped = True
+
+                        pages_scanned += 1
+                        next_page = page + 1
+                        # Checkpoint por página: o byte do spool permite truncar
+                        # um write parcial na retomada, sem duplicar nem perder.
+                        self._write_demas_checkpoint(
+                            checkpoint_path,
+                            fingerprint=fingerprint,
+                            endpoint_index=endpoint_index,
+                            pages_done=next_page,
+                            rows_written=records_written,
+                            spool_bytes=spool.tell(),
+                        )
+
+                        if progress_callback is not None:
+                            page_label = f"{endpoint_spec.label}_page_{page + 1}"
+                            progress_callback(
+                                {
+                                    "event": "file_completed",
+                                    "source": dataset,
+                                    "documents_total": estimated_pages_total,
+                                    "document_index": pages_scanned,
+                                    "file_path": page_label,
+                                }
+                            )
+
+                        if len(fetched) < page_size:
+                            reached_end = True
+                            break
+
+                if not reached_end:
+                    truncated = True
+
+        # A coleta terminou: o spool vira o snapshot bruto com o nome de sempre
+        # (raw/<stem>.jsonl). Um download grande também promove o arquivo mesmo
+        # com keep_raw=false, porque nesse caso ele é a única cópia completa.
         raw_path: Optional[Path] = None
-        if keep_raw:
-            raw_path = self._write_raw_snapshot(
-                stem=artifact_stem,
-                records=records,
-            )
+        data_path = spool_path
+        if keep_raw or buffer_dropped:
+            raw_dir = self.output_path / "raw"
+            raw_dir.mkdir(parents=True, exist_ok=True)
+            data_path = raw_dir / f"{artifact_stem}.jsonl"
+            spool_path.replace(data_path)
+            raw_path = data_path
+
+        self._data_by_dataset[dataset] = records
+        self._spool_by_dataset[dataset] = data_path
+        self._latest_dataset = dataset
 
         exported_files: List[str] = []
         warnings: List[str] = []
         if requested_format:
-            if records:
+            if records_written:
                 try:
-                    dataframe = self._records_to_dataframe(records)
-                    export_path = self.export(
-                        dataframe,
-                        format=requested_format,
-                        name=artifact_stem,
+                    # Downloads grandes já descartaram o buffer: a conversão lê o
+                    # spool em vez da lista de dicts.
+                    export_path = (
+                        self._export_spool(
+                            spool_path=data_path,
+                            format=requested_format,
+                            name=artifact_stem,
+                        )
+                        if buffer_dropped
+                        else self.export(
+                            self._records_to_dataframe(records),
+                            format=requested_format,
+                            name=artifact_stem,
+                        )
                     )
                     exported_files.append(str(export_path))
                 except Exception as exc:
@@ -650,10 +994,40 @@ class OpenDataSUSDataSource(DataSource):
                 "Set output_format or enable keep_raw."
             )
 
+        # O spool só é descartado depois do export, e só quando o buffer em
+        # memória cobriu tudo: em download grande ele é o único artefato com a
+        # série completa, então apagá-lo jogaria fora o download inteiro.
+        if not keep_raw:
+            if buffer_dropped:
+                warnings.append(
+                    f"O snapshot bruto foi mantido em '{data_path}' apesar de keep_raw=false: "
+                    f"o download passou de {self.MAX_RECORDS_IN_MEMORY} linhas e foi gravado "
+                    "direto em disco, entao esse arquivo e a unica copia completa dos registros."
+                )
+            else:
+                data_path.unlink(missing_ok=True)
+
+        # Checkpoint sobrevive só a interrupções: a corrida terminou, então a
+        # próxima execução recomeça do zero em vez de servir dados velhos.
+        checkpoint_path.unlink(missing_ok=True)
+
         if truncated:
+            row_cap_label = f"{max_pages_per_year * page_size:,}".replace(",", ".")
+            remedy = (
+                f"Use a fonte '{spec.bulk_alternative}', que baixa os arquivos completos "
+                "sem paginar; subir max_pages aqui e viavel (o download escreve em disco, "
+                "busca paginas em paralelo e retoma de onde parou), mas troca minutos por "
+                "horas de paginacao."
+                if spec.bulk_alternative
+                else "Aumente max_pages — o download escreve em disco por pagina e retoma "
+                "de onde parou — ou reduza a janela consultada."
+            )
             warnings.append(
-                "OpenDataSUS query reached max_pages limit before exhausting remote pages. "
-                f"Increase max_pages (current={max_pages_per_year}) or narrow the selected date window."
+                "DOWNLOAD TRUNCADO: a consulta bateu no teto de max_pages antes de esgotar "
+                f"as paginas remotas, entao o resultado ({records_written} linhas) e um prefixo "
+                f"da fonte, nao a fonte inteira. Teto atingido: {row_cap_label} linhas por "
+                f"endpoint (max_pages={max_pages_per_year} x batch_size={page_size}). "
+                f"{remedy}"
             )
 
         endpoint_slug = ",".join([item.path.lstrip("/") for item in endpoints]) or dataset
@@ -672,8 +1046,8 @@ class OpenDataSUSDataSource(DataSource):
             effective_start=effective_start,
             effective_end=effective_end,
             uf=uf,
-            total_records=len(records),
-            records_downloaded=len(records),
+            total_records=records_written,
+            records_downloaded=records_written,
             raw_path=raw_path,
             keep_raw=keep_raw,
             output_format=requested_format,
@@ -687,6 +1061,7 @@ class OpenDataSUSDataSource(DataSource):
                 "pages_scanned": pages_scanned,
                 "max_pages": max_pages_per_year,
                 "batch_size": page_size,
+                "concurrency": workers,
                 "truncated": truncated,
                 "api_params": dict(api_params),
                 "endpoint_query_params": [
@@ -702,7 +1077,7 @@ class OpenDataSUSDataSource(DataSource):
                     "event": "download_complete",
                     "source": dataset,
                     "documents_total": estimated_pages_total,
-                    "downloaded_count": len(records),
+                    "downloaded_count": records_written,
                     "pages_scanned": pages_scanned,
                     "failed_count": 0,
                     "skipped_count": 0,
@@ -711,8 +1086,8 @@ class OpenDataSUSDataSource(DataSource):
             )
 
         payload: Dict[str, object] = {
-            "documents_found": len(records),
-            "downloaded_count": len(records),
+            "documents_found": records_written,
+            "downloaded_count": records_written,
             "skipped_count": 0,
             "failed_count": 0,
             "manifest_path": str(manifest_path),
@@ -732,11 +1107,249 @@ class OpenDataSUSDataSource(DataSource):
             "output_format": requested_format,
             "exported_files": exported_files,
             "api_params": dict(api_params),
+            "truncated": truncated,
+            "warnings": list(warnings),
+            "resumed_from_rows": int(resumed_from["rows_written"]) if resumed_from else 0,
         }
         export_warning = self._combine_warnings(warnings)
         if export_warning:
             payload["export_warning"] = export_warning
         return payload
+
+    def _fetch_demas_wave(
+        self,
+        *,
+        client: OpenDataSUSClient,
+        endpoint_spec: DemasEndpointPlan,
+        pages: List[int],
+        page_size: int,
+        uf: Optional[str],
+        uf_param_name: Optional[str],
+        workers: int,
+    ) -> List[tuple]:
+        """Busca um lote de páginas em paralelo, devolvendo-as EM ORDEM.
+
+        O gargalo do modo DEMAS é o tempo de resposta por request, não a banda:
+        medido em 2026-09-02 no endpoint de SRAG, uma conexão rende ~200
+        linhas/s e oito rendem ~1.200. Cada item volta como
+        ``(page, rows, error)`` em vez de propagar a exceção na hora, para que
+        o chamador consiga gravar o prefixo que deu certo antes de falhar.
+        """
+
+        def build_params(page: int) -> Dict[str, object]:
+            params: Dict[str, object] = dict(endpoint_spec.query_params)
+            params.update(
+                {
+                    "limit": page_size,
+                    # DEMAS offset conta LINHAS, não páginas (o swagger diz
+                    # "Número da página", mas limit=5&offset=1 sobrepõe 4 das
+                    # 5 linhas de offset=0). Avançar de 1 em 1 rebaixaria a
+                    # mesma janela e cobriria page_size vezes menos dados.
+                    "offset": page * page_size,
+                }
+            )
+            if uf and uf_param_name:
+                params[uf_param_name] = uf
+            return params
+
+        def fetch(page: int) -> tuple:
+            try:
+                payload = client.demas_get(endpoint_spec.path, params=build_params(page))
+            except Exception as exc:  # noqa: BLE001 - devolvido, não engolido
+                return page, [], exc
+            return page, self._extract_demas_rows(payload), None
+
+        if workers <= 1 or len(pages) == 1:
+            return [fetch(page) for page in pages]
+
+        with ThreadPoolExecutor(max_workers=min(workers, len(pages))) as pool:
+            return list(pool.map(fetch, pages))
+
+    # -- spool / retomada do modo DEMAS ---------------------------------------
+
+    def _demas_partial_dir(self) -> Path:
+        partial_dir = self.output_path / "raw" / ".partial"
+        partial_dir.mkdir(parents=True, exist_ok=True)
+        return partial_dir
+
+    def _demas_spool_path(self, fingerprint: str) -> Path:
+        return self._demas_partial_dir() / f"{fingerprint[:16]}.jsonl"
+
+    def _demas_checkpoint_path(self, fingerprint: str) -> Path:
+        return self._demas_partial_dir() / f"{fingerprint[:16]}.checkpoint.json"
+
+    @staticmethod
+    def _demas_fingerprint(
+        *,
+        dataset: str,
+        endpoints: List[DemasEndpointPlan],
+        page_size: int,
+        uf: Optional[str],
+        start: Optional[date],
+        end: Optional[date],
+    ) -> str:
+        """Identidade da consulta, para nunca retomar em cima de outra query.
+
+        max_pages fica de fora de propósito: reexecutar com um teto maior é
+        exatamente o caso em que continuar de onde parou vale a pena.
+        """
+        payload = json.dumps(
+            {
+                "dataset": dataset,
+                "endpoints": [
+                    {"path": item.path, "params": dict(item.query_params)} for item in endpoints
+                ],
+                "page_size": page_size,
+                "uf": uf,
+                "start": start.isoformat() if start else None,
+                "end": end.isoformat() if end else None,
+            },
+            sort_keys=True,
+            ensure_ascii=False,
+        )
+        return sha256(payload.encode("utf-8")).hexdigest()
+
+    def _write_demas_checkpoint(
+        self,
+        checkpoint_path: Path,
+        *,
+        fingerprint: str,
+        endpoint_index: int,
+        pages_done: int,
+        rows_written: int,
+        spool_bytes: int,
+    ) -> None:
+        checkpoint_path.write_text(
+            json.dumps(
+                {
+                    "fingerprint": fingerprint,
+                    "endpoint_index": endpoint_index,
+                    "pages_done": pages_done,
+                    "rows_written": rows_written,
+                    "spool_bytes": spool_bytes,
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+    def _resume_demas_checkpoint(
+        self,
+        *,
+        checkpoint_path: Path,
+        spool_path: Path,
+        fingerprint: str,
+    ) -> Optional[Dict[str, object]]:
+        """Retoma um download interrompido, ou começa do zero.
+
+        Um checkpoint só existe enquanto a corrida está incompleta (o fim da
+        execução o apaga), então encontrá-lo significa que a execução anterior
+        morreu no meio. O spool é truncado no byte registrado para descartar
+        uma página escrita pela metade.
+        """
+        if not checkpoint_path.exists() or not spool_path.exists():
+            # Um sem o outro é lixo de execução anterior: limpa e recomeça.
+            checkpoint_path.unlink(missing_ok=True)
+            spool_path.unlink(missing_ok=True)
+            return None
+
+        try:
+            state = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            checkpoint_path.unlink(missing_ok=True)
+            spool_path.unlink(missing_ok=True)
+            return None
+
+        spool_bytes = int(state.get("spool_bytes", -1))
+        if state.get("fingerprint") != fingerprint or spool_bytes < 0:
+            # Outra consulta escreveu ali: não dá para reaproveitar o spool.
+            checkpoint_path.unlink(missing_ok=True)
+            spool_path.unlink(missing_ok=True)
+            return None
+
+        if spool_path.stat().st_size > spool_bytes:
+            with spool_path.open("r+b") as handler:
+                handler.truncate(spool_bytes)
+
+        return {
+            "endpoint_index": int(state.get("endpoint_index", 0)),
+            "pages_done": int(state.get("pages_done", 0)),
+            "rows_written": int(state.get("rows_written", 0)),
+        }
+
+    @staticmethod
+    def _infer_spool_schema(spool_path: Path) -> Dict[str, pl.DataType]:
+        """Deduz o schema do spool numa passada de memória constante.
+
+        A inferência por amostra do Polars não serve aqui: colunas esparsas do
+        SRAG só aparecem depois de milhares de linhas, e uma coluna vista só
+        como null vira dtype Null — que estoura ("got non-null value for
+        NULL-typed column") assim que um valor aparece adiante. Varrer o arquivo
+        inteiro guardando apenas os tipos por coluna custa O(colunas).
+        """
+        kinds: Dict[str, set] = {}
+        with spool_path.open(encoding="utf-8") as handler:
+            for line in handler:
+                if not line.strip():
+                    continue
+                for key, value in json.loads(line).items():
+                    seen = kinds.setdefault(key, set())
+                    if value is None:
+                        continue
+                    if isinstance(value, bool):
+                        seen.add("bool")
+                    elif isinstance(value, int):
+                        seen.add("int")
+                    elif isinstance(value, float):
+                        seen.add("float")
+                    else:
+                        seen.add("str")
+
+        schema: Dict[str, pl.DataType] = {}
+        for key, seen in kinds.items():
+            if seen == {"bool"}:
+                schema[key] = pl.Boolean
+            elif seen == {"int"}:
+                schema[key] = pl.Int64
+            elif seen and seen <= {"int", "float"}:
+                schema[key] = pl.Float64
+            else:
+                # Inclui o caso "só null": String aceita qualquer valor futuro.
+                schema[key] = pl.String
+        return schema
+
+    def _export_spool(self, *, spool_path: Path, format: str, name: str) -> Path:
+        """Converte o spool sem carregar o dataset inteiro na memória.
+
+        Medido em 2026-09-02 sobre 60.000 linhas de SRAG: ler tudo de uma vez
+        custa ~9,4 KB por linha (~42 GB projetados para o bloco 2019-2026),
+        enquanto o sink em lotes fica em ~0,2 KB por linha (~0,8 GB).
+        """
+        normalized = format.strip().lower()
+        if normalized not in {"csv", "parquet"}:
+            # SQLite não tem sink incremental; cai no caminho eager.
+            return self.export(self._read_spool_dataframe(spool_path), format=format, name=name)
+
+        lazy = pl.scan_ndjson(
+            spool_path,
+            schema=self._infer_spool_schema(spool_path),
+            low_memory=True,
+            batch_size=self.SPOOL_STREAM_BATCH,
+        )
+        if normalized == "csv":
+            path = self.output_path / f"{name}.csv"
+            lazy.sink_csv(path)
+            return path
+
+        path = self.output_path / f"{name}.parquet"
+        lazy.sink_parquet(path, row_group_size=self.SPOOL_PARQUET_ROW_GROUP)
+        return path
+
+    @staticmethod
+    def _read_spool_dataframe(spool_path: Path) -> pl.DataFrame:
+        # infer_schema_length=None pelo mesmo motivo de _records_to_dataframe:
+        # colunas que misturam número e texto quebram a inferência por amostra.
+        return pl.read_ndjson(spool_path, infer_schema_length=None)
 
     def _resolve_demas_endpoints(
         self,
@@ -803,11 +1416,7 @@ class OpenDataSUSDataSource(DataSource):
 
         if spec.demas_strategy == "block_ranges":
             # Specialized for SRAG blocks: 2009-2012, 2013-2018, 2019-2026
-            blocks = [
-                (2009, 2012, "2009-2012"),
-                (2013, 2018, "2013-2018"),
-                (2019, 2026, "2019-2026"),
-            ]
+            blocks = self.SRAG_BLOCKS
             selected: List[DemasEndpointPlan] = []
             base_path = str(spec.demas_static_path or "").strip()
             

@@ -581,3 +581,49 @@ def test_run_validates_common_params() -> None:
 
     with pytest.raises(ValueError):
         service.run("snis", invalid_param=True)
+
+
+def test_preflight_warnings_surface_srag_demas_row_cap(monkeypatch) -> None:  # noqa: ANN001
+    """Encanamento servico -> datasource -> aviso, sem depender da API real."""
+    from guaraci.opendatasus.datasource import OpenDataSUSDataSource
+
+    monkeypatch.setattr(
+        OpenDataSUSDataSource, "_probe_demas_truncation", lambda self, **kwargs: True
+    )
+    service = DownloadService()
+
+    warnings = service.preflight_warnings("srag_demas", start_year=2024, end_year=2024)
+
+    assert any("VAI TRUNCAR" in item and "250.000 linhas" in item for item in warnings)
+    assert any("srag_arquivos" in item for item in warnings)
+
+
+def test_preflight_warnings_are_silent_when_the_source_fits(monkeypatch) -> None:  # noqa: ANN001
+    from guaraci.opendatasus.datasource import OpenDataSUSDataSource
+
+    monkeypatch.setattr(
+        OpenDataSUSDataSource, "_probe_demas_truncation", lambda self, **kwargs: False
+    )
+    service = DownloadService()
+
+    assert service.preflight_warnings("dengue", start_year=2024, end_year=2024) == []
+
+
+def test_preflight_warnings_are_empty_for_sources_without_a_hook() -> None:
+    service = DownloadService()
+
+    assert service.preflight_warnings("snis") == []
+    assert service.preflight_warnings("fonte_inexistente") == []
+
+
+def test_validate_params_rejects_date_refinement_on_srag_demas() -> None:
+    service = DownloadService()
+
+    with pytest.raises(ValueError, match="Refinamento por data"):
+        service.validate_source_params(
+            "srag_demas",
+            {"start_year": 2024, "end_year": 2024, "start_date": "2024-01-01"},
+        )
+
+    # Sem o refinamento inviável, os mesmos parâmetros passam.
+    service.validate_source_params("srag_demas", {"start_year": 2024, "end_year": 2024, "uf": "SP"})

@@ -93,6 +93,11 @@ class SourceDiscoveryResponse(BaseModel):
     filters: Dict[str, object] = Field(default_factory=dict)
 
 
+class SourcePreflightResponse(BaseModel):
+    source: str
+    warnings: List[str] = Field(default_factory=list)
+
+
 class JobStatusResponse(BaseModel):
     job_id: str
     source: str
@@ -187,6 +192,19 @@ def get_source_schema(source: str) -> SourceSchemaResponse:
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return SourceSchemaResponse(**schema)
+
+
+@app.post("/sources/{source}/preflight", response_model=SourcePreflightResponse)
+def preflight_source(source: str, payload: SourceDiscoveryRequest) -> SourcePreflightResponse:
+    """Avisos conhecidos antes de disparar o download (ex.: teto de paginacao).
+
+    Puramente informativo e sem I/O de download: a UI chama isso no clique de
+    submissao para o usuario poder desistir antes de gerar um arquivo truncado.
+    """
+    return SourcePreflightResponse(
+        source=source,
+        warnings=download_service.preflight_warnings(source, **payload.params),
+    )
 
 
 @app.post("/sources/{source}/discovery", response_model=SourceDiscoveryResponse)

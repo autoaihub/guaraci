@@ -603,3 +603,37 @@ def test_cancel_aborts_in_flight_download(tmp_path: Path):
     # O laço tem 200 iterações de 10ms; abortar de verdade significa parar
     # muito antes do fim.
     assert slow_service.iterations_done < 200
+
+
+class _PreflightWarningDownloadService(_DummyDownloadService):
+    """Serviço que conhece avisos de pré-voo (ex.: teto de paginação)."""
+
+    def preflight_warnings(self, source: str, **kwargs):  # noqa: ANN003
+        return [f"Teto desta execucao para {source}: 250.000 linhas."]
+
+
+def test_preflight_warnings_are_logged_before_the_download_runs() -> None:
+    service = DownloadJobService(download_service=_PreflightWarningDownloadService())
+
+    job = service.create_job(source="snis", params={})
+    finished = service.wait_for_job(job.job_id, timeout_seconds=2.0)
+
+    assert finished.status == "completed"
+    logs = service.get_job_logs(job.job_id)
+    events = [item["event"] for item in logs]
+    assert "preflight_warning" in events
+    warning = next(item for item in logs if item["event"] == "preflight_warning")
+    assert warning["level"] == "warning"
+    assert "250.000 linhas" in warning["message"]
+    # Precisa vir logo no disparo, imediatamente depois de "started".
+    assert events[:3] == ["queued", "started", "preflight_warning"]
+
+
+def test_job_runs_when_download_service_has_no_preflight_hook() -> None:
+    service = DownloadJobService(download_service=_DummyDownloadService())
+
+    job = service.create_job(source="snis", params={})
+    finished = service.wait_for_job(job.job_id, timeout_seconds=2.0)
+
+    assert finished.status == "completed"
+    assert all(item["event"] != "preflight_warning" for item in service.get_job_logs(job.job_id))

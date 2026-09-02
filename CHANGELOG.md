@@ -2,6 +2,105 @@
 
 ## [Unreleased]
 
+### Changed: aviso de truncamento vale para as 51 fontes DEMAS, nao so para o SRAG
+- O aviso de pre-voo dependia de alguem ter marcado a fonte a mao
+  (`large_dataset_note`), e so o `srag_demas` estava marcado. As outras 50 fontes
+  da API tinham exatamente a armadilha original: baixavam um prefixo e salvavam
+  sem avisar.
+- Agora o pre-voo pergunta a propria API em vez de adivinhar: um request por
+  endpoint (no maximo 3, em paralelo) com `limit=1` e `offset` no teto da
+  execucao. Se voltar linha, a corrida VAI truncar — certeza, nao suspeita.
+- A sonda respeita a consulta real, entao `zikavirus` limitado a 2024 aparece
+  como "cabe" enquanto o endpoint sem filtro de ano nao caberia. Verificado ao
+  vivo em 2026-09-02 com o teto padrao de 250.000: `srag_demas`, `dengue` e
+  `chikungunya` avisam; `zikavirus` (2024), `mpox`, `febre_amarela`, `esavi` e
+  `sindrome_gripal_leve` ficam em silencio.
+- Custo de 0,3s a ~12s, com timeout proprio e sem retry. Qualquer falha da sonda
+  devolve "sem aviso": pre-voo nunca pode impedir o download.
+- Para fonte sem alternativa em lote o remedio muda de tom: em vez de apontar
+  arquivo em lote que nao existe, manda subir `max_pages` — o que hoje e viavel,
+  ja que o download escreve em disco e retoma.
+
+### Added: paginacao concorrente no modo DEMAS (ligada por padrao)
+- O gargalo do modo DEMAS e a latencia por request, nao a banda: a API trava a
+  pagina em 1000 linhas no servidor (`limit=2000/5000/10000` devolvem 1000
+  mesmo assim) e cada request custa de ~2s a ~6s conforme o offset avanca.
+- As paginas passam a ser buscadas em ondas paralelas e gravadas em ordem de
+  pagina, entao o spool continua sequencial e o checkpoint segue significando
+  "as N primeiras paginas estao no disco" — retomada intacta. Se uma pagina da
+  onda falha, o prefixo bem-sucedido e gravado e checkpointado antes do erro
+  subir.
+- Novo parametro `concurrency`, default 8, teto 16. Declarado uma unica vez em
+  `OpenDataSUSDownloadSource`, nao repetido nas ~100 fontes do registry.
+- Medido ponta a ponta em 2026-09-02 sobre 40.000 linhas de SRAG: 206 linhas/s
+  com 1 conexao, 770 com 8, 955 com 16. Para as 4.445.000 linhas do bloco
+  2019-2026 isso e ~6h contra ~1,6h. O teto de 16 vem da medicao: numa sonda
+  direta a API caiu de ~1.400 linhas/s com 24 conexoes para ~1.000 com 32.
+- `srag_arquivos` continua sendo minutos, entao para SRAG a recomendacao nao
+  muda; o ganho vale para as fontes DEMAS grandes que nao tem arquivo em lote.
+
+### Fixed: download DEMAS escreve em disco por pagina e retoma de onde parou
+- `_download_from_demas` acumulava todas as linhas numa lista Python e so escrevia
+  no fim: a memoria crescia com o resultado e qualquer falha perdia a corrida
+  inteira. Medido em processo isolado, o custo era ~22 KB por linha de SRAG
+  (233 MB com 10 mil linhas, 461 MB com 20 mil, 915 MB com 40 mil — cerca de
+  98 GB projetados para as 4.445.000 linhas do bloco 2019-2026).
+- Agora cada pagina vai para um spool JSONL em `raw/.partial/` assim que chega, e
+  o pico fica plano: 201 MB com 10 mil linhas, 193 MB com 20 mil, 220 MB com 40 mil.
+- Checkpoint por pagina grava `(endpoint_index, pages_done, rows_written, spool_bytes)`.
+  Uma execucao interrompida deixa o checkpoint; a proxima trunca o spool no byte
+  registrado (descartando pagina escrita pela metade) e continua daquele offset.
+  Execucao concluida apaga o checkpoint, entao rodar de novo busca dados novos.
+  Verificado contra a API real: queda apos 3 paginas, retomada continuou em
+  3.000 linhas e fechou 8.000 sem duplicar nem pular registro.
+- O spool e nomeado por um hash da consulta, nao pelo stem do artefato — este
+  carrega timestamp e nunca casaria entre execucoes, o que tornava a retomada
+  impossivel. `max_pages` fica fora do hash, porque reexecutar com teto maior e
+  justamente quando continuar vale a pena. No fim o spool e renomeado para o
+  `raw/<stem>.jsonl` de sempre, entao a saida de `keep_raw` nao muda.
+- Acima de `MAX_RECORDS_IN_MEMORY` (10.000 linhas) o buffer em memoria e
+  descartado e tanto `load_dataframe()` quanto o export passam a ler do spool.
+  Com `keep_raw=false` o arquivo e mantido mesmo assim (com aviso), por ser a
+  unica copia completa.
+- A conversao para CSV/Parquet de um download spoolado usa
+  `scan_ndjson(...).sink_*` com schema explicito, montado numa passada de memoria
+  constante sobre o arquivo. A passada e necessaria: a inferencia por amostra do
+  Polars tipa coluna esparsa de SRAG como `Null` e depois quebra com "got non-null
+  value for NULL-typed column". `read_ndjson` custa ~9,4 KB por linha; o sink em
+  lotes custa ~0,2 KB. SQLite nao tem sink incremental e segue no caminho eager.
+
+### Fixed: `srag_demas` deixa de aceitar recorte por data, e truncamento passa a avisar no disparo
+- O endpoint DEMAS `srag-2019-2026` nao devolve `dt_notific` como data real: a
+  coluna vem colapsada no marcador de temporada. Verificado ao vivo em
+  2026-09-02 — 997 das 1000 linhas da primeira pagina trazem
+  `dt_notific=2018-12-30`, e a pagina em `offset=1000000` traz 1000 de 1000 com
+  `2019-12-29` enquanto `dt_sin_pri` da mesma linha e `2020-11-18`. Como
+  consequencia `anomes_notific` so aceita uns poucos valores (`201712`,
+  `201812`, `201912`, `202012`, `202112`, `202312`, `202412`, `202512`).
+- `start_date`/`end_date` agora sao **recusados** para `srag_demas`
+  (`OpenDataSUSDatasetSpec.date_filter_supported`), na validacao de parametros e
+  de novo dentro de `download()`. Antes o filtro local rodava sobre a coluna
+  quebrada e descartava quase todos os registros em silencio. O refinamento por
+  `uf` continua valido — `sg_uf` e preenchido normalmente.
+- Truncamento por paginacao deixa de ser descoberto so no fim: novo
+  `DownloadService.preflight_warnings()` avisa **no disparo**, na CLI (linhas
+  `AVISO` antes da execucao), na UI web (dialogo de confirmacao alimentado pelo
+  novo `POST /sources/{source}/preflight`) e no log do job (evento
+  `preflight_warning`, gravado antes do primeiro byte). O aviso informa o teto
+  real da execucao (`max_pages` x `batch_size`) e que a janela de anos pedida cai
+  num bloco fixo do endpoint.
+- O payload de download passa a expor `truncated` (boolean) e `warnings` (lista),
+  e a mensagem de truncamento agora diz quantas linhas vieram e que o resultado e
+  um prefixo da fonte, nao a fonte inteira.
+- Para historico completo ou recorte por ano de SRAG, use `srag_arquivos`. Medido
+  ao vivo em 2026-09-02: o bloco DEMAS 2019-2026 tem ~4.445.000 linhas, que a 1000
+  por request (latencia de ~2s em `offset=0` a ~11s em `offset=4000000`, porque o
+  offset varre a tabela) levariam cerca de 8 horas. Os mesmos dados em parquet pelo
+  `srag_arquivos`: ~347 MB para 2019-2026 inteiro, e o ano de 2019 (48.941 linhas)
+  baixa em 2,3s com `DT_NOTIFIC` real em vez do marcador de temporada.
+  Por isso `OpenDataSUSDatasetSpec.bulk_alternative` faz os avisos apontarem a fonte
+  em lote em vez de sugerir `max_pages` maior.
+
 ### Added: 5 fontes IBGE novas (registro civil e saneamento domiciliar, Censo 2022)
 - `ibge_casamentos` (SIDRA tabela 4406, variável 4993): casamentos por mês do
   registro, fechando a série de registro civil ao lado de

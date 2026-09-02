@@ -204,7 +204,92 @@ OpenDataSUS notes:
 - The current UX rule is to prioritize native API filters in the basic form.
 - Local refinements and technical options belong in the advanced UI block.
 - `max_pages` may generate an `export_warning` if the query was truncated before exhausting remote pages.
+  The download payload also carries `truncated` (boolean) and `warnings` (list), and the truncation
+  warning is announced *up front*: `DownloadService.preflight_warnings()` feeds the CLI (yellow `AVISO`
+  lines before the run), the browser UI (a confirm dialog on submit, via `POST /sources/{source}/preflight`)
+  and the job log (a `preflight_warning` event logged before the first byte).
+
+  The pre-flight does not guess from the source name. It issues **one** request per endpoint (at most
+  3, in parallel) with `limit=1` and `offset` set to this run's row cap: if a row comes back, the run
+  *will* truncate — certainty, not suspicion. It respects the query actually being run, so
+  `zikavirus` restricted to 2024 is correctly reported as fitting while the unfiltered endpoint would
+  not. Probes cost ~0.3-12s and are capped by `TRUNCATION_PROBE_TIMEOUT_SECONDS`; any failure returns
+  "no warning" rather than blocking the download. Live check on 2026-09-02 with the default 250,000-row
+  cap: `srag_demas`, `dengue` and `chikungunya` warn; `zikavirus` (2024), `mpox`, `febre_amarela`,
+  `esavi` and `sindrome_gripal_leve` stay silent.
 - If export fails with `keep_raw=false`, the warning advises re-running with `keep_raw=true` to preserve a raw snapshot.
+
+#### `srag_demas`: `dt_notific` is not a usable date filter
+
+Verified live on 2026-09-02 against `apidadosabertos.saude.gov.br`:
+
+- The DEMAS SRAG endpoints are segmented into three fixed blocks — `srag-2009-2012`,
+  `srag-2013-2018`, `srag-2019-2026` — not by year. Asking for `start_year=2024` selects the
+  whole `2019-2026` block; there is no remote year filter that narrows it.
+- The `2019-2026` block *does* expose `dt_notific` and `anomes_notific` query params (the other
+  two blocks expose only `limit`/`offset`), but the underlying column is degenerate: it is
+  collapsed onto a per-season marker rather than the real notification date. Page 0 returns
+  997 of 1000 rows with `dt_notific=2018-12-30`; the page at `offset=1000000` returns 1000 of
+  1000 with `2019-12-29`, while the same rows carry `dt_sin_pri=2020-11-18`. Accordingly,
+  `anomes_notific` only accepts a handful of values (`201712`, `201812`, `201912`, `202012`,
+  `202112`, `202312`, `202412`, `202512`).
+- Because of this, `start_date`/`end_date` are **rejected** for `srag_demas`
+  (`OpenDataSUSDatasetSpec.date_filter_supported=False`). Filtering locally on that column would
+  silently drop nearly every record. The `uf` refinement is unaffected — `sg_uf` is populated
+  normally.
+- No DEMAS SRAG endpoint offers a UF query param, so `uf` is always a local refinement there.
+- **For any year-scoped or full-history SRAG extraction, use `srag_arquivos`** (section 3.5).
+  Measured live on 2026-09-02, the two paths are not close:
+
+  | | `srag_demas` (DEMAS API) | `srag_arquivos` (bulk files) |
+  | --- | --- | --- |
+  | Rows, 2019-2026 block | ~4,445,000 | same data |
+  | Transport | 4,446 sequential pages of 1000 | 8 parquet files, ~347 MB total |
+  | Latency | ~2s at `offset=0`, ~6-11s at `offset>3000000` (offset scans the table) | one HTTP GET per year |
+  | Throughput | 206 rows/s serial, 770 at the default concurrency of 8, 955 at 16 | — |
+  | Wall clock | ~6h serial, ~1.6h at the default concurrency | minutes (2019 alone: 2.3s for 48,941 rows) |
+  | Peak memory | flat ~200 MB since the spool rewrite (was ~22 KB/row, i.e. ~98 GB projected) | streams to disk |
+  | `DT_NOTIFIC` | collapsed to a season marker (unusable) | real dates (452 distinct values in 2019) |
+
+  Raising `max_pages` for `srag_demas` is now survivable but still the slow road: it trades a
+  truncated file for an ~8-hour paginated run. `OpenDataSUSDatasetSpec.bulk_alternative` records
+  this, and both the pre-flight and truncation warnings name `srag_arquivos` rather than simply
+  suggesting a bigger page budget.
+
+#### DEMAS downloads spool to disk and resume by offset
+
+`_download_from_demas` used to accumulate every row in a Python list and only write at the end,
+so memory grew with the result (~22 KB per SRAG row measured in an isolated process: 233 MB at
+10k rows, 461 MB at 20k, 915 MB at 40k — about 98 GB projected for the full 2019-2026 block) and
+any failure lost the whole run. It now:
+
+- Writes each page to a JSONL spool under `raw/.partial/<fingerprint>.jsonl` as it arrives. Peak
+  memory is flat: 201 MB at 10k rows, 193 MB at 20k, 220 MB at 40k.
+- Fetches pages in parallel waves (`concurrency`, default 8, capped at 16) and writes each wave
+  **in page order**, so the spool stays sequential and the checkpoint keeps meaning "the first N
+  pages are on disk". The bottleneck is per-request latency, not bandwidth: measured end to end on
+  40,000 SRAG rows, 1 connection does 206 rows/s, 8 do 770 and 16 do 955. Beyond ~16 the server
+  itself degrades (a raw probe fell from ~1,400 rows/s at 24 connections to ~1,000 at 32), which
+  is where the cap comes from. When a page in a wave fails, the successful prefix is still written
+  and checkpointed before the error propagates.
+- Checkpoints `(endpoint_index, pages_done, rows_written, spool_bytes)` after every page. A run
+  that dies mid-way leaves the checkpoint behind; the next run with the same query truncates the
+  spool to the recorded byte (discarding a half-written page) and continues from that offset.
+  A run that *completes* deletes its checkpoint, so a later run always fetches fresh data.
+- The spool is named by a hash of the query (dataset, endpoints, page size, `uf`, date bounds) —
+  deliberately not by the artifact stem, which carries a timestamp and would never match across
+  runs. `max_pages` is excluded from the hash, since re-running with a bigger budget is exactly
+  when resuming is worth it. On success the spool is renamed to the usual
+  `raw/<artifact_stem>.jsonl`, so `keep_raw` output is unchanged.
+- Above `MAX_RECORDS_IN_MEMORY` (10,000 rows) the in-memory buffer is dropped and `load_dataframe()`
+  plus the format export read from the spool instead. `keep_raw=false` then keeps the spool anyway
+  (with a warning) because it is the only complete copy.
+- Converting a spooled download to CSV/Parquet streams through `scan_ndjson(...).sink_*` with an
+  explicit schema built by one constant-memory pass over the file. The pass is required: Polars'
+  sampled inference types a sparse SRAG column as `Null` and then fails with "got non-null value
+  for NULL-typed column" once a real value appears thousands of rows in. Eager `read_ndjson` costs
+  ~9.4 KB/row; the batched sink costs ~0.2 KB/row. SQLite has no incremental sink and still uses
+  the eager path.
 
 ### 3.5 OpenDataSUS Bulk Files (`srag_arquivos` + all 14 SISAGUA packages: `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`, `sisagua_controle_mensal_demais_parametros`, `sisagua_controle_mensal_amostras_fora_do_padrao`, `sisagua_controle_mensal_plano_amostragem`, `sisagua_controle_mensal_infraestrutura_operacional`, `sisagua_vigilancia_demais_parametros`, `sisagua_vigilancia_cianobacterias_e_cianotoxinas`, `sisagua_pontos_de_captacao`, `sisagua_cadastro_carro_pipa_procedencia`, `sisagua_cadastro_carro_pipa_populacao`)
 

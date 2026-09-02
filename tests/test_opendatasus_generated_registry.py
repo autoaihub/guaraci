@@ -19,6 +19,7 @@ STANDARD_GENERATED_PARAMS = {
     "keep_raw",
     "batch_size",
     "max_pages",
+    "concurrency",
     "api_base_url",
 }
 

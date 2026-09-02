@@ -194,6 +194,14 @@ def run_cmd(
         service.validate_source_params(canonical, kwargs)
     except ValueError as exc:
         raise click.BadParameter(str(exc))
+
+    # Avisos de pre-voo (ex.: teto de paginacao que trunca o download) tem que
+    # aparecer ANTES da execucao — depois de baixar 250 mil linhas nao adianta.
+    preflight = service.preflight_warnings(canonical, **kwargs)
+    if preflight and not as_json:
+        for message in preflight:
+            console.print(f"[yellow]AVISO[/yellow] - {message}")
+
     result = service.run(canonical, **kwargs)
 
     if as_json:
