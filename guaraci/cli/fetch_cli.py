@@ -212,8 +212,21 @@ def run_cmd(
             "downloads raw files)"
         )
         console.print(f"[yellow]No exported dataset[/yellow] - {warning}")
+
+    # Avisos da coleta (truncamento no limite de páginas, recorte sem
+    # registros) precisam aparecer aqui: ficar só no manifesto em disco fazia
+    # uma coleta cortada passar por bem-sucedida.
+    warnings = getattr(result, "warnings", None) or []
+    for item in warnings:
+        console.print(f"[yellow]WARNING[/yellow] {item}")
+
     if verbose:
         console.print(payload)
+
+    if payload.get("status") == "partial_success":
+        raise click.ClickException(
+            "The collection did not complete in full; see the warnings above."
+        )
 
 
 def _human_bytes(value: object) -> str:

@@ -13,7 +13,12 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Seque
 from loguru import logger
 
 from guaraci.ana import AnaHidroDataSource
-from guaraci.core.contracts import DownloadManifest, SourceParameterSpec, validate_source_params
+from guaraci.core.contracts import (
+    DownloadManifest,
+    SourceParameterSpec,
+    validate_param_relationships,
+    validate_source_params,
+)
 from guaraci.core.results import JobResult
 from guaraci.core.security import ensure_allowed_crawl_url, ensure_allowed_output_dir
 from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
@@ -991,6 +996,9 @@ class DownloadService:
         # raiz configurada (GUARACI_OUTPUT_ROOT), quando definida.
         ensure_allowed_crawl_url(params.get("results_url"))
         ensure_allowed_output_dir(params.get("output_dir"))
+        # Regras que cruzam parâmetros (intervalo invertido, data impossível)
+        # valem para toda fonte, então ficam aqui e não em cada adapter.
+        validate_param_relationships(params)
         selected = self._get_registered_source(source)
         selected.validate_params(params)
 

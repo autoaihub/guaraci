@@ -206,6 +206,23 @@ OpenDataSUS notes:
 - `max_pages` may generate an `export_warning` if the query was truncated before exhausting remote pages.
 - If export fails with `keep_raw=false`, the warning advises re-running with `keep_raw=true` to preserve a raw snapshot.
 
+Cost of date and UF refinements (measured against `/arboviroses/dengue`):
+- The DEMAS endpoints accept only `nu_ano`, `limit` and `offset`. `start_date`,
+  `end_date` and `uf` are **local** refinements: the collection pages through
+  the whole year and discards the rows outside the window client-side. Asking
+  for a single month therefore costs the same as asking for the whole year.
+- Dengue 2024 holds over 4 million records, paginated at roughly 200 records
+  per second, so a complete year takes on the order of 5 hours. The default
+  `max_pages=250` with `batch_size=1000` stops at 250 000 records, about 6% of
+  that year, and the result is reported with `status=partial_success` plus a
+  truncation warning. Raise `max_pages` deliberately, and expect the runtime
+  to scale with it.
+- Records no longer accumulate in memory: past 5 000 rows the collection spills
+  to parquet parts and the final file is written by streaming. Measured over
+  60 000 dengue records, peak memory drops from 1696 MB to 593 MB, at a cost of
+  12% in runtime. Each record costs about 11 KB while held as a dictionary, so
+  a full year would previously have required roughly 45 GB of RAM.
+
 ### 3.5 OpenDataSUS Bulk Files (`srag_arquivos` + all 14 SISAGUA packages: `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`, `sisagua_controle_mensal_demais_parametros`, `sisagua_controle_mensal_amostras_fora_do_padrao`, `sisagua_controle_mensal_plano_amostragem`, `sisagua_controle_mensal_infraestrutura_operacional`, `sisagua_vigilancia_demais_parametros`, `sisagua_vigilancia_cianobacterias_e_cianotoxinas`, `sisagua_pontos_de_captacao`, `sisagua_cadastro_carro_pipa_procedencia`, `sisagua_cadastro_carro_pipa_populacao`)
 
 | Parameter | Type | Phase | Notes |
@@ -317,6 +334,15 @@ Source-specific parameters:
 Notes:
 - The standalone `ano` field was removed from the jobs/UI schema.
 - The jobs/UI temporal window is defined by `start_year` and `end_year`.
+- `uf` resolves to the first populated column among `SG_UF_NOT`, `SG_UF`, `UF`
+  and `ID_MN_RESI`, in that order, and accepts either the two-letter code or
+  the IBGE numeric code. The preference matters because `UF` is present but
+  blank in about 96% of the records, while `SG_UF_NOT` (state of notification)
+  is complete. The column actually used is reported in the run log.
+- `municipio` matches the IBGE municipality **code** as a substring (for
+  example `355030`), not the municipality name.
+- `faixa_etaria` is the raw DATASUS age code in `NU_IDADE_N`, where the leading
+  digit is the unit and the rest is the value: `4023` means 23 years.
 
 ### 3.8 SIM (`sim`)
 
@@ -333,6 +359,15 @@ Notes:
 | `sexo` | string | export | `M` or `F` |
 | `causa_basica` | string | export | Basic cause of death |
 | `ano_obito` | integer | export | Year of death |
+
+Notes:
+- SIM files carry no dedicated state column: `uf` is read from the first two
+  digits of `CODMUNRES`, the municipality of residence. Both the two-letter
+  code and the IBGE numeric code are accepted.
+- `sexo` is exposed as `M`/`F` and translated to the codes SIM stores
+  (`1` masculine, `2` feminine, `0` unknown).
+- `ano_obito` falls back to the last four digits of `DTOBITO`, which is stored
+  as `DDMMAAAA`, when the file has no `ANOOBITO` column.
 
 ### 3.9 SIH (`sih`)
 
@@ -353,6 +388,14 @@ Note:
 - `ano` is not part of the SIH jobs/UI schema.
 - `mes` is not part of the SIH jobs/UI schema; use the collection-level
   `months` field when month selection is needed.
+- `uf` reads `UF_ZI`, which holds the six-digit manager code (`120000` for
+  Acre), and falls back to `MUNIC_RES` when `UF_ZI` is empty. The two describe
+  different things: the first is the managing unit, the second the patient's
+  municipality of residence, so results can differ for patients treated
+  outside their home state. The column actually used is reported in the run
+  log.
+- `sexo` is exposed as `M`/`F` and translated to the codes SIH stores
+  (`1` masculine, `3` feminine), inherited from the older AIH layout.
 - SIH discovery uses the PySUS FTP catalog. Broad selections such as all states,
   all months, and multiple years can resolve to thousands of DBC files and many
   gigabytes before export filtering is applied.

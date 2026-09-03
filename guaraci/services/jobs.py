@@ -485,12 +485,30 @@ class DownloadJobService:
                     else:
                         job.status = "completed"
                         job.error = None
+                        # Os avisos da coleta (truncamento no limite de páginas,
+                        # recorte sem registros) viram eventos do job: antes
+                        # ficavam só no manifesto em disco e a interface exibia
+                        # uma conclusão limpa.
+                        for warning in getattr(result, "warnings", []) or []:
+                            self._append_event_locked(
+                                job,
+                                level="warning",
+                                message=str(warning),
+                                event="warning",
+                            )
                         completion_message = "Job completed successfully."
                         if result.status == "partial_success":
-                            completion_message = (
-                                "Job completed with partial success. "
-                                f"Failures: {result.failed_count}."
-                            )
+                            if getattr(result, "truncated", False):
+                                completion_message = (
+                                    "Job completed with partial success: the collection "
+                                    "stopped at its page limit before exhausting the "
+                                    "source, so the result is incomplete."
+                                )
+                            else:
+                                completion_message = (
+                                    "Job completed with partial success. "
+                                    f"Failures: {result.failed_count}."
+                                )
                         self._append_event_locked(
                             job,
                             level="info",

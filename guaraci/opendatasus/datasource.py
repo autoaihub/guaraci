@@ -8,13 +8,14 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
-from typing import Callable, Dict, List, Mapping, Optional
+from typing import Callable, Dict, List, Mapping, Optional, Union
 from urllib.parse import quote
 
 import polars as pl
 
 from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
+from guaraci.opendatasus.buffer import PagedRecordBuffer
 from guaraci.opendatasus.client import OpenDataSUSClient, OpenDataSUSClientError
 from guaraci.opendatasus.utils.swagger_catalog import (
     DemasPniEndpoint,
@@ -142,6 +143,7 @@ class OpenDataSUSDataSource(DataSource):
         super().__init__(name="opendatasus", output_path=output_path)
         self._client = client
         self._data_by_dataset: Dict[str, List[Dict[str, object]]] = {}
+        self._buffers_by_dataset: Dict[str, PagedRecordBuffer] = {}
         self._latest_dataset: Optional[str] = None
         self._demas_catalog = load_local_pni_catalog(self.LOCAL_SWAGGER_PATH)
         self._demas_get_params_by_path = load_local_get_params_catalog(self.LOCAL_SWAGGER_PATH)
@@ -401,6 +403,13 @@ class OpenDataSUSDataSource(DataSource):
         selected = (dataset or self._latest_dataset or "").strip().lower()
         if not selected:
             raise ValueError("No OpenDataSUS dataset loaded yet. Run download() first.")
+        # Coletas grandes ficam no buffer com derramamento em disco, e não na
+        # lista em memória; nesse caso os registros vêm das partes gravadas.
+        buffer = self._buffers_by_dataset.get(selected)
+        if buffer is not None and buffer.spilled:
+            frame = buffer.frame()
+            return frame.collect() if isinstance(frame, pl.LazyFrame) else frame
+
         records = self._data_by_dataset.get(selected)
         if records is None:
             raise ValueError(
@@ -410,25 +419,39 @@ class OpenDataSUSDataSource(DataSource):
             return pl.DataFrame()
         return pl.DataFrame(records)
 
-    def export(self, df: pl.DataFrame, format: str, name: str) -> Path:  # noqa: A003
-        """Export a Polars DataFrame to CSV, Parquet or SQLite."""
+    def export(
+        self,
+        df: Union[pl.DataFrame, pl.LazyFrame],
+        format: str,
+        name: str,
+    ) -> Path:  # noqa: A003
+        """Export records to CSV, Parquet or SQLite.
+
+        Aceita um plano lazy, escrito em streaming, para que uma coleta que não
+        coube em memória também não precise ser reunida na hora de gravar.
+        """
 
         normalized = format.strip().lower()
+        is_lazy = isinstance(df, pl.LazyFrame)
+
         if normalized == "csv":
             path = self.output_path / f"{name}.csv"
-            df.write_csv(path)
+            df.sink_csv(path) if is_lazy else df.write_csv(path)
             return path
 
         if normalized == "parquet":
             path = self.output_path / f"{name}.parquet"
-            df.write_parquet(path)
+            df.sink_parquet(path) if is_lazy else df.write_parquet(path)
             return path
 
         if normalized == "sqlite":
             path = self.output_path / f"{name}.sqlite"
             table_name = "opendatasus_records"
+            frame = df.collect() if is_lazy else df
             with sqlite3.connect(path) as connection:
-                df.to_pandas().to_sql(table_name, connection, if_exists="replace", index=False)
+                frame.to_pandas().to_sql(
+                    table_name, connection, if_exists="replace", index=False
+                )
             return path
 
         raise ValueError(
@@ -542,7 +565,9 @@ class OpenDataSUSDataSource(DataSource):
                 }
             )
 
-        records: List[Dict[str, object]] = []
+        # Acumulador com derramamento em disco: uma coleta anual grande não
+        # cabe como lista de dicionários (ver guaraci/opendatasus/buffer.py).
+        records = PagedRecordBuffer()
         pages_scanned = 0
         truncated = False
 
@@ -604,7 +629,8 @@ class OpenDataSUSDataSource(DataSource):
             else:
                 truncated = True
 
-        self._data_by_dataset[dataset] = records
+        self._data_by_dataset[dataset] = records.records
+        self._buffers_by_dataset[dataset] = records
         self._latest_dataset = dataset
 
         artifact_stem = self._build_artifact_stem(
@@ -615,9 +641,8 @@ class OpenDataSUSDataSource(DataSource):
         )
         raw_path: Optional[Path] = None
         if keep_raw:
-            raw_path = self._write_raw_snapshot(
-                stem=artifact_stem,
-                records=records,
+            raw_path = records.write_jsonl(
+                self.output_path / "raw" / f"{artifact_stem}.jsonl"
             )
 
         exported_files: List[str] = []
@@ -625,9 +650,10 @@ class OpenDataSUSDataSource(DataSource):
         if requested_format:
             if records:
                 try:
-                    dataframe = self._records_to_dataframe(records)
+                    # `frame()` devolve plano lazy quando a coleta derramou
+                    # para disco, e a escrita então acontece em streaming.
                     export_path = self.export(
-                        dataframe,
+                        records.frame(),
                         format=requested_format,
                         name=artifact_stem,
                     )
@@ -732,6 +758,12 @@ class OpenDataSUSDataSource(DataSource):
             "output_format": requested_format,
             "exported_files": exported_files,
             "api_params": dict(api_params),
+            # Os avisos e a marca de truncamento acompanham o resultado, e não
+            # só o manifesto em disco: sem isso a CLI e a API mostravam sucesso
+            # limpo para uma coleta cortada no limite de páginas.
+            "warnings": list(warnings),
+            "truncated": truncated,
+            "pages_scanned": pages_scanned,
         }
         export_warning = self._combine_warnings(warnings)
         if export_warning:

@@ -2,6 +2,46 @@
 
 ## [Unreleased]
 
+### Fixed: coletas do OpenDataSUS estouravam a memória e truncavam em silêncio
+A família DEMAS reúne 51 das 99 fontes e é o outro caminho de coleta longa da
+plataforma. Medições contra `/arboviroses/dengue`, que tem mais de 4 milhões de
+registros só em 2024, mostraram que ela repetia os dois problemas já corrigidos
+no DATASUS, por motivos próprios.
+
+- **Registros acumulados em memória.** As páginas eram juntadas numa lista de
+  dicionários e só viravam DataFrame no fim. Cada registro custa cerca de 11 KB
+  nessa forma, o que projeta cerca de 45 GB para um ano completo: a coleta
+  morria por falta de memória depois de horas, sem deixar nada aproveitável.
+  Novo `guaraci/opendatasus/buffer.py`: até 5000 registros tudo segue em
+  memória, como antes; acima disso a coleta passa a gravar partes parquet e o
+  arquivo final é escrito por streaming. Medido sobre 60 000 registros, o pico
+  cai de 1696 MB para 593 MB com 12% a mais de tempo. O limiar foi escolhido
+  pela curva: 1000 chega a 497 MB, mas custa 47% a mais de tempo.
+- **Truncamento reportado como sucesso.** Com `max_pages=250` e
+  `batch_size=1000`, o default para em 250 000 registros, cerca de 6% do ano de
+  dengue. O aviso de truncamento existia apenas dentro do manifesto em disco, e
+  o resultado entregue à CLI e à API dizia `status: success` com
+  `warnings: None`. Agora `warnings` e `truncated` acompanham o payload,
+  `JobResult` expõe as duas informações, uma coleta truncada passa a valer
+  `partial_success`, o `fetch` imprime cada aviso e sai diferente de zero, e o
+  serviço de jobs registra os avisos como eventos em vez de anunciar conclusão
+  limpa.
+- Os recortes por `start_date`, `end_date` e `uf` são **locais**: os endpoints
+  DEMAS aceitam apenas `nu_ano`, `limit` e `offset`, então pedir um mês custa a
+  mesma varredura que pedir o ano. Isso agora está documentado em
+  `docs/SOURCES_AND_FILTERS.md` §3.4, junto do ritmo observado (cerca de 200
+  registros por segundo, o que dá cerca de 5 horas para um ano de dengue).
+
+### Fixed: intervalos e datas impossíveis passavam pela validação
+Levantamento sobre as 99 fontes: 37 aceitavam `start_year` maior que
+`end_year`, 10 aceitavam ano negativo e 10 aceitavam datas como `31/12/2024` ou
+`2024-02-30`. A validação existente olhava um parâmetro por vez e não enxergava
+relações entre eles, então o pedido só falhava adiante, com a coleta em
+andamento, ou era ignorado pela origem, que devolvia o conjunto inteiro no
+lugar do recorte pedido. `validate_param_relationships` em
+`guaraci/core/contracts.py` passa a checar ordem e limites de anos e datas para
+toda fonte, antes de qualquer acesso à rede.
+
 ### Fixed: filtros de refinamento de SIH, SIM e SINAN devolviam o conjunto errado
 Varredura sistemática dos filtros contra microdados reais (dengue nacional
 2014-2024, SIM CID10 AC 2020, SIH RD AC 2023-01). Dos sete filtros oferecidos,
