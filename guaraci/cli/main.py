@@ -5,10 +5,41 @@ Guaraci Main CLI
 Main command-line interface for the Guaraci platform.
 """
 
+import sys
+
 import click
 from rich.console import Console
 
 from guaraci import __version__
+
+
+def _force_utf8_stdio() -> None:
+    """Garante que a saída aguente os caracteres do próprio texto de ajuda.
+
+    No Windows, ``sys.stdout`` assume a codificação do console (cp1252 por
+    padrão) sempre que não está ligado a um terminal UTF-8, o que inclui
+    qualquer redirecionamento para arquivo ou cano. Como a ajuda traz acentos
+    e a bandeira na descrição do grupo, ``guaraci --help | more`` terminava em
+    ``UnicodeEncodeError`` antes de imprimir qualquer coisa útil.
+
+    ``errors="replace"`` mantém a saída legível mesmo num console que não dê
+    conta de algum caractere, em vez de derrubar o comando.
+    """
+    for nome in ("stdout", "stderr"):
+        stream = getattr(sys, nome, None)
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        atual = (getattr(stream, "encoding", "") or "").lower().replace("-", "")
+        if atual == "utf8":
+            continue
+        try:
+            reconfigure(encoding="utf-8", errors="replace")
+        except (ValueError, OSError):  # pragma: no cover - console exótico
+            pass
+
+
+_force_utf8_stdio()
 from guaraci.cli.sinan_cli import sinan
 from guaraci.cli.sim_cli import sim
 from guaraci.cli.sih_cli import sih

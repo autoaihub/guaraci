@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed: `guaraci --help` quebrava no Windows fora de um terminal UTF-8
+`sys.stdout` assume a codificação do console (cp1252 por padrão no Windows)
+sempre que não está ligado a um terminal UTF-8, o que inclui qualquer
+redirecionamento para arquivo ou cano. Como a ajuda traz acentos e a bandeira
+na descrição do grupo, `guaraci --help | more` e `guaraci --help > ajuda.txt`
+terminavam em `UnicodeEncodeError` antes de imprimir qualquer coisa útil, o
+mesmo valendo para a ajuda de cada subcomando. A entrada da CLI passa a
+reconfigurar a saída para UTF-8 com `errors="replace"`, o que mantém o texto
+legível mesmo num console que não dê conta de algum caractere.
+
 ### Changed: fonte FTP sem arquivos no período explica a cobertura publicada
 Vários sistemas do DATASUS foram descontinuados, e pedir um ano fora da série
 devolvia zero arquivos sem motivo, indistinguível de uma falha de coleta. A
