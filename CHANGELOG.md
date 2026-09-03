@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Changed: fonte FTP sem arquivos no período explica a cobertura publicada
+Vários sistemas do DATASUS foram descontinuados, e pedir um ano fora da série
+devolvia zero arquivos sem motivo, indistinguível de uma falha de coleta. A
+descoberta genérica agora lista os anos que a origem publica quando o resultado
+sai vazio e devolve o intervalo real no campo `warnings` do resumo. Verificado
+ao vivo: CIH publica de 2008 a 2011, SISCAN de 2006 a 2015 e SISPRENATAL de
+2012 a 2014, e as fontes com dados no período seguem sem aviso. O intervalo é
+lido da origem a cada consulta, e não fixado no código, para não envelhecer.
+
 ### Fixed: duas fontes OpenDataSUS estavam inalcançáveis por defeito nosso
 Varredura ao vivo das 51 fontes DEMAS registradas (`scripts/smoke_opendatasus_
 sources.py`): 42 respondiam, 6 falhavam e 3 dependem de parâmetro de caminho.

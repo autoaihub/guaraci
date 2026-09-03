@@ -136,6 +136,7 @@ def build_summary(
     source: str,
     filters: Dict[str, Any],
     sample_limit: int = 10,
+    warnings: Optional[Sequence[str]] = None,
 ) -> Dict[str, Any]:
     """Shape a discovery payload identical to the legacy ``discover`` output.
 
@@ -171,4 +172,5 @@ def build_summary(
         "by_state": dict(sorted(by_state.items())),
         "sample": sample,
         "filters": filters,
+        "warnings": list(warnings or []),
     }

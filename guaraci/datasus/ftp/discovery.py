@@ -239,6 +239,51 @@ async def discover_spec(
     return filtered
 
 
+async def discover_available_years(
+    client: _FtpListing,
+    spec: Any,  # duck-typed SystemSpec, como em discover_spec
+    *,
+    groups: Optional[Sequence[str]] = None,
+) -> list[int]:
+    """Anos que a origem realmente publica para este sistema.
+
+    Vários sistemas do DATASUS foram descontinuados (CIH termina em 2011,
+    SISPRENATAL em 2012, SISCAN em 2015), e pedir um ano fora da série
+    devolvia zero arquivos sem dizer o motivo, o que é indistinguível de uma
+    falha. Serve para explicar o vazio, então é chamada só quando ele ocorre.
+    """
+    group_set = {g.upper() for g in groups} if groups else None
+    group_dirs = getattr(spec, "group_dirs", ()) or ()
+    if group_dirs:
+        directories = [
+            d for g, d in group_dirs if group_set is None or g.upper() in group_set
+        ]
+    else:
+        directories = list(spec.roots)
+
+    anos: set[int] = set()
+    for directory in directories:
+        for record in await _list_and_parse(client, directory, spec.parse):
+            if group_set is not None and record.group.upper() not in group_set:
+                continue
+            anos.add(int(record.year))
+    return sorted(anos)
+
+
+def build_coverage_warning(source: str, anos: Sequence[int]) -> str:
+    """Mensagem que explica um resultado vazio pela cobertura da origem."""
+    if not anos:
+        return (
+            f"Source '{source}' returned no files, and no published year could "
+            "be listed at the origin."
+        )
+    faixa = f"{anos[0]}" if len(anos) == 1 else f"{anos[0]}-{anos[-1]}"
+    return (
+        f"No files for the requested years. Source '{source}' publishes data "
+        f"for {faixa}."
+    )
+
+
 def _matches(
     rec: FileRecord,
     years: set[int],
