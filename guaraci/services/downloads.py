@@ -540,7 +540,10 @@ class PysusDownloadSource:
             if not available:
                 continue
             try:
-                df = datasource.load_dataframe(str(disease))
+                # Streaming quando a fonte oferece o plano lazy: exportar uma
+                # doença com muitos anos não pode exigir todos em memória.
+                scan = getattr(datasource, "scan_dataframe", None)
+                df = scan(str(disease)) if callable(scan) else datasource.load_dataframe(str(disease))
                 if filter_kwargs:
                     df = datasource.filter(df, **filter_kwargs)
                 exported_path = datasource.export(

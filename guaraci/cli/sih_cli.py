@@ -21,6 +21,7 @@ from guaraci.cli._common import (
     output_dir_option,
     print_json,
     raise_cli_error,
+    raise_if_downloads_failed,
     resolve_verbose,
     states_option,
 )
@@ -178,7 +179,7 @@ def download(
                     },
                 )
             )
-        elif not failed_groups:
+        elif not failed_groups and not download_info["failed_downloads"]:
             console.print("[green]SUCCESS SIH download and export completed![/green]")
 
         if failed_groups:
@@ -186,6 +187,7 @@ def download(
                 f"{len(failed_groups)} group(s) failed during processing: "
                 f"{', '.join(failed_groups)}"
             )
+        raise_if_downloads_failed(download_info)
 
     except click.ClickException:
         raise

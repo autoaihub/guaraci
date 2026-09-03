@@ -22,6 +22,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from loguru import logger
 
+from guaraci.datasus.ftp import dbc as dbc_module
 from guaraci.datasus.ftp.catalog import FileRecord
 from guaraci.datasus.ftp.client import DatasusFtpClient
 
@@ -76,6 +77,15 @@ async def download_records(
     ``self.data`` so ``load_dataframe`` keeps working unchanged.
     """
     total = len(records)
+
+    # Preflight das dependências de decodificação: sem elas nenhum arquivo
+    # pode ser convertido, e insistir arquivo a arquivo transferiria a coleta
+    # inteira só para descartá-la (uma coleta de dengue 2014-2024 são 757 MB).
+    # Só se aplica ao decoder real; um ``dbc_reader`` injetado (testes, fontes
+    # com decodificação própria) responde por suas próprias dependências.
+    if dbc_reader is dbc_module.read:
+        dbc_module.ensure_available()
+
     if progress_callback is not None:
         progress_callback(0, total)
 
@@ -89,11 +99,21 @@ async def download_records(
         try:
             if not parquet_path.exists():
                 await client.download(record.path, dbc_path)
-                df = dbc_reader(dbc_path)
-                df.write_parquet(parquet_path)
+                if dbc_reader is dbc_module.read:
+                    # Caminho em streaming: o pico de memória acompanha o
+                    # chunk, não o arquivo inteiro (ver dbc.decode_to_parquet).
+                    dbc_module.decode_to_parquet(dbc_path, parquet_path)
+                else:
+                    df = dbc_reader(dbc_path)
+                    df.write_parquet(parquet_path)
                 safe_unlink(dbc_path)
             paths_by_group[record.group].append(str(parquet_path))
             successful += 1
+        except ImportError:
+            # Falha determinística de ambiente: os arquivos seguintes falhariam
+            # igual. Aborta em vez de fingir sucesso parcial.
+            safe_unlink(dbc_path)
+            raise
         except Exception as exc:  # noqa: BLE001 — caller wants partial success
             logger.error("FTP download failed for {}: {}", record.basename, exc)
             failed.append((record.group, record.basename))

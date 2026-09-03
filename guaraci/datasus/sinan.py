@@ -10,7 +10,7 @@ import os
 import asyncio
 import sqlite3
 import datetime
-from typing import Optional, Literal, List, Dict, Any, Callable
+from typing import Optional, Literal, List, Dict, Any, Callable, Sequence
 from pathlib import Path
 from collections import defaultdict
 
@@ -225,26 +225,58 @@ class SinanDataSource(DataSource):
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def _load_as_polars(self, disease: str) -> pl.DataFrame:
+    def scan_dataframe(self, disease: str) -> pl.LazyFrame:
+        """Plano lazy sobre os parquets baixados de ``disease``.
+
+        Nada é lido aqui: o consumidor decide se materializa
+        (:meth:`load_dataframe`) ou se escreve em streaming
+        (:meth:`export`). É esse segundo caminho que permite exportar
+        vários anos de uma doença sem exigir todos eles na memória ao mesmo
+        tempo.
+        """
         if disease not in self.data:
             raise ValueError(f"Disease {disease} not found. Run download() first.")
 
-        parquet_sets = self.data[disease]
+        parquet_sets = [str(path) for path in self.data[disease]]
         if not parquet_sets:
             logger.warning(f"No data found for {disease}")
-            return pl.DataFrame()
+            return pl.LazyFrame()
 
+        logger.info(f"Planning {len(parquet_sets)} parquet files for {disease}")
+
+        try:
+            # Os arquivos anuais do SINAN não têm o mesmo conjunto de colunas
+            # (o formulário muda entre anos), e a divergência é nos dois
+            # sentidos: um ano pode ter colunas que o outro não tem. Um scan
+            # único exigiria schema comum, então cada arquivo entra como seu
+            # próprio plano e o `diagonal_relaxed` faz a união, preservando a
+            # semântica do antigo concat(how="diagonal") sem sair do lazy.
+            plans = [pl.scan_parquet(path) for path in parquet_sets]
+            lf = plans[0] if len(plans) == 1 else pl.concat(plans, how="diagonal_relaxed")
+        except Exception as exc:
+            logger.warning(
+                f"Lazy scan unavailable for {disease} ({exc}); falling back to eager concat"
+            )
+            return self._eager_concat(disease, parquet_sets).lazy()
+
+        uf_columns = self._uf_columns(lf.collect_schema().names())
+        if uf_columns:
+            lf = lf.with_columns([self._uf_mapping_expr(col) for col in uf_columns])
+        return lf
+
+    def _eager_concat(self, disease: str, parquet_sets: Sequence[str]) -> pl.DataFrame:
+        """Caminho de reserva: lê cada parquet e concatena em memória.
+
+        Mantido para os casos em que o scan lazy não reconcilia os schemas.
+        Exige todos os anos residentes ao mesmo tempo, então é usado apenas
+        como fallback.
+        """
         combined_dfs = []
-        total_files = len(parquet_sets)
-        
-        logger.info(f"Processing {total_files} parquet files for {disease}")
-
-        with tqdm(total=total_files, desc=f"Loading {disease}", unit="file") as pbar:
+        with tqdm(total=len(parquet_sets), desc=f"Loading {disease}", unit="file") as pbar:
             for filepath in parquet_sets:
                 try:
                     df = pl.read_parquet(filepath)
-                    df = self._apply_uf_mapping(df)
-                    combined_dfs.append(df)
+                    combined_dfs.append(self._apply_uf_mapping(df))
                 except Exception as e:
                     logger.error(f"Failed to process parquet file {filepath}: {e}")
                 finally:
@@ -253,46 +285,71 @@ class SinanDataSource(DataSource):
         if not combined_dfs:
             logger.warning(f"No valid data found for {disease}")
             return pl.DataFrame()
+        return pl.concat(combined_dfs, how="diagonal")
 
-        logger.info(f"Combining {len(combined_dfs)} DataFrames for {disease}")
-        combined = pl.concat(combined_dfs, how="diagonal")
-
-        logger.info(f"✅ {disease}: {len(combined)} records loaded, {len(combined.columns)} columns")
+    def _load_as_polars(self, disease: str) -> pl.DataFrame:
+        combined = self.scan_dataframe(disease).collect()
+        if combined.height == 0:
+            logger.warning(f"No valid data found for {disease}")
+            return combined
+        logger.info(
+            f"✅ {disease}: {len(combined)} records loaded, {len(combined.columns)} columns"
+        )
         return combined
 
+    # Códigos IBGE ("35") e siglas ("SP") resolvem para a mesma sigla; o
+    # mapa cobre as duas grafias de uma vez para o `replace_strict` abaixo.
+    _UF_LOOKUP: Dict[str, str] = {
+        **{str(code): sigla for code, sigla in UF_DICT.items()},
+        **{sigla: sigla for sigla in UF_DICT.values()},
+    }
+
+    @classmethod
+    def _uf_mapping_expr(cls, col: str) -> pl.Expr:
+        """Expressão que normaliza uma coluna de UF para a sigla.
+
+        Substitui o antigo ``map_elements`` com callback Python, que fazia
+        ``import pandas`` e ``pd.isna`` uma vez por linha: em milhões de
+        registros isso dominava o tempo de processamento. Valores não
+        reconhecidos (incluindo os sentinelas ``0``/``NAN``/``NULL``) viram
+        nulo, como antes.
+        """
+        normalized = (
+            pl.col(col)
+            .cast(pl.Utf8, strict=False)
+            .str.strip_chars()
+            .str.to_uppercase()
+        )
+        # "35.0" chega assim quando a coluna foi lida como float; o corte da
+        # parte decimal reproduz o antigo int(float(valor)).
+        normalized = normalized.str.replace(r"\.0+$", "")
+        return (
+            normalized.replace_strict(cls._UF_LOOKUP, default=None)
+            .cast(pl.Utf8)
+            .alias(col)
+        )
+
+    @staticmethod
+    def _uf_columns(columns: Sequence[str]) -> List[str]:
+        return [col for col in columns if "UF" in col.upper()]
+
     def _apply_uf_mapping(self, df: pl.DataFrame) -> pl.DataFrame:
-        def safe_uf_mapping(value):
-            import pandas as pd
-            if value is None or pd.isna(value):
-                return None
-            str_val = str(value).strip().upper()
-            if not str_val or str_val in ["NAN", "NONE", "NULL", "0", ""]:
-                return None
-            if str_val in UF_DICT.values():
-                return str_val
+        for col in self._uf_columns(df.columns):
             try:
-                numeric_code = int(float(str_val))
-                return UF_DICT.get(numeric_code)
-            except (ValueError, TypeError):
-                return None
-
-        uf_columns = [
-            col for col in df.columns
-            if any(pattern in col.upper() for pattern in ["UF", "_UF", "SG_UF"])
-        ]
-
-        for col in uf_columns:
-            try:
-                df = df.with_columns([
-                    pl.col(col).map_elements(safe_uf_mapping, return_dtype=pl.Utf8).alias(col)
-                ])
+                df = df.with_columns([self._uf_mapping_expr(col)])
             except Exception as e:
                 logger.warning(f"Failed to apply UF mapping to column {col}: {e}")
-
         return df
 
     def load_dataframe(self, disease: str) -> pl.DataFrame:
         return self._load_as_polars(disease)
+
+    @staticmethod
+    def _columns_of(df: Any) -> List[str]:
+        """Nomes das colunas de um DataFrame ou LazyFrame."""
+        if isinstance(df, pl.LazyFrame):
+            return df.collect_schema().names()
+        return list(df.columns)
 
     def filter(
         self,
@@ -309,10 +366,11 @@ class SinanDataSource(DataSource):
             raise ValueError("É necessário fornecer um DataFrame para filtragem.")
 
         conditions: List[pl.Expr] = []
+        available = self._columns_of(df)
 
         def resolve_column(options: List[str]) -> Optional[str]:
             for candidate in options:
-                if candidate in df.columns:
+                if candidate in available:
                     return candidate
             return None
 
@@ -369,23 +427,45 @@ class SinanDataSource(DataSource):
 
     def export(
         self,
-        df: pl.DataFrame,
+        df: pl.DataFrame | pl.LazyFrame,
         format: Literal["csv", "sqlite", "parquet"] = "csv",
         name: str = "output",
     ) -> Optional[Path]:
-        if df is None or len(df) == 0:
+        """Escreve o conjunto no formato pedido.
+
+        Aceita tanto um ``DataFrame`` já materializado quanto um
+        ``LazyFrame``. No segundo caso, ``csv`` e ``parquet`` são escritos em
+        streaming (``sink_*``), de modo que o pico de memória não acompanha o
+        tamanho do conjunto. ``sqlite`` não tem escrita incremental
+        equivalente aqui e materializa o plano antes de gravar.
+        """
+        if df is None:
+            logger.warning(f"Nenhum dado disponível para exportar: {name}")
+            return None
+
+        is_lazy = isinstance(df, pl.LazyFrame)
+        if not is_lazy and len(df) == 0:
             logger.warning(f"Nenhum dado disponível para exportar: {name}")
             return None
 
         output_dir = Path(self.output_path)
         final_stem = name
+        columns = self._columns_of(df)
 
         if "_" in name:
             partes = name.split("_")
             if len(partes) >= 3 and partes[-2].isdigit() and partes[-1].isdigit():
                 start_year, end_year = int(partes[-2]), int(partes[-1])
-                if "NU_ANO" in df.columns:
-                    raw_years = df["NU_ANO"].unique().to_list()
+                if "NU_ANO" in columns:
+                    if is_lazy:
+                        raw_years = (
+                            df.select(pl.col("NU_ANO").unique())
+                            .collect()
+                            .to_series()
+                            .to_list()
+                        )
+                    else:
+                        raw_years = df["NU_ANO"].unique().to_list()
                     present_years = {
                         int(str(value).strip())
                         for value in raw_years
@@ -402,13 +482,23 @@ class SinanDataSource(DataSource):
         final_path = output_dir / f"{final_stem}.{format}"
 
         if format == "csv":
-            df.write_csv(final_path)
+            if is_lazy:
+                df.sink_csv(final_path)
+            else:
+                df.write_csv(final_path)
         elif format == "parquet":
-            df.write_parquet(final_path)
+            if is_lazy:
+                df.sink_parquet(final_path)
+            else:
+                df.write_parquet(final_path)
         elif format == "sqlite":
+            frame = df.collect() if is_lazy else df
+            if len(frame) == 0:
+                logger.warning(f"Nenhum dado disponível para exportar: {name}")
+                return None
             db_path = output_dir / f"{final_stem}.db"
             con = sqlite3.connect(db_path)
-            df.to_pandas().to_sql(name=final_stem, con=con, if_exists="replace", index=False)
+            frame.to_pandas().to_sql(name=final_stem, con=con, if_exists="replace", index=False)
             con.close()
         else:
             raise ValueError("Formato inválido. Escolha entre 'csv', 'sqlite' ou 'parquet'.")

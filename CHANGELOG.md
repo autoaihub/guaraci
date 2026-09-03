@@ -2,6 +2,66 @@
 
 ## [Unreleased]
 
+### Fixed: coletas longas do DATASUS terminavam em nada (dengue, SINAN)
+Relato de usuário: quase uma hora de execução para baixar dengue, seguida de
+falha sem dado nenhum. Reproduzido com `sinan download 2014 2024 -d DENG`
+(11 arquivos, 757 MB no FTP), que expôs três defeitos independentes.
+
+- **Dependência de decodificação verificada tarde demais.** `pyreaddbc` vem
+  do extra opcional `guaraci[datasus]` e só era importado dentro de
+  `dbc.read`, isto é, depois de cada arquivo já ter sido transferido. Como
+  `download_records` (`guaraci/datasus/ftp/orchestration.py`) capturava
+  `Exception` genérica, a falta da biblioteca era contabilizada como falha
+  daquele arquivo e o laço seguia baixando os 757 MB restantes para
+  descartar tudo. Adicionados `dbc.ensure_available()`, chamado antes do
+  primeiro download, e `DbcDependencyError` (subclasse de `ImportError`),
+  com o laço reerguendo `ImportError` em vez de tratá-lo como falha
+  isolada. Medido: a execução passa de uma hora com 757 MB baixados e
+  descartados para 3 segundos, saída 1, mensagem acionável e zero bytes
+  transferidos. Vale para SIH, SIM, SINAN e as 11 fontes FTP genéricas,
+  que compartilham a mesma orquestração.
+- **Pico de memória proporcional ao arquivo inteiro.** `dbc.read`
+  materializava todos os chunks e os concatenava, e `SinanDataSource.
+  _load_as_polars` lia os parquets de todos os anos para um
+  `pl.concat(how="diagonal")`. Um único ano de dengue (DENGBR24, 287 MB
+  comprimidos) foi medido em 8,8 GB residentes e crescendo, com 15 minutos
+  sem concluir; o concat dos 11 anos nem chegava a acontecer. Novo
+  `dbc.decode_to_parquet` escreve cada chunk como parte e faz a junção com
+  `pl.concat(..., how="diagonal_relaxed").sink_parquet()`, sem materializar
+  o conjunto. `SinanDataSource.scan_dataframe()` devolve o plano lazy,
+  `export()` aceita `LazyFrame` e usa `sink_parquet`/`sink_csv`, e CLI e
+  `DownloadService` passaram a usar esse caminho quando disponível. A
+  execução completa de 2014-2024 agora conclui em 38 minutos com os 11
+  anos, 17 281 884 registros e 121 colunas.
+- **Sucesso parcial reportado como sucesso.** Com 10 dos 11 anos perdidos, o
+  CLI imprimia `SUCCESS ... completed successfully!` e saía com 0, de modo
+  que qualquer script a jusante lia a execução como boa; o único sinal era
+  um aviso no meio do log e o sufixo `_partial` no arquivo. Novo
+  `raise_if_downloads_failed` em `guaraci/cli/_common.py`, aplicado aos três
+  CLIs (sih, sim, sinan), faz a falha parcial sair diferente de zero sem
+  suprimir o payload JSON do que foi obtido.
+
+Ajustes de apoio na mesma correção:
+
+- `_CHUNK_ROWS` de `dbc` passou de 100 000 para 10 000. Pico medido sobre
+  DENGBR23.dbc (62 MB comprimidos), com o tempo estável em 180-200 s nas
+  quatro configurações: 100k custa 2815 MB, 25k custa 1408 MB, 10k custa
+  960 MB e 5k custa 878 MB, ou seja, o ganho satura perto de 10k.
+- A junção das partes usa `diagonal_relaxed` porque um `scan_parquet` sobre
+  a lista exigiria schema idêntico entre elas, o que não ocorre: `DT_GRAV`
+  é inferida como `Null` num chunk e como `Date` no seguinte. Sem isso a
+  junção caía no fallback em memória e o pico voltava a acompanhar o
+  arquivo inteiro (1400 MB em streaming contra 4114 MB no fallback).
+- `SinanDataSource._apply_uf_mapping` trocou o `map_elements` com callback
+  Python, que executava `import pandas` e `pd.isna` uma vez por linha, por
+  expressão nativa com `replace_strict`.
+- Combinando as duas medidas, o pico de decodificação de um arquivo caiu de
+  5091 MB para 960 MB. A saída foi verificada idêntica em conteúdo e schema
+  à produzida antes das mudanças (DENGBR17 e DENGBR18, 121 colunas).
+- Testes novos em `tests/test_ftp_failfast_and_streaming.py`,
+  `tests/test_sinan_lazy_export.py` e `tests/test_cli_exit_codes.py`
+  (suíte: 804 → 833).
+
 ### Added: 5 fontes IBGE novas (registro civil e saneamento domiciliar, Censo 2022)
 - `ibge_casamentos` (SIDRA tabela 4406, variável 4993): casamentos por mês do
   registro, fechando a série de registro civil ao lado de

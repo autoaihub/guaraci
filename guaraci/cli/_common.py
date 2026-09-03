@@ -81,6 +81,25 @@ def raise_cli_error(exc: BaseException, verbose: bool = False) -> None:
     raise click.ClickException(str(exc)) from exc
 
 
+def raise_if_downloads_failed(download_info: Any, *, unit: str = "file") -> None:
+    """Encerra com erro quando parte dos arquivos não foi baixada.
+
+    Uma coleta em que 10 de 11 arquivos falharam não é um sucesso, mas era
+    reportada como tal: o CLI imprimia um aviso, seguia para o export do que
+    sobrou e saía com 0, de modo que qualquer script a jusante tratava a
+    execução como boa. O aviso continua sendo impresso pelo chamador; aqui
+    só se garante que o código de saída conte a mesma história.
+    """
+    failed = (download_info or {}).get("failed_downloads") or []
+    if not failed:
+        return
+    total = (download_info or {}).get("total_files") or 0
+    raise click.ClickException(
+        f"{len(failed)} of {total} {unit}(s) failed during download; "
+        "the exported data covers only what was retrieved."
+    )
+
+
 @contextmanager
 def download_progress(
     console: Console, description: str
