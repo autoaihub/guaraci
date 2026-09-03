@@ -26,7 +26,6 @@ changes basename on every extraction, so it naturally re-downloads).
 from __future__ import annotations
 
 import re
-import sqlite3
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
@@ -49,6 +48,7 @@ from guaraci.core.http import (
     read_http_error_body,
     request_with_retry,
 )
+from guaraci.datasus.frames import write_sqlite
 
 _KNOWN_FORMATS: Tuple[str, ...] = ("parquet", "csv", "json", "xml")
 # Container formats whose *inner* data format is worth surfacing separately
@@ -859,28 +859,50 @@ class PortalFileDataSource(DataSource):
         suffix = path.suffix.lower().lstrip(".")
         if suffix == normalized:
             return path
-        if suffix == "parquet":
-            frame = pl.read_parquet(path)
-        elif suffix == "csv":
-            frame = pl.read_csv(path, infer_schema_length=10000, ignore_errors=True)
-        else:
+        if suffix not in {"parquet", "csv"}:
             raise ValueError(
                 f"Cannot convert resource format '{suffix}' to '{normalized}' "
                 "(only parquet/csv sources are convertible)."
             )
         dest = path.with_suffix(f".{normalized}")
+
+        if normalized == "sqlite":
+            # Aqui o plano lazy compensa, porque `write_sqlite` consome o frame
+            # em lotes: medido sobre a SRAG de 2025, 1427 MB de pico contra
+            # 1711 MB partindo do frame já materializado. A conversão dos tipos
+            # é o que destrava o formato: as 21 colunas Decimal do arquivo
+            # faziam `--format sqlite` abortar com "type 'decimal.Decimal' is
+            # not supported".
+            escrito = write_sqlite(self._scan(path, suffix), db_path=dest, table="records")
+            if escrito is None:
+                raise ValueError(
+                    f"Resource '{path.name}' has no rows to export to sqlite."
+                )
+            return escrito
+
+        # Para csv e parquet a leitura eager é a mais barata, e não por acaso:
+        # os parquet da origem vêm num único row group (336 mil linhas por 194
+        # colunas na SRAG de 2025), abaixo do qual não há streaming possível.
+        # Medido sobre o CSV de 288 MB da SRAG de 2024, o caminho lazy custou
+        # 832 MB de pico contra 689 MB do eager, sem ganho de tempo.
+        frame = (
+            pl.read_parquet(path)
+            if suffix == "parquet"
+            else pl.read_csv(path, infer_schema_length=10000, ignore_errors=True)
+        )
         if normalized == "csv":
             frame.write_csv(dest)
         elif normalized == "parquet":
             frame.write_parquet(dest)
-        elif normalized == "sqlite":
-            with sqlite3.connect(dest) as connection:
-                frame.to_pandas().to_sql(
-                    "records", connection, if_exists="replace", index=False
-                )
         else:
             raise ValueError(f"Unsupported output format '{output_format}'.")
         return dest
+
+    @staticmethod
+    def _scan(path: Path, suffix: str) -> pl.LazyFrame:
+        if suffix == "parquet":
+            return pl.scan_parquet(path)
+        return pl.scan_csv(path, infer_schema_length=10000, ignore_errors=True)
 
     # -- manifest / abstract contract ---------------------------------------
 

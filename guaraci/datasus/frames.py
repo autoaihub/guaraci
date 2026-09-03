@@ -127,7 +127,7 @@ def write_sqlite(
     con = sqlite3.connect(db_path)
     escreveu = False
     try:
-        for lote in _iter_batches(frame, tamanho_lote):
+        for lote in _iter_batches(sqlite_safe(frame), tamanho_lote):
             if lote.is_empty():
                 continue
             lote.to_pandas().to_sql(
@@ -146,6 +146,31 @@ def write_sqlite(
         db_path.unlink(missing_ok=True)
         return None
     return db_path
+
+
+def sqlite_safe(frame: Frame) -> Frame:
+    """Converte os tipos que o ``sqlite3`` não sabe gravar.
+
+    Colunas ``Decimal`` viram ``decimal.Decimal`` na passagem por pandas, e o
+    driver responde ``ProgrammingError: type 'decimal.Decimal' is not
+    supported``, abortando a exportação inteira. Os arquivos anuais da SRAG
+    trazem 21 colunas assim, o que tornava `--format sqlite` inutilizável
+    nessa família.
+
+    ``scale=0`` vira inteiro, que é exato; escala maior vira ponto flutuante,
+    que é o que o SQLite oferece, já que não tem tipo decimal nativo.
+    """
+    schema = frame.collect_schema() if isinstance(frame, pl.LazyFrame) else frame.schema
+    casts = []
+    for nome, tipo in zip(schema.names(), schema.dtypes()):
+        if not isinstance(tipo, pl.Decimal):
+            continue
+        destino = pl.Int64 if not tipo.scale else pl.Float64
+        casts.append(pl.col(nome).cast(destino))
+    if not casts:
+        return frame
+    logger.debug(f"sqlite: convertendo {len(casts)} coluna(s) Decimal")
+    return frame.with_columns(casts)
 
 
 def _iter_batches(frame: Frame, batch_rows: int):

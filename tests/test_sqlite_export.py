@@ -116,3 +116,72 @@ def test_frame_lazy_vazio_tambem_nao_deixa_banco(tmp_path: Path) -> None:
 
     assert destino is None
     assert not (tmp_path / "vazio.db").exists()
+
+
+def _frame_com_decimal() -> pl.DataFrame:
+    """Reproduz a forma dos bancos anuais da SRAG, que trazem 21 colunas assim."""
+    return pl.DataFrame(
+        {
+            "NU_IDADE_N": pl.Series([1, 45, 90], dtype=pl.Decimal(precision=3, scale=0)),
+            "RAIOX_RES": pl.Series(
+                ["1.5", "2.25", "3.0"], dtype=pl.Utf8
+            ).str.to_decimal(),
+            "SG_UF": ["SP", "RJ", "MG"],
+        }
+    )
+
+
+def test_coluna_decimal_nao_aborta_a_exportacao(tmp_path: Path) -> None:
+    """`decimal.Decimal` não tem adaptador no sqlite3 e derrubava a escrita."""
+    db_path = tmp_path / "srag.db"
+
+    frames.write_sqlite(_frame_com_decimal(), db_path=db_path, table="records")
+
+    assert _linhas_no_banco(db_path, "records") == 3
+
+
+def test_decimal_sem_casas_vira_inteiro_exato(tmp_path: Path) -> None:
+    db_path = tmp_path / "srag.db"
+    frames.write_sqlite(_frame_com_decimal(), db_path=db_path, table="records")
+
+    con = sqlite3.connect(db_path)
+    try:
+        idades = [linha[0] for linha in con.execute("SELECT NU_IDADE_N FROM records")]
+    finally:
+        con.close()
+
+    assert idades == [1, 45, 90]
+    assert all(isinstance(valor, int) for valor in idades)
+
+
+def test_decimal_com_casas_vira_ponto_flutuante(tmp_path: Path) -> None:
+    """O SQLite não tem tipo decimal; float é o que ele oferece."""
+    db_path = tmp_path / "srag.db"
+    frames.write_sqlite(_frame_com_decimal(), db_path=db_path, table="records")
+
+    con = sqlite3.connect(db_path)
+    try:
+        valores = [linha[0] for linha in con.execute("SELECT RAIOX_RES FROM records")]
+    finally:
+        con.close()
+
+    assert valores == [1.5, 2.25, 3.0]
+
+
+def test_sqlite_safe_nao_toca_em_frame_sem_decimal(tmp_path: Path) -> None:
+    origem = _frame(4)
+    assert frames.sqlite_safe(origem) is origem
+
+
+def test_conversao_do_portal_para_sqlite_funciona_com_decimal(tmp_path: Path) -> None:
+    """O caminho real das fontes de arquivo em lote (SRAG, SISAGUA)."""
+    from guaraci.opendatasus.portal_files import PortalFileDataSource
+
+    origem = tmp_path / "INFLUD.parquet"
+    _frame_com_decimal().write_parquet(origem)
+    ds = PortalFileDataSource(output_path=str(tmp_path))
+
+    destino = ds._convert_to_format(origem, "sqlite")
+
+    assert destino.exists()
+    assert _linhas_no_banco(destino, "records") == 3

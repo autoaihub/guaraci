@@ -89,6 +89,24 @@ caminho de exportação nunca medido sob volume. Dois defeitos independentes:
 
 A medição é reproduzível por `scripts/bench_sqlite_export.py`.
 
+### Fixed: `--format sqlite` era inutilizável nas fontes de arquivo em lote
+As 15 fontes que baixam arquivos inteiros (SRAG e as 14 do SISAGUA) abortavam
+com `ProgrammingError: type 'decimal.Decimal' is not supported` sempre que se
+pedia `sqlite`. Colunas `Decimal` do parquet viram `decimal.Decimal` na
+passagem por pandas, e o driver não tem adaptador para esse tipo: os bancos
+anuais da SRAG trazem 21 colunas assim, de modo que o formato nunca funcionou
+nessa família. A conversão agora é explícita, já que o SQLite não tem tipo
+decimal nativo: escala zero vira inteiro, que é exato, e escala maior vira
+ponto flutuante. Verificado com o arquivo real de 2025 (336 mil linhas por 194
+colunas), que passa a exportar 242 MB de banco.
+
+Trocar a leitura desses arquivos por `scan`/`sink` foi medido e **não**
+compensa, então o caminho de csv e parquet segue eager: os parquet da origem
+vêm num único row group, abaixo do qual não há streaming possível, e para o
+CSV de 288 MB da SRAG de 2024 o caminho lazy custou 832 MB de pico contra
+689 MB do eager. Só a exportação sqlite usa o plano lazy, porque ali a escrita
+consome o frame em lotes (1403 MB contra 1711 MB).
+
 ### Fixed: gravação de `jobs.json` abortava de forma intermitente no Windows
 `os.replace` é atômico, mas no Windows falha com `PermissionError` enquanto
 qualquer outro processo mantém um handle sobre o destino, ainda que só para
