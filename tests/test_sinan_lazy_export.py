@@ -10,6 +10,7 @@ from __future__ import annotations
 import polars as pl
 import pytest
 
+from guaraci.datasus import filtering
 from guaraci.datasus.sinan import SinanDataSource
 
 
@@ -71,9 +72,11 @@ def test_uf_mapping_resolves_codes_and_siglas(source_with_years) -> None:
     ],
 )
 def test_uf_mapping_expression_handles_sentinels(raw, expected) -> None:
-    df = pl.DataFrame({"SG_UF": [raw]}, schema={"SG_UF": pl.Utf8})
-    result = df.with_columns([SinanDataSource._uf_mapping_expr("SG_UF")])
-    assert result["SG_UF"].to_list() == [expected]
+    # A coluna precisa ter ao menos uma UF reconhecível, senão é preservada
+    # intacta por ser considerada um campo que não guarda UF.
+    df = pl.DataFrame({"SG_UF": [raw, "35"]}, schema={"SG_UF": pl.Utf8})
+    result = df.with_columns([filtering.uf_normalization_expr(df, "SG_UF")])
+    assert result["SG_UF"].to_list()[0] == expected
 
 
 def test_export_streams_lazyframe_to_parquet(source_with_years, tmp_path) -> None:

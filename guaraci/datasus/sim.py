@@ -19,6 +19,7 @@ import polars as pl
 from loguru import logger
 
 from guaraci.core.datasource import DataSource
+from guaraci.datasus import filtering, frames
 from guaraci.datasus.backend import (
     BACKEND_FTP as _BACKEND_FTP,
     get_datasus_backend as _get_datasus_backend,
@@ -39,6 +40,10 @@ class SimDataSource(DataSource):
     """
     SIM data source backed by PySUS 2.x.
     """
+
+    #: O SIM guarda o sexo como código (1 masculino, 2 feminino, 0 ignorado),
+    #: enquanto a interface expõe M/F. Sem a tradução, --sexo M não casava nada.
+    SEXO_CODES: Dict[str, str] = {"M": "1", "F": "2", "I": "0"}
 
     DEFAULT_GROUPS: List[str] = ["CID10"]
     ALL_GROUPS: List[str] = ["CID10", "CID9"]
@@ -228,40 +233,19 @@ class SimDataSource(DataSource):
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def _load_as_polars(self, group: str) -> pl.DataFrame:
+    def scan_dataframe(self, group: str = "CID10") -> pl.LazyFrame:
+        """Plano lazy sobre os parquets baixados do grupo.
+
+        Nada é lido aqui: quem consome decide entre materializar
+        (:meth:`load_dataframe`) ou escrever em streaming (:meth:`export`).
+        """
+        group = group.upper()
         if group not in self.data:
             raise ValueError(f"Group {group} not found. Run download() first.")
+        return frames.scan_parquet_group(self.data[group], label=f"SIM {group}")
 
-        parquet_sets = self.data[group]
-        if not parquet_sets:
-            logger.warning(f"No data found for SIM group {group}")
-            return pl.DataFrame()
-
-        combined_dfs: List[pl.DataFrame] = []
-        total_files = len(parquet_sets)
-
-        logger.info(f"Processing {total_files} parquet files for SIM {group}")
-        from tqdm import tqdm
-
-        with tqdm(total=total_files, desc=f"Loading SIM {group}", unit="file") as pbar:
-            for filepath in parquet_sets:
-                try:
-                    df = pl.read_parquet(filepath)
-                    uf_columns = [c for c in df.columns if any(p in c.upper() for p in ["UF", "SG_UF"])]
-                    if uf_columns:
-                        df = apply_uf_mapping_polars(df, uf_columns)
-                    combined_dfs.append(df)
-                except Exception as exc:
-                    logger.error(f"Failed to process SIM parquet file {filepath}: {exc}")
-                finally:
-                    pbar.update(1)
-
-        if not combined_dfs:
-            logger.warning(f"No valid SIM data found for {group}")
-            return pl.DataFrame()
-
-        combined = pl.concat(combined_dfs, how="diagonal")
-        return combined
+    def _load_as_polars(self, group: str) -> pl.DataFrame:
+        return self.scan_dataframe(group).collect()
 
     def load_dataframe(self, group: str = "CID10") -> pl.DataFrame:
         return self._load_as_polars(group.upper())
@@ -279,44 +263,57 @@ class SimDataSource(DataSource):
             raise ValueError("É necessário fornecer um DataFrame para filtragem.")
 
         conditions: List[pl.Expr] = []
-        def resolve_column(options: List[str]) -> Optional[str]:
-            for candidate in options:
-                if candidate in df.columns:
-                    return candidate
-            return None
+        colunas = filtering.columns_of(df)
 
-        uf_col = resolve_column(["UF", "UF_RES", "UFRES", "CODUFRES"])
-        if uf and uf_col:
-            conditions.append(pl.col(uf_col) == uf)
+        # A UF não tem coluna própria nos arquivos do SIM: ela vive nos dois
+        # primeiros dígitos do código de município, que `uf_expr` sabe ler.
+        # Antes, nenhum dos candidatos existia e o filtro era descartado em
+        # silêncio, devolvendo o país inteiro para quem pediu um estado.
+        pedidos = [
+            (uf, ["UF", "UF_RES", "UFRES", "CODUFRES", "CODMUNRES"], filtering.uf_expr),
+            (
+                municipio,
+                ["CODMUNRES", "CODMUN_RESI", "MUN_RES", "MUNRES"],
+                filtering.contains_expr,
+            ),
+            (
+                sexo,
+                ["SEXO", "CS_SEXO"],
+                lambda frame, col, val: filtering.coded_equality_expr(
+                    frame, col, val, self.SEXO_CODES
+                ),
+            ),
+            (causa_basica, ["CAUSABAS", "CAUSABASO"], filtering.equality_expr),
+        ]
+        for valor, candidatos, build_expr in pedidos:
+            if valor is None or (isinstance(valor, str) and not valor.strip()):
+                continue
+            coluna = filtering.resolve_filter_column(df, candidatos)
+            if coluna is None:
+                continue
+            conditions.append(build_expr(df, coluna, valor))
 
-        municipio_col = resolve_column(["CODMUNRES", "CODMUN_RESI", "MUN_RES", "MUNRES"])
-        if municipio and municipio_col:
-            conditions.append(pl.col(municipio_col).cast(pl.Utf8).str.contains(municipio, literal=True, strict=False))
+        if ano_obito:
+            ano_col = filtering.resolve_filter_column(df, ["ANOOBITO", "ANO_OBITO"])
+            if ano_col is not None:
+                conditions.append(filtering.equality_expr(df, ano_col, ano_obito))
+            elif "DTOBITO" in colunas:
+                # DTOBITO é DDMMAAAA: o ano são os quatro últimos dígitos. O
+                # recorte antigo pegava os quatro primeiros ("2205" para
+                # 22/05/2020), de modo que o filtro por ano nunca casava.
+                conditions.append(
+                    pl.col("DTOBITO")
+                    .cast(pl.Utf8, strict=False)
+                    .str.strip_chars()
+                    .str.zfill(8)
+                    .str.slice(4, 4)
+                    .cast(pl.Int64, strict=False)
+                    == int(ano_obito)
+                )
 
-        sexo_col = resolve_column(["SEXO", "CS_SEXO"])
-        if sexo and sexo_col:
-            conditions.append(pl.col(sexo_col) == sexo)
-
-        causa_col = resolve_column(["CAUSABAS", "CAUSABASO"])
-        if causa_basica and causa_col:
-            conditions.append(pl.col(causa_col) == causa_basica)
-
-        ano_col = resolve_column(["ANOOBITO", "ANO_OBITO"])
-        if ano_obito and ano_col:
-            conditions.append(pl.col(ano_col) == ano_obito)
-        elif ano_obito and "DTOBITO" in df.columns:
-            try:
-                conditions.append(pl.col("DTOBITO").cast(pl.Utf8).str.slice(0, 4).cast(pl.Int64) == ano_obito)
-            except Exception:
-                pass
-
-        if not conditions:
+        combined = filtering.combine(conditions)
+        if combined is None:
             return df
-
-        combined = conditions[0]
-        for condition in conditions[1:]:
-            combined = combined & condition
-
         return df.filter(combined)
 
     def summary(self, df: pl.DataFrame, by: str = "CAUSABAS", metric: Literal["count", "mean", "sum"] = "count") -> pl.DataFrame:
@@ -327,19 +324,18 @@ class SimDataSource(DataSource):
         if metric == "sum": return df.group_by(by).sum().sort(by)
         raise ValueError("metric deve ser 'count', 'mean' ou 'sum'.")
 
-    def export(self, df: pl.DataFrame, format: Literal["csv", "sqlite", "parquet"] = "csv", name: str = "sim_output") -> Optional[Path]:
-        if df is None or len(df) == 0:
+    def export(
+        self,
+        df: pl.DataFrame | pl.LazyFrame,
+        format: Literal["csv", "sqlite", "parquet"] = "csv",
+        name: str = "sim_output",
+    ) -> Optional[Path]:
+        """Escreve o conjunto, em streaming quando recebe um plano lazy."""
+        if df is None or frames.is_empty(df):
             return None
-        output_dir = Path(self.output_path)
-        final_path = output_dir / f"{name}.{format}"
-        if format == "csv": df.write_csv(final_path)
-        elif format == "parquet": df.write_parquet(final_path)
-        elif format == "sqlite":
-            import sqlite3
-            con = sqlite3.connect(output_dir / f"{name}.db")
-            df.to_pandas().to_sql(name=name, con=con, if_exists="replace", index=False)
-            con.close()
-        return final_path
+        return frames.write_frame(
+            df, output_dir=Path(self.output_path), stem=name, format=format
+        )
 
     def describe_fields(self, group: str = "CID10") -> List[str]:
         return self.load_dataframe(group).columns

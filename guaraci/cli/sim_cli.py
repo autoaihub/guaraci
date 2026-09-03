@@ -8,6 +8,7 @@ CLI interface for SIM (Mortality Information System) data operations.
 from typing import List, Optional
 
 import click
+import polars as pl
 from loguru import logger
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -120,7 +121,9 @@ def download(
         failed_groups: List[str] = []
         for group in group_list:
             try:
-                df = sim_ds.load_dataframe(group)
+                # Plano lazy: exportar vários anos não exige todos em memória.
+                scan = getattr(sim_ds, "scan_dataframe", None)
+                df = scan(group) if callable(scan) else sim_ds.load_dataframe(group)
 
                 filters_provided = any([uf, municipio, sexo, causa_basica, ano_obito])
 
@@ -134,7 +137,12 @@ def download(
                         ano_obito=ano_obito,
                     )
 
-                if len(df) == 0:
+                record_count = (
+                    df.select(pl.len()).collect().item()
+                    if isinstance(df, pl.LazyFrame)
+                    else len(df)
+                )
+                if record_count == 0:
                     if not as_json:
                         console.print(f"[yellow]WARNING {group}: No data found[/yellow]")
                     continue
@@ -146,7 +154,7 @@ def download(
                     exported_files.append(str(exported_path))
                     if not as_json:
                         console.print(
-                            f"[green]SUCCESS {group}: {len(df)} records exported to "
+                            f"[green]SUCCESS {group}: {record_count} records exported to "
                             f"{exported_path.name}[/green]"
                         )
                 elif not as_json:

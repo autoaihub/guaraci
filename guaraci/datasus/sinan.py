@@ -19,6 +19,7 @@ from tqdm import tqdm
 from loguru import logger
 
 from guaraci.core.datasource import DataSource
+from guaraci.datasus import filtering, frames
 from guaraci.datasus.backend import (
     BACKEND_FTP as _BACKEND_FTP,
     get_datasus_backend as _get_datasus_backend,
@@ -236,56 +237,7 @@ class SinanDataSource(DataSource):
         """
         if disease not in self.data:
             raise ValueError(f"Disease {disease} not found. Run download() first.")
-
-        parquet_sets = [str(path) for path in self.data[disease]]
-        if not parquet_sets:
-            logger.warning(f"No data found for {disease}")
-            return pl.LazyFrame()
-
-        logger.info(f"Planning {len(parquet_sets)} parquet files for {disease}")
-
-        try:
-            # Os arquivos anuais do SINAN não têm o mesmo conjunto de colunas
-            # (o formulário muda entre anos), e a divergência é nos dois
-            # sentidos: um ano pode ter colunas que o outro não tem. Um scan
-            # único exigiria schema comum, então cada arquivo entra como seu
-            # próprio plano e o `diagonal_relaxed` faz a união, preservando a
-            # semântica do antigo concat(how="diagonal") sem sair do lazy.
-            plans = [pl.scan_parquet(path) for path in parquet_sets]
-            lf = plans[0] if len(plans) == 1 else pl.concat(plans, how="diagonal_relaxed")
-        except Exception as exc:
-            logger.warning(
-                f"Lazy scan unavailable for {disease} ({exc}); falling back to eager concat"
-            )
-            return self._eager_concat(disease, parquet_sets).lazy()
-
-        uf_columns = self._uf_columns(lf.collect_schema().names())
-        if uf_columns:
-            lf = lf.with_columns([self._uf_mapping_expr(col) for col in uf_columns])
-        return lf
-
-    def _eager_concat(self, disease: str, parquet_sets: Sequence[str]) -> pl.DataFrame:
-        """Caminho de reserva: lê cada parquet e concatena em memória.
-
-        Mantido para os casos em que o scan lazy não reconcilia os schemas.
-        Exige todos os anos residentes ao mesmo tempo, então é usado apenas
-        como fallback.
-        """
-        combined_dfs = []
-        with tqdm(total=len(parquet_sets), desc=f"Loading {disease}", unit="file") as pbar:
-            for filepath in parquet_sets:
-                try:
-                    df = pl.read_parquet(filepath)
-                    combined_dfs.append(self._apply_uf_mapping(df))
-                except Exception as e:
-                    logger.error(f"Failed to process parquet file {filepath}: {e}")
-                finally:
-                    pbar.update(1)
-
-        if not combined_dfs:
-            logger.warning(f"No valid data found for {disease}")
-            return pl.DataFrame()
-        return pl.concat(combined_dfs, how="diagonal")
+        return frames.scan_parquet_group(self.data[disease], label=disease)
 
     def _load_as_polars(self, disease: str) -> pl.DataFrame:
         combined = self.scan_dataframe(disease).collect()
@@ -296,50 +248,6 @@ class SinanDataSource(DataSource):
             f"✅ {disease}: {len(combined)} records loaded, {len(combined.columns)} columns"
         )
         return combined
-
-    # Códigos IBGE ("35") e siglas ("SP") resolvem para a mesma sigla; o
-    # mapa cobre as duas grafias de uma vez para o `replace_strict` abaixo.
-    _UF_LOOKUP: Dict[str, str] = {
-        **{str(code): sigla for code, sigla in UF_DICT.items()},
-        **{sigla: sigla for sigla in UF_DICT.values()},
-    }
-
-    @classmethod
-    def _uf_mapping_expr(cls, col: str) -> pl.Expr:
-        """Expressão que normaliza uma coluna de UF para a sigla.
-
-        Substitui o antigo ``map_elements`` com callback Python, que fazia
-        ``import pandas`` e ``pd.isna`` uma vez por linha: em milhões de
-        registros isso dominava o tempo de processamento. Valores não
-        reconhecidos (incluindo os sentinelas ``0``/``NAN``/``NULL``) viram
-        nulo, como antes.
-        """
-        normalized = (
-            pl.col(col)
-            .cast(pl.Utf8, strict=False)
-            .str.strip_chars()
-            .str.to_uppercase()
-        )
-        # "35.0" chega assim quando a coluna foi lida como float; o corte da
-        # parte decimal reproduz o antigo int(float(valor)).
-        normalized = normalized.str.replace(r"\.0+$", "")
-        return (
-            normalized.replace_strict(cls._UF_LOOKUP, default=None)
-            .cast(pl.Utf8)
-            .alias(col)
-        )
-
-    @staticmethod
-    def _uf_columns(columns: Sequence[str]) -> List[str]:
-        return [col for col in columns if "UF" in col.upper()]
-
-    def _apply_uf_mapping(self, df: pl.DataFrame) -> pl.DataFrame:
-        for col in self._uf_columns(df.columns):
-            try:
-                df = df.with_columns([self._uf_mapping_expr(col)])
-            except Exception as e:
-                logger.warning(f"Failed to apply UF mapping to column {col}: {e}")
-        return df
 
     def load_dataframe(self, disease: str) -> pl.DataFrame:
         return self._load_as_polars(disease)
@@ -366,51 +274,30 @@ class SinanDataSource(DataSource):
             raise ValueError("É necessário fornecer um DataFrame para filtragem.")
 
         conditions: List[pl.Expr] = []
-        available = self._columns_of(df)
 
-        def resolve_column(options: List[str]) -> Optional[str]:
-            for candidate in options:
-                if candidate in available:
-                    return candidate
-            return None
+        # A ordem de cada lista é a preferência semântica; colunas presentes
+        # mas vazias são puladas por resolve_filter_column (ver o módulo
+        # guaraci.datasus.filtering para o porquê).
+        pedidos = [
+            (uf, ["SG_UF_NOT", "SG_UF", "UF", "ID_MN_RESI"], filtering.uf_expr),
+            (municipio, ["ID_MN_RESI", "ID_MUNICIP"], filtering.contains_expr),
+            (sexo, ["CS_SEXO"], filtering.equality_expr),
+            (faixa_etaria, ["NU_IDADE_N"], filtering.equality_expr),
+            (evolucao, ["CS_EVOLU", "EVOLUCAO"], filtering.equality_expr),
+            (classificacao, ["CLASSI_FIN", "CLASSIFICAC"], filtering.equality_expr),
+            (ano, ["NU_ANO", "ANO", "ANO_NOT"], filtering.equality_expr),
+        ]
+        for valor, candidatos, build_expr in pedidos:
+            if valor is None or (isinstance(valor, str) and not valor.strip()):
+                continue
+            coluna = filtering.resolve_filter_column(df, candidatos)
+            if coluna is None:
+                continue
+            conditions.append(build_expr(df, coluna, valor))
 
-        uf_col = resolve_column(["UF", "SG_UF", "SG_UF_NOT"])
-        if uf and uf_col:
-            conditions.append(pl.col(uf_col) == uf)
-
-        municipio_col = resolve_column(["ID_MN_RESI", "ID_MUNICIP"])
-        if municipio and municipio_col:
-            conditions.append(
-                pl.col(municipio_col).cast(pl.Utf8).str.contains(municipio, literal=True, strict=False)
-            )
-
-        sexo_col = resolve_column(["CS_SEXO"])
-        if sexo and sexo_col:
-            conditions.append(pl.col(sexo_col) == sexo)
-
-        faixa_col = resolve_column(["NU_IDADE_N"])
-        if faixa_etaria and faixa_col:
-            conditions.append(pl.col(faixa_col) == faixa_etaria)
-
-        evolucao_col = resolve_column(["CS_EVOLU", "EVOLUCAO"])
-        if evolucao and evolucao_col:
-            conditions.append(pl.col(evolucao_col) == evolucao)
-
-        classificacao_col = resolve_column(["CLASSI_FIN", "CLASSIFICAC"])
-        if classificacao and classificacao_col:
-            conditions.append(pl.col(classificacao_col) == classificacao)
-
-        ano_col = resolve_column(["NU_ANO", "ANO", "ANO_NOT"])
-        if ano and ano_col:
-            conditions.append(pl.col(ano_col) == ano)
-
-        if not conditions:
+        combined = filtering.combine(conditions)
+        if combined is None:
             return df
-
-        combined = conditions[0]
-        for condition in conditions[1:]:
-            combined = combined & condition
-
         return df.filter(combined)
 
     def summary(self, df: pl.DataFrame, by: str = "UF", metric: Literal["count", "mean", "sum"] = "count") -> pl.DataFrame:

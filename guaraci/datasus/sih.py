@@ -19,6 +19,7 @@ import polars as pl
 from loguru import logger
 
 from guaraci.core.datasource import DataSource
+from guaraci.datasus import filtering, frames
 from guaraci.utils.mapping import apply_uf_mapping_polars
 
 try:
@@ -58,6 +59,11 @@ class SihDataSource(DataSource):
     """
 
     ALL_GROUPS: List[str] = ["RD", "RJ", "ER", "SP", "CH", "CM"]
+    #: O SIH codifica o sexo como 1 (masculino) e 3 (feminino), herança do
+    #: layout antigo da AIH; a interface expõe M/F. Sem a tradução, --sexo M
+    #: não casava nada.
+    SEXO_CODES: Dict[str, str] = {"M": "1", "F": "3", "I": "0"}
+
     DEFAULT_GROUPS: List[str] = ALL_GROUPS.copy()
 
     def __init__(self, output_path: Optional[str] = None):
@@ -487,40 +493,19 @@ class SihDataSource(DataSource):
         }
         return payload
 
-    def _load_as_polars(self, group: str) -> pl.DataFrame:
+    def scan_dataframe(self, group: str = "RD") -> pl.LazyFrame:
+        """Plano lazy sobre os parquets baixados do grupo.
+
+        Nada é lido aqui: quem consome decide entre materializar
+        (:meth:`load_dataframe`) ou escrever em streaming (:meth:`export`).
+        """
+        group = group.upper()
         if group not in self.data:
             raise ValueError(f"Group {group} not found. Run download() first.")
+        return frames.scan_parquet_group(self.data[group], label=f"SIH {group}")
 
-        parquet_sets = self.data[group]
-        if not parquet_sets:
-            logger.warning(f"No data found for SIH group {group}")
-            return pl.DataFrame()
-
-        combined_dfs: List[pl.DataFrame] = []
-        total_files = len(parquet_sets)
-
-        logger.info(f"Processing {total_files} parquet files for SIH {group}")
-        from tqdm import tqdm
-
-        with tqdm(total=total_files, desc=f"Loading SIH {group}", unit="file") as pbar:
-            for filepath in parquet_sets:
-                try:
-                    df = pl.read_parquet(filepath)
-                    uf_columns = [c for c in df.columns if any(p in c.upper() for p in ["UF", "CODUF"])]
-                    if uf_columns:
-                        df = apply_uf_mapping_polars(df, uf_columns)
-                    combined_dfs.append(df)
-                except Exception as exc:
-                    logger.error(f"Failed to process SIH parquet file {filepath}: {exc}")
-                finally:
-                    pbar.update(1)
-
-        if not combined_dfs:
-            logger.warning(f"No valid SIH data found for {group}")
-            return pl.DataFrame()
-
-        combined = pl.concat(combined_dfs, how="diagonal")
-        return combined
+    def _load_as_polars(self, group: str) -> pl.DataFrame:
+        return self.scan_dataframe(group).collect()
 
     def load_dataframe(self, group: str = "RD") -> pl.DataFrame:
         return self._load_as_polars(group.upper())
@@ -539,43 +524,46 @@ class SihDataSource(DataSource):
             raise ValueError("É necessário fornecer um DataFrame para filtragem.")
 
         conditions: List[pl.Expr] = []
-        def resolve_column(options: List[str]) -> Optional[str]:
-            for candidate in options:
-                if candidate in df.columns:
-                    return candidate
-            return None
 
-        uf_col = resolve_column(["UF_ZI", "UF", "CODUF"])
-        if uf and uf_col:
-            conditions.append(pl.col(uf_col) == uf)
+        # UF_ZI é o código do gestor (120000 para o Acre), não a sigla: sem a
+        # leitura por prefixo de `uf_expr`, --uf SP não casava com nada.
+        pedidos = [
+            (uf, ["UF_ZI", "UF", "CODUF", "MUNIC_RES"], filtering.uf_expr),
+            (
+                municipio,
+                ["MUNIC_RES", "MUNIC_RESID", "MUNIC_MOV"],
+                filtering.contains_expr,
+            ),
+            (
+                sexo,
+                ["SEXO", "CS_SEXO"],
+                lambda frame, col, val: filtering.coded_equality_expr(
+                    frame, col, val, self.SEXO_CODES
+                ),
+            ),
+            (ano, ["ANO_CMPT", "ANO"], filtering.equality_expr),
+            (mes, ["MES_CMPT", "MES"], filtering.equality_expr),
+            (
+                cid,
+                ["DIAG_PRINC"],
+                lambda frame, col, val: pl.col(col)
+                .cast(pl.Utf8, strict=False)
+                .str.strip_chars()
+                .str.to_uppercase()
+                .str.starts_with(str(val).strip().upper()),
+            ),
+        ]
+        for valor, candidatos, build_expr in pedidos:
+            if valor is None or (isinstance(valor, str) and not valor.strip()):
+                continue
+            coluna = filtering.resolve_filter_column(df, candidatos)
+            if coluna is None:
+                continue
+            conditions.append(build_expr(df, coluna, valor))
 
-        municipio_col = resolve_column(["MUNIC_RES", "MUNIC_RESID", "MUNIC_MOV"])
-        if municipio and municipio_col:
-            conditions.append(pl.col(municipio_col).cast(pl.Utf8).str.contains(municipio, literal=True, strict=False))
-
-        sexo_col = resolve_column(["SEXO", "CS_SEXO"])
-        if sexo and sexo_col:
-            conditions.append(pl.col(sexo_col) == sexo)
-
-        ano_col = resolve_column(["ANO_CMPT", "ANO"])
-        if ano and ano_col:
-            conditions.append(pl.col(ano_col) == ano)
-
-        mes_col = resolve_column(["MES_CMPT", "MES"])
-        if mes and mes_col:
-            conditions.append(pl.col(mes_col) == mes)
-
-        cid_col = resolve_column(["DIAG_PRINC"])
-        if cid and cid_col:
-            conditions.append(pl.col(cid_col).cast(pl.Utf8).str.starts_with(cid))
-
-        if not conditions:
+        combined = filtering.combine(conditions)
+        if combined is None:
             return df
-
-        combined = conditions[0]
-        for condition in conditions[1:]:
-            combined = combined & condition
-
         return df.filter(combined)
 
     def summary(self, df: pl.DataFrame, by: str = "UF_ZI", metric: Literal["count", "mean", "sum"] = "count") -> pl.DataFrame:
@@ -586,19 +574,18 @@ class SihDataSource(DataSource):
         if metric == "sum": return df.group_by(by).sum().sort(by)
         raise ValueError("metric deve ser 'count', 'mean' ou 'sum'.")
 
-    def export(self, df: pl.DataFrame, format: Literal["csv", "sqlite", "parquet"] = "csv", name: str = "sih_output") -> Optional[Path]:
-        if df is None or len(df) == 0:
+    def export(
+        self,
+        df: pl.DataFrame | pl.LazyFrame,
+        format: Literal["csv", "sqlite", "parquet"] = "csv",
+        name: str = "sih_output",
+    ) -> Optional[Path]:
+        """Escreve o conjunto, em streaming quando recebe um plano lazy."""
+        if df is None or frames.is_empty(df):
             return None
-        output_dir = Path(self.output_path)
-        final_path = output_dir / f"{name}.{format}"
-        if format == "csv": df.write_csv(final_path)
-        elif format == "parquet": df.write_parquet(final_path)
-        elif format == "sqlite":
-            import sqlite3
-            con = sqlite3.connect(output_dir / f"{name}.db")
-            df.to_pandas().to_sql(name=name, con=con, if_exists="replace", index=False)
-            con.close()
-        return final_path
+        return frames.write_frame(
+            df, output_dir=Path(self.output_path), stem=name, format=format
+        )
 
     def apply_column_map(
         self,

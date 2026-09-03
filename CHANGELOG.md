@@ -2,6 +2,57 @@
 
 ## [Unreleased]
 
+### Fixed: filtros de refinamento de SIH, SIM e SINAN devolviam o conjunto errado
+Varredura sistemática dos filtros contra microdados reais (dengue nacional
+2014-2024, SIM CID10 AC 2020, SIH RD AC 2023-01). Dos sete filtros oferecidos,
+a maioria estava quebrada, e três falhavam em silêncio, entregando dado errado
+sem mensagem alguma. A lógica comum foi extraída para
+`guaraci/datasus/filtering.py` e `guaraci/datasus/frames.py`, que os três
+sistemas passam a compartilhar.
+
+- **`--uf` no SINAN devolvia 2% dos casos.** A coluna era escolhida pela
+  primeira que existisse no arquivo, e o SINAN traz `UF` presente porém vazia
+  em 96% dos registros (16 822 362 de 17 281 884), enquanto `SG_UF_NOT` está
+  completa. Filtrar dengue por São Paulo rendia 103 059 de 5 047 004 casos.
+  `resolve_filter_column` agora pula as colunas sem dado, respeitando a ordem
+  de preferência entre as que têm.
+- **`--uf` no SIM era descartado sem aviso.** Nenhuma das colunas candidatas
+  (`UF`, `UF_RES`, `UFRES`, `CODUFRES`) existe nos arquivos: quem pedia um
+  estado recebia o país inteiro. A UF vive nos dois primeiros dígitos de
+  `CODMUNRES`, que `uf_expr` passa a ler.
+- **`--uf` no SIH nunca casava.** `UF_ZI` guarda o código do gestor
+  (`120000`), comparado contra a sigla `SP`. `uf_expr` reconhece as três
+  representações: sigla, código IBGE de dois dígitos e código de seis dígitos
+  de município ou gestor, e aceita que a pessoa informe qualquer uma delas.
+- **`--faixa-etaria` e `--ano` morriam com `ComputeError`.** O valor chega da
+  interface como texto ou inteiro, sem relação com o tipo inferido do DBF
+  (`NU_IDADE_N` é Int64, `NU_ANO` é texto). A comparação passa a ser numérica
+  quando os dois lados são números, o que também resolve o zero à esquerda de
+  `MES_CMPT` (`--mes 1` contra `"01"`).
+- **`--sexo M/F` não casava nada em SIM nem em SIH.** Os dois gravam o campo
+  como código, e com codificações diferentes: 1/2 no SIM e 1/3 no SIH, herança
+  do layout da AIH. A tradução vive em `SEXO_CODES` de cada datasource.
+- **`--ano-obito` no SIM sempre devolvia vazio.** Sem `ANOOBITO` no arquivo, o
+  código caía em `DTOBITO` e recortava `slice(0, 4)`, mas o campo é `DDMMAAAA`:
+  comparava "2205" com 2020. Passa a ler os quatro últimos dígitos.
+
+### Fixed: colunas de dados clínicos e administrativos eram zeradas no export
+A normalização de UF selecionava colunas pelo nome, com um `"UF" in nome` que
+varria junto campos sem relação com unidade federativa. Como o valor deles não
+corresponde a nenhuma UF, a coluna inteira era substituída por nulo e o dado
+sumia do arquivo entregue. Confirmado em `UF_ZI` no SIH (código do gestor) e
+`GRAV_INSUF` no SINAN (gravidade e insuficiência clínica). `uf_normalization_
+expr` agora amostra a coluna e só a reescreve quando ela de fato carrega UFs;
+caso contrário devolve o dado intacto. `SG_UF_NOT`, `SG_UF`, `UF` e `COUFINF`
+seguem normalizadas para a sigla, como antes.
+
+### Changed: SIM e SIH ganham o mesmo caminho de memória já aplicado ao SINAN
+`scan_dataframe()` lazy, `export()` aceitando `LazyFrame` com escrita em
+streaming e carga compartilhada em `guaraci/datasus/frames.py`, no lugar das
+três cópias de `_load_as_polars` que liam todos os anos para um
+`pl.concat(how="diagonal")` em memória. Os CLIs de sih e sim e o
+`DownloadService` passam a usar esse caminho.
+
 ### Fixed: coletas longas do DATASUS terminavam em nada (dengue, SINAN)
 Relato de usuário: quase uma hora de execução para baixar dengue, seguida de
 falha sem dado nenhum. Reproduzido com `sinan download 2014 2024 -d DENG`
