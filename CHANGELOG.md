@@ -39,6 +39,19 @@ Duas das falhas eram defeito do catálogo, e foram corrigidas.
 As outras quatro falhas foram investigadas contra o swagger publicado pela
 origem e estão tratadas na entrada seguinte.
 
+### Fixed: o orquestrador deixava um diretório de trabalho por unidade coletada
+Cada unidade materializada por serviço baixa para `.staging/<run>/<chave>` e
+move dali o CSV para a árvore bronze, mas o diretório nunca era removido: o
+manifesto e os formatos intermediários ficavam para trás. Uma varredura das 109
+fontes deixava 109 diretórios, a cada execução, e o custo crescia com a
+frequência do agendamento. A limpeza agora cobre todos os caminhos de saída,
+inclusive o de resultado vazio e o de erro, e nunca derruba a coleta.
+
+Verificado no mesmo ciclo que a API HTTP responde como deve: `/sources` lista
+as 109 fontes, um intervalo de anos invertido e a falta do filtro obrigatório
+do bps voltam como 400 com a mensagem da validação (e não como 500), e um job
+real vai de `queued` a `completed`.
+
 ### Fixed: a fonte SNIS não coletava nada, e o SINISA abortava por um `.rar`
 Varredura ao vivo das fontes que não são da API DEMAS, pelo mesmo caminho do
 usuário (`scripts/smoke_non_demas_sources.py`). Três defeitos no crawl de

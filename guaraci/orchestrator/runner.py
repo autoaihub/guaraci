@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
@@ -220,6 +221,27 @@ def _first_csv(exported: Sequence[str], search_dir: Path) -> Optional[Path]:
     return matches[0] if matches else None
 
 
+def _discard_staging(staging_dir: Optional[Path]) -> None:
+    """Remove a área de trabalho de uma unidade, se houver.
+
+    Cada unidade materializada por serviço baixa para ``.staging/<run>/<chave>``
+    e move dali o CSV para a árvore bronze. O que sobra é manifesto e formatos
+    intermediários, sem uso depois, e antes ficava para trás: uma varredura das
+    109 fontes deixava um diretório por unidade, a cada execução.
+    """
+    if staging_dir is None:
+        return
+    try:
+        shutil.rmtree(staging_dir, ignore_errors=True)
+        # Remove também o diretório do run quando esvaziar, para não deixar uma
+        # casca por execução.
+        parent = staging_dir.parent
+        if parent.is_dir() and not any(parent.iterdir()):
+            parent.rmdir()
+    except OSError:  # pragma: no cover - limpeza nunca derruba a coleta
+        pass
+
+
 def run_via_service(
     unit: FetchUnit,
     *,
@@ -249,9 +271,12 @@ def run_via_service(
             kwargs["end_year"] = unit.year
 
     if unit.kind is Kind.CRAWLER:
+        # Crawler escreve direto na árvore final, então não há staging a limpar.
         out_dir = paths.crawler_dir(bronze_root, unit)
+        staging_dir = None
     else:
         out_dir = bronze_root / ".staging" / run_id / _sanitize_key(unit)
+        staging_dir = out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
     if "output_dir" in param_names:
         kwargs["output_dir"] = str(out_dir)
@@ -259,49 +284,55 @@ def run_via_service(
         kwargs["output_format"] = "csv"
 
     try:
-        result = service.run(unit.source, **kwargs)
-        payload = result.to_dict() if hasattr(result, "to_dict") else dict(result)
-    except Exception as exc:  # noqa: BLE001 — real runtime failure -> error row
-        return _base_row(unit, run_id, ts, STATUS_ERROR, error=str(exc))
+        try:
+            result = service.run(unit.source, **kwargs)
+            payload = result.to_dict() if hasattr(result, "to_dict") else dict(result)
+        except Exception as exc:  # noqa: BLE001 — real runtime failure -> error row
+            return _base_row(unit, run_id, ts, STATUS_ERROR, error=str(exc))
 
-    documents = int(payload.get("documents_found", 0) or 0)
-    downloaded = int(payload.get("downloaded_count", 0) or 0)
+        documents = int(payload.get("documents_found", 0) or 0)
+        downloaded = int(payload.get("downloaded_count", 0) or 0)
 
-    # Crawlers write their own folder tree; record it as-is.
-    if unit.kind is Kind.CRAWLER:
-        status = STATUS_OK if documents or downloaded else STATUS_EMPTY
+        # Crawlers write their own folder tree; record it as-is.
+        if unit.kind is Kind.CRAWLER:
+            status = STATUS_OK if documents or downloaded else STATUS_EMPTY
+            return _base_row(
+                unit,
+                run_id,
+                ts,
+                status,
+                documents_found=documents,
+                downloaded_count=downloaded,
+                out_path=str(out_dir),
+            )
+
+        exported = [str(p) for p in (payload.get("exported_files") or [])]
+        produced = _first_csv(exported, out_dir)
+        if produced is None:
+            return _base_row(
+                unit,
+                run_id,
+                ts,
+                STATUS_EMPTY,
+                documents_found=documents,
+                downloaded_count=downloaded,
+                error=str(payload.get("export_warning") or ""),
+            )
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+        produced.replace(target)
         return _base_row(
             unit,
             run_id,
             ts,
-            status,
+            STATUS_OK,
             documents_found=documents,
             downloaded_count=downloaded,
-            out_path=str(out_dir),
+            n_bytes=target.stat().st_size,
+            out_path=str(target),
         )
-
-    exported = [str(p) for p in (payload.get("exported_files") or [])]
-    produced = _first_csv(exported, out_dir)
-    if produced is None:
-        return _base_row(
-            unit,
-            run_id,
-            ts,
-            STATUS_EMPTY,
-            documents_found=documents,
-            downloaded_count=downloaded,
-            error=str(payload.get("export_warning") or ""),
-        )
-
-    target.parent.mkdir(parents=True, exist_ok=True)
-    produced.replace(target)
-    return _base_row(
-        unit,
-        run_id,
-        ts,
-        STATUS_OK,
-        documents_found=documents,
-        downloaded_count=downloaded,
-        n_bytes=target.stat().st_size,
-        out_path=str(target),
-    )
+    finally:
+        # O CSV materializado é movido para a árvore bronze; o que sobra
+        # aqui (manifesto, brutos, formatos intermediários) não tem uso e
+        # acumulava um diretório por unidade a cada varredura.
+        _discard_staging(staging_dir)
