@@ -814,8 +814,20 @@ class OpenDataSUSDataSource(DataSource):
         if spec.demas_strategy == "yearly_suffix":
             selected: List[DemasEndpointPlan] = []
             base_path = str(spec.demas_static_path or "").strip()
+            # A origem publica um endpoint por ano, e a série não cobre todos
+            # os anos. Montar o caminho às cegas fazia a coleta terminar num
+            # 404 opaco quando o ano pedido não existia, em vez de dizer qual
+            # é a cobertura.
+            disponiveis = sorted(
+                int(known.rsplit("-", 1)[-1])
+                for known in self._demas_get_params_by_path
+                if known.startswith(f"{base_path}-")
+                and known.rsplit("-", 1)[-1].isdigit()
+            )
             for year in range(start_year, end_year + 1):
                 path = f"{base_path}-{year}"
+                if disponiveis and year not in disponiveis:
+                    continue
                 params = self._demas_get_params_by_path.get(path, ())
                 uf_params = tuple(
                     item for item in params if item in self._candidate_uf_param_names()
@@ -830,6 +842,12 @@ class OpenDataSUSDataSource(DataSource):
                             api_params=api_params,
                         ),
                     )
+                )
+            if not selected and disponiveis:
+                raise ValueError(
+                    f"Dataset '{dataset}' has no endpoint for the requested years "
+                    f"({start_year}-{end_year}). Available years: "
+                    f"{disponiveis[0]}-{disponiveis[-1]}."
                 )
             return selected
 

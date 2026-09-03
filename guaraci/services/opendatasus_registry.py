@@ -2453,7 +2453,7 @@ def get_opendatasus_sources() -> List[OpenDataSUSDownloadSource]:
                         default=None,
                     ),
                 ],
-                fixed_dataset="prevencao-e-promocao/distribuicao_epi_insumo",
+                fixed_dataset="prevencao-e-promocao/distribuicao-epi-insumo",
                 normalize_params=_normalize_opendatasus_params,
             ),
             OpenDataSUSDownloadSource(

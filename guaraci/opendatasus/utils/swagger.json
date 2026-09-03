@@ -2264,7 +2264,7 @@
         }
       }
     },
-    "/prevencao-e-promocao/distribuicao_epi_insumo": {
+    "/prevencao-e-promocao/distribuicao-epi-insumo": {
       "get": {
         "tags": [
           "Prevenção e Promoção"

@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Fixed: duas fontes OpenDataSUS estavam inalcançáveis por defeito nosso
+Varredura ao vivo das 51 fontes DEMAS registradas (`scripts/smoke_opendatasus_
+sources.py`): 42 respondiam, 6 falhavam e 3 dependem de parâmetro de caminho.
+Duas das falhas eram defeito do catálogo, e foram corrigidas.
+
+- `prevencao_e_promocao_distribuicao_epi_insumo` apontava para
+  `/prevencao-e-promocao/distribuicao_epi_insumo`, com underscore no último
+  segmento, e recebia 404. A origem serve `distribuicao-epi-insumo`, com
+  hífen; confirmado ao vivo, a fonte agora coleta e exporta normalmente.
+- `sindrome_gripal_leve` monta um endpoint por ano (`...-2024`) e pedia
+  qualquer ano do intervalo sem consultar a cobertura publicada, terminando
+  num 404 opaco. A série vai de 2020 a 2024: anos fora dela são ignorados
+  quando o intervalo é mais largo, e um pedido inteiramente fora agora falha
+  dizendo qual é a cobertura disponível.
+
+Três endpoints (`atencao_primaria_pmmb`,
+`atencao_primaria_pmmb_profissionais_ativos` e `plataformabr_projetos`)
+respondem 404 em qualquer grafia testada, o que indica remoção pela origem, e
+`economia_da_saude_bps` exige `codigoCatmat` ou `cnpjInstituicao`, uma
+condição de "pelo menos um" que o schema declarativo não expressa. Os quatro
+seguem registrados e continuam falhando com a mensagem da origem.
+
 ### Fixed: coletas do OpenDataSUS estouravam a memória e truncavam em silêncio
 A família DEMAS reúne 51 das 99 fontes e é o outro caminho de coleta longa da
 plataforma. Medições contra `/arboviroses/dengue`, que tem mais de 4 milhões de
