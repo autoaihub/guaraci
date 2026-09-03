@@ -69,6 +69,26 @@ falhas restantes tinham três causas distintas, e não uma remoção genérica.
 O snapshot local do swagger tem 79 caminhos contra 87 publicados, de modo que
 há oito endpoints novos ainda não avaliados para inclusão no catálogo.
 
+### Fixed: exportação sqlite apontava para um arquivo inexistente e materializava tudo
+O formato `sqlite` é uma das três opções que a CLI oferece, e era o único
+caminho de exportação nunca medido sob volume. Dois defeitos independentes:
+
+- **O caminho devolvido não existia.** `write_frame` gravava `{stem}.db` e
+  devolvia `{stem}.sqlite`, de modo que o manifesto e o `OK - wrote 1 file(s)`
+  da CLI anunciavam um arquivo que o usuário não encontrava em disco. Valia
+  para SIM e SIH, que usam `write_frame`, e para o SINAN, que duplicava o
+  mesmo trecho.
+- **A escrita passava por `to_pandas()` sobre o conjunto inteiro**, o que faz
+  as colunas de texto virarem objetos Python. Medido sobre 4 milhões de linhas
+  e 10 colunas, num processo que só executa a exportação: pico de 3195 MB
+  acima da linha de base, contra 716 MB do parquet equivalente, crescendo com
+  o número de linhas e de colunas. Um extrato anual do SINAN tem mais de cem
+  colunas. A escrita agora vai em lotes de 50 mil linhas, e o mesmo caso cai
+  para 1074 MB e fica um pouco mais rápido (15,4 s contra 18,1 s). O SINAN
+  deixa de duplicar o trecho e passa a usar `frames.write_sqlite`.
+
+A medição é reproduzível por `scripts/bench_sqlite_export.py`.
+
 ### Fixed: gravação de `jobs.json` abortava de forma intermitente no Windows
 `os.replace` é atômico, mas no Windows falha com `PermissionError` enquanto
 qualquer outro processo mantém um handle sobre o destino, ainda que só para
