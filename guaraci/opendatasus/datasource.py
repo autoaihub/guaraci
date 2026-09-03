@@ -15,6 +15,7 @@ import polars as pl
 
 from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
+from guaraci.opendatasus import demas_quirks
 from guaraci.opendatasus.buffer import PagedRecordBuffer
 from guaraci.opendatasus.client import OpenDataSUSClient, OpenDataSUSClientError
 from guaraci.opendatasus.utils.swagger_catalog import (
@@ -551,6 +552,14 @@ class OpenDataSUSDataSource(DataSource):
             end_year=end_year,
             api_params=api_params,
         )
+        # Antes de anunciar o início da coleta: alguns endpoints só respondem
+        # com um filtro específico, e o 400 da origem não identifica a fonte.
+        for endpoint_spec in endpoints:
+            demas_quirks.check_required_filters(
+                endpoint_spec.path,
+                {**api_params, **endpoint_spec.query_params},
+            )
+
         years = list(range(start_year, end_year + 1))
         page_size = min(max(1, int(batch_size)), 1000)
         max_pages_per_year = min(max(1, int(max_pages)), 200000)
@@ -577,14 +586,9 @@ class OpenDataSUSDataSource(DataSource):
             for page in range(max_pages_per_year):
                 params: Dict[str, object] = dict(endpoint_spec.query_params)
                 params.update(
-                    {
-                        "limit": page_size,
-                        # DEMAS offset conta LINHAS, não páginas (o swagger diz
-                        # "Número da página", mas limit=5&offset=1 sobrepõe 4 das
-                        # 5 linhas de offset=0). Avançar de 1 em 1 rebaixaria a
-                        # mesma janela e cobriria page_size vezes menos dados.
-                        "offset": page * page_size,
-                    }
+                    demas_quirks.pagination_params(
+                        endpoint, page=page, page_size=page_size
+                    )
                 )
                 if uf and uf_param_name:
                     params[uf_param_name] = uf
@@ -928,7 +932,10 @@ class OpenDataSUSDataSource(DataSource):
     ) -> Dict[str, object]:
         swagger_params = set(self._demas_get_params_by_path.get(path_template, ()))
         path_params = set(self._extract_path_param_names(path_template))
-        ignored = {"limit", "offset"} | path_params
+        # A paginação é responsabilidade do laço de coleta em qualquer um dos
+        # esquemas; deixar o usuário passá-la pelos parâmetros da fonte faria a
+        # janela ser sobrescrita no meio da varredura.
+        ignored = demas_quirks.PAGINATION_PARAM_NAMES | path_params
         query: Dict[str, object] = {}
         for key, value in api_params.items():
             if key in ignored:

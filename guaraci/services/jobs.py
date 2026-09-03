@@ -18,6 +18,7 @@ from uuid import uuid4
 from guaraci.core.results import JobResult
 from guaraci.core.security import ensure_allowed_output_dir
 from guaraci.services.downloads import DownloadService
+from guaraci.utils.atomic_io import replace_with_retry
 
 
 class JobCancelledError(BaseException):
@@ -852,7 +853,7 @@ class DownloadJobService:
             json.dumps(payload, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
-        tmp_path.replace(self._storage_path)
+        replace_with_retry(tmp_path, self._storage_path)
 
     def _load_persisted_jobs(self) -> None:
         if self._storage_path is None or not self._storage_path.exists():

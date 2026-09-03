@@ -2140,23 +2140,160 @@
         "tags": [
           "Economia da Saúde"
         ],
-        "summary": "Banco de Preço em Saúde - sistema de registro de informações de compras públicas e privadas de medicamentos e dispositivos médicos.",
+        "summary": "Banco de Preços em Saúde (BPS) com parâmetros de pesquisa alinhados ao consultarMaterial e campos em camelCase.",
         "parameters": [
           {
-            "name": "limit",
+            "name": "pagina",
             "in": "query",
-            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "description": "Número da página de retorno (inicia em 1).",
+            "required": false,
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "tamanhoPagina",
+            "in": "query",
+            "description": "Quantidade de registros por página (máximo: 500).",
             "required": false,
             "type": "integer",
             "default": 100
           },
           {
-            "name": "offset",
+            "name": "codigoCatmat",
             "in": "query",
-            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "description": "Código BR/CATMAT do item. Obrigatório quando cnpjInstituicao não for informado.",
             "required": false,
-            "type": "integer",
-            "default": 0
+            "type": "string"
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "description": "UF da instituição compradora.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cnpjInstituicao",
+            "in": "query",
+            "description": "CNPJ da instituição compradora (14 dígitos). Obrigatório quando codigoCatmat não for informado.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cnpjFornecedor",
+            "in": "query",
+            "description": "CNPJ do fornecedor (14 dígitos).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cnpjFabricante",
+            "in": "query",
+            "description": "CNPJ do fabricante (14 dígitos).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "modalidade",
+            "in": "query",
+            "description": "Modalidade da compra.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tipoCompra",
+            "in": "query",
+            "description": "Tipo/contexto da compra (regular, emergencial, judicial, etc.).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "generico",
+            "in": "query",
+            "description": "Filtro por medicamento genérico (true/false).",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "registroAnvisa",
+            "in": "query",
+            "description": "Código de registro CMED/Anvisa.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dataCompraInicio",
+            "in": "query",
+            "description": "Data inicial da compra no formato YYYY-MM-DD.",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "dataCompraFim",
+            "in": "query",
+            "description": "Data final da compra no formato YYYY-MM-DD.",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "dataInsercaoInicio",
+            "in": "query",
+            "description": "Data inicial de inserção no BPS no formato YYYY-MM-DD.",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "dataInsercaoFim",
+            "in": "query",
+            "description": "Data final de inserção no BPS no formato YYYY-MM-DD.",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "anoCompra",
+            "in": "query",
+            "description": "Filtro por ano da compra (AAAA).",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "valorUnitarioMinimo",
+            "in": "query",
+            "description": "Valor unitário mínimo.",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "valorUnitarioMaximo",
+            "in": "query",
+            "description": "Valor unitário máximo.",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "quantidadeMinima",
+            "in": "query",
+            "description": "Quantidade mínima adquirida.",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "quantidadeMaxima",
+            "in": "query",
+            "description": "Quantidade máxima adquirida.",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "ordenacao",
+            "in": "query",
+            "description": "Ordenação dos resultados: precoUnitario+asc|desc, dataCompra+asc|desc, anoCompra+asc|desc.",
+            "required": false,
+            "type": "string"
           }
         ],
         "produces": [
@@ -2651,7 +2788,7 @@
         }
       }
     },
-    "/atencao-primaria/pmmb": {
+    "/atencao-primaria/pmmb-consolidado": {
       "get": {
         "tags": [
           "Atenção Primária"
@@ -2816,7 +2953,7 @@
         }
       }
     },
-    "/atencao-primaria/pmmb-profissionais-ativos": {
+    "/atencao-primaria/pmmb-relacao-nominal-ativo": {
       "get": {
         "tags": [
           "Atenção Primária"

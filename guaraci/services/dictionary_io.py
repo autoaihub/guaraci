@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
+from guaraci.utils.atomic_io import replace_with_retry
+
 
 def load_field_dictionary(path: Path) -> Dict[str, Dict[str, Any]]:
     """Load the versioned field dictionary. Returns {} if the file doesn't exist yet."""
@@ -31,7 +33,7 @@ def atomic_write_json(path: Path, data: Dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = path.with_suffix(path.suffix + ".tmp")
     tmp_path.write_text(json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True), encoding="utf-8")
-    os.replace(tmp_path, path)
+    replace_with_retry(tmp_path, path)
 
 
 def _format_status_line(source: str, entry: Dict[str, Any]) -> str:

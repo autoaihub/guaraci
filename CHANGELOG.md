@@ -36,12 +36,49 @@ Duas das falhas eram defeito do catálogo, e foram corrigidas.
   quando o intervalo é mais largo, e um pedido inteiramente fora agora falha
   dizendo qual é a cobertura disponível.
 
-Três endpoints (`atencao_primaria_pmmb`,
-`atencao_primaria_pmmb_profissionais_ativos` e `plataformabr_projetos`)
-respondem 404 em qualquer grafia testada, o que indica remoção pela origem, e
-`economia_da_saude_bps` exige `codigoCatmat` ou `cnpjInstituicao`, uma
-condição de "pelo menos um" que o schema declarativo não expressa. Os quatro
-seguem registrados e continuam falhando com a mensagem da origem.
+As outras quatro falhas foram investigadas contra o swagger publicado pela
+origem e estão tratadas na entrada seguinte.
+
+### Fixed: duas fontes do PMMB tinham migrado e o bps paginava errado
+A comparação do swagger local com o publicado em
+`apidadosabertos.saude.gov.br/static/swagger.json` mostrou que as quatro
+falhas restantes tinham três causas distintas, e não uma remoção genérica.
+
+- **`atencao_primaria_pmmb` e `atencao_primaria_pmmb_profissionais_ativos`
+  migraram.** A origem renomeou os endpoints para `pmmb-consolidado` e
+  `pmmb-relacao-nominal-ativo`, com os mesmos parâmetros de cada um
+  (`pmmb-relacao-nominal-ativo` mantém `uf`, `sexo` e `nacionalidade`). Os
+  dois voltam a coletar. Como o identificador da fonte é derivado do caminho,
+  as fontes passam a se chamar `atencao_primaria_pmmb_consolidado` e
+  `atencao_primaria_pmmb_relacao_nominal_ativo`.
+- **`economia_da_saude_bps` não estava só sem um parâmetro.** O endpoint
+  existe, mas é o único dos 87 publicados que pagina por número de página, e
+  ignora `limit`/`offset` em silêncio: verificado ao vivo, `limit=3` e
+  `limit=3&offset=3` devolvem as mesmas 100 linhas, enquanto `pagina=2` avança.
+  Paginado como os outros, ele renderia a mesma página repetida até esgotar
+  `max_pages`, produzindo duplicatas em massa sem nenhum erro visível. Novo
+  `guaraci/opendatasus/demas_quirks.py` concentra o esquema de paginação por
+  endpoint e a exigência de trazer `codigoCatmat` ou `cnpjInstituicao`, que
+  agora falha antes da primeira requisição em vez de virar um 400 da origem
+  sem identificação da fonte. O swagger local desse caminho declarava
+  `limit`/`offset`, que o endpoint sequer aceita, e foi sincronizado com os 21
+  filtros reais.
+- **`plataformabr_projetos` foi removida mesmo.** O grupo `/plataformabr`
+  inteiro deixou de existir no swagger da origem, sem endpoint sucessor.
+
+O snapshot local do swagger tem 79 caminhos contra 87 publicados, de modo que
+há oito endpoints novos ainda não avaliados para inclusão no catálogo.
+
+### Fixed: gravação de `jobs.json` abortava de forma intermitente no Windows
+`os.replace` é atômico, mas no Windows falha com `PermissionError` enquanto
+qualquer outro processo mantém um handle sobre o destino, ainda que só para
+leitura, o que indexador de busca e antivírus fazem por alguns milissegundos.
+O efeito era a persistência de jobs da API abortando sem regularidade, com o
+trabalho registrado em memória e perdido em disco. Novo
+`guaraci/utils/atomic_io.py` refaz a troca até cinco vezes com espera
+crescente, cobrindo cerca de 150 ms, e ainda propaga o erro se o bloqueio não
+for transitório. Aplicado também à escrita do dicionário de campos, que usava
+o mesmo padrão.
 
 ### Fixed: coletas do OpenDataSUS estouravam a memória e truncavam em silêncio
 A família DEMAS reúne 51 das 99 fontes e é o outro caminho de coleta longa da

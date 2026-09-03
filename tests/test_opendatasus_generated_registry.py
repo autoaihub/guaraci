@@ -9,6 +9,7 @@ from typing import Mapping
 import pytest
 
 from guaraci.opendatasus.datasource import OpenDataSUSDataSource
+from guaraci.opendatasus.demas_quirks import PAGINATION_PARAM_NAMES, required_filters
 from guaraci.opendatasus.utils.swagger_catalog import load_local_get_params_catalog
 from guaraci.services.opendatasus_registry import get_opendatasus_sources
 
@@ -57,12 +58,14 @@ def test_generated_sources_match_local_swagger_parameters() -> None:
         if path is None:
             continue
         specs = {item.name: item for item in source.params_schema()}
-        expected_native = set(catalog[path]) - {"limit", "offset"}
+        expected_native = set(catalog[path]) - PAGINATION_PARAM_NAMES
         actual_native = set(specs) - STANDARD_GENERATED_PARAMS
 
         assert path in catalog
-        assert "limit" not in specs
-        assert "offset" not in specs
+        # A paginação é do laço de coleta, em qualquer um dos dois esquemas da
+        # DEMAS; expô-la como parâmetro deixaria o usuário sobrescrever a
+        # janela no meio da varredura.
+        assert not (PAGINATION_PARAM_NAMES & set(specs))
         assert actual_native == expected_native
 
         for name in actual_native:
@@ -88,6 +91,10 @@ def test_generated_source_paths_resolve_and_execute_with_fake_client(source, tmp
     dataset = getattr(source, "_fixed_dataset")
     path = "/" + str(dataset).lstrip("/")
     required_values = {name: "1" for name in _path_params(path)}
+    # Alguns endpoints respondem 400 sem um filtro de recorte; o primeiro da
+    # lista basta para exercitar o caminho feliz.
+    filtros_exigidos = required_filters(path)
+    filtro_query = {filtros_exigidos[0]: "1"} if filtros_exigidos else {}
     client = _RecordingDemasClient()
     datasource = OpenDataSUSDataSource(output_path=str(tmp_path), client=client)  # type: ignore[arg-type]
 
@@ -97,6 +104,7 @@ def test_generated_source_paths_resolve_and_execute_with_fake_client(source, tmp
         max_pages=1,
         keep_raw=True,
         **required_values,
+        **filtro_query,
     )
 
     assert payload["downloaded_count"] == 1
@@ -105,7 +113,10 @@ def test_generated_source_paths_resolve_and_execute_with_fake_client(source, tmp
     assert "{" not in resolved_path
     assert "}" not in resolved_path
     for name in required_values:
+        # Parâmetro de caminho é consumido na URL, não repetido na query.
         assert name not in client.calls[0][1]
+    for name in filtro_query:
+        assert client.calls[0][1][name] == "1"
 
 
 def test_no_generated_source_duplicates_manual_demas_endpoint():
