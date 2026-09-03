@@ -116,6 +116,21 @@ def test_coleta_do_bps_usa_pagina_e_nao_offset(tmp_path: Path) -> None:
     assert [c["pagina"] for c in client.calls] == [1, 2, 3]
 
 
+def test_exigencia_e_checada_na_validacao_de_parametros() -> None:
+    """Na validação, e não no meio da coleta: é o que rende erro de uso limpo
+    na CLI (exit 2, sem traceback) e HTTP 400 na API em vez de 500."""
+    from guaraci.services.downloads import DownloadService
+
+    service = DownloadService()
+
+    with pytest.raises(ValueError, match="codigoCatmat"):
+        service.validate_source_params("economia_da_saude_bps", {"estado": "SP"})
+
+    service.validate_source_params(
+        "economia_da_saude_bps", {"cnpjInstituicao": "46374500000194"}
+    )
+
+
 def test_coleta_do_bps_sem_filtro_falha_antes_de_qualquer_requisicao(tmp_path: Path) -> None:
     client = _ClientePaginado(paginas=2)
     datasource = OpenDataSUSDataSource(output_path=str(tmp_path), client=client)  # type: ignore[arg-type]

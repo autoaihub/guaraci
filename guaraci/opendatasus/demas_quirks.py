@@ -60,7 +60,7 @@ def check_required_filters(endpoint: str, params: Mapping[str, object]) -> None:
         return
     if any(_informado(params.get(nome)) for nome in exigidos):
         return
-    nomes = " ou ".join(f"'{nome}'" for nome in exigidos)
+    nomes = " or ".join(f"'{nome}'" for nome in exigidos)
     raise ValueError(
         f"Endpoint '{_normalize(endpoint)}' requires at least one of {nomes}. "
         "This source only answers point queries: the origin rejects requests "

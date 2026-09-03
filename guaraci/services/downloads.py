@@ -45,6 +45,7 @@ from guaraci.nasa import (
     NasaPowerDataSource,
 )
 from guaraci.opendatasus import OpenDataSUSDataSource, PortalFileDataSource
+from guaraci.opendatasus.demas_quirks import check_required_filters
 from guaraci.snis import SinisaDataSource, SnisDataSource
 
 # Reexport dos normalizadores (movidos para guaraci/services/normalizers.py)
@@ -720,6 +721,11 @@ class OpenDataSUSDownloadSource:
                     f"Parameter '{name}' is required for OpenDataSUS source "
                     f"'{self.descriptor.source}'."
                 )
+        # Alguns endpoints exigem ao menos um de dois filtros, condição que o
+        # schema por parâmetro isolado não expressa. Validar aqui, e não no
+        # meio da coleta, é o que rende erro de uso limpo na CLI e 400 na API.
+        if self._fixed_dataset:
+            check_required_filters(self._fixed_dataset, prepared)
 
     def _prepare_kwargs(self, kwargs: Mapping[str, object]) -> Dict[str, object]:
         prepared = dict(kwargs)
