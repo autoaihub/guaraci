@@ -130,7 +130,7 @@ class SidraAggregateSource(DataSource):
         requested_format = self._normalize_format(output_format)
         exported: List[str] = []
         if not records:
-            warnings.append("IBGE returned no rows for the requested years/level.")
+            warnings.append(self._empty_result_warning(client, years))
         if requested_format and records:
             try:
                 exported.append(str(self.export(self._to_df(records), format=requested_format, name=stem)))
@@ -189,6 +189,32 @@ class SidraAggregateSource(DataSource):
         if combined:
             payload_out["export_warning"] = combined
         return payload_out
+
+    def _empty_result_warning(self, client, years: List[int]) -> str:
+        """Explica o vazio dizendo o que a tabela publica, quando dá para saber.
+
+        A série do SIDRA tem buracos que não são falha de coleta: a tabela de
+        população estimada pula 2007, 2010, 2022 e 2023. Sem essa informação, o
+        zero é indistinguível de um erro nosso.
+        """
+        base = "IBGE returned no rows for the requested years/level."
+        try:
+            publicados = client.published_periods(self.TABLE)
+        except Exception:  # noqa: BLE001 - o aviso não pode falhar por causa disto
+            return base
+        if not publicados:
+            return base
+        faltantes = [ano for ano in years if ano not in publicados]
+        if not faltantes:
+            return (
+                f"{base} Table {self.TABLE} does publish "
+                f"{publicados[0]}-{publicados[-1]}, so check the locality level."
+            )
+        return (
+            f"{base} Table {self.TABLE} does not publish "
+            f"{', '.join(str(ano) for ano in faltantes)}; "
+            f"available years: {', '.join(str(ano) for ano in publicados)}."
+        )
 
     def load_dataframe(self) -> pl.DataFrame:
         return self._to_df(self._records) if self._records else pl.DataFrame()

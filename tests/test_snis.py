@@ -12,9 +12,9 @@ from guaraci.snis.snis import SnisDataSource
 SAMPLE_HTML = """
 <html>
   <body>
-    <a href="/arquivos/SINISA_AGUA_Planilhas_2023_v2.1.1.zip">Planilhas - Água</a>
-    <a href="/arquivos/SINISA_ESGOTO_Planilhas_2023_v2.1.1.zip">Planilhas - Esgoto</a>
-    <a href="/arquivos/SINISA_Glossario_2023.xlsx">Glossário SINISA</a>
+    <a href="/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis/produtos-do-snis/diagnosticos/SINISA_AGUA_Planilhas_2023_v2.1.1.zip">Planilhas - Água</a>
+    <a href="/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis/produtos-do-snis/diagnosticos/SINISA_ESGOTO_Planilhas_2023_v2.1.1.zip">Planilhas - Esgoto</a>
+    <a href="/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis/produtos-do-snis/diagnosticos/SINISA_Glossario_2023.xlsx">Glossário SINISA</a>
   </body>
 </html>
 """
@@ -61,7 +61,7 @@ def test_snis_discovers_nested_historical_pages(monkeypatch):
             <a href="{year}">2011</a>
         """,
         year: """
-            <a href="/arquivos/snis_2011.zip">Download arquivo consolidado</a>
+            <a href="/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis/produtos-do-snis/diagnosticos/snis_2011.zip">Download arquivo consolidado</a>
         """,
     }
 
@@ -73,14 +73,14 @@ def test_snis_discovers_nested_historical_pages(monkeypatch):
     docs = ds.list_documents(file_kinds=["planilhas"])
 
     assert len(docs) == 1
-    assert docs[0].url.endswith("/arquivos/snis_2011.zip")
+    assert docs[0].url.endswith("/diagnosticos/snis_2011.zip")
     assert docs[0].kind == "planilhas"
 
 
 def test_snis_extract_accepts_xls_inside_zip():
     ds = SnisDataSource(output_path="data/test_snis")
     doc = SinisaDocumentLink(
-        url="https://example.org/arquivos/Planilhas_AE2011.zip",
+        url="https://example.org/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis/produtos-do-snis/diagnosticos/Planilhas_AE2011.zip",
         text="Planilhas AE 2011",
         kind="planilhas",
         module="agua",
@@ -92,7 +92,7 @@ def test_snis_extract_accepts_xls_inside_zip():
 def test_snis_download_returns_job_result(monkeypatch, tmp_path):
     ds = SnisDataSource(output_path=str(tmp_path / "snis"))
     doc = SinisaDocumentLink(
-        url="https://example.org/arquivos/Planilhas_AE2011.zip",
+        url="https://example.org/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis/produtos-do-snis/diagnosticos/Planilhas_AE2011.zip",
         text="Planilhas AE 2011",
         kind="planilhas",
         module="agua",

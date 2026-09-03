@@ -21,11 +21,19 @@ from guaraci.snis.sinisa import ProgressCallback, SinisaDataSource, SinisaDocume
 class SnisDataSource(SinisaDataSource):
     """Primary SNIS datasource backed by direct gov.br downloads."""
 
+    # O Ministério das Cidades reorganizou o portal: a antiga página de
+    # diagnósticos anteriores continua respondendo 200, mas devolve o layout
+    # padrão do gov.br sem link de arquivo algum, de modo que a coleta falhava
+    # com "No SNIS files matched" mesmo nos parâmetros padrão. Os arquivos
+    # passaram para a página de produtos, verificada em 2026-09-03 com as
+    # planilhas de água e esgoto, resíduos sólidos e águas pluviais de 2022,
+    # os glossários e os atestados de regularidade.
     SINISA_HOME_URL = (
         "https://www.gov.br/cidades/pt-br/acesso-a-informacao/"
-        "acoes-e-programas/saneamento/snis/diagnosticos-anteriores-do-snis"
+        "acoes-e-programas/saneamento/snis/produtos-do-snis/diagnosticos-snis"
     )
     DEFAULT_RESULTS_URL = SINISA_HOME_URL
+    DOCUMENT_PATH_MARKERS = ("/saneamento/snis/",)
     MAX_DISCOVERY_DEPTH = 3
     SNIS_PLANILHA_FINAL_EXTENSIONS = (".csv", ".xlsx", ".xls")
 

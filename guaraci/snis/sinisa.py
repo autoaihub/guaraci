@@ -98,8 +98,18 @@ class SinisaDataSource(DataSource):
         "https://www.gov.br/cidades/pt-br/acesso-a-informacao/"
         "acoes-e-programas/saneamento/sinisa/resultados-sinisa"
     )
-    DOWNLOADABLE_EXTENSIONS = (".zip", ".xlsx", ".xls", ".csv", ".ods", ".pdf")
-    PLANILHA_SOURCE_EXTENSIONS = (".zip", ".csv", ".xlsx")
+    # As páginas do gov.br trazem um menu lateral que repete arquivos de outros
+    # programas em toda página do portal (planilhas de barragens e de emendas
+    # parlamentares, por exemplo). Sem restringir ao caminho da própria fonte,
+    # esses arquivos entram no resultado como se fossem dados de saneamento.
+    DOCUMENT_PATH_MARKERS: tuple[str, ...] = ("/saneamento/sinisa/",)
+    # ``.rar`` entrou depois: o SINISA publica as planilhas de resíduos e de
+    # águas pluviais de 2023 nesse formato, e sem reconhecê-lo o crawler as
+    # ignorava como documento e ainda as buscava como se fossem páginas HTML,
+    # o que derrubava a coleta inteira no parser. Baixar basta; a extração
+    # automática segue restrita a ``.zip``.
+    DOWNLOADABLE_EXTENSIONS = (".zip", ".rar", ".xlsx", ".xls", ".csv", ".ods", ".pdf")
+    PLANILHA_SOURCE_EXTENSIONS = (".zip", ".rar", ".csv", ".xlsx")
     PLANILHA_FINAL_EXTENSIONS = (".csv", ".xlsx")
     VALID_FILE_KINDS = ("planilhas", "relatorios", "glossarios", "atestados", "all")
     VALID_MODULES = ("gestao_municipal", "agua", "esgoto", "residuos", "aguas_pluviais")
@@ -246,6 +256,7 @@ class SinisaDataSource(DataSource):
             links=links,
             selected_kinds=selected_kinds,
             normalized_modules=normalized_modules,
+            path_markers=self.DOCUMENT_PATH_MARKERS,
         )
 
     def _prepare_output_dirs(
@@ -520,9 +531,12 @@ class SinisaDataSource(DataSource):
         links: Sequence[SinisaDocumentLink],
         selected_kinds: Sequence[str],
         normalized_modules: Optional[Sequence[str]],
+        path_markers: Sequence[str] = (),
     ) -> List[SinisaDocumentLink]:
         filtered: List[SinisaDocumentLink] = []
         for link in links:
+            if not SinisaDataSource._belongs_to_source(link.url, path_markers):
+                continue
             if "all" not in selected_kinds and link.kind not in selected_kinds:
                 continue
             if normalized_modules and link.module not in normalized_modules:
@@ -531,6 +545,14 @@ class SinisaDataSource(DataSource):
                 continue
             filtered.append(link)
         return filtered
+
+    @staticmethod
+    def _belongs_to_source(url: str, path_markers: Sequence[str]) -> bool:
+        """Diz se o arquivo está sob o caminho da fonte, e não no menu lateral."""
+        if not path_markers:
+            return True
+        alvo = url.lower()
+        return any(marcador.lower() in alvo for marcador in path_markers)
 
     def load_dataframe(self, file_path: str, sheet_name: Optional[str] = None) -> pl.DataFrame:
         """Load a downloaded raw SINISA file into Polars."""
@@ -611,7 +633,16 @@ class SinisaDataSource(DataSource):
     @classmethod
     def _extract_anchors(cls, html: str, base_url: str) -> List[Tuple[str, str]]:
         parser = _AnchorParser()
-        parser.feed(html)
+        try:
+            parser.feed(html)
+        except Exception as exc:  # noqa: BLE001 - ver comentário
+            # ``HTMLParser`` levanta ``AssertionError`` (não ``HTMLParseError``)
+            # ao encontrar uma declaração malformada, o que acontece quando o
+            # portal devolve um binário no lugar de uma página. Verificado em
+            # 2026-09-03: isso derrubava a coleta inteira do SINISA, em vez de
+            # descartar a única página ilegível.
+            logger.warning("Could not parse HTML from {}: {}", base_url, exc)
+            return []
         anchors: List[Tuple[str, str]] = []
         for href, text in parser.links:
             cleaned = cls._normalize_url(href, base_url)

@@ -39,6 +39,43 @@ Duas das falhas eram defeito do catálogo, e foram corrigidas.
 As outras quatro falhas foram investigadas contra o swagger publicado pela
 origem e estão tratadas na entrada seguinte.
 
+### Fixed: a fonte SNIS não coletava nada, e o SINISA abortava por um `.rar`
+Varredura ao vivo das fontes que não são da API DEMAS, pelo mesmo caminho do
+usuário (`scripts/smoke_non_demas_sources.py`). Três defeitos no crawl de
+saneamento no portal do Ministério das Cidades:
+
+- **O SNIS falhava sempre**, inclusive nos parâmetros padrão, com "No SNIS
+  files matched the requested filters". A página de diagnósticos anteriores
+  que ele raspava saiu do ar sem responder 404: devolve 200 com o layout padrão
+  do gov.br e nenhum link de arquivo. Os arquivos passaram para a página de
+  produtos, e a fonte volta a encontrar 11 documentos, entre planilhas de água
+  e esgoto, resíduos sólidos e águas pluviais de 2022, glossários e atestados.
+- **O menu lateral do portal entrava no resultado.** Ele repete arquivos de
+  outros programas em toda página, e três planilhas de barragens e emendas
+  parlamentares apareciam como se fossem dados de saneamento. Cada fonte passa
+  a aceitar apenas o que está sob o seu próprio caminho: dos 52 documentos que
+  o crawl do SINISA alcança, 47 estão sob `/saneamento/sinisa/` e os cinco
+  restantes são justamente os do menu.
+- **Um `.rar` derrubava a coleta inteira do SINISA.** O formato não era
+  reconhecido como documento, então o crawler o buscava como se fosse página, e
+  o `HTMLParser` da biblioteca padrão levantava `AssertionError` sobre os bytes
+  binários, o que nenhum `except` no caminho previa. Reconhecer a extensão
+  resolve os dois lados: as planilhas de resíduos e de águas pluviais de 2023,
+  publicadas em `.rar`, deixam de ser ignoradas e não são mais abertas como
+  HTML. A leitura de página ilegível passa a descartar só aquela página.
+
+O restante da varredura não achou defeito: IBGE (9 de 11 coletando, e as duas
+restantes pedem anos que a origem não publica), INPE Queimadas, NASA POWER e
+INMET respondem; ANA, NASA FIRMS e NASA GPM pedem credencial e dizem qual
+variável de ambiente configurar.
+
+### Changed: resultado vazio do IBGE diz quais anos a tabela publica
+As séries do SIDRA têm buracos que não são falha de coleta: a tabela 6579, de
+população estimada, não publica 2007, 2010, 2022 nem 2023. Pedir um desses anos
+devolvia zero linhas com um "IBGE returned no rows" que não distinguia origem
+sem dado de erro nosso. O aviso agora nomeia os anos pedidos que faltam e lista
+os disponíveis, no mesmo espírito do que já era feito para as fontes FTP.
+
 ### Fixed: recorte por UF era aceito e ignorado, e o resultado saía como recorte
 `cadastro-vinculado-programa-previne-brasil` responde 200 a qualquer valor de
 UF, sob qualquer um dos nomes de parâmetro que declara, e devolve sempre as
