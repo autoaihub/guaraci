@@ -36,6 +36,7 @@ SESAI = "Ministério da Saúde — SESAI"
 APS = "Ministério da Saúde — Atenção Primária à Saúde"
 DGITS = "Ministério da Saúde — DGITS"
 DTS = "Ministério da Saúde (DATASUS)"
+CONEP = "Ministério da Saúde, CONEP"
 
 G_FTP = "DATASUS · sistemas nacionais"
 G_VIG = "Emergências e vigilância"
@@ -99,10 +100,11 @@ CURATED = {
     # ("vacinacao_esavi" removed for the same reason — see note above.)
     "vacinacao_sistema_de_informacao_de_insumos_estrategicos": ("Insumos estratégicos de vacinação", "Estoque e distribuição de insumos", G_VAC, PNI_M, "saude"),
     # CNES · catálogo aberto
+    "arboviroses_febre_amarela_epzootias": ("Febre amarela, epizootias", "Eventos em primatas não humanos por macrorregião, UF e mês", G_ARBO, SVS, "saude"),
     "cnes_estabelecimentos": ("Estabelecimentos de saúde", "Cadastro nacional via catálogo aberto", G_CNES, "Ministério da Saúde (CNES)", "saude"),
-    "cnes_estabelecimentos_{codigo_cnes}": ("Estabelecimentos por código CNES", "Consulta individual por código", G_CNES, "Ministério da Saúde (CNES)", "saude"),
+    "cnes_estabelecimentos_por_codigo_cnes": ("Estabelecimentos por código CNES", "Consulta individual por código", G_CNES, "Ministério da Saúde (CNES)", "saude"),
     "cnes_tipounidades": ("Tipos de unidade de saúde", "Tabela de tipos de unidade", G_CNES, "Ministério da Saúde (CNES)", "saude"),
-    "cnes_tipounidades_{codigo_tipo_unidade}": ("Tipos de unidade por código", "Consulta individual por código", G_CNES, "Ministério da Saúde (CNES)", "saude"),
+    "cnes_tipounidades_por_codigo_tipo_unidade": ("Tipos de unidade por código", "Consulta individual por código", G_CNES, "Ministério da Saúde (CNES)", "saude"),
     # Sisagua
     "sisagua_vigilancia_parametros_basicos": ("Vigilância — parâmetros básicos", "Qualidade da água para consumo humano", G_SIS, AMB, "saude"),
     "sisagua_controle_semestral": ("Controle semestral", "Monitoramento semestral da água", G_SIS, AMB, "saude"),
@@ -120,6 +122,8 @@ CURATED = {
     "sisagua_vigilancia_cianobacterias_e_cianotoxinas": ("Vigilância — cianobactérias e cianotoxinas", "Monitoramento de cianobactérias", G_SIS, AMB, "saude"),
     "sisagua_vigilancia_demais_parametros": ("Vigilância — demais parâmetros", "Parâmetros complementares de vigilância", G_SIS, AMB, "saude"),
     # Saúde indígena
+    "saude_indigena_sesai_atendimentos": ("Atendimentos da SESAI", "Atendimentos em territórios indígenas por UF e mês", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_recursos_humanos": ("Recursos humanos da SESAI", "Profissionais lotados nos distritos sanitários", G_IND, SESAI, "saude"),
     "saude_indigena_sasisus_esgotamento_sanitario": ("Esgotamento sanitário em aldeias", "Saneamento em territórios indígenas", G_IND, SESAI, "saude"),
     "saude_indigena_sasi_sus_gerenciamento_de_residuos_solidos": ("Gerenciamento de resíduos sólidos", "Resíduos sólidos em aldeias", G_IND, SESAI, "saude"),
     "saude_indigena_acompanhamento_obra_infraestrutura_saude": ("Obras de infraestrutura de saúde", "Acompanhamento de obras em territórios indígenas", G_IND, SESAI, "saude"),
@@ -133,9 +137,14 @@ CURATED = {
     "saude_indigena_siasi_modulo_saude_bucal_ficha7": ("Saúde bucal — ficha 7", "Procedimentos clínicos das equipes multidisciplinares (EMSI)", G_IND, SESAI, "saude"),
     "saude_indigena_indicadores_enfrentamento_monitoramento_covid19_indigenas": ("Covid-19 em povos indígenas", "Enfrentamento e monitoramento da Covid-19", G_IND, SESAI, "saude"),
     # Atenção primária
-    "atencao_primaria_pmmb": ("PMMB — Programa Médicos pelo Brasil", "Dados gerais do programa", G_AP, APS, "saude"),
-    "atencao_primaria_pmmb_profissionais_ativos": ("PMMB — profissionais ativos", "Profissionais em atividade", G_AP, APS, "saude"),
+    "atencao_primaria_pmmb_consolidado": ("PMMB, consolidado", "Dados gerais do Programa Médicos pelo Brasil", G_AP, APS, "saude"),
+    "atencao_primaria_pmmb_relacao_nominal_ativo": ("PMMB, relação nominal de ativos", "Profissionais em atividade, um por linha", G_AP, APS, "saude"),
     "atencao_primaria_pmmb_serie_historica": ("PMMB — série histórica", "Evolução histórica do programa", G_AP, APS, "saude"),
+    "atencao_primaria_pmmb_relacao_nominal_coparticipacao": ("PMMB, coparticipação", "Vínculos por município e início de atividades", G_AP, APS, "saude"),
+    "atencao_primaria_pmmb_relatorio_historico_cadastro_cnes": ("PMMB, histórico de cadastro no CNES", "Vínculos do programa no cadastro de estabelecimentos", G_AP, APS, "saude"),
+    "atencao_primaria_pmmb_especialista_consolidado": ("PMMB Especialista, consolidado", "Dados gerais do módulo de especialistas", G_AP, APS, "saude"),
+    "atencao_primaria_pmmb_especialista_relacao_nominal_ativo": ("PMMB Especialista, relação nominal de ativos", "Especialistas em atividade, um por linha", G_AP, APS, "saude"),
+    "atencao_primaria_pmmb_especialista_serie_historica": ("PMMB Especialista, série histórica", "Evolução do módulo de especialistas", G_AP, APS, "saude"),
     "atencao_primaria_cadastro_vinculado_programa_previne_brasil": ("Cadastro vinculado ao Previne Brasil", "Cadastros do programa Previne Brasil", G_AP, APS, "saude"),
     "atencao_primaria_indicador_desempenho_programa_previne_brasil": ("Indicador de desempenho do Previne Brasil", "Indicadores de desempenho", G_AP, APS, "saude"),
     # Assistência à saúde
@@ -150,9 +159,14 @@ CURATED = {
     "ciencia_tecnologia_dgits_controle_demandas_conitec": ("Controle de demandas da CONITEC", "Demandas de incorporação de tecnologias", G_CT, DGITS, "saude"),
     "ciencia_tecnologia_dgits_controle_pcdt": ("Controle de PCDT", "Protocolos e diretrizes terapêuticas", G_CT, DGITS, "saude"),
     "ciencia_tecnologia_dgits_tecnologias_diretrizes": ("Tecnologias e diretrizes", "Tecnologias avaliadas e diretrizes", G_CT, DGITS, "saude"),
-    # Plataforma Brasil
-    "plataformabr_projetos": ("Projetos de pesquisa cadastrados", "Pesquisas com seres humanos registradas", G_PB, "Ministério da Saúde — CONEP", "saude"),
-    "plataformabr_projetos_{numero_caae}": ("Projetos de pesquisa por número CAAE", "Consulta individual por CAAE", G_PB, "Ministério da Saúde — CONEP", "saude"),
+    # Plataforma Brasil (a origem moveu os dois endpoints para /ciencia-tecnologia
+    # e o grupo /plataformabr deixou de existir; verificado em 2026-09-03, os
+    # sucessores respondem 200 mas ainda não publicam linha alguma)
+    "ciencia_tecnologia_plataformabr_pesquisa_saude": ("Plataforma Brasil, pesquisas em saúde", "Pesquisas com seres humanos registradas", G_PB, CONEP, "saude"),
+    "ciencia_tecnologia_plataformabr_projeto_aprovado": ("Plataforma Brasil, projetos aprovados", "Projetos com parecer favorável do sistema CEP/CONEP", G_PB, CONEP, "saude"),
+    # Ouvidoria (verificado em 2026-09-03: a origem responde 500 nos dois)
+    "ouvidoria_ouvidor2": ("Ouvidoria, manifestações (Ouvidor 2)", "Manifestações por UF, esfera e status", G_OUT, MS, "saude"),
+    "ouvidoria_ouvidor3": ("Ouvidoria, manifestações (Ouvidor 3)", "Manifestações por canal de entrada, UF e status", G_OUT, MS, "saude"),
     # Outras áreas
     "sisvan_estado_nutricional": ("Sisvan", "Estado nutricional da população", G_OUT, MS, "saude"),
     "daf_estoque_medicamentos_bnafar_horus": ("DAF", "Estoque de medicamentos (BNAFAR/Hórus)", G_OUT, MS, "saude"),

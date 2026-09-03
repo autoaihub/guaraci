@@ -39,6 +39,49 @@ Duas das falhas eram defeito do catálogo, e foram corrigidas.
 As outras quatro falhas foram investigadas contra o swagger publicado pela
 origem e estão tratadas na entrada seguinte.
 
+### Fixed: recorte por UF era aceito e ignorado, e o resultado saía como recorte
+`cadastro-vinculado-programa-previne-brasil` responde 200 a qualquer valor de
+UF, sob qualquer um dos nomes de parâmetro que declara, e devolve sempre as
+mesmas linhas. Pela CLI, um pedido de SP trazia 200 registros de 11 unidades da
+federação, apresentados como o recorte pedido. Duas causas somadas: o nome do
+parâmetro dessa família (`sigla_unidade_federacao`) não constava da lista de
+nomes de UF reconhecidos, de modo que um `uf=SP` nem chegava a ser enviado à
+origem, e o recorte não era reconferido nas linhas devolvidas.
+
+O recorte agora viaja sob o nome que o endpoint publica e é reconferido no
+retorno, com uma guarda para os casos em que a conferência não é possível: se
+as linhas não trazem uma sigla reconhecível, nada é descartado (filtrar
+apagaria tudo em vez de recortar) e o resultado sai com um aviso de que a
+origem pode ter ignorado o filtro. O mesmo pedido agora devolve 96 linhas,
+todas de SP.
+
+### Added: catálogo passa de 99 para 109 fontes, sincronizado com a origem
+O snapshot local do swagger tinha 79 caminhos contra os 87 publicados. A
+sincronização traz 12 endpoints novos e remove quatro que a origem retirou
+(`/plataformabr/projetos`, sua variante por CAAE e as duas rotas de
+autenticação, que nunca foram fonte de dados). Verificado ao vivo em
+2026-09-03, endpoint a endpoint:
+
+- **Seis coletam e exportam**, conferidos ponta a ponta pela CLI:
+  `arboviroses_febre_amarela_epzootias`, `saude_indigena_sesai_atendimentos`,
+  `saude_indigena_sesai_recursos_humanos` e três do módulo PMMB Especialista.
+- **Quatro respondem 200 sem publicar linha alguma**, inclusive com filtros:
+  os dois sucessores da Plataforma Brasil, `pmmb_especialista_consolidado` e
+  `pmmb_relatorio_historico_cadastro_cnes`.
+- **Dois respondem 500 na origem**: `ouvidoria_ouvidor2` e `ouvidoria_ouvidor3`.
+
+Os seis últimos ficam registrados assim mesmo, porque o catálogo espelha o que
+a origem publica: quando ela passar a responder, funcionam sem mudança nossa.
+
+As arboviroses (dengue, zika, chikungunya) ganharam o filtro `id_municip`, que
+a origem passou a aceitar, o que permite recortar por município sem baixar a
+unidade da federação inteira.
+
+Dois identificadores deixam de carregar as chaves do parâmetro de caminho:
+`cnes_estabelecimentos_{codigo_cnes}` obrigava o usuário a escapar o nome no
+shell, onde as chaves são sintaxe de expansão, e passa a ser
+`cnes_estabelecimentos_por_codigo_cnes`.
+
 ### Fixed: duas fontes do PMMB tinham migrado e o bps paginava errado
 A comparação do swagger local com o publicado em
 `apidadosabertos.saude.gov.br/static/swagger.json` mostrou que as quatro
