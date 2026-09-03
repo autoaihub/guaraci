@@ -1,7 +1,8 @@
 name: Track clone traffic
 
 # A API de tráfego do GitHub só retém 14 dias. Este job roda diariamente,
-# acumula o histórico em .github/traffic/clones.json e comita a atualização.
+# acumula o histórico de todos os repositórios em .github/traffic/ e comita a
+# atualização. Nenhum outro repositório é modificado.
 
 on:
   schedule:
@@ -34,7 +35,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/traffic/clones.json .github/traffic/clones-badge.json
+          git add .github/traffic
           if git diff --staged --quiet; then
             echo "sem mudanças no histórico de clonagens"
           else

@@ -1,0 +1,195 @@
+{
+  "updated_at": "2026-09-03T15:10:45+00:00",
+  "repo_count": 31,
+  "total_clones": 150,
+  "total_uniques": 78,
+  "repos": [
+    {
+      "repo": "autoaihub/guaraci",
+      "total_clones": 117,
+      "total_uniques": 50,
+      "tracking_since": "2026-08-12"
+    },
+    {
+      "repo": "LuisVogelDS/VogelStack",
+      "total_clones": 13,
+      "total_uniques": 9,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/LuisVogelDS",
+      "total_clones": 6,
+      "total_uniques": 6,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/loadbay",
+      "total_clones": 4,
+      "total_uniques": 4,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/churnlab",
+      "total_clones": 3,
+      "total_uniques": 3,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/retail-pulse",
+      "total_clones": 3,
+      "total_uniques": 3,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/PlacarBI",
+      "total_clones": 2,
+      "total_uniques": 1,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/CartaoVermelho",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "tracking_since": "2026-08-18"
+    },
+    {
+      "repo": "LuisVogelDS/vitrine",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/2msQueries",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Alquimia",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Bem-te-vi",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Cantin-do-Fogueu",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Controle-de-Campo",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/DataSushi",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/DeVirada",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/EsquemaTatico",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/GobbleGoblin",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/IntraAct",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/LilianeVogelAtelier",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/MemoriaRam",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/MemoriasPostumasDeBrazucas",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/MigracaoFortaleza",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/MigracionUniversitario",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Prospero",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/ScoutCamisa10",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Tatuacu",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/TicketImporterNewC",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Volvo",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/baldor-scraper",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "autoaihub/guaraci-docs",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-08-21"
+    }
+  ],
+  "unreachable": []
+}
