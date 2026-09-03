@@ -17,7 +17,6 @@ file and only re-downloads when they differ.
 from __future__ import annotations
 
 import json
-import sqlite3
 import zipfile
 from datetime import datetime
 from pathlib import Path
@@ -28,6 +27,7 @@ from loguru import logger
 
 from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
+from guaraci.datasus.frames import write_sqlite
 from guaraci.inmet.client import InmetClient, InmetClientError
 from guaraci.inmet.parser import (
     BASE_COLUMNS,
@@ -248,11 +248,10 @@ class InmetEstacoesDataSource(DataSource):
             return path
         if normalized == "sqlite":
             path = self.output_path / f"{name}.sqlite"
-            with sqlite3.connect(path) as connection:
-                df.to_pandas().to_sql(
-                    "inmet_estacoes_records", connection, if_exists="replace", index=False
-                )
-            return path
+            escrito = write_sqlite(df, db_path=path, table="inmet_estacoes_records")
+            if escrito is None:
+                raise ValueError("INMET export to sqlite has no rows to write.")
+            return escrito
         raise ValueError(
             f"Unsupported INMET export format '{format}'. Allowed: csv, parquet, sqlite"
         )

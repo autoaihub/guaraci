@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import json
 import re
-import sqlite3
 import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,6 +25,7 @@ import polars as pl
 
 from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
+from guaraci.datasus.frames import write_sqlite
 from guaraci.ibge.client import IbgeClientError, IbgeSidraClient
 
 _EXPORT_FORMATS = {"csv", "parquet", "sqlite"}
@@ -205,9 +205,10 @@ class SidraAggregateSource(DataSource):
             return path
         if normalized == "sqlite":
             path = self.output_path / f"{name}.sqlite"
-            with sqlite3.connect(path) as connection:
-                df.to_pandas().to_sql(self.name, connection, if_exists="replace", index=False)
-            return path
+            escrito = write_sqlite(df, db_path=path, table=self.name)
+            if escrito is None:
+                raise ValueError("IBGE export to sqlite has no rows to write.")
+            return escrito
         raise ValueError(
             f"Unsupported IBGE export format '{format}'. Allowed: csv, parquet, sqlite"
         )

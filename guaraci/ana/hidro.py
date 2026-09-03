@@ -45,7 +45,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import sqlite3
 import unicodedata
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -56,6 +55,7 @@ import polars as pl
 from guaraci.ana.client import AnaHidroClient, AnaHidroClientError
 from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
+from guaraci.datasus.frames import write_sqlite
 
 _ID_ENV = "GUARACI_ANA_ID"
 _SENHA_ENV = "GUARACI_ANA_SENHA"
@@ -299,11 +299,10 @@ class AnaHidroDataSource(DataSource):
             return path
         if normalized == "sqlite":
             path = self.output_path / f"{name}.sqlite"
-            with sqlite3.connect(path) as connection:
-                df.to_pandas().to_sql(
-                    "ana_hidro_records", connection, if_exists="replace", index=False
-                )
-            return path
+            escrito = write_sqlite(df, db_path=path, table="ana_hidro_records")
+            if escrito is None:
+                raise ValueError("ANA export to sqlite has no rows to write.")
+            return escrito
         raise ValueError(
             f"Unsupported ANA HidroWebService export format '{format}'. "
             "Allowed: csv, parquet, sqlite"

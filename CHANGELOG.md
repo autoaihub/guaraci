@@ -107,6 +107,15 @@ CSV de 288 MB da SRAG de 2024 o caminho lazy custou 832 MB de pico contra
 689 MB do eager. Só a exportação sqlite usa o plano lazy, porque ali a escrita
 consome o frame em lotes (1403 MB contra 1711 MB).
 
+### Changed: os seis caminhos de exportação sqlite passam pelo mesmo escritor
+ANA, IBGE SIDRA, INMET e o backend FTP genérico do DATASUS repetiam cada um o
+seu `to_pandas().to_sql()` sobre o conjunto inteiro, o que os deixava sujeitos
+aos dois defeitos acima sem que nenhum teste cobrisse isso. Todos passam agora
+por `frames.write_sqlite`, herdando a escrita em lotes e a conversão de tipos.
+Cada um preserva a extensão que já usava (`.sqlite` nos três primeiros, `.db`
+no DATASUS) e passa a falhar de forma explícita em vez de devolver um caminho
+sem arquivo quando não há linha alguma.
+
 ### Fixed: gravação de `jobs.json` abortava de forma intermitente no Windows
 `os.replace` é atômico, mas no Windows falha com `PermissionError` enquanto
 qualquer outro processo mantém um handle sobre o destino, ainda que só para

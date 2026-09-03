@@ -185,3 +185,24 @@ def test_conversao_do_portal_para_sqlite_funciona_com_decimal(tmp_path: Path) ->
 
     assert destino.exists()
     assert _linhas_no_banco(destino, "records") == 3
+
+
+@pytest.mark.parametrize(
+    "modulo, classe, tabela",
+    [
+        ("guaraci.ana.hidro", "AnaHidroDataSource", "ana_hidro_records"),
+        ("guaraci.inmet.datasource", "InmetEstacoesDataSource", "inmet_estacoes_records"),
+    ],
+)
+def test_exports_sqlite_das_demais_fontes_gravam_o_arquivo(
+    tmp_path: Path, modulo: str, classe: str, tabela: str
+) -> None:
+    """Os quatro caminhos sqlite do repo passam pelo mesmo escritor em lotes."""
+    import importlib
+
+    ds = getattr(importlib.import_module(modulo), classe)(output_path=str(tmp_path))
+
+    destino = ds.export(_frame_com_decimal(), format="sqlite", name="extrato")
+
+    assert destino.exists()
+    assert _linhas_no_banco(destino, tabela) == 3
