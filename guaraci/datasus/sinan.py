@@ -33,6 +33,13 @@ except ImportError as exc:
     import logging
     logging.getLogger(__name__).warning(f"PySUS não está disponível ou falhou ao importar: {exc}")
     PYSUS_AVAILABLE = False
+    # O símbolo precisa existir mesmo sem a dependência opcional instalada:
+    # quem o referencia já se protege com `PYSUS_AVAILABLE`, e deixá-lo
+    # indefinido trocava um erro claro por `AttributeError` em quem apenas
+    # tocasse o módulo. Era o que mantinha o Python CI vermelho, onde a suíte
+    # roda sem pysus.
+    pysus = None
+    PySUS = None
 
 
 class SinanDataSource(DataSource):
