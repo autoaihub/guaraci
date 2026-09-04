@@ -1,29 +1,35 @@
 {
-  "updated_at": "2026-09-03T16:45:40+00:00",
+  "updated_at": "2026-09-04T09:43:19+00:00",
   "repo_count": 31,
-  "total_clones": 150,
-  "total_uniques": 78,
+  "total_clones": 171,
+  "total_uniques": 89,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 117,
-      "total_uniques": 50,
+      "total_clones": 131,
+      "total_uniques": 54,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 13,
-      "total_uniques": 9,
+      "total_clones": 15,
+      "total_uniques": 11,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 6,
-      "total_uniques": 6,
+      "total_clones": 7,
+      "total_uniques": 7,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/loadbay",
+      "total_clones": 4,
+      "total_uniques": 4,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/retail-pulse",
       "total_clones": 4,
       "total_uniques": 4,
       "tracking_since": "2026-08-20"
@@ -35,15 +41,15 @@
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 3,
-      "total_uniques": 3,
-      "tracking_since": "2026-08-20"
-    },
-    {
       "repo": "LuisVogelDS/PlacarBI",
       "total_clones": 2,
       "total_uniques": 1,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/Volvo",
+      "total_clones": 2,
+      "total_uniques": 2,
       "tracking_since": "2026-08-20"
     },
     {
@@ -51,6 +57,12 @@
       "total_clones": 1,
       "total_uniques": 1,
       "tracking_since": "2026-08-18"
+    },
+    {
+      "repo": "LuisVogelDS/IntraAct",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "tracking_since": "2026-08-21"
     },
     {
       "repo": "LuisVogelDS/vitrine",
@@ -113,12 +125,6 @@
       "tracking_since": "2026-08-21"
     },
     {
-      "repo": "LuisVogelDS/IntraAct",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "tracking_since": "2026-08-21"
-    },
-    {
       "repo": "LuisVogelDS/LilianeVogelAtelier",
       "total_clones": 0,
       "total_uniques": 0,
@@ -171,12 +177,6 @@
       "total_clones": 0,
       "total_uniques": 0,
       "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/Volvo",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/baldor-scraper",
