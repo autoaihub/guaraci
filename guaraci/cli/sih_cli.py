@@ -8,6 +8,7 @@ CLI interface for SIH (Hospital Information System) data operations.
 from typing import List, Optional
 
 import click
+import polars as pl
 from loguru import logger
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -21,6 +22,7 @@ from guaraci.cli._common import (
     output_dir_option,
     print_json,
     raise_cli_error,
+    raise_if_downloads_failed,
     resolve_verbose,
     states_option,
 )
@@ -130,7 +132,9 @@ def download(
         failed_groups: List[str] = []
         for group in group_list:
             try:
-                df = sih_ds.load_dataframe(group)
+                # Plano lazy: exportar vários anos não exige todos em memória.
+                scan = getattr(sih_ds, "scan_dataframe", None)
+                df = scan(group) if callable(scan) else sih_ds.load_dataframe(group)
 
                 filters_provided = any([uf, municipio, sexo, ano, mes])
 
@@ -144,7 +148,12 @@ def download(
                         mes=mes,
                     )
 
-                if len(df) == 0:
+                record_count = (
+                    df.select(pl.len()).collect().item()
+                    if isinstance(df, pl.LazyFrame)
+                    else len(df)
+                )
+                if record_count == 0:
                     if not as_json:
                         console.print(f"[yellow]WARNING {group}: No data found[/yellow]")
                     continue
@@ -156,7 +165,7 @@ def download(
                     exported_files.append(str(exported_path))
                     if not as_json:
                         console.print(
-                            f"[green]SUCCESS {group}: {len(df)} records exported to "
+                            f"[green]SUCCESS {group}: {record_count} records exported to "
                             f"{exported_path.name}[/green]"
                         )
                 elif not as_json:
@@ -178,7 +187,7 @@ def download(
                     },
                 )
             )
-        elif not failed_groups:
+        elif not failed_groups and not download_info["failed_downloads"]:
             console.print("[green]SUCCESS SIH download and export completed![/green]")
 
         if failed_groups:
@@ -186,6 +195,7 @@ def download(
                 f"{len(failed_groups)} group(s) failed during processing: "
                 f"{', '.join(failed_groups)}"
             )
+        raise_if_downloads_failed(download_info)
 
     except click.ClickException:
         raise

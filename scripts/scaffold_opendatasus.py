@@ -18,6 +18,7 @@ import textwrap
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
+from guaraci.opendatasus.demas_quirks import PAGINATION_PARAM_NAMES
 from guaraci.opendatasus.utils.swagger_catalog import load_local_get_params_catalog
 
 SWAGGER_PATH = project_root / "guaraci" / "opendatasus" / "utils" / "swagger.json"
@@ -39,11 +40,22 @@ def get_phase_and_type(param_name: str) -> tuple[str, str, str]:
     return "string", "basico", ""
 
 def generate_source_block(endpoint: str, params: tuple[str, ...]) -> str:
-    # Normalize source name (e.g. /cnes/estabelecimentos -> cnes_estabelecimentos)
-    source_name = endpoint.strip("/").replace("-", "_").replace("/", "_")
+    # Normalize source name (e.g. /cnes/estabelecimentos -> cnes_estabelecimentos).
+    # As chaves do parâmetro de caminho saem do nome: um identificador como
+    # `cnes_estabelecimentos_{codigo_cnes}` obriga o usuário a escapá-lo no
+    # shell, onde as chaves são sintaxe de expansão.
+    source_name = (
+        endpoint.strip("/")
+        .replace("-", "_")
+        .replace("/", "_")
+        .replace("{", "por_")
+        .replace("}", "")
+    )
     
-    # Exclude core pagination parameters that Guaraci handles implicitly
-    excluded = {"limit", "offset"}
+    # Exclude core pagination parameters that Guaraci handles implicitly.
+    # Inclui os dois esquemas da DEMAS: quase tudo pagina com limit/offset, mas
+    # /economia-da-saude/bps usa pagina/tamanhoPagina (ver demas_quirks).
+    excluded = {name.lower() for name in PAGINATION_PARAM_NAMES}
     filtered_params = [p for p in params if p.lower() not in excluded]
     path_params = set(re.findall(r"{([^{}]+)}", endpoint))
 

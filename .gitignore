@@ -149,6 +149,11 @@ cython_debug/
 # O repo não deve depender de nada daqui: como subir o front está em
 # apps/web/README.md.
 .claude/
+# Diretrizes de redação pessoais do autor — preferência de estilo, não do projeto.
+CLAUDE.local.md
+# Decks, material de divulgação e candidaturas a prêmio: conteúdo do autor,
+# não do produto, e parte dele é estratégico. Fica no disco, fora do repositório.
+apresentacoes/
 
 # Guaraci specific
 # Root-level DATASUS/download cache only (NOT guaraci/data package data).

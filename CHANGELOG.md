@@ -2,6 +2,375 @@
 
 ## [Unreleased]
 
+### Fixed: `guaraci --help` quebrava no Windows fora de um terminal UTF-8
+`sys.stdout` assume a codificação do console (cp1252 por padrão no Windows)
+sempre que não está ligado a um terminal UTF-8, o que inclui qualquer
+redirecionamento para arquivo ou cano. Como a ajuda traz acentos e a bandeira
+na descrição do grupo, `guaraci --help | more` e `guaraci --help > ajuda.txt`
+terminavam em `UnicodeEncodeError` antes de imprimir qualquer coisa útil, o
+mesmo valendo para a ajuda de cada subcomando. A entrada da CLI passa a
+reconfigurar a saída para UTF-8 com `errors="replace"`, o que mantém o texto
+legível mesmo num console que não dê conta de algum caractere.
+
+### Changed: fonte FTP sem arquivos no período explica a cobertura publicada
+Vários sistemas do DATASUS foram descontinuados, e pedir um ano fora da série
+devolvia zero arquivos sem motivo, indistinguível de uma falha de coleta. A
+descoberta genérica agora lista os anos que a origem publica quando o resultado
+sai vazio e devolve o intervalo real no campo `warnings` do resumo. Verificado
+ao vivo: CIH publica de 2008 a 2011, SISCAN de 2006 a 2015 e SISPRENATAL de
+2012 a 2014, e as fontes com dados no período seguem sem aviso. O intervalo é
+lido da origem a cada consulta, e não fixado no código, para não envelhecer.
+
+### Fixed: duas fontes OpenDataSUS estavam inalcançáveis por defeito nosso
+Varredura ao vivo das 51 fontes DEMAS registradas (`scripts/smoke_opendatasus_
+sources.py`): 42 respondiam, 6 falhavam e 3 dependem de parâmetro de caminho.
+Duas das falhas eram defeito do catálogo, e foram corrigidas.
+
+- `prevencao_e_promocao_distribuicao_epi_insumo` apontava para
+  `/prevencao-e-promocao/distribuicao_epi_insumo`, com underscore no último
+  segmento, e recebia 404. A origem serve `distribuicao-epi-insumo`, com
+  hífen; confirmado ao vivo, a fonte agora coleta e exporta normalmente.
+- `sindrome_gripal_leve` monta um endpoint por ano (`...-2024`) e pedia
+  qualquer ano do intervalo sem consultar a cobertura publicada, terminando
+  num 404 opaco. A série vai de 2020 a 2024: anos fora dela são ignorados
+  quando o intervalo é mais largo, e um pedido inteiramente fora agora falha
+  dizendo qual é a cobertura disponível.
+
+As outras quatro falhas foram investigadas contra o swagger publicado pela
+origem e estão tratadas na entrada seguinte.
+
+### Fixed: o orquestrador deixava um diretório de trabalho por unidade coletada
+Cada unidade materializada por serviço baixa para `.staging/<run>/<chave>` e
+move dali o CSV para a árvore bronze, mas o diretório nunca era removido: o
+manifesto e os formatos intermediários ficavam para trás. Uma varredura das 109
+fontes deixava 109 diretórios, a cada execução, e o custo crescia com a
+frequência do agendamento. A limpeza agora cobre todos os caminhos de saída,
+inclusive o de resultado vazio e o de erro, e nunca derruba a coleta.
+
+Verificado no mesmo ciclo que a API HTTP responde como deve: `/sources` lista
+as 109 fontes, um intervalo de anos invertido e a falta do filtro obrigatório
+do bps voltam como 400 com a mensagem da validação (e não como 500), e um job
+real vai de `queued` a `completed`.
+
+### Fixed: a fonte SNIS não coletava nada, e o SINISA abortava por um `.rar`
+Varredura ao vivo das fontes que não são da API DEMAS, pelo mesmo caminho do
+usuário (`scripts/smoke_non_demas_sources.py`). Três defeitos no crawl de
+saneamento no portal do Ministério das Cidades:
+
+- **O SNIS falhava sempre**, inclusive nos parâmetros padrão, com "No SNIS
+  files matched the requested filters". A página de diagnósticos anteriores
+  que ele raspava saiu do ar sem responder 404: devolve 200 com o layout padrão
+  do gov.br e nenhum link de arquivo. Os arquivos passaram para a página de
+  produtos, e a fonte volta a encontrar 11 documentos, entre planilhas de água
+  e esgoto, resíduos sólidos e águas pluviais de 2022, glossários e atestados.
+- **O menu lateral do portal entrava no resultado.** Ele repete arquivos de
+  outros programas em toda página, e três planilhas de barragens e emendas
+  parlamentares apareciam como se fossem dados de saneamento. Cada fonte passa
+  a aceitar apenas o que está sob o seu próprio caminho: dos 52 documentos que
+  o crawl do SINISA alcança, 47 estão sob `/saneamento/sinisa/` e os cinco
+  restantes são justamente os do menu.
+- **Um `.rar` derrubava a coleta inteira do SINISA.** O formato não era
+  reconhecido como documento, então o crawler o buscava como se fosse página, e
+  o `HTMLParser` da biblioteca padrão levantava `AssertionError` sobre os bytes
+  binários, o que nenhum `except` no caminho previa. Reconhecer a extensão
+  resolve os dois lados: as planilhas de resíduos e de águas pluviais de 2023,
+  publicadas em `.rar`, deixam de ser ignoradas e não são mais abertas como
+  HTML. A leitura de página ilegível passa a descartar só aquela página.
+
+O restante da varredura não achou defeito: IBGE (9 de 11 coletando, e as duas
+restantes pedem anos que a origem não publica), INPE Queimadas, NASA POWER e
+INMET respondem; ANA, NASA FIRMS e NASA GPM pedem credencial e dizem qual
+variável de ambiente configurar.
+
+### Changed: resultado vazio do IBGE diz quais anos a tabela publica
+As séries do SIDRA têm buracos que não são falha de coleta: a tabela 6579, de
+população estimada, não publica 2007, 2010, 2022 nem 2023. Pedir um desses anos
+devolvia zero linhas com um "IBGE returned no rows" que não distinguia origem
+sem dado de erro nosso. O aviso agora nomeia os anos pedidos que faltam e lista
+os disponíveis, no mesmo espírito do que já era feito para as fontes FTP.
+
+### Fixed: recorte por UF era aceito e ignorado, e o resultado saía como recorte
+`cadastro-vinculado-programa-previne-brasil` responde 200 a qualquer valor de
+UF, sob qualquer um dos nomes de parâmetro que declara, e devolve sempre as
+mesmas linhas. Pela CLI, um pedido de SP trazia 200 registros de 11 unidades da
+federação, apresentados como o recorte pedido. Duas causas somadas: o nome do
+parâmetro dessa família (`sigla_unidade_federacao`) não constava da lista de
+nomes de UF reconhecidos, de modo que um `uf=SP` nem chegava a ser enviado à
+origem, e o recorte não era reconferido nas linhas devolvidas.
+
+O recorte agora viaja sob o nome que o endpoint publica e é reconferido no
+retorno, com uma guarda para os casos em que a conferência não é possível: se
+as linhas não trazem uma sigla reconhecível, nada é descartado (filtrar
+apagaria tudo em vez de recortar) e o resultado sai com um aviso de que a
+origem pode ter ignorado o filtro. O mesmo pedido agora devolve 96 linhas,
+todas de SP.
+
+### Added: catálogo passa de 99 para 109 fontes, sincronizado com a origem
+O snapshot local do swagger tinha 79 caminhos contra os 87 publicados. A
+sincronização traz 12 endpoints novos e remove quatro que a origem retirou
+(`/plataformabr/projetos`, sua variante por CAAE e as duas rotas de
+autenticação, que nunca foram fonte de dados). Verificado ao vivo em
+2026-09-03, endpoint a endpoint:
+
+- **Seis coletam e exportam**, conferidos ponta a ponta pela CLI:
+  `arboviroses_febre_amarela_epzootias`, `saude_indigena_sesai_atendimentos`,
+  `saude_indigena_sesai_recursos_humanos` e três do módulo PMMB Especialista.
+- **Quatro respondem 200 sem publicar linha alguma**, inclusive com filtros:
+  os dois sucessores da Plataforma Brasil, `pmmb_especialista_consolidado` e
+  `pmmb_relatorio_historico_cadastro_cnes`.
+- **Dois respondem 500 na origem**: `ouvidoria_ouvidor2` e `ouvidoria_ouvidor3`.
+
+Os seis últimos ficam registrados assim mesmo, porque o catálogo espelha o que
+a origem publica: quando ela passar a responder, funcionam sem mudança nossa.
+
+As arboviroses (dengue, zika, chikungunya) ganharam o filtro `id_municip`, que
+a origem passou a aceitar, o que permite recortar por município sem baixar a
+unidade da federação inteira.
+
+Dois identificadores deixam de carregar as chaves do parâmetro de caminho:
+`cnes_estabelecimentos_{codigo_cnes}` obrigava o usuário a escapar o nome no
+shell, onde as chaves são sintaxe de expansão, e passa a ser
+`cnes_estabelecimentos_por_codigo_cnes`.
+
+### Fixed: duas fontes do PMMB tinham migrado e o bps paginava errado
+A comparação do swagger local com o publicado em
+`apidadosabertos.saude.gov.br/static/swagger.json` mostrou que as quatro
+falhas restantes tinham três causas distintas, e não uma remoção genérica.
+
+- **`atencao_primaria_pmmb` e `atencao_primaria_pmmb_profissionais_ativos`
+  migraram.** A origem renomeou os endpoints para `pmmb-consolidado` e
+  `pmmb-relacao-nominal-ativo`, com os mesmos parâmetros de cada um
+  (`pmmb-relacao-nominal-ativo` mantém `uf`, `sexo` e `nacionalidade`). Os
+  dois voltam a coletar. Como o identificador da fonte é derivado do caminho,
+  as fontes passam a se chamar `atencao_primaria_pmmb_consolidado` e
+  `atencao_primaria_pmmb_relacao_nominal_ativo`.
+- **`economia_da_saude_bps` não estava só sem um parâmetro.** O endpoint
+  existe, mas é o único dos 87 publicados que pagina por número de página, e
+  ignora `limit`/`offset` em silêncio: verificado ao vivo, `limit=3` e
+  `limit=3&offset=3` devolvem as mesmas 100 linhas, enquanto `pagina=2` avança.
+  Paginado como os outros, ele renderia a mesma página repetida até esgotar
+  `max_pages`, produzindo duplicatas em massa sem nenhum erro visível. Novo
+  `guaraci/opendatasus/demas_quirks.py` concentra o esquema de paginação por
+  endpoint e a exigência de trazer `codigoCatmat` ou `cnpjInstituicao`, que
+  agora falha antes da primeira requisição em vez de virar um 400 da origem
+  sem identificação da fonte. O swagger local desse caminho declarava
+  `limit`/`offset`, que o endpoint sequer aceita, e foi sincronizado com os 21
+  filtros reais.
+- **`plataformabr_projetos` foi removida mesmo.** O grupo `/plataformabr`
+  inteiro deixou de existir no swagger da origem, sem endpoint sucessor.
+
+O snapshot local do swagger tem 79 caminhos contra 87 publicados, de modo que
+há oito endpoints novos ainda não avaliados para inclusão no catálogo.
+
+### Fixed: exportação sqlite apontava para um arquivo inexistente e materializava tudo
+O formato `sqlite` é uma das três opções que a CLI oferece, e era o único
+caminho de exportação nunca medido sob volume. Dois defeitos independentes:
+
+- **O caminho devolvido não existia.** `write_frame` gravava `{stem}.db` e
+  devolvia `{stem}.sqlite`, de modo que o manifesto e o `OK - wrote 1 file(s)`
+  da CLI anunciavam um arquivo que o usuário não encontrava em disco. Valia
+  para SIM e SIH, que usam `write_frame`, e para o SINAN, que duplicava o
+  mesmo trecho.
+- **A escrita passava por `to_pandas()` sobre o conjunto inteiro**, o que faz
+  as colunas de texto virarem objetos Python. Medido sobre 4 milhões de linhas
+  e 10 colunas, num processo que só executa a exportação: pico de 3195 MB
+  acima da linha de base, contra 716 MB do parquet equivalente, crescendo com
+  o número de linhas e de colunas. Um extrato anual do SINAN tem mais de cem
+  colunas. A escrita agora vai em lotes de 50 mil linhas, e o mesmo caso cai
+  para 1074 MB e fica um pouco mais rápido (15,4 s contra 18,1 s). O SINAN
+  deixa de duplicar o trecho e passa a usar `frames.write_sqlite`.
+
+A medição é reproduzível por `scripts/bench_sqlite_export.py`.
+
+### Fixed: `--format sqlite` era inutilizável nas fontes de arquivo em lote
+As 15 fontes que baixam arquivos inteiros (SRAG e as 14 do SISAGUA) abortavam
+com `ProgrammingError: type 'decimal.Decimal' is not supported` sempre que se
+pedia `sqlite`. Colunas `Decimal` do parquet viram `decimal.Decimal` na
+passagem por pandas, e o driver não tem adaptador para esse tipo: os bancos
+anuais da SRAG trazem 21 colunas assim, de modo que o formato nunca funcionou
+nessa família. A conversão agora é explícita, já que o SQLite não tem tipo
+decimal nativo: escala zero vira inteiro, que é exato, e escala maior vira
+ponto flutuante. Verificado com o arquivo real de 2025 (336 mil linhas por 194
+colunas), que passa a exportar 242 MB de banco.
+
+Trocar a leitura desses arquivos por `scan`/`sink` foi medido e **não**
+compensa, então o caminho de csv e parquet segue eager: os parquet da origem
+vêm num único row group, abaixo do qual não há streaming possível, e para o
+CSV de 288 MB da SRAG de 2024 o caminho lazy custou 832 MB de pico contra
+689 MB do eager. Só a exportação sqlite usa o plano lazy, porque ali a escrita
+consome o frame em lotes (1403 MB contra 1711 MB).
+
+### Changed: os seis caminhos de exportação sqlite passam pelo mesmo escritor
+ANA, IBGE SIDRA, INMET e o backend FTP genérico do DATASUS repetiam cada um o
+seu `to_pandas().to_sql()` sobre o conjunto inteiro, o que os deixava sujeitos
+aos dois defeitos acima sem que nenhum teste cobrisse isso. Todos passam agora
+por `frames.write_sqlite`, herdando a escrita em lotes e a conversão de tipos.
+Cada um preserva a extensão que já usava (`.sqlite` nos três primeiros, `.db`
+no DATASUS) e passa a falhar de forma explícita em vez de devolver um caminho
+sem arquivo quando não há linha alguma.
+
+### Fixed: gravação de `jobs.json` abortava de forma intermitente no Windows
+`os.replace` é atômico, mas no Windows falha com `PermissionError` enquanto
+qualquer outro processo mantém um handle sobre o destino, ainda que só para
+leitura, o que indexador de busca e antivírus fazem por alguns milissegundos.
+O efeito era a persistência de jobs da API abortando sem regularidade, com o
+trabalho registrado em memória e perdido em disco. Novo
+`guaraci/utils/atomic_io.py` refaz a troca até cinco vezes com espera
+crescente, cobrindo cerca de 150 ms, e ainda propaga o erro se o bloqueio não
+for transitório. Aplicado também à escrita do dicionário de campos, que usava
+o mesmo padrão.
+
+### Fixed: coletas do OpenDataSUS estouravam a memória e truncavam em silêncio
+A família DEMAS reúne 51 das 99 fontes e é o outro caminho de coleta longa da
+plataforma. Medições contra `/arboviroses/dengue`, que tem mais de 4 milhões de
+registros só em 2024, mostraram que ela repetia os dois problemas já corrigidos
+no DATASUS, por motivos próprios.
+
+- **Registros acumulados em memória.** As páginas eram juntadas numa lista de
+  dicionários e só viravam DataFrame no fim. Cada registro custa cerca de 11 KB
+  nessa forma, o que projeta cerca de 45 GB para um ano completo: a coleta
+  morria por falta de memória depois de horas, sem deixar nada aproveitável.
+  Novo `guaraci/opendatasus/buffer.py`: até 5000 registros tudo segue em
+  memória, como antes; acima disso a coleta passa a gravar partes parquet e o
+  arquivo final é escrito por streaming. Medido sobre 60 000 registros, o pico
+  cai de 1696 MB para 593 MB com 12% a mais de tempo. O limiar foi escolhido
+  pela curva: 1000 chega a 497 MB, mas custa 47% a mais de tempo.
+- **Truncamento reportado como sucesso.** Com `max_pages=250` e
+  `batch_size=1000`, o default para em 250 000 registros, cerca de 6% do ano de
+  dengue. O aviso de truncamento existia apenas dentro do manifesto em disco, e
+  o resultado entregue à CLI e à API dizia `status: success` com
+  `warnings: None`. Agora `warnings` e `truncated` acompanham o payload,
+  `JobResult` expõe as duas informações, uma coleta truncada passa a valer
+  `partial_success`, o `fetch` imprime cada aviso e sai diferente de zero, e o
+  serviço de jobs registra os avisos como eventos em vez de anunciar conclusão
+  limpa.
+- Os recortes por `start_date`, `end_date` e `uf` são **locais**: os endpoints
+  DEMAS aceitam apenas `nu_ano`, `limit` e `offset`, então pedir um mês custa a
+  mesma varredura que pedir o ano. Isso agora está documentado em
+  `docs/SOURCES_AND_FILTERS.md` §3.4, junto do ritmo observado (cerca de 200
+  registros por segundo, o que dá cerca de 5 horas para um ano de dengue).
+
+### Fixed: intervalos e datas impossíveis passavam pela validação
+Levantamento sobre as 99 fontes: 37 aceitavam `start_year` maior que
+`end_year`, 10 aceitavam ano negativo e 10 aceitavam datas como `31/12/2024` ou
+`2024-02-30`. A validação existente olhava um parâmetro por vez e não enxergava
+relações entre eles, então o pedido só falhava adiante, com a coleta em
+andamento, ou era ignorado pela origem, que devolvia o conjunto inteiro no
+lugar do recorte pedido. `validate_param_relationships` em
+`guaraci/core/contracts.py` passa a checar ordem e limites de anos e datas para
+toda fonte, antes de qualquer acesso à rede.
+
+### Fixed: filtros de refinamento de SIH, SIM e SINAN devolviam o conjunto errado
+Varredura sistemática dos filtros contra microdados reais (dengue nacional
+2014-2024, SIM CID10 AC 2020, SIH RD AC 2023-01). Dos sete filtros oferecidos,
+a maioria estava quebrada, e três falhavam em silêncio, entregando dado errado
+sem mensagem alguma. A lógica comum foi extraída para
+`guaraci/datasus/filtering.py` e `guaraci/datasus/frames.py`, que os três
+sistemas passam a compartilhar.
+
+- **`--uf` no SINAN devolvia 2% dos casos.** A coluna era escolhida pela
+  primeira que existisse no arquivo, e o SINAN traz `UF` presente porém vazia
+  em 96% dos registros (16 822 362 de 17 281 884), enquanto `SG_UF_NOT` está
+  completa. Filtrar dengue por São Paulo rendia 103 059 de 5 047 004 casos.
+  `resolve_filter_column` agora pula as colunas sem dado, respeitando a ordem
+  de preferência entre as que têm.
+- **`--uf` no SIM era descartado sem aviso.** Nenhuma das colunas candidatas
+  (`UF`, `UF_RES`, `UFRES`, `CODUFRES`) existe nos arquivos: quem pedia um
+  estado recebia o país inteiro. A UF vive nos dois primeiros dígitos de
+  `CODMUNRES`, que `uf_expr` passa a ler.
+- **`--uf` no SIH nunca casava.** `UF_ZI` guarda o código do gestor
+  (`120000`), comparado contra a sigla `SP`. `uf_expr` reconhece as três
+  representações: sigla, código IBGE de dois dígitos e código de seis dígitos
+  de município ou gestor, e aceita que a pessoa informe qualquer uma delas.
+- **`--faixa-etaria` e `--ano` morriam com `ComputeError`.** O valor chega da
+  interface como texto ou inteiro, sem relação com o tipo inferido do DBF
+  (`NU_IDADE_N` é Int64, `NU_ANO` é texto). A comparação passa a ser numérica
+  quando os dois lados são números, o que também resolve o zero à esquerda de
+  `MES_CMPT` (`--mes 1` contra `"01"`).
+- **`--sexo M/F` não casava nada em SIM nem em SIH.** Os dois gravam o campo
+  como código, e com codificações diferentes: 1/2 no SIM e 1/3 no SIH, herança
+  do layout da AIH. A tradução vive em `SEXO_CODES` de cada datasource.
+- **`--ano-obito` no SIM sempre devolvia vazio.** Sem `ANOOBITO` no arquivo, o
+  código caía em `DTOBITO` e recortava `slice(0, 4)`, mas o campo é `DDMMAAAA`:
+  comparava "2205" com 2020. Passa a ler os quatro últimos dígitos.
+
+### Fixed: colunas de dados clínicos e administrativos eram zeradas no export
+A normalização de UF selecionava colunas pelo nome, com um `"UF" in nome` que
+varria junto campos sem relação com unidade federativa. Como o valor deles não
+corresponde a nenhuma UF, a coluna inteira era substituída por nulo e o dado
+sumia do arquivo entregue. Confirmado em `UF_ZI` no SIH (código do gestor) e
+`GRAV_INSUF` no SINAN (gravidade e insuficiência clínica). `uf_normalization_
+expr` agora amostra a coluna e só a reescreve quando ela de fato carrega UFs;
+caso contrário devolve o dado intacto. `SG_UF_NOT`, `SG_UF`, `UF` e `COUFINF`
+seguem normalizadas para a sigla, como antes.
+
+### Changed: SIM e SIH ganham o mesmo caminho de memória já aplicado ao SINAN
+`scan_dataframe()` lazy, `export()` aceitando `LazyFrame` com escrita em
+streaming e carga compartilhada em `guaraci/datasus/frames.py`, no lugar das
+três cópias de `_load_as_polars` que liam todos os anos para um
+`pl.concat(how="diagonal")` em memória. Os CLIs de sih e sim e o
+`DownloadService` passam a usar esse caminho.
+
+### Fixed: coletas longas do DATASUS terminavam em nada (dengue, SINAN)
+Relato de usuário: quase uma hora de execução para baixar dengue, seguida de
+falha sem dado nenhum. Reproduzido com `sinan download 2014 2024 -d DENG`
+(11 arquivos, 757 MB no FTP), que expôs três defeitos independentes.
+
+- **Dependência de decodificação verificada tarde demais.** `pyreaddbc` vem
+  do extra opcional `guaraci[datasus]` e só era importado dentro de
+  `dbc.read`, isto é, depois de cada arquivo já ter sido transferido. Como
+  `download_records` (`guaraci/datasus/ftp/orchestration.py`) capturava
+  `Exception` genérica, a falta da biblioteca era contabilizada como falha
+  daquele arquivo e o laço seguia baixando os 757 MB restantes para
+  descartar tudo. Adicionados `dbc.ensure_available()`, chamado antes do
+  primeiro download, e `DbcDependencyError` (subclasse de `ImportError`),
+  com o laço reerguendo `ImportError` em vez de tratá-lo como falha
+  isolada. Medido: a execução passa de uma hora com 757 MB baixados e
+  descartados para 3 segundos, saída 1, mensagem acionável e zero bytes
+  transferidos. Vale para SIH, SIM, SINAN e as 11 fontes FTP genéricas,
+  que compartilham a mesma orquestração.
+- **Pico de memória proporcional ao arquivo inteiro.** `dbc.read`
+  materializava todos os chunks e os concatenava, e `SinanDataSource.
+  _load_as_polars` lia os parquets de todos os anos para um
+  `pl.concat(how="diagonal")`. Um único ano de dengue (DENGBR24, 287 MB
+  comprimidos) foi medido em 8,8 GB residentes e crescendo, com 15 minutos
+  sem concluir; o concat dos 11 anos nem chegava a acontecer. Novo
+  `dbc.decode_to_parquet` escreve cada chunk como parte e faz a junção com
+  `pl.concat(..., how="diagonal_relaxed").sink_parquet()`, sem materializar
+  o conjunto. `SinanDataSource.scan_dataframe()` devolve o plano lazy,
+  `export()` aceita `LazyFrame` e usa `sink_parquet`/`sink_csv`, e CLI e
+  `DownloadService` passaram a usar esse caminho quando disponível. A
+  execução completa de 2014-2024 agora conclui em 38 minutos com os 11
+  anos, 17 281 884 registros e 121 colunas.
+- **Sucesso parcial reportado como sucesso.** Com 10 dos 11 anos perdidos, o
+  CLI imprimia `SUCCESS ... completed successfully!` e saía com 0, de modo
+  que qualquer script a jusante lia a execução como boa; o único sinal era
+  um aviso no meio do log e o sufixo `_partial` no arquivo. Novo
+  `raise_if_downloads_failed` em `guaraci/cli/_common.py`, aplicado aos três
+  CLIs (sih, sim, sinan), faz a falha parcial sair diferente de zero sem
+  suprimir o payload JSON do que foi obtido.
+
+Ajustes de apoio na mesma correção:
+
+- `_CHUNK_ROWS` de `dbc` passou de 100 000 para 10 000. Pico medido sobre
+  DENGBR23.dbc (62 MB comprimidos), com o tempo estável em 180-200 s nas
+  quatro configurações: 100k custa 2815 MB, 25k custa 1408 MB, 10k custa
+  960 MB e 5k custa 878 MB, ou seja, o ganho satura perto de 10k.
+- A junção das partes usa `diagonal_relaxed` porque um `scan_parquet` sobre
+  a lista exigiria schema idêntico entre elas, o que não ocorre: `DT_GRAV`
+  é inferida como `Null` num chunk e como `Date` no seguinte. Sem isso a
+  junção caía no fallback em memória e o pico voltava a acompanhar o
+  arquivo inteiro (1400 MB em streaming contra 4114 MB no fallback).
+- `SinanDataSource._apply_uf_mapping` trocou o `map_elements` com callback
+  Python, que executava `import pandas` e `pd.isna` uma vez por linha, por
+  expressão nativa com `replace_strict`.
+- Combinando as duas medidas, o pico de decodificação de um arquivo caiu de
+  5091 MB para 960 MB. A saída foi verificada idêntica em conteúdo e schema
+  à produzida antes das mudanças (DENGBR17 e DENGBR18, 121 colunas).
+- Testes novos em `tests/test_ftp_failfast_and_streaming.py`,
+  `tests/test_sinan_lazy_export.py` e `tests/test_cli_exit_codes.py`
+  (suíte: 804 → 833).
+
 ### Added: 5 fontes IBGE novas (registro civil e saneamento domiciliar, Censo 2022)
 - `ibge_casamentos` (SIDRA tabela 4406, variável 4993): casamentos por mês do
   registro, fechando a série de registro civil ao lado de

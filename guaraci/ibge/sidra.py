@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import json
 import re
-import sqlite3
 import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,6 +25,7 @@ import polars as pl
 
 from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
+from guaraci.datasus.frames import write_sqlite
 from guaraci.ibge.client import IbgeClientError, IbgeSidraClient
 
 _EXPORT_FORMATS = {"csv", "parquet", "sqlite"}
@@ -130,7 +130,7 @@ class SidraAggregateSource(DataSource):
         requested_format = self._normalize_format(output_format)
         exported: List[str] = []
         if not records:
-            warnings.append("IBGE returned no rows for the requested years/level.")
+            warnings.append(self._empty_result_warning(client, years))
         if requested_format and records:
             try:
                 exported.append(str(self.export(self._to_df(records), format=requested_format, name=stem)))
@@ -190,6 +190,32 @@ class SidraAggregateSource(DataSource):
             payload_out["export_warning"] = combined
         return payload_out
 
+    def _empty_result_warning(self, client, years: List[int]) -> str:
+        """Explica o vazio dizendo o que a tabela publica, quando dá para saber.
+
+        A série do SIDRA tem buracos que não são falha de coleta: a tabela de
+        população estimada pula 2007, 2010, 2022 e 2023. Sem essa informação, o
+        zero é indistinguível de um erro nosso.
+        """
+        base = "IBGE returned no rows for the requested years/level."
+        try:
+            publicados = client.published_periods(self.TABLE)
+        except Exception:  # noqa: BLE001 - o aviso não pode falhar por causa disto
+            return base
+        if not publicados:
+            return base
+        faltantes = [ano for ano in years if ano not in publicados]
+        if not faltantes:
+            return (
+                f"{base} Table {self.TABLE} does publish "
+                f"{publicados[0]}-{publicados[-1]}, so check the locality level."
+            )
+        return (
+            f"{base} Table {self.TABLE} does not publish "
+            f"{', '.join(str(ano) for ano in faltantes)}; "
+            f"available years: {', '.join(str(ano) for ano in publicados)}."
+        )
+
     def load_dataframe(self) -> pl.DataFrame:
         return self._to_df(self._records) if self._records else pl.DataFrame()
 
@@ -205,9 +231,10 @@ class SidraAggregateSource(DataSource):
             return path
         if normalized == "sqlite":
             path = self.output_path / f"{name}.sqlite"
-            with sqlite3.connect(path) as connection:
-                df.to_pandas().to_sql(self.name, connection, if_exists="replace", index=False)
-            return path
+            escrito = write_sqlite(df, db_path=path, table=self.name)
+            if escrito is None:
+                raise ValueError("IBGE export to sqlite has no rows to write.")
+            return escrito
         raise ValueError(
             f"Unsupported IBGE export format '{format}'. Allowed: csv, parquet, sqlite"
         )

@@ -20,7 +20,11 @@ from typing import Any, Dict, List, Optional, Sequence
 from guaraci.datasus.ftp import dbc
 from guaraci.datasus.ftp.catalog import FileRecord
 from guaraci.datasus.ftp.client import DatasusFtpClient
-from guaraci.datasus.ftp.discovery import discover_spec
+from guaraci.datasus.ftp.discovery import (
+    build_coverage_warning,
+    discover_available_years,
+    discover_spec,
+)
 from guaraci.datasus.ftp.orchestration import (
     ClientFactory,
     DbcReader,
@@ -42,9 +46,9 @@ def discover_summary(
 ) -> Dict[str, Any]:
     """Preflight discovery payload for ``spec`` (no downloads)."""
 
-    async def _impl() -> List[FileRecord]:
+    async def _impl() -> tuple[List[FileRecord], List[str]]:
         async with client_factory() as client:
-            return await discover_spec(
+            found = await discover_spec(
                 client,
                 spec,
                 years=years,
@@ -52,8 +56,15 @@ def discover_summary(
                 states=states,
                 fetch_sizes=fetch_sizes,
             )
+            if found:
+                return found, []
+            # Vazio pode ser ano fora da série publicada, o que é comum nos
+            # sistemas descontinuados. Explica o motivo em vez de devolver um
+            # zero indistinguível de falha.
+            anos = await discover_available_years(client, spec, groups=groups)
+            return found, [build_coverage_warning(spec.name, anos)]
 
-    records: List[FileRecord] = run_coro(_impl())
+    records, warnings = run_coro(_impl())
 
     year_list = sorted({int(y) for y in years})
     filters: Dict[str, Any] = {
@@ -63,7 +74,9 @@ def discover_summary(
     }
     if spec.has_state:
         filters["states"] = list(states) if states else None
-    return build_summary(records, source=spec.name, filters=filters)
+    return build_summary(
+        records, source=spec.name, filters=filters, warnings=warnings
+    )
 
 
 def download(

@@ -521,3 +521,33 @@ def test_plan_update_accepts_legacy_provider_signature(tmp_path):
         prof, ledger, current_year=2024, records_provider=sih_records
     )
     assert units  # discovery ran without TypeError
+
+
+def test_run_via_service_limpa_o_staging(tmp_path):
+    """A área de trabalho da unidade não pode ficar para trás.
+
+    Cada unidade baixa para ``.staging/<run>/<chave>`` e move dali o CSV para a
+    árvore bronze. O que sobra (manifesto, formatos intermediários) não tem uso,
+    e antes acumulava um diretório por unidade a cada varredura: uma passagem
+    pelas 109 fontes deixava 109 diretórios, todo dia.
+    """
+    service = _dengue_service(write_csv=True)
+    unit = FetchUnit("dengue", Kind.API_WINDOW, year=2023)
+
+    run_via_service(unit, service=service, bronze_root=tmp_path, run_id="r1", ts="t")
+
+    assert paths.bronze_path(tmp_path, unit).exists()
+    sobras = list((tmp_path / ".staging").rglob("*")) if (tmp_path / ".staging").exists() else []
+    assert sobras == [], f"staging não foi limpo: {sobras}"
+
+
+def test_run_via_service_limpa_o_staging_mesmo_sem_exportacao(tmp_path):
+    """O caminho de saída vazia também passa pela limpeza."""
+    service = _dengue_service(write_csv=False)
+    unit = FetchUnit("dengue", Kind.API_WINDOW, year=2023)
+
+    row = run_via_service(unit, service=service, bronze_root=tmp_path, run_id="r2", ts="t")
+
+    assert row.status == STATUS_EMPTY
+    sobras = list((tmp_path / ".staging").rglob("*")) if (tmp_path / ".staging").exists() else []
+    assert sobras == []

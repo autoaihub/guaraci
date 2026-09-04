@@ -14,11 +14,11 @@ from guaraci.snis.sinisa import SinisaDataSource
 SAMPLE_HTML = """
 <html>
   <body>
-    <a href="/arquivos/SINISA_AGUA_Planilhas_2023_v2.1.1.zip">Planilhas - Água</a>
-    <a href="/arquivos/SINISA_ESGOTO_Planilhas_2023_v2.1.1.zip/view">Planilhas - Esgoto</a>
-    <a href="/arquivos/SINISA_Glossario_2023.xlsx">Glossário SINISA</a>
-    <a href="/arquivos/SINISA_Relatorio_2023.pdf">Relatório de Diagnóstico</a>
-    <a href="/arquivos/SINISA_ESGOTO_Planilhas_2024.pdf">Planilhas de Informações e Indicadores</a>
+    <a href="/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_AGUA_Planilhas_2023_v2.1.1.zip">Planilhas - Água</a>
+    <a href="/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_ESGOTO_Planilhas_2023_v2.1.1.zip/view">Planilhas - Esgoto</a>
+    <a href="/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_Glossario_2023.xlsx">Glossário SINISA</a>
+    <a href="/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_Relatorio_2023.pdf">Relatório de Diagnóstico</a>
+    <a href="/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_ESGOTO_Planilhas_2024.pdf">Planilhas de Informações e Indicadores</a>
     <a href="mailto:contato@example.com">contato</a>
     <a href="/pagina-interna">Leia mais</a>
   </body>
@@ -46,13 +46,13 @@ def test_infer_kind_and_module():
     by_url = {item.url: item for item in links}
 
     agua = by_url[
-        "https://www.gov.br/arquivos/SINISA_AGUA_Planilhas_2023_v2.1.1.zip"
+        "https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_AGUA_Planilhas_2023_v2.1.1.zip"
     ]
     esgoto = by_url[
-        "https://www.gov.br/arquivos/SINISA_ESGOTO_Planilhas_2023_v2.1.1.zip"
+        "https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_ESGOTO_Planilhas_2023_v2.1.1.zip"
     ]
-    glossario = by_url["https://www.gov.br/arquivos/SINISA_Glossario_2023.xlsx"]
-    relatorio = by_url["https://www.gov.br/arquivos/SINISA_Relatorio_2023.pdf"]
+    glossario = by_url["https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_Glossario_2023.xlsx"]
+    relatorio = by_url["https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_Relatorio_2023.pdf"]
 
     assert agua.kind == "planilhas"
     assert agua.module == "agua"
@@ -148,7 +148,7 @@ def test_sinisa_download_returns_job_result(monkeypatch, tmp_path):
 
     ds = SinisaDataSource(output_path=str(tmp_path / "sinisa"))
     doc = SinisaDocumentLink(
-        url="https://example.org/arquivos/SINISA_AGUA_Planilhas_2023.zip",
+        url="https://example.org/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/sinisa/resultados-sinisa/SINISA_AGUA_Planilhas_2023.zip",
         text="Planilhas Agua 2023",
         kind="planilhas",
         module="agua",

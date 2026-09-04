@@ -18,6 +18,7 @@ from uuid import uuid4
 from guaraci.core.results import JobResult
 from guaraci.core.security import ensure_allowed_output_dir
 from guaraci.services.downloads import DownloadService
+from guaraci.utils.atomic_io import replace_with_retry
 
 
 class JobCancelledError(BaseException):
@@ -485,12 +486,30 @@ class DownloadJobService:
                     else:
                         job.status = "completed"
                         job.error = None
+                        # Os avisos da coleta (truncamento no limite de páginas,
+                        # recorte sem registros) viram eventos do job: antes
+                        # ficavam só no manifesto em disco e a interface exibia
+                        # uma conclusão limpa.
+                        for warning in getattr(result, "warnings", []) or []:
+                            self._append_event_locked(
+                                job,
+                                level="warning",
+                                message=str(warning),
+                                event="warning",
+                            )
                         completion_message = "Job completed successfully."
                         if result.status == "partial_success":
-                            completion_message = (
-                                "Job completed with partial success. "
-                                f"Failures: {result.failed_count}."
-                            )
+                            if getattr(result, "truncated", False):
+                                completion_message = (
+                                    "Job completed with partial success: the collection "
+                                    "stopped at its page limit before exhausting the "
+                                    "source, so the result is incomplete."
+                                )
+                            else:
+                                completion_message = (
+                                    "Job completed with partial success. "
+                                    f"Failures: {result.failed_count}."
+                                )
                         self._append_event_locked(
                             job,
                             level="info",
@@ -834,7 +853,7 @@ class DownloadJobService:
             json.dumps(payload, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
-        tmp_path.replace(self._storage_path)
+        replace_with_retry(tmp_path, self._storage_path)
 
     def _load_persisted_jobs(self) -> None:
         if self._storage_path is None or not self._storage_path.exists():

@@ -30,7 +30,34 @@ class JobResult(Mapping[str, object]):
             return "failed"
         if self.failed_count > 0:
             return "partial_success"
+        if self.truncated:
+            # Coleta interrompida por limite (max_pages, por exemplo) antes de
+            # esgotar a origem: o arquivo entregue é um recorte arbitrário do
+            # que foi pedido, e chamar isso de sucesso limpo esconde do
+            # consumidor que faltam dados.
+            return "partial_success"
         return "success"
+
+    @property
+    def truncated(self) -> bool:
+        """Indica que a coleta parou num limite antes de esgotar a origem."""
+        return bool(self.metadata.get("truncated", False))
+
+    @property
+    def warnings(self) -> List[str]:
+        """Avisos que o consumidor precisa ver (truncamento, export vazio).
+
+        Antes esses avisos só existiam dentro do manifesto em disco, então a
+        CLI e a API exibiam sucesso mesmo quando a coleta havia sido truncada
+        ou não tinha gerado arquivo algum.
+        """
+        collected = self.metadata.get("warnings")
+        if isinstance(collected, (list, tuple)):
+            return [str(item) for item in collected if str(item).strip()]
+        single = self.metadata.get("export_warning")
+        if single and str(single).strip():
+            return [str(single)]
+        return []
 
     @property
     def exported_files(self) -> List[str]:

@@ -65,6 +65,73 @@ def validate_source_params(
         _validate_param_value(spec, value)
 
 
+#: Ano mais antigo aceito em qualquer recorte temporal. Os microdados mais
+#: antigos publicados pelo DATASUS são dos anos 1970, então qualquer valor
+#: abaixo disto é erro de digitação, não pedido legítimo.
+MINIMUM_YEAR = 1900
+
+
+def validate_param_relationships(params: Mapping[str, object]) -> None:
+    """Valida as regras que envolvem mais de um parâmetro ao mesmo tempo.
+
+    A validação por parâmetro isolado não enxerga um intervalo invertido nem
+    uma data impossível: ``start_year=2024`` com ``end_year=2014`` passava em
+    37 fontes, e ``start_date="31/12/2024"`` passava nas 13 que recortam por
+    data. Nos dois casos o pedido só falhava lá adiante, depois de a coleta já
+    ter começado, ou pior, era ignorado pela origem e devolvia o conjunto
+    inteiro, que é o oposto do recorte pedido.
+    """
+    _validate_year_range(params)
+    _validate_date_range(params)
+
+
+def _validate_year_range(params: Mapping[str, object]) -> None:
+    anos: Dict[str, int] = {}
+    for name in ("start_year", "end_year"):
+        value = params.get(name)
+        if value is None:
+            continue
+        try:
+            anos[name] = int(value)  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            raise ValueError(f"Parameter '{name}' must be a year.") from None
+        if anos[name] < MINIMUM_YEAR:
+            raise ValueError(
+                f"Parameter '{name}' must be >= {MINIMUM_YEAR}; got {anos[name]}."
+            )
+
+    start, end = anos.get("start_year"), anos.get("end_year")
+    if start is not None and end is not None and start > end:
+        raise ValueError(
+            f"start_year ({start}) cannot be greater than end_year ({end})."
+        )
+
+
+def _parse_iso_date(name: str, value: object) -> datetime:
+    text = str(value).strip()
+    try:
+        return datetime.strptime(text, "%Y-%m-%d")
+    except ValueError:
+        raise ValueError(
+            f"Parameter '{name}' must be a date in YYYY-MM-DD format; got '{text}'."
+        ) from None
+
+
+def _validate_date_range(params: Mapping[str, object]) -> None:
+    datas: Dict[str, datetime] = {}
+    for name in ("start_date", "end_date"):
+        value = params.get(name)
+        if value is None or (isinstance(value, str) and not value.strip()):
+            continue
+        datas[name] = _parse_iso_date(name, value)
+
+    start, end = datas.get("start_date"), datas.get("end_date")
+    if start is not None and end is not None and start > end:
+        raise ValueError(
+            f"start_date ({start.date()}) cannot be later than end_date ({end.date()})."
+        )
+
+
 def _validate_param_value(spec: SourceParameterSpec, value: object) -> None:
     name = spec.name
     if spec.param_type == "string":

@@ -7,6 +7,7 @@ Modern CLI interface for SINAN data operations using Click and Rich.
 
 from typing import Optional, List
 import click
+import polars as pl
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
@@ -20,6 +21,7 @@ from guaraci.cli._common import (
     output_dir_option,
     print_json,
     raise_cli_error,
+    raise_if_downloads_failed,
     resolve_verbose,
 )
 from guaraci.core.results import JobResult
@@ -98,8 +100,11 @@ def download(start_year: int, end_year: int, diseases: tuple, output_dir: Option
         failed_diseases: List[str] = []
         for disease in disease_list:
             try:
-                # Load the downloaded data
-                df = sinan_ds.load_dataframe(disease)
+                # Plano lazy: o conjunto só é lido durante a escrita, então
+                # exportar vários anos não exige todos residentes em memória.
+                # Datasources sem o plano lazy seguem pelo caminho materializado.
+                scan = getattr(sinan_ds, "scan_dataframe", None)
+                df = scan(disease) if callable(scan) else sinan_ds.load_dataframe(disease)
 
                 filters_provided = any([
                     uf, municipio, sexo, faixa_etaria, evolucao, classificacao, ano
@@ -117,7 +122,12 @@ def download(start_year: int, end_year: int, diseases: tuple, output_dir: Option
                         ano=ano,
                     )
 
-                if len(df) == 0:
+                record_count = (
+                    df.select(pl.len()).collect().item()
+                    if isinstance(df, pl.LazyFrame)
+                    else len(df)
+                )
+                if record_count == 0:
                     if not as_json:
                         console.print(f"[yellow]WARNING {disease}: No data found[/yellow]")
                     continue
@@ -129,7 +139,7 @@ def download(start_year: int, end_year: int, diseases: tuple, output_dir: Option
                     exported_files.append(str(exported_path))
                     if not as_json:
                         console.print(
-                            f"[green]SUCCESS {disease}: {len(df)} records exported to {exported_path.name}[/green]"
+                            f"[green]SUCCESS {disease}: {record_count} records exported to {exported_path.name}[/green]"
                         )
                 elif not as_json:
                     console.print(f"[yellow]WARNING {disease}: Export skipped (no data).[/yellow]")
@@ -150,7 +160,7 @@ def download(start_year: int, end_year: int, diseases: tuple, output_dir: Option
                     },
                 )
             )
-        elif not failed_diseases:
+        elif not failed_diseases and not download_info["failed_downloads"]:
             console.print("[green]SUCCESS Download and export completed successfully![/green]")
 
         if failed_diseases:
@@ -158,6 +168,7 @@ def download(start_year: int, end_year: int, diseases: tuple, output_dir: Option
                 f"{len(failed_diseases)} disease(s) failed during processing: "
                 f"{', '.join(failed_diseases)}"
             )
+        raise_if_downloads_failed(download_info)
 
     except click.ClickException:
         raise

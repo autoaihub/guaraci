@@ -63,62 +63,6 @@
     "https"
   ],
   "paths": {
-    "/autenticacao/login": {
-      "post": {
-        "tags": [
-          "Autenticação"
-        ],
-        "summary": "Obtém access token para autorização aos endpoints restritos.",
-        "description": "",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "in": "body",
-            "name": "body",
-            "description": "Login e senha do usuário.",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/login"
-            }
-          }
-        ],
-        "responses": {
-          "405": {
-            "description": "Invalid input"
-          }
-        }
-      }
-    },
-    "/autenticacao/logout": {
-      "post": {
-        "tags": [
-          "Autenticação"
-        ],
-        "summary": "Revogar a autorização para acessso aos endpoints restritos.",
-        "description": "",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "405": {
-            "description": "Invalid input"
-          }
-        },
-        "security": [
-          {
-            "Bearer": []
-          }
-        ]
-      }
-    },
     "/cnes/tipounidades": {
       "get": {
         "tags": [
@@ -1300,125 +1244,31 @@
         }
       }
     },
-    "/plataformabr/projetos": {
-      "get": {
-        "tags": [
-          "Plataforma Brasil"
-        ],
-        "summary": "Obtém todos os projetos.",
-        "parameters": [
-          {
-            "name": "uf_comite_etica_pesquisa",
-            "in": "query",
-            "description": "Filtra projetos pelo estado do comitê de ética e pesquisa",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "codigo_situacao_parecer",
-            "in": "query",
-            "description": "Filtra projetos pela situação do parecer: 1 - Aprovado, 2 - Aprovado com Recomendação, 3 - Devolvido com Recomendação, 4 - Não aprovado, 5 - Pendente, 6 - Retirado.",
-            "required": false,
-            "type": "integer"
-          },
-          {
-            "name": "uf_instituicao_proponente",
-            "in": "query",
-            "description": "Filtra projetos pelo estado da instituição proponente.",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
-            "required": false,
-            "type": "integer",
-            "default": 100
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
-            "required": false,
-            "type": "integer",
-            "default": 0
-          }
-        ],
-        "produces": [
-          "application/json",
-          "text/csv"
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista com todos os projetos presentes na API.",
-            "content": {
-              "application/json": {},
-              "text/csv": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/plataformabr/projetos/{numero_caae}": {
-      "get": {
-        "tags": [
-          "Plataforma Brasil"
-        ],
-        "summary": "Obtém projeto utilizando o número CAAE (Certificado de Apresentação de Apreciação Ética).",
-        "parameters": [
-          {
-            "name": "numero_caae",
-            "in": "path",
-            "description": "número do certificado de apresentação de apreciação ética (apenas dígitos)",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "produces": [
-          "application/json",
-          "text/csv"
-        ],
-        "responses": {
-          "200": {
-            "description": "Projeto foi encontrado com o número CAAE informado.",
-            "content": {
-              "application/json": {},
-              "text/csv": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Tipo de Unidade não foi encontrada com o código informado."
-          }
-        }
-      }
-    },
     "/arboviroses/zikavirus": {
       "get": {
         "tags": [
           "Agravo Arboviroses"
         ],
-        "summary": "Obtém base de ocorrência de arbovirose zikavirus",
+        "summary": "Lista de notificações de arbovirose Zikavirus por ano e município",
         "parameters": [
           {
             "name": "nu_ano",
             "in": "query",
-            "description": "Filtra arbovirose pelo ano da ocorrência",
+            "description": "Filtra pelo ano da notificação",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "id_municip",
+            "in": "query",
+            "description": "Filtra pelo código do município da unidade notificadora",
             "required": false,
             "type": "string"
           },
           {
             "name": "limit",
             "in": "query",
-            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
             "required": false,
             "type": "integer",
             "default": 100
@@ -1438,7 +1288,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Base de ocorrência de arbovirose Zikavirus.",
+            "description": "Lista de notificações de arbovirose Zikavirus",
             "content": {
               "application/json": {},
               "text/csv": {
@@ -1448,7 +1298,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Retorna os dados de notificação de arbovirose Zikavirus contendo ano da notificação, código do município e demais campos da tabela."
       }
     },
     "/arboviroses/dengue": {
@@ -1456,7 +1307,7 @@
         "tags": [
           "Agravo Arboviroses"
         ],
-        "summary": "Obtém base de ocorrência de arbovirose Dengue",
+        "summary": "Lista de notificações de arbovirose Dengue por ano e município",
         "parameters": [
           {
             "name": "nu_ano",
@@ -1466,9 +1317,16 @@
             "type": "string"
           },
           {
+            "name": "id_municip",
+            "in": "query",
+            "description": "Filtra pelo código do município da unidade notificadora",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "limit",
             "in": "query",
-            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
             "required": false,
             "type": "integer",
             "default": 100
@@ -1488,7 +1346,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Base de ocorrência de arbovirose Dengue.",
+            "description": "Lista de notificações de arbovirose Dengue",
             "content": {
               "application/json": {},
               "text/csv": {
@@ -1498,7 +1356,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Retorna os dados de notificação de arbovirose Dengue contendo ano da notificação, código do município e demais campos da tabela."
       }
     },
     "/arboviroses/chikungunya": {
@@ -1506,7 +1365,7 @@
         "tags": [
           "Agravo Arboviroses"
         ],
-        "summary": "Obtém base de ocorrência de arbovirose Chikungunya",
+        "summary": "Lista de notificações de arbovirose Chikungunya por ano e município",
         "parameters": [
           {
             "name": "nu_ano",
@@ -1516,9 +1375,16 @@
             "type": "string"
           },
           {
+            "name": "id_municip",
+            "in": "query",
+            "description": "Filtra pelo código do município da unidade notificadora",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "limit",
             "in": "query",
-            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 20.",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
             "required": false,
             "type": "integer",
             "default": 100
@@ -1538,7 +1404,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Base de ocorrência de arbovirose Chikungunya.",
+            "description": "Lista de notificações de arbovirose Chikungunya",
             "content": {
               "application/json": {},
               "text/csv": {
@@ -1548,7 +1414,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Retorna os dados de notificação de arbovirose Chikungunya contendo ano da notificação, código do município e demais campos da tabela."
       }
     },
     "/daf/estoque-medicamentos-bnafar-horus": {
@@ -1584,7 +1451,7 @@
             "in": "query",
             "description": "Filtra pela Ano Mês da posição de estoque informada. Formato: AAAAMM. Exemplo: 202402",
             "required": false,
-            "type": "string"
+            "type": "integer"
           },
           {
             "name": "data_posicao_estoque",
@@ -2140,23 +2007,160 @@
         "tags": [
           "Economia da Saúde"
         ],
-        "summary": "Banco de Preço em Saúde - sistema de registro de informações de compras públicas e privadas de medicamentos e dispositivos médicos.",
+        "summary": "Banco de Preços em Saúde (BPS) com parâmetros de pesquisa alinhados ao consultarMaterial e campos em camelCase.",
         "parameters": [
           {
-            "name": "limit",
+            "name": "pagina",
             "in": "query",
-            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "description": "Número da página de retorno (inicia em 1).",
+            "required": false,
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "tamanhoPagina",
+            "in": "query",
+            "description": "Quantidade de registros por página (máximo: 500).",
             "required": false,
             "type": "integer",
             "default": 100
           },
           {
-            "name": "offset",
+            "name": "codigoCatmat",
             "in": "query",
-            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "description": "Código BR/CATMAT do item. Obrigatório quando cnpjInstituicao não for informado.",
             "required": false,
-            "type": "integer",
-            "default": 0
+            "type": "string"
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "description": "UF da instituição compradora.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cnpjInstituicao",
+            "in": "query",
+            "description": "CNPJ da instituição compradora (14 dígitos). Obrigatório quando codigoCatmat não for informado.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cnpjFornecedor",
+            "in": "query",
+            "description": "CNPJ do fornecedor (14 dígitos).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cnpjFabricante",
+            "in": "query",
+            "description": "CNPJ do fabricante (14 dígitos).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "modalidade",
+            "in": "query",
+            "description": "Modalidade da compra.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tipoCompra",
+            "in": "query",
+            "description": "Tipo/contexto da compra (regular, emergencial, judicial, etc.).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "generico",
+            "in": "query",
+            "description": "Filtro por medicamento genérico (true/false).",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "registroAnvisa",
+            "in": "query",
+            "description": "Código de registro CMED/Anvisa.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dataCompraInicio",
+            "in": "query",
+            "description": "Data inicial da compra no formato YYYY-MM-DD.",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "dataCompraFim",
+            "in": "query",
+            "description": "Data final da compra no formato YYYY-MM-DD.",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "dataInsercaoInicio",
+            "in": "query",
+            "description": "Data inicial de inserção no BPS no formato YYYY-MM-DD.",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "dataInsercaoFim",
+            "in": "query",
+            "description": "Data final de inserção no BPS no formato YYYY-MM-DD.",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "anoCompra",
+            "in": "query",
+            "description": "Filtro por ano da compra (AAAA).",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "valorUnitarioMinimo",
+            "in": "query",
+            "description": "Valor unitário mínimo.",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "valorUnitarioMaximo",
+            "in": "query",
+            "description": "Valor unitário máximo.",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "quantidadeMinima",
+            "in": "query",
+            "description": "Quantidade mínima adquirida.",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "quantidadeMaxima",
+            "in": "query",
+            "description": "Quantidade máxima adquirida.",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "ordenacao",
+            "in": "query",
+            "description": "Ordenação dos resultados: precoUnitario+asc|desc, dataCompra+asc|desc, anoCompra+asc|desc.",
+            "required": false,
+            "type": "string"
           }
         ],
         "produces": [
@@ -2264,7 +2268,7 @@
         }
       }
     },
-    "/prevencao-e-promocao/distribuicao_epi_insumo": {
+    "/prevencao-e-promocao/distribuicao-epi-insumo": {
       "get": {
         "tags": [
           "Prevenção e Promoção"
@@ -2651,7 +2655,7 @@
         }
       }
     },
-    "/atencao-primaria/pmmb": {
+    "/atencao-primaria/pmmb-consolidado": {
       "get": {
         "tags": [
           "Atenção Primária"
@@ -2781,6 +2785,13 @@
             "type": "string"
           },
           {
+            "name": "ibge",
+            "in": "query",
+            "description": "Código IBGE do município",
+            "required": false,
+            "type": "number"
+          },
+          {
             "name": "limit",
             "in": "query",
             "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
@@ -2803,7 +2814,73 @@
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Lista de série histórica de profissionais do PMMB",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "description": "Retorna a série histórica de profissionais vinculados ao Programa Mais Médicos (PMMB), contendo quantitativos de profissionais por município e período de referência."
+      }
+    },
+    "/atencao-primaria/pmmb-relacao-nominal-coparticipacao": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "Lista de profissionais ativos no PMMB com dados de coparticipação nominal",
+        "description": "Retorna os dados dos profissionais ativos no Programa Mais Médicos contendo código IBGE do município, nome do município, profissional, início de atividades, data de referência e data de atualização.",
+        "parameters": [
+          {
+            "name": "ano_inicio_atividades",
+            "in": "query",
+            "description": "Ano de início das atividades do profissional.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "mes_inicio_atividades",
+            "in": "query",
+            "description": "Mês de início das atividades do profissional.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0.",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de profissionais com dados de coparticipação nominal do PMMB",
             "content": {
               "application/json": {},
               "text/csv": {
@@ -2816,7 +2893,192 @@
         }
       }
     },
-    "/atencao-primaria/pmmb-profissionais-ativos": {
+    "/atencao-primaria/pmmb-relatorio-historico-cadastro-cnes": {
+      "get": {
+        "summary": "Lista de profissionais do PMMB por estabelecimento CNES",
+        "description": "Retorna os dados dos profissionais do Programa Mais Médicos por estabelecimento, contendo código IBGE, região, código CNES, UF, município, INE, nome do profissional, competência e indicadores de consistência.",
+        "tags": [
+          "Atenção Primária"
+        ],
+        "parameters": [
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código do IBGE",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "regiao",
+            "in": "query",
+            "description": "Nome da Região",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cnes",
+            "in": "query",
+            "description": "Código do CNES",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Sigla da UF",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de profissionais do PMMB por estabelecimento CNES"
+          }
+        }
+      }
+    },
+    "/atencao-primaria/pmmb-especialista-consolidado": {
+      "get": {
+        "summary": "Dados consolidados de especialistas do PMMB por estabelecimento",
+        "description": "Retorna os dados consolidados de especialistas do Programa Mais Médicos por estabelecimento, contendo código CNES, nome do estabelecimento, tipo de prática, curso, faixa de atração, código IBGE, tipo de município, nível da vaga, categoria do IVS, Amazônia Legal, região de saúde e quantidades de ativos por sexo.",
+        "tags": [
+          "Atenção Primária"
+        ],
+        "parameters": [
+          {
+            "name": "cnes",
+            "in": "query",
+            "description": "Código do CNES",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código do IBGE",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tipo_pratica",
+            "in": "query",
+            "description": "Tipo do Estabelecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de especialistas consolidados do PMMB por estabelecimento"
+          }
+        }
+      }
+    },
+    "/atencao-primaria/pmmb-especialista-serie-historica": {
+      "get": {
+        "summary": "Programa Mais Médicos - Especialistas Série Histórica",
+        "description": "Série histórica de especialistas do Programa Mais Médicos por estabelecimento, município e região.",
+        "tags": [
+          "Atenção Primária"
+        ],
+        "parameters": [
+          {
+            "name": "co_cnes",
+            "in": "query",
+            "description": "Código CNES",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código IBGE",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Sigla da UF",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "regiao",
+            "in": "query",
+            "description": "Região",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Série histórica de especialistas",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/pmmb-relacao-nominal-ativo": {
       "get": {
         "tags": [
           "Atenção Primária"
@@ -2973,6 +3235,78 @@
         ],
         "summary": "Notificações de casos suspeitos da doença de febre amarela em humanos e em primatas não-humanos",
         "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/arboviroses/febre-amarela-epzootias": {
+      "get": {
+        "tags": [
+          "Agravo Arboviroses"
+        ],
+        "summary": "Ocorrências de epzootias de febre amarela por local e período",
+        "description": "Conjunto de registros de ocorrência de epzootias de febre amarela em primatas não humanos, organizado por local e tempo de ocorrência. Cada registro apresenta macrorregião, UF, município, data da ocorrência, semana epidemiológica, mês, ano e período de monitoramento.",
+        "parameters": [
+          {
+            "name": "macrorreg_ocor",
+            "in": "query",
+            "description": "Filtra pela macrorregião de ocorrência",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "uf_ocor",
+            "in": "query",
+            "description": "Filtra pela sigla da UF de ocorrência",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "mes_ocor",
+            "in": "query",
+            "description": "Filtra pelo mês de ocorrência",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "ano_ocor",
+            "in": "query",
+            "description": "Filtra pelo ano de ocorrência",
+            "required": false,
+            "type": "integer"
+          },
           {
             "name": "limit",
             "in": "query",
@@ -3625,6 +3959,121 @@
         }
       }
     },
+    "/saude-indigena/sesai-atendimentos": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Microdados extraídos do SIASI representam registros sistematizados de atendimentos coletivos realizados pelas Equipes Multidisciplinares de Saúde Indígena (EMSI), com foco na atenção básica e na promoção da saúde dos povos indígenas. As informações estão segmentadas por faixa etária e abrangem os territórios indígenas em nível nacional.",
+        "parameters": [
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da Unidade da Federação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "nu_mes",
+            "in": "query",
+            "description": "Mês em que foi realizado o atendimento de atenção básica.",
+            "required": false,
+            "type": "number",
+            "format": "float"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-recursos-humanos": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "O SESAI-RH é o sistema oficial utilizado pela Secretaria de Saúde Indígena (SESAI) para o gerenciamento dos recursos humanos que atuam na atenção à saúde indígena no Brasil. Ele centraliza e organiza informações cadastrais, funcionais e contratuais dos profissionais vinculados aos Distritos Sanitários Especiais Indígenas (DSEI).",
+        "parameters": [
+          {
+            "name": "sg_sexo",
+            "in": "query",
+            "description": "Sexo do profissional.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "indigena",
+            "in": "query",
+            "description": "Indica se o profissional é indígena.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/saude-indigena/siasi-modulo-saude-bucal-ficha3": {
       "get": {
         "tags": [
@@ -3926,6 +4375,283 @@
         }
       }
     },
+    "/ciencia-tecnologia/plataformabr-pesquisa-saude": {
+      "get": {
+        "tags": [
+          "Ciência & Tecnologia"
+        ],
+        "summary": "Pesquisas em saúde financiadas e acompanhadas pelo Decit/SCTIE/MS, com filtros por UF da pesquisa e ano de publicação do edital.",
+        "parameters": [
+          {
+            "name": "uf_pesquisa",
+            "in": "query",
+            "description": "UF da pesquisa.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_publicado_edital",
+            "in": "query",
+            "description": "Ano de publicação do Edital ou da contratação do projeto via Contratação-Direta.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de pesquisas em saúde financiadas pelo Decit.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ciencia-tecnologia/plataformabr-projeto-aprovado": {
+      "get": {
+        "tags": [
+          "Ciência & Tecnologia"
+        ],
+        "summary": "Projetos de pesquisa aprovados pelo CEP/INAEP via Plataforma Brasil, com filtros por UF proponente, ano do parecer e UF do CEP.",
+        "parameters": [
+          {
+            "name": "uf_proponente",
+            "in": "query",
+            "description": "Sigla da Unidade da Federação (Estado) onde se localiza fisicamente a Instituição Proponente.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_do_parecer",
+            "in": "query",
+            "description": "Ano do Parecer.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "uf_cep",
+            "in": "query",
+            "description": "Sigla da Unidade da Federação (Estado) referente ao endereço do CEP.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de projetos de pesquisa aprovados pelo sistema CEP/INAEP.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ouvidoria/ouvidor2": {
+      "get": {
+        "tags": [
+          "Ouvidoria"
+        ],
+        "summary": "Manifestações registradas na Ouvidoria, com filtros por UF de origem, UF de destino, esfera da origem e status da manifestação.",
+        "parameters": [
+          {
+            "name": "uf_ouvidoria_origem",
+            "in": "query",
+            "description": "UF da ouvidoria de origem da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "uf_ouvidoria_destino",
+            "in": "query",
+            "description": "UF da ouvidoria de destino da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "esfera_ouvidoria_origem",
+            "in": "query",
+            "description": "Esfera da ouvidoria de origem da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status_manifestacao",
+            "in": "query",
+            "description": "Status da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de manifestações registradas na Ouvidoria.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ouvidoria/ouvidor3": {
+      "get": {
+        "tags": [
+          "Ouvidoria"
+        ],
+        "summary": "Manifestações registradas na Ouvidoria com detalhes sobre problemas de saúde, com filtros por canal de entrada, UF e esfera de origem/destino e status.",
+        "parameters": [
+          {
+            "name": "canal_entrada",
+            "in": "query",
+            "description": "Canal de entrada da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "uf_ouvidoria_origem",
+            "in": "query",
+            "description": "UF da ouvidoria de origem da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "esfera_ouvidoria_origem",
+            "in": "query",
+            "description": "Esfera da ouvidoria de origem da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "uf_ouvidoria_destino",
+            "in": "query",
+            "description": "UF da ouvidoria de destino da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "esfera_ouvidoria_destino",
+            "in": "query",
+            "description": "Esfera da ouvidoria de destino da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status_manifestacao",
+            "in": "query",
+            "description": "Status da manifestação.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de manifestações registradas na Ouvidoria.",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/assistencia-a-saude/registro-de-ocupacao-hospitalar-covid-19": {
       "get": {
         "tags": [
@@ -3984,7 +4710,7 @@
             "type": "integer"
           },
           {
-            "name": "sigla_unidade_federacao",
+            "name": "uf",
             "in": "query",
             "description": "Sigla da Unidade da Federação",
             "required": false,
@@ -4100,6 +4826,73 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/pmmb-especialista-relacao-nominal-ativo": {
+      "get": {
+        "summary": "Programa Mais Médicos - Profissional Ativo Especialista",
+        "description": "Profissionais ativos especialistas do Programa Mais Médicos por estabelecimento, município e região.",
+        "tags": [
+          "Atenção Primária"
+        ],
+        "parameters": [
+          {
+            "name": "co_cnes",
+            "in": "query",
+            "description": "Código do CNES",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código do IBGE",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Sigla da UF",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sexo",
+            "in": "query",
+            "description": "Sexo do profissional",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "raca_cor",
+            "in": "query",
+            "description": "Raça Cor do profissional",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de profissionais ativos especialistas"
           }
         }
       }

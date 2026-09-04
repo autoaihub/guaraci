@@ -8,9 +8,8 @@ Includes error handling and performance optimizations.
 
 import os
 import asyncio
-import sqlite3
 import datetime
-from typing import Optional, Literal, List, Dict, Any, Callable
+from typing import Optional, Literal, List, Dict, Any, Callable, Sequence
 from pathlib import Path
 from collections import defaultdict
 
@@ -19,6 +18,7 @@ from tqdm import tqdm
 from loguru import logger
 
 from guaraci.core.datasource import DataSource
+from guaraci.datasus import filtering, frames
 from guaraci.datasus.backend import (
     BACKEND_FTP as _BACKEND_FTP,
     get_datasus_backend as _get_datasus_backend,
@@ -225,74 +225,38 @@ class SinanDataSource(DataSource):
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def _load_as_polars(self, disease: str) -> pl.DataFrame:
+    def scan_dataframe(self, disease: str) -> pl.LazyFrame:
+        """Plano lazy sobre os parquets baixados de ``disease``.
+
+        Nada é lido aqui: o consumidor decide se materializa
+        (:meth:`load_dataframe`) ou se escreve em streaming
+        (:meth:`export`). É esse segundo caminho que permite exportar
+        vários anos de uma doença sem exigir todos eles na memória ao mesmo
+        tempo.
+        """
         if disease not in self.data:
             raise ValueError(f"Disease {disease} not found. Run download() first.")
+        return frames.scan_parquet_group(self.data[disease], label=disease)
 
-        parquet_sets = self.data[disease]
-        if not parquet_sets:
-            logger.warning(f"No data found for {disease}")
-            return pl.DataFrame()
-
-        combined_dfs = []
-        total_files = len(parquet_sets)
-        
-        logger.info(f"Processing {total_files} parquet files for {disease}")
-
-        with tqdm(total=total_files, desc=f"Loading {disease}", unit="file") as pbar:
-            for filepath in parquet_sets:
-                try:
-                    df = pl.read_parquet(filepath)
-                    df = self._apply_uf_mapping(df)
-                    combined_dfs.append(df)
-                except Exception as e:
-                    logger.error(f"Failed to process parquet file {filepath}: {e}")
-                finally:
-                    pbar.update(1)
-
-        if not combined_dfs:
+    def _load_as_polars(self, disease: str) -> pl.DataFrame:
+        combined = self.scan_dataframe(disease).collect()
+        if combined.height == 0:
             logger.warning(f"No valid data found for {disease}")
-            return pl.DataFrame()
-
-        logger.info(f"Combining {len(combined_dfs)} DataFrames for {disease}")
-        combined = pl.concat(combined_dfs, how="diagonal")
-
-        logger.info(f"✅ {disease}: {len(combined)} records loaded, {len(combined.columns)} columns")
+            return combined
+        logger.info(
+            f"✅ {disease}: {len(combined)} records loaded, {len(combined.columns)} columns"
+        )
         return combined
-
-    def _apply_uf_mapping(self, df: pl.DataFrame) -> pl.DataFrame:
-        def safe_uf_mapping(value):
-            import pandas as pd
-            if value is None or pd.isna(value):
-                return None
-            str_val = str(value).strip().upper()
-            if not str_val or str_val in ["NAN", "NONE", "NULL", "0", ""]:
-                return None
-            if str_val in UF_DICT.values():
-                return str_val
-            try:
-                numeric_code = int(float(str_val))
-                return UF_DICT.get(numeric_code)
-            except (ValueError, TypeError):
-                return None
-
-        uf_columns = [
-            col for col in df.columns
-            if any(pattern in col.upper() for pattern in ["UF", "_UF", "SG_UF"])
-        ]
-
-        for col in uf_columns:
-            try:
-                df = df.with_columns([
-                    pl.col(col).map_elements(safe_uf_mapping, return_dtype=pl.Utf8).alias(col)
-                ])
-            except Exception as e:
-                logger.warning(f"Failed to apply UF mapping to column {col}: {e}")
-
-        return df
 
     def load_dataframe(self, disease: str) -> pl.DataFrame:
         return self._load_as_polars(disease)
+
+    @staticmethod
+    def _columns_of(df: Any) -> List[str]:
+        """Nomes das colunas de um DataFrame ou LazyFrame."""
+        if isinstance(df, pl.LazyFrame):
+            return df.collect_schema().names()
+        return list(df.columns)
 
     def filter(
         self,
@@ -310,49 +274,29 @@ class SinanDataSource(DataSource):
 
         conditions: List[pl.Expr] = []
 
-        def resolve_column(options: List[str]) -> Optional[str]:
-            for candidate in options:
-                if candidate in df.columns:
-                    return candidate
-            return None
+        # A ordem de cada lista é a preferência semântica; colunas presentes
+        # mas vazias são puladas por resolve_filter_column (ver o módulo
+        # guaraci.datasus.filtering para o porquê).
+        pedidos = [
+            (uf, ["SG_UF_NOT", "SG_UF", "UF", "ID_MN_RESI"], filtering.uf_expr),
+            (municipio, ["ID_MN_RESI", "ID_MUNICIP"], filtering.contains_expr),
+            (sexo, ["CS_SEXO"], filtering.equality_expr),
+            (faixa_etaria, ["NU_IDADE_N"], filtering.equality_expr),
+            (evolucao, ["CS_EVOLU", "EVOLUCAO"], filtering.equality_expr),
+            (classificacao, ["CLASSI_FIN", "CLASSIFICAC"], filtering.equality_expr),
+            (ano, ["NU_ANO", "ANO", "ANO_NOT"], filtering.equality_expr),
+        ]
+        for valor, candidatos, build_expr in pedidos:
+            if valor is None or (isinstance(valor, str) and not valor.strip()):
+                continue
+            coluna = filtering.resolve_filter_column(df, candidatos)
+            if coluna is None:
+                continue
+            conditions.append(build_expr(df, coluna, valor))
 
-        uf_col = resolve_column(["UF", "SG_UF", "SG_UF_NOT"])
-        if uf and uf_col:
-            conditions.append(pl.col(uf_col) == uf)
-
-        municipio_col = resolve_column(["ID_MN_RESI", "ID_MUNICIP"])
-        if municipio and municipio_col:
-            conditions.append(
-                pl.col(municipio_col).cast(pl.Utf8).str.contains(municipio, literal=True, strict=False)
-            )
-
-        sexo_col = resolve_column(["CS_SEXO"])
-        if sexo and sexo_col:
-            conditions.append(pl.col(sexo_col) == sexo)
-
-        faixa_col = resolve_column(["NU_IDADE_N"])
-        if faixa_etaria and faixa_col:
-            conditions.append(pl.col(faixa_col) == faixa_etaria)
-
-        evolucao_col = resolve_column(["CS_EVOLU", "EVOLUCAO"])
-        if evolucao and evolucao_col:
-            conditions.append(pl.col(evolucao_col) == evolucao)
-
-        classificacao_col = resolve_column(["CLASSI_FIN", "CLASSIFICAC"])
-        if classificacao and classificacao_col:
-            conditions.append(pl.col(classificacao_col) == classificacao)
-
-        ano_col = resolve_column(["NU_ANO", "ANO", "ANO_NOT"])
-        if ano and ano_col:
-            conditions.append(pl.col(ano_col) == ano)
-
-        if not conditions:
+        combined = filtering.combine(conditions)
+        if combined is None:
             return df
-
-        combined = conditions[0]
-        for condition in conditions[1:]:
-            combined = combined & condition
-
         return df.filter(combined)
 
     def summary(self, df: pl.DataFrame, by: str = "UF", metric: Literal["count", "mean", "sum"] = "count") -> pl.DataFrame:
@@ -369,23 +313,45 @@ class SinanDataSource(DataSource):
 
     def export(
         self,
-        df: pl.DataFrame,
+        df: pl.DataFrame | pl.LazyFrame,
         format: Literal["csv", "sqlite", "parquet"] = "csv",
         name: str = "output",
     ) -> Optional[Path]:
-        if df is None or len(df) == 0:
+        """Escreve o conjunto no formato pedido.
+
+        Aceita tanto um ``DataFrame`` já materializado quanto um
+        ``LazyFrame``. No segundo caso, ``csv`` e ``parquet`` são escritos em
+        streaming (``sink_*``), de modo que o pico de memória não acompanha o
+        tamanho do conjunto. ``sqlite`` não tem escrita incremental
+        equivalente aqui e materializa o plano antes de gravar.
+        """
+        if df is None:
+            logger.warning(f"Nenhum dado disponível para exportar: {name}")
+            return None
+
+        is_lazy = isinstance(df, pl.LazyFrame)
+        if not is_lazy and len(df) == 0:
             logger.warning(f"Nenhum dado disponível para exportar: {name}")
             return None
 
         output_dir = Path(self.output_path)
         final_stem = name
+        columns = self._columns_of(df)
 
         if "_" in name:
             partes = name.split("_")
             if len(partes) >= 3 and partes[-2].isdigit() and partes[-1].isdigit():
                 start_year, end_year = int(partes[-2]), int(partes[-1])
-                if "NU_ANO" in df.columns:
-                    raw_years = df["NU_ANO"].unique().to_list()
+                if "NU_ANO" in columns:
+                    if is_lazy:
+                        raw_years = (
+                            df.select(pl.col("NU_ANO").unique())
+                            .collect()
+                            .to_series()
+                            .to_list()
+                        )
+                    else:
+                        raw_years = df["NU_ANO"].unique().to_list()
                     present_years = {
                         int(str(value).strip())
                         for value in raw_years
@@ -402,14 +368,28 @@ class SinanDataSource(DataSource):
         final_path = output_dir / f"{final_stem}.{format}"
 
         if format == "csv":
-            df.write_csv(final_path)
+            if is_lazy:
+                df.sink_csv(final_path)
+            else:
+                df.write_csv(final_path)
         elif format == "parquet":
-            df.write_parquet(final_path)
+            if is_lazy:
+                df.sink_parquet(final_path)
+            else:
+                df.write_parquet(final_path)
         elif format == "sqlite":
-            db_path = output_dir / f"{final_stem}.db"
-            con = sqlite3.connect(db_path)
-            df.to_pandas().to_sql(name=final_stem, con=con, if_exists="replace", index=False)
-            con.close()
+            # Escrita em lotes: `to_pandas()` sobre o conjunto inteiro custava
+            # 3195 MB para 4 milhões de linhas, contra 1074 MB assim.
+            db_path = frames.write_sqlite(
+                df, db_path=output_dir / f"{final_stem}.db", table=final_stem
+            )
+            if db_path is None:
+                logger.warning(f"Nenhum dado disponível para exportar: {name}")
+                return None
+            # O arquivo criado é `.db`: devolver `final_path` fazia o manifesto
+            # e o "wrote 1 file" da CLI apontarem para um `.sqlite` inexistente.
+            logger.info(f"Exported dataset -> {db_path}")
+            return db_path
         else:
             raise ValueError("Formato inválido. Escolha entre 'csv', 'sqlite' ou 'parquet'.")
 

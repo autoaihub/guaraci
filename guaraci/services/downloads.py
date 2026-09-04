@@ -13,7 +13,12 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Seque
 from loguru import logger
 
 from guaraci.ana import AnaHidroDataSource
-from guaraci.core.contracts import DownloadManifest, SourceParameterSpec, validate_source_params
+from guaraci.core.contracts import (
+    DownloadManifest,
+    SourceParameterSpec,
+    validate_param_relationships,
+    validate_source_params,
+)
 from guaraci.core.results import JobResult
 from guaraci.core.security import ensure_allowed_crawl_url, ensure_allowed_output_dir
 from guaraci.datasus import SihDataSource, SimDataSource, SinanDataSource
@@ -40,6 +45,7 @@ from guaraci.nasa import (
     NasaPowerDataSource,
 )
 from guaraci.opendatasus import OpenDataSUSDataSource, PortalFileDataSource
+from guaraci.opendatasus.demas_quirks import check_required_filters
 from guaraci.snis import SinisaDataSource, SnisDataSource
 
 # Reexport dos normalizadores (movidos para guaraci/services/normalizers.py)
@@ -540,7 +546,10 @@ class PysusDownloadSource:
             if not available:
                 continue
             try:
-                df = datasource.load_dataframe(str(disease))
+                # Streaming quando a fonte oferece o plano lazy: exportar uma
+                # doença com muitos anos não pode exigir todos em memória.
+                scan = getattr(datasource, "scan_dataframe", None)
+                df = scan(str(disease)) if callable(scan) else datasource.load_dataframe(str(disease))
                 if filter_kwargs:
                     df = datasource.filter(df, **filter_kwargs)
                 exported_path = datasource.export(
@@ -581,7 +590,8 @@ class PysusDownloadSource:
             if not available:
                 continue
             try:
-                df = datasource.load_dataframe(str(group))
+                scan = getattr(datasource, "scan_dataframe", None)
+                df = scan(str(group)) if callable(scan) else datasource.load_dataframe(str(group))
                 if filter_kwargs:
                     df = datasource.filter(df, **filter_kwargs)
                 exported_path = datasource.export(
@@ -622,7 +632,8 @@ class PysusDownloadSource:
             if not available:
                 continue
             try:
-                df = datasource.load_dataframe(str(group))
+                scan = getattr(datasource, "scan_dataframe", None)
+                df = scan(str(group)) if callable(scan) else datasource.load_dataframe(str(group))
                 if filter_kwargs:
                     df = datasource.filter(df, **filter_kwargs)
                 exported_path = datasource.export(
@@ -710,6 +721,11 @@ class OpenDataSUSDownloadSource:
                     f"Parameter '{name}' is required for OpenDataSUS source "
                     f"'{self.descriptor.source}'."
                 )
+        # Alguns endpoints exigem ao menos um de dois filtros, condição que o
+        # schema por parâmetro isolado não expressa. Validar aqui, e não no
+        # meio da coleta, é o que rende erro de uso limpo na CLI e 400 na API.
+        if self._fixed_dataset:
+            check_required_filters(self._fixed_dataset, prepared)
 
     def _prepare_kwargs(self, kwargs: Mapping[str, object]) -> Dict[str, object]:
         prepared = dict(kwargs)
@@ -986,6 +1002,9 @@ class DownloadService:
         # raiz configurada (GUARACI_OUTPUT_ROOT), quando definida.
         ensure_allowed_crawl_url(params.get("results_url"))
         ensure_allowed_output_dir(params.get("output_dir"))
+        # Regras que cruzam parâmetros (intervalo invertido, data impossível)
+        # valem para toda fonte, então ficam aqui e não em cada adapter.
+        validate_param_relationships(params)
         selected = self._get_registered_source(source)
         selected.validate_params(params)
 

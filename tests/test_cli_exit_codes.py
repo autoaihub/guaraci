@@ -232,3 +232,52 @@ def test_orchestrate_exits_zero_when_clean(monkeypatch, command, tmp_path):
         orchestrate_cli.orchestrate, [command, "-o", str(tmp_path)]
     )
     assert result.exit_code == 0, result.output
+
+
+class _PartialDownloadDs(_FakeHealthDs):
+    """Coleta em que parte dos arquivos falhou, mas o resto exportou bem."""
+
+    def download(self, *args, **kwargs):
+        return {
+            "total_files": 11,
+            "successful_downloads": 1,
+            "failed_downloads": [("DENG", f"DENGBR{y}.dbc") for y in range(14, 24)],
+        }
+
+
+@pytest.mark.parametrize(
+    ("cli", "module_path", "class_name"),
+    [
+        (sih, "guaraci.cli.sih_cli", "SihDataSource"),
+        (sim, "guaraci.cli.sim_cli", "SimDataSource"),
+        (sinan, "guaraci.cli.sinan_cli", "SinanDataSource"),
+    ],
+)
+def test_partial_download_exits_nonzero(monkeypatch, cli, module_path, class_name):
+    """10 de 11 arquivos perdidos não podem sair com 0 nem imprimir sucesso."""
+    monkeypatch.setattr(f"{module_path}.{class_name}", lambda **kwargs: _PartialDownloadDs())
+    result = CliRunner().invoke(cli, ["download", "2014", "2024"])
+
+    assert result.exit_code == 1, result.output
+    assert "failed during download" in result.output
+    assert "completed successfully" not in result.output
+    assert "export completed" not in result.output
+
+
+@pytest.mark.parametrize(
+    ("cli", "module_path", "class_name"),
+    [
+        (sih, "guaraci.cli.sih_cli", "SihDataSource"),
+        (sim, "guaraci.cli.sim_cli", "SimDataSource"),
+        (sinan, "guaraci.cli.sinan_cli", "SinanDataSource"),
+    ],
+)
+def test_partial_download_still_reports_json_payload(monkeypatch, cli, module_path, class_name):
+    """Mesmo saindo diferente de zero, o JSON do que foi obtido é impresso."""
+    monkeypatch.setattr(f"{module_path}.{class_name}", lambda **kwargs: _PartialDownloadDs())
+    result = CliRunner().invoke(cli, ["download", "2014", "2024", "--json"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output[: result.output.rindex("}") + 1])
+    assert payload["failed_count"] == 10
+    assert payload["exported_files"]

@@ -81,6 +81,27 @@ class IbgeSidraClient:
             )
         return payload
 
+    def published_periods(self, table: str) -> List[int]:
+        """Anos que a tabela publica, na ordem crescente.
+
+        As séries do SIDRA têm buracos que não são erro nosso: a tabela 6579,
+        de população estimada, pula 2007, 2010, 2022 e 2023, que são anos de
+        censo ou sem estimativa divulgada. Sem consultar isto, um pedido de ano
+        faltante devolve zero linhas sem dizer quais anos existiriam.
+        """
+        url = f"{self.base_url}/api/v3/agregados/{quote(str(table), safe='')}/periodos"
+        payload = self._request_json(url)
+        if not isinstance(payload, list):
+            return []
+        anos: List[int] = []
+        for item in payload:
+            identificador = item.get("id") if isinstance(item, dict) else item
+            try:
+                anos.append(int(str(identificador)))
+            except (TypeError, ValueError):
+                continue
+        return sorted(anos)
+
     def _request_json(self, url: str) -> Any:
         request = Request(
             url,

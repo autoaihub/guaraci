@@ -25,6 +25,7 @@ import polars as pl
 from loguru import logger
 
 from guaraci.core.datasource import DataSource
+from guaraci.datasus.frames import write_sqlite
 from guaraci.datasus.ftp import generic_backend
 from guaraci.datasus.ftp.specs import SystemSpec
 from guaraci.utils.mapping import apply_uf_mapping_polars
@@ -238,12 +239,7 @@ class FtpDataSource(DataSource):
         elif format == "parquet":
             df.write_parquet(final_path)
         elif format == "sqlite":
-            import sqlite3
-
-            con = sqlite3.connect(output_dir / f"{name}.db")
-            df.to_pandas().to_sql(name=name, con=con, if_exists="replace", index=False)
-            con.close()
-            return output_dir / f"{name}.db"
+            return write_sqlite(df, db_path=output_dir / f"{name}.db", table=name)
         else:
             raise ValueError(f"Unsupported export format: {format}")
         return final_path

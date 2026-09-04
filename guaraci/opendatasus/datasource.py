@@ -8,19 +8,22 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
-from typing import Callable, Dict, List, Mapping, Optional
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Union
 from urllib.parse import quote
 
 import polars as pl
 
 from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
+from guaraci.opendatasus import demas_quirks
+from guaraci.opendatasus.buffer import PagedRecordBuffer
 from guaraci.opendatasus.client import OpenDataSUSClient, OpenDataSUSClientError
 from guaraci.opendatasus.utils.swagger_catalog import (
     DemasPniEndpoint,
     load_local_get_params_catalog,
     load_local_pni_catalog,
 )
+from guaraci.utils.mapping import UF_DICT
 
 
 @dataclass(frozen=True)
@@ -142,6 +145,7 @@ class OpenDataSUSDataSource(DataSource):
         super().__init__(name="opendatasus", output_path=output_path)
         self._client = client
         self._data_by_dataset: Dict[str, List[Dict[str, object]]] = {}
+        self._buffers_by_dataset: Dict[str, PagedRecordBuffer] = {}
         self._latest_dataset: Optional[str] = None
         self._demas_catalog = load_local_pni_catalog(self.LOCAL_SWAGGER_PATH)
         self._demas_get_params_by_path = load_local_get_params_catalog(self.LOCAL_SWAGGER_PATH)
@@ -204,7 +208,7 @@ class OpenDataSUSDataSource(DataSource):
                 "Parameter 'end_date' must be within the selected start_year/end_year range."
             )
 
-        uf_clean = self._normalize_uf(uf)
+        uf_clean = self._normalize_uf(uf) or self._uf_from_api_params(demas_api_params)
         fetch_batch_size = max(1, int(batch_size))
         max_pages_value = max(1, int(max_pages))
         requested_format = self._normalize_output_format(output_format)
@@ -401,6 +405,13 @@ class OpenDataSUSDataSource(DataSource):
         selected = (dataset or self._latest_dataset or "").strip().lower()
         if not selected:
             raise ValueError("No OpenDataSUS dataset loaded yet. Run download() first.")
+        # Coletas grandes ficam no buffer com derramamento em disco, e não na
+        # lista em memória; nesse caso os registros vêm das partes gravadas.
+        buffer = self._buffers_by_dataset.get(selected)
+        if buffer is not None and buffer.spilled:
+            frame = buffer.frame()
+            return frame.collect() if isinstance(frame, pl.LazyFrame) else frame
+
         records = self._data_by_dataset.get(selected)
         if records is None:
             raise ValueError(
@@ -410,25 +421,39 @@ class OpenDataSUSDataSource(DataSource):
             return pl.DataFrame()
         return pl.DataFrame(records)
 
-    def export(self, df: pl.DataFrame, format: str, name: str) -> Path:  # noqa: A003
-        """Export a Polars DataFrame to CSV, Parquet or SQLite."""
+    def export(
+        self,
+        df: Union[pl.DataFrame, pl.LazyFrame],
+        format: str,
+        name: str,
+    ) -> Path:  # noqa: A003
+        """Export records to CSV, Parquet or SQLite.
+
+        Aceita um plano lazy, escrito em streaming, para que uma coleta que não
+        coube em memória também não precise ser reunida na hora de gravar.
+        """
 
         normalized = format.strip().lower()
+        is_lazy = isinstance(df, pl.LazyFrame)
+
         if normalized == "csv":
             path = self.output_path / f"{name}.csv"
-            df.write_csv(path)
+            df.sink_csv(path) if is_lazy else df.write_csv(path)
             return path
 
         if normalized == "parquet":
             path = self.output_path / f"{name}.parquet"
-            df.write_parquet(path)
+            df.sink_parquet(path) if is_lazy else df.write_parquet(path)
             return path
 
         if normalized == "sqlite":
             path = self.output_path / f"{name}.sqlite"
             table_name = "opendatasus_records"
+            frame = df.collect() if is_lazy else df
             with sqlite3.connect(path) as connection:
-                df.to_pandas().to_sql(table_name, connection, if_exists="replace", index=False)
+                frame.to_pandas().to_sql(
+                    table_name, connection, if_exists="replace", index=False
+                )
             return path
 
         raise ValueError(
@@ -528,6 +553,14 @@ class OpenDataSUSDataSource(DataSource):
             end_year=end_year,
             api_params=api_params,
         )
+        # Antes de anunciar o início da coleta: alguns endpoints só respondem
+        # com um filtro específico, e o 400 da origem não identifica a fonte.
+        for endpoint_spec in endpoints:
+            demas_quirks.check_required_filters(
+                endpoint_spec.path,
+                {**api_params, **endpoint_spec.query_params},
+            )
+
         years = list(range(start_year, end_year + 1))
         page_size = min(max(1, int(batch_size)), 1000)
         max_pages_per_year = min(max(1, int(max_pages)), 200000)
@@ -542,9 +575,12 @@ class OpenDataSUSDataSource(DataSource):
                 }
             )
 
-        records: List[Dict[str, object]] = []
+        # Acumulador com derramamento em disco: uma coleta anual grande não
+        # cabe como lista de dicionários (ver guaraci/opendatasus/buffer.py).
+        records = PagedRecordBuffer()
         pages_scanned = 0
         truncated = False
+        uf_conferivel = True
 
         for endpoint_spec in endpoints:
             endpoint = endpoint_spec.path
@@ -552,14 +588,9 @@ class OpenDataSUSDataSource(DataSource):
             for page in range(max_pages_per_year):
                 params: Dict[str, object] = dict(endpoint_spec.query_params)
                 params.update(
-                    {
-                        "limit": page_size,
-                        # DEMAS offset conta LINHAS, não páginas (o swagger diz
-                        # "Número da página", mas limit=5&offset=1 sobrepõe 4 das
-                        # 5 linhas de offset=0). Avançar de 1 em 1 rebaixaria a
-                        # mesma janela e cobriria page_size vezes menos dados.
-                        "offset": page * page_size,
-                    }
+                    demas_quirks.pagination_params(
+                        endpoint, page=page, page_size=page_size
+                    )
                 )
                 if uf and uf_param_name:
                     params[uf_param_name] = uf
@@ -578,11 +609,16 @@ class OpenDataSUSDataSource(DataSource):
                 if not fetched:
                     break
 
+                # A origem aceita o filtro de UF e nem sempre o aplica, então o
+                # recorte é reconferido aqui. Só quando as linhas trazem a UF:
+                # do contrário o recorte apagaria tudo em vez de recortar.
+                if uf is not None and not self._rows_have_uf_field(fetched):
+                    uf_conferivel = False
                 filtered_rows = self._filter_demas_rows(
                     rows=fetched,
                     start=start,
                     end=end,
-                    uf=uf,
+                    uf=uf if uf_conferivel else None,
                 )
                 records.extend(filtered_rows)
                 pages_scanned += 1
@@ -604,7 +640,8 @@ class OpenDataSUSDataSource(DataSource):
             else:
                 truncated = True
 
-        self._data_by_dataset[dataset] = records
+        self._data_by_dataset[dataset] = records.records
+        self._buffers_by_dataset[dataset] = records
         self._latest_dataset = dataset
 
         artifact_stem = self._build_artifact_stem(
@@ -615,9 +652,8 @@ class OpenDataSUSDataSource(DataSource):
         )
         raw_path: Optional[Path] = None
         if keep_raw:
-            raw_path = self._write_raw_snapshot(
-                stem=artifact_stem,
-                records=records,
+            raw_path = records.write_jsonl(
+                self.output_path / "raw" / f"{artifact_stem}.jsonl"
             )
 
         exported_files: List[str] = []
@@ -625,9 +661,10 @@ class OpenDataSUSDataSource(DataSource):
         if requested_format:
             if records:
                 try:
-                    dataframe = self._records_to_dataframe(records)
+                    # `frame()` devolve plano lazy quando a coleta derramou
+                    # para disco, e a escrita então acontece em streaming.
                     export_path = self.export(
-                        dataframe,
+                        records.frame(),
                         format=requested_format,
                         name=artifact_stem,
                     )
@@ -654,6 +691,13 @@ class OpenDataSUSDataSource(DataSource):
             warnings.append(
                 "OpenDataSUS query reached max_pages limit before exhausting remote pages. "
                 f"Increase max_pages (current={max_pages_per_year}) or narrow the selected date window."
+            )
+
+        if uf is not None and not uf_conferivel:
+            warnings.append(
+                f"UF filter '{uf}' was sent to the origin but could not be verified: "
+                "the returned records carry no UF field. Some DEMAS endpoints accept "
+                "the parameter and ignore it, so the result may cover other states."
             )
 
         endpoint_slug = ",".join([item.path.lstrip("/") for item in endpoints]) or dataset
@@ -732,6 +776,12 @@ class OpenDataSUSDataSource(DataSource):
             "output_format": requested_format,
             "exported_files": exported_files,
             "api_params": dict(api_params),
+            # Os avisos e a marca de truncamento acompanham o resultado, e não
+            # só o manifesto em disco: sem isso a CLI e a API mostravam sucesso
+            # limpo para uma coleta cortada no limite de páginas.
+            "warnings": list(warnings),
+            "truncated": truncated,
+            "pages_scanned": pages_scanned,
         }
         export_warning = self._combine_warnings(warnings)
         if export_warning:
@@ -782,8 +832,20 @@ class OpenDataSUSDataSource(DataSource):
         if spec.demas_strategy == "yearly_suffix":
             selected: List[DemasEndpointPlan] = []
             base_path = str(spec.demas_static_path or "").strip()
+            # A origem publica um endpoint por ano, e a série não cobre todos
+            # os anos. Montar o caminho às cegas fazia a coleta terminar num
+            # 404 opaco quando o ano pedido não existia, em vez de dizer qual
+            # é a cobertura.
+            disponiveis = sorted(
+                int(known.rsplit("-", 1)[-1])
+                for known in self._demas_get_params_by_path
+                if known.startswith(f"{base_path}-")
+                and known.rsplit("-", 1)[-1].isdigit()
+            )
             for year in range(start_year, end_year + 1):
                 path = f"{base_path}-{year}"
+                if disponiveis and year not in disponiveis:
+                    continue
                 params = self._demas_get_params_by_path.get(path, ())
                 uf_params = tuple(
                     item for item in params if item in self._candidate_uf_param_names()
@@ -798,6 +860,12 @@ class OpenDataSUSDataSource(DataSource):
                             api_params=api_params,
                         ),
                     )
+                )
+            if not selected and disponiveis:
+                raise ValueError(
+                    f"Dataset '{dataset}' has no endpoint for the requested years "
+                    f"({start_year}-{end_year}). Available years: "
+                    f"{disponiveis[0]}-{disponiveis[-1]}."
                 )
             return selected
 
@@ -878,7 +946,10 @@ class OpenDataSUSDataSource(DataSource):
     ) -> Dict[str, object]:
         swagger_params = set(self._demas_get_params_by_path.get(path_template, ()))
         path_params = set(self._extract_path_param_names(path_template))
-        ignored = {"limit", "offset"} | path_params
+        # A paginação é responsabilidade do laço de coleta em qualquer um dos
+        # esquemas; deixar o usuário passá-la pelos parâmetros da fonte faria a
+        # janela ser sobrescrita no meio da varredura.
+        ignored = demas_quirks.PAGINATION_PARAM_NAMES | path_params
         query: Dict[str, object] = {}
         for key, value in api_params.items():
             if key in ignored:
@@ -995,29 +1066,74 @@ class OpenDataSUSDataSource(DataSource):
             return ("uf_paciente",)
         return ()
 
+    # Nomes sob os quais as fontes DEMAS expõem o recorte por unidade da
+    # federação. Servem tanto para mandar o filtro à origem quanto para saber
+    # que o usuário pediu um recorte e conferi-lo nas linhas devolvidas.
+    _UF_PARAM_NAMES: tuple[str, ...] = (
+        "uf",
+        "sg_uf",
+        "sg_uf_not",
+        "sigla_unidade_federacao",
+        "sigla_uf",
+        "uf_notificacao",
+        "uf_residencia",
+        "uf_paciente",
+        "uf_estabelecimento",
+        "uf_ocor",
+    )
+
     @staticmethod
     def _select_uf_param(uf_params: tuple[str, ...]) -> Optional[str]:
+        """Nome sob o qual mandar o recorte de UF para este endpoint.
+
+        A precedência entre estabelecimento e paciente vem da vacinação, em que
+        os dois existem e o recorte esperado é o do estabelecimento. Os demais
+        nomes entram depois: sem eles, um ``uf=SP`` numa fonte que chama o
+        filtro de ``sigla_unidade_federacao`` não era enviado à origem.
+        """
         if not uf_params:
             return None
-        if "uf_estabelecimento" in uf_params:
-            return "uf_estabelecimento"
-        if "uf_paciente" in uf_params:
-            return "uf_paciente"
-        if "uf" in uf_params:
-            return "uf"
+        preferidos = ("uf_estabelecimento", "uf_paciente", "uf")
+        for nome in preferidos + OpenDataSUSDataSource._UF_PARAM_NAMES:
+            if nome in uf_params:
+                return nome
+        return None
+
+    def _uf_from_api_params(self, api_params: Mapping[str, object]) -> Optional[str]:
+        """Recorte de UF pedido por um parâmetro nativo da fonte.
+
+        Nem toda fonte expõe o recorte como ``uf``: a atenção primária usa
+        ``sigla_unidade_federacao``, as arboviroses usam ``sg_uf_not``. Sem
+        reconhecer esses nomes, o recorte ficava só na consulta à origem, e a
+        origem pode ignorá-lo: verificado em 2026-09-03,
+        ``cadastro-vinculado-programa-previne-brasil`` devolve o país inteiro
+        para qualquer valor de UF, com qualquer um dos nomes aceitos.
+        """
+        for nome in self._UF_PARAM_NAMES:
+            valor = self._normalize_uf(api_params.get(nome))
+            if valor is not None:
+                return valor
         return None
 
     @staticmethod
-    def _candidate_uf_param_names() -> tuple[str, ...]:
-        return (
-            "uf",
-            "sg_uf",
-            "sg_uf_not",
-            "uf_notificacao",
-            "uf_residencia",
-            "uf_paciente",
-            "uf_estabelecimento",
+    def _rows_have_uf_field(rows: Sequence[Mapping[str, object]]) -> bool:
+        """Diz se dá para conferir a UF nas linhas que a origem devolveu.
+
+        Sem esta guarda, um recorte de UF sobre uma resposta que não traz
+        coluna de UF descartaria todas as linhas, trocando um resultado largo
+        demais por um resultado vazio. Exigir uma sigla reconhecida cobre também
+        o caso de a origem escrever a unidade por extenso, que não casaria com
+        a sigla pedida e produziria o mesmo estrago.
+        """
+        siglas = set(UF_DICT.values())
+        return any(
+            OpenDataSUSDataSource._extract_record_uf(row) in siglas for row in rows
         )
+
+    @staticmethod
+    def _candidate_uf_param_names() -> tuple[str, ...]:
+        """Nomes sob os quais um endpoint pode expor o recorte por UF."""
+        return OpenDataSUSDataSource._UF_PARAM_NAMES
 
     @staticmethod
     def _extract_demas_rows(payload: Mapping[str, object]) -> List[Dict[str, object]]:
@@ -1101,6 +1217,12 @@ class OpenDataSUSDataSource(DataSource):
             "sg_uf",
             "sg_uf_resi",
             "uf_lpi",
+            # Nomes usados pelos endpoints da atenção primária, cujo filtro de
+            # UF a origem aceita e ignora (ver `_UF_PARAM_NAMES`).
+            "sigla_unidade_federacao",
+            "sigla_uf",
+            "uf_ocor",
+            "uf",
         ]
         numeric_to_uf = {
             "11": "RO",
