@@ -64,10 +64,14 @@
     "2026-09-05": {
       "count": 0,
       "uniques": 0
+    },
+    "2026-09-06": {
+      "count": 0,
+      "uniques": 0
     }
   },
   "total_clones": 0,
   "total_uniques": 0,
   "tracking_since": "2026-08-21",
-  "updated_at": "2026-09-05T09:08:48+00:00"
+  "updated_at": "2026-09-06T09:29:55+00:00"
 }
