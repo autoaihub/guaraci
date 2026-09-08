@@ -84,7 +84,7 @@ def test_get_source_schema_returns_sinan_fields() -> None:
     names = {item["name"] for item in schema["params"]}
 
     assert schema["source"] == "sinan"
-    assert schema["mode"] == "pysus ftp"
+    assert schema["mode"] == "datasus ftp"
     assert {"start_year", "end_year", "diseases", "output_format"} <= names
     assert "ano" not in names
 

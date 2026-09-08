@@ -515,7 +515,7 @@ function go(view) {
 function familyOf(mode) {
   const lower = String(mode || "").toLowerCase();
   if (lower.includes("opendatasus")) return "opendatasus";
-  if (lower.includes("datasus") || lower.includes("pysus")) return "datasus";
+  if (lower.includes("datasus")) return "datasus";
   if (lower.includes("ibge")) return "ibge";
   if (lower.includes("nasa")) return "nasa";
   if (lower.includes("gov.br") || lower.includes("crawl")) return "govbr";

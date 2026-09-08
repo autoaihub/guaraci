@@ -4,7 +4,7 @@ Reference document for the parameters exposed through the schema, API, and UI.
 
 ## 1. Execution Phases
 
-For PySUS sources, parameters can act in different phases:
+For DATASUS sources, parameters can act in different phases:
 
 - **Collection/download**: which source files to fetch
 - **Export/filtering**: how to filter the final dataset before export
@@ -62,9 +62,9 @@ they expose more convenient query layers.
   `dadosabertos.saude.gov.br/dataset/sisagua-cadastro-carro-pipa-procedencia`
 - `sisagua_cadastro_carro_pipa_populacao` (`opendatasus files`) — primary:
   `dadosabertos.saude.gov.br/dataset/sisagua-cadastro-carro-pipa-populacao`
-- `sinan` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINAN/`
-- `sim` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIM/`
-- `sih` (`pysus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIHSUS/`
+- `sinan` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINAN/`
+- `sim` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIM/`
+- `sih` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIHSUS/`
 - `sinasc` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SINASC/`
 - `sia` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/SIASUS/`
 - `cnes` (`datasus ftp`) — primary: `ftp.datasus.gov.br/dissemin/publicos/CNES/`
@@ -131,7 +131,7 @@ they expose more convenient query layers.
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
 - The `mode` field on `GET /sources` describes the transport, not the
-  publisher. `pysus ftp` means "DATASUS FTP, fetched through PySUS"; the
+  publisher. `datasus ftp` means "fetched straight from the DATASUS FTP"; the
   fetch layer may change without
   altering the source identity.
 
@@ -396,7 +396,7 @@ Note:
   log.
 - `sexo` is exposed as `M`/`F` and translated to the codes SIH stores
   (`1` masculine, `3` feminine), inherited from the older AIH layout.
-- SIH discovery uses the PySUS FTP catalog. Broad selections such as all states,
+- SIH discovery uses the DATASUS FTP catalog. Broad selections such as all states,
   all months, and multiple years can resolve to thousands of DBC files and many
   gigabytes before export filtering is applied.
 - Use `POST /sources/sih/discovery` to inspect file count, estimated byte size,

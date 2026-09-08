@@ -28,9 +28,9 @@ Response:
 [
   {"source":"doses_aplicadas_pni","title":"Doses Aplicadas PNI","mode":"opendatasus api"},
   {"source":"zikavirus","title":"Arboviroses Zikavirus","mode":"opendatasus api"},
-  {"source":"sih","title":"SIH","mode":"pysus ftp"},
-  {"source":"sim","title":"SIM","mode":"pysus ftp"},
-  {"source":"sinan","title":"SINAN","mode":"pysus ftp"},
+  {"source":"sih","title":"SIH","mode":"datasus ftp"},
+  {"source":"sim","title":"SIM","mode":"datasus ftp"},
+  {"source":"sinan","title":"SINAN","mode":"datasus ftp"},
   {"source":"sinisa","title":"SINISA","mode":"gov.br crawl"},
   {"source":"snis","title":"SNIS","mode":"gov.br crawl"}
 ]

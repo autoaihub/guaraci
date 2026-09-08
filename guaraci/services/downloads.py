@@ -209,8 +209,8 @@ class GovBrDownloadSource:
         return JobResult.from_payload(source=self.descriptor.source, payload=payload)
 
 
-class PysusDownloadSource:
-    """Adapter for PySUS-backed DATASUS datasources."""
+class DatasusDownloadSource:
+    """Adapter for DATASUS datasources served over the direct FTP layer."""
 
     def __init__(
         self,
@@ -257,7 +257,7 @@ class PysusDownloadSource:
         else:
             progress_state = {"started": False}
 
-            def pysus_progress(completed: int, total: int) -> None:
+            def datasus_progress(completed: int, total: int) -> None:
                 completed_int = max(0, int(completed))
                 total_int = max(0, int(total))
                 if not progress_state["started"]:
@@ -279,7 +279,7 @@ class PysusDownloadSource:
                     }
                 )
 
-            payload = datasource.download(progress_callback=pysus_progress, **download_kwargs)
+            payload = datasource.download(progress_callback=datasus_progress, **download_kwargs)
 
             total_files = int(payload.get("total_files", 0)) if isinstance(payload, Mapping) else 0
             downloaded = (
@@ -423,7 +423,7 @@ class PysusDownloadSource:
             source=self.descriptor.source,
             filters=request_filters,
             documents_found=int(payload.get("total_files", 0)),
-            downloaded_files=[],  # Pysus doesn't track raw files one-by-one by default
+            downloaded_files=[],  # o backend FTP nao rastreia arquivo a arquivo por padrao
             materialized_paths=list(materialized_paths),
             exported_files=list(exported_files),
             warnings=list(warnings),
@@ -1068,9 +1068,9 @@ class DownloadService:
         if key == "sih":
             prepared = _normalize_sih_params(dict(kwargs))
             output_dir = prepared.pop("output_dir", None)
-            download_kwargs, _ = PysusDownloadSource._split_download_and_postprocess_kwargs(
-                PysusDownloadSource(
-                    descriptor=SourceDescriptor(source="sih", title="SIH", mode="pysus ftp"),
+            download_kwargs, _ = DatasusDownloadSource._split_download_and_postprocess_kwargs(
+                DatasusDownloadSource(
+                    descriptor=SourceDescriptor(source="sih", title="SIH", mode="datasus ftp"),
                     datasource_cls=SihDataSource,
                     params_schema=[],
                 ),

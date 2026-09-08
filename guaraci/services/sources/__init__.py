@@ -11,7 +11,7 @@ from guaraci.services.downloads import DownloadSource
 from guaraci.services.sources import (
     ana,
     datasus_ftp,
-    datasus_pysus,
+    datasus_curated,
     govbr,
     ibge,
     inmet,
@@ -33,7 +33,7 @@ def build_default_sources() -> List[DownloadSource]:
         *govbr.build_sources(),
         *opendatasus.build_sources(),
         *opendatasus_files.build_sources(),
-        *datasus_pysus.build_sources(),
+        *datasus_curated.build_sources(),
         *datasus_ftp.build_sources(),
         *nasa.build_sources(),
         *ibge.build_sources(),

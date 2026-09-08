@@ -9,15 +9,15 @@ from guaraci.services import downloads as _downloads
 from guaraci.services.downloads import (
     EXPORT_FORMAT_VALUES,
     DownloadSource,
-    PysusDownloadSource,
+    DatasusDownloadSource,
     SourceDescriptor,
 )
 from guaraci.services.normalizers import _normalize_ftp_params
 from guaraci.utils.mapping import UF_DICT
 
 
-def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "PysusDownloadSource":
-    """Build a ``PysusDownloadSource`` adapter for one phase-5 FTP system spec.
+def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "DatasusDownloadSource":
+    """Build a ``DatasusDownloadSource`` adapter for one phase-5 FTP system spec.
 
     The schema is derived from the spec's dimensions: every source exposes
     ``start_year``/``end_year``; only systems with selectable groups expose
@@ -94,7 +94,7 @@ def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "PysusDo
     def _factory(output_path=None, _spec=spec):
         return _downloads.FtpDataSource(_spec, output_path=output_path)
 
-    return PysusDownloadSource(
+    return DatasusDownloadSource(
         descriptor=SourceDescriptor(source=spec.name, title=spec.title, mode="datasus ftp"),
         datasource_cls=_factory,
         params_schema=schema,

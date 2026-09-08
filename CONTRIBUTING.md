@@ -27,7 +27,7 @@ docker build -t guaraci .
 
 - `guaraci/core/`: contracts, configuration, result types, and datasource base classes
 - `guaraci/snis/`: crawler sources (`snis`, `sinisa`) and legacy BigQuery code in `legacy/`
-- `guaraci/datasus/`: PySUS sources (`sinan`, `sim`, `sih`)
+- `guaraci/datasus/`: DATASUS sources over direct FTP (`sinan`, `sim`, `sih`)
 - `guaraci/services/`: download orchestration and asynchronous jobs
 - `guaraci/services/opendatasus_registry.py`: generated OpenDataSUS DEMAS source registry
 - `scripts/scaffold_opendatasus.py`: helper for regenerating OpenDataSUS source blocks from the local Swagger catalog

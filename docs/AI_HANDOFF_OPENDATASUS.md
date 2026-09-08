@@ -10,7 +10,7 @@ This document is the single-source context handoff for future AI-agent conversat
 - Sources currently registered (88 total; see `docs/DATA_DICTIONARY.md` and `guaraci fetch list`):
   - `snis`, `sinisa` (`gov.br` crawler)
   - OpenDataSUS (`opendatasus api`): `doses_aplicadas_pni`, `zikavirus`, `dengue`, `chikungunya`, `febre_amarela`, `mpox`, `esavi`, `srag_demas`, `sindrome_gripal_leve` + ~60 generated DEMAS sources from `guaraci/opendatasus/utils/swagger.json`
-  - DATASUS direct FTP: `sinan`, `sim`, `sih` (`pysus ftp` label) + 11 systems — `sinasc`, `sia`, `cnes`, `pni`, `ciha`, `cih`, `siscan`, `sisprenatal`, `resp`, `pce`, `painel_oncologia` (`datasus ftp`)
+  - DATASUS direct FTP: `sinan`, `sim`, `sih` + 11 systems — `sinasc`, `sia`, `cnes`, `pni`, `ciha`, `cih`, `siscan`, `sisprenatal`, `resp`, `pce`, `painel_oncologia` (`datasus ftp`)
   - NASA: `nasa_power`, `nasa_firms`, `nasa_gpm`
   - IBGE SIDRA (`ibge api`): `ibge_populacao`, `ibge_pib_municipios`, `ibge_populacao_idade_sexo`
 

@@ -14,7 +14,7 @@ Este documento condensa o modelo de operação diária do **Guaraci**, definindo
 
 - **Ambiente Mínimo**: Motor Docker rodando. No Windows, o PowerShell é a interface padronizada para os *launchers* visuais.
 - **Fontes Primárias Suportadas** (em linha com o princípio 20 do `vogel-stack`):
-  - **DATASUS FTP** (`ftp.datasus.gov.br`) — SIH, SIM, SINAN. Desde a v0.5.2 (fase 4 da migração para FTP direto) a conexão é **FTP direto** por padrão (`ftplib` + `pyreaddbc`/`dbfread`); o caminho PySUS legado segue selecionável por 1 release via `GUARACI_DATASUS_BACKEND=pysus` (extra `datasus-legacy`).
+  - **DATASUS FTP** (`ftp.datasus.gov.br`) — SIH, SIM, SINAN. Desde a v0.5.2 (fase 4 da migração para FTP direto) a conexão é **FTP direto** (`ftplib` + `pyreaddbc`/`dbfread`), e desde a 0.7.0 é o único caminho: o backend PySUS foi removido junto com o extra `datasus-legacy` e a variável `GUARACI_DATASUS_BACKEND`.
   - **OpenDataSUS API** (`opendatasus.saude.gov.br`) — PNI, ZikaVirus, SRAG, dengue, chikungunya, mpox, ESAVI, febre amarela e demais endpoints DEMAS.
   - **gov.br SNIS/SINISA** — crawler dedicado para os módulos de saneamento.
   - **NASA** (`power.larc.nasa.gov`, `firms.modaps.eosdis.nasa.gov`, GES DISC OPeNDAP) — séries ambientais POWER (clima), FIRMS (focos de calor) e GPM IMERG (precipitação).
@@ -22,7 +22,7 @@ Este documento condensa o modelo de operação diária do **Guaraci**, definindo
 
   Bases curadas de terceiros (Base dos Dados/BigQuery, microdatasus, PCDaS/Fiocruz) **não são usadas como fonte de dados** no Guaraci, mesmo quando oferecem SQL, filtros server-side ou interface mais conveniente. O Guaraci se posiciona como integrador direto da fonte oficial — o intermediário adiciona delay de curadoria e introduz dependência operacional sobre terceiros. Quando uma fonte oficial não está acessível diretamente (ex.: dados muito antigos), o uso de intermediário deve ser registrado como limitação conhecida e não como caminho default.
 - **Limitações e Comportamentos Conhecidos**:
-  - Os FTPs do DATASUS podem sofrer instabilidade inerente de upstream (quedas de conexão, timeout ou falha de disco em nuvem pública), independentemente do backend (FTP direto ou PySUS legado). O projeto adota `retries` assíncronos no job worker para acomodar essas oscilações.
+  - Os FTPs do DATASUS podem sofrer instabilidade inerente de upstream (quedas de conexão, timeout ou falha de disco em nuvem pública), independentemente disso. O projeto adota `retries` assíncronos no job worker para acomodar essas oscilações.
   - Grandes volumes de dados OpenDataSUS podem consumir memória extensa ou levar minutos. A interface expõe _previews_ por este motivo explícito.
 
 ## 3. Execuções Recorrentes

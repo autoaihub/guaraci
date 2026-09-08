@@ -238,7 +238,7 @@ def test_source_schema_endpoint_sinan_contains_expected_fields(client: TestClien
     payload = response.json()
     names = {item["name"] for item in payload["params"]}
     assert payload["source"] == "sinan"
-    assert payload["mode"] == "pysus ftp"
+    assert payload["mode"] == "datasus ftp"
     assert {"start_year", "end_year", "diseases", "output_format"} <= names
     assert "ano" not in names
 

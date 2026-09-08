@@ -1,4 +1,4 @@
-"""Fontes DATASUS via PySUS com specs manuais (SINAN, SIM, SIH)."""
+"""Fontes DATASUS com specs manuais curadas (SINAN, SIM, SIH), sobre FTP direto."""
 
 from datetime import datetime
 from typing import List
@@ -8,7 +8,7 @@ from guaraci.services import downloads as _downloads
 from guaraci.services.downloads import (
     EXPORT_FORMAT_VALUES,
     DownloadSource,
-    PysusDownloadSource,
+    DatasusDownloadSource,
     SourceDescriptor,
 )
 from guaraci.services.normalizers import (
@@ -20,16 +20,16 @@ from guaraci.utils.mapping import UF_DICT
 
 
 def build_sources() -> List[DownloadSource]:
-    """Retorna as fontes PySUS manuais na ordem canonica."""
+    """Retorna as fontes DATASUS de spec curada na ordem canonica."""
     current_year = datetime.now().year
     last_year = current_year - 1
     uf_values = sorted(set(UF_DICT.values()))
     return [
-        PysusDownloadSource(
+        DatasusDownloadSource(
             descriptor=SourceDescriptor(
                 source="sinan",
                 title="SINAN",
-                mode="pysus ftp",
+                mode="datasus ftp",
             ),
             datasource_cls=_downloads.SinanDataSource,
             params_schema=[
@@ -132,11 +132,11 @@ def build_sources() -> List[DownloadSource]:
             ],
             normalize_params=_normalize_sinan_params,
         ),
-        PysusDownloadSource(
+        DatasusDownloadSource(
             descriptor=SourceDescriptor(
                 source="sim",
                 title="SIM",
-                mode="pysus ftp",
+                mode="datasus ftp",
             ),
             datasource_cls=_downloads.SimDataSource,
             params_schema=[
@@ -242,11 +242,11 @@ def build_sources() -> List[DownloadSource]:
             ],
             normalize_params=_normalize_sim_params,
         ),
-        PysusDownloadSource(
+        DatasusDownloadSource(
             descriptor=SourceDescriptor(
                 source="sih",
                 title="SIH",
-                mode="pysus ftp",
+                mode="datasus ftp",
             ),
             datasource_cls=_downloads.SihDataSource,
             params_schema=[

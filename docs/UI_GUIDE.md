@@ -36,7 +36,7 @@ The UI is organized into two main areas:
 
 - Select a source in the dropdown.
 - The UI calls `GET /sources/{source}/schema`.
-- It displays the source mode such as `gov.br crawl` or `pysus ftp`.
+- It displays the source mode such as `gov.br crawl` or `datasus ftp`.
 
 ### Step 2. Filters
 

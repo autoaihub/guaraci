@@ -36,7 +36,7 @@ Responsibilities:
 
 Adapter types:
 - `GovBrDownloadSource` for `gov.br` crawlers (`snis`, `sinisa`)
-- `PysusDownloadSource` for PySUS/FTP flows (`sinan`, `sim`, `sih`)
+- `DatasusDownloadSource` for direct-FTP flows (`sinan`, `sim`, `sih`)
 - `OpenDataSUSDownloadSource` for the OpenDataSUS API (`doses_aplicadas_pni`, `zikavirus`, and generated DEMAS sources)
 - `NasaDownloadSource` for keyless/token HTTP APIs — NASA (`nasa_power`, `nasa_firms`, `nasa_gpm`) and IBGE SIDRA (`ibge_populacao`, `ibge_pib_municipios`, `ibge_populacao_idade_sexo`)
 
@@ -113,9 +113,9 @@ These events feed:
 - Optionally extract zip archives
 - Generate a manifest in the source output directory
 
-### 7.2 PySUS sources (`sinan`, `sim`, `sih`)
+### 7.2 DATASUS sources (`sinan`, `sim`, `sih`)
 
-- Download files through PySUS/FTP
+- Download files through the direct DATASUS FTP layer
 - Materialize artifacts in `raw/`
 - Optionally export processed datasets when `output_format` is provided
 - Include `exported_files` and `export_warning` in the result when relevant

@@ -20,7 +20,7 @@ Execute uma única vez (ou quando houver atualização de dependências):
 docker build -t guaraci .
 ```
 
-> **Atenção (Dependências como PySUS):** Se você instalar dependências localmente via `pip install`, isso NÃO terá efeito dentro do Docker. Você precisará reconstruir a imagem Docker (`docker build -t guaraci .` ou `docker compose build --no-cache`) para garantir que bibliotecas como o **PySUS** estejam atualizadas e disponíveis.
+> **Atenção (dependências):** Se você instalar dependências localmente via `pip install`, isso NÃO terá efeito dentro do Docker. Você precisará reconstruir a imagem (`docker build -t guaraci .` ou `docker compose build --no-cache`) para que as bibliotecas atualizadas fiquem disponíveis lá dentro.
 
 *Dica: Se suspeitar de cache quebrado após muitas mudanças, adicione `--no-cache`.*
 
@@ -58,7 +58,7 @@ docker run --rm -it -p 8002:8000 -v "$(pwd):/app" guaraci \
 ## 4. Verificar o Funcionamento
 
 ```powershell
-# Health check (esperado: {"status": "ok", "version": "0.6.0"})
+# Health check (esperado: {"status": "ok", "version": "0.7.0"})
 Invoke-RestMethod http://localhost:8002/health
 
 # Listar fontes disponíveis
@@ -94,9 +94,9 @@ Basta pressionar `Ctrl+C` no terminal.
 ### "Guaraci UI not found" ou UI sem dados
 **Solução:** Verifique se o volume está montado corretamente (`-v "${PWD}:/app"`) e se a pasta `data/` possui permissões de escrita.
 
-### "PySUS is required for SIH functionality"
-**Solução:** Essa mensagem ocorre se a imagem Docker não foi construída com a versão correta do PySUS ou se o volume do host está conflitando sem a instalação completa. Reconstrua a imagem Docker com `--no-cache`. Você pode verificar se o PySUS está acessível internamente via:
-`docker run --rm -it guaraci python -c "import pysus; print('PySUS OK')"`
+### Falha ao decodificar arquivos `.dbc` do DATASUS
+**Solução:** A coleta de SIH, SIM e SINAN converte `.dbc` com `pyreaddbc` e `dbfread`, instalados pelo extra `datasus`. A mensagem aparece quando a imagem foi construída sem esse extra ou quando o volume do host sobrepõe a instalação. Reconstrua com `--no-cache` e confira:
+`docker run --rm -it guaraci python -c "import pyreaddbc, dbfread; print('decodificador OK')"`
 
 ### Container encerra imediatamente sem logs
 **Solução:** Se rodando manualmente, garanta que usou a flag `-it`. Um `docker run` vazio sem terminal interativo fecha imediatamente.
