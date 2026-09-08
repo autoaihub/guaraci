@@ -19,6 +19,7 @@ from __future__ import annotations
 import re
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from guaraci import __version__
 
 from guaraci.core.http import (
     DEFAULT_MAX_ATTEMPTS,
@@ -105,7 +106,7 @@ class InpeQueimadasClient:
     def _request_raw(self, url: str, *, accept: str) -> bytes:
         request = Request(
             url,
-            headers={"Accept": accept, "User-Agent": "guaraci/0.6.0"},
+            headers={"Accept": accept, "User-Agent": f"guaraci/{__version__}"},
         )
 
         def on_http_error(exc: HTTPError) -> InpeQueimadasClientError:

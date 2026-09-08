@@ -49,6 +49,7 @@ from guaraci.core.http import (
     request_with_retry,
 )
 from guaraci.datasus.frames import write_sqlite
+from guaraci import __version__
 
 _KNOWN_FORMATS: Tuple[str, ...] = ("parquet", "csv", "json", "xml")
 # Container formats whose *inner* data format is worth surfacing separately
@@ -212,7 +213,7 @@ class PortalFilesClient:
     """
 
     DEFAULT_BASE_URL = "https://dadosabertos.saude.gov.br"
-    USER_AGENT = "guaraci/0.6.0"
+    USER_AGENT = f"guaraci/{__version__}"
 
     def __init__(
         self,

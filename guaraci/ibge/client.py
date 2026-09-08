@@ -14,6 +14,7 @@ from typing import Any, List, Optional
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+from guaraci import __version__
 
 from guaraci.core.http import (
     DEFAULT_MAX_ATTEMPTS,
@@ -105,7 +106,7 @@ class IbgeSidraClient:
     def _request_json(self, url: str) -> Any:
         request = Request(
             url,
-            headers={"Accept": "application/json", "User-Agent": "guaraci/0.6.0"},
+            headers={"Accept": "application/json", "User-Agent": f"guaraci/{__version__}"},
         )
 
         def on_http_error(exc: HTTPError) -> IbgeClientError:

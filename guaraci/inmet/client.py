@@ -30,6 +30,7 @@ from time import monotonic
 from typing import Callable, Dict, Optional
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from guaraci import __version__
 
 from guaraci.core.http import (
     DEFAULT_MAX_ATTEMPTS,
@@ -51,7 +52,7 @@ class InmetClient:
     """Minimal client for INMET's per-year historical-data ZIP archives."""
 
     DEFAULT_BASE_URL = "https://portal.inmet.gov.br/uploads/dadoshistoricos"
-    USER_AGENT = "guaraci/0.6.0"
+    USER_AGENT = f"guaraci/{__version__}"
     CHUNK_SIZE = 1024 * 256
 
     def __init__(

@@ -15,6 +15,7 @@ from http.client import HTTPMessage
 from typing import IO, Dict, Mapping, Sequence
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urlparse
+from guaraci import __version__
 from urllib.request import (
     HTTPCookieProcessor,
     HTTPRedirectHandler,
@@ -122,7 +123,7 @@ class NasaPowerClient:
             url,
             headers={
                 "Accept": "application/json",
-                "User-Agent": "guaraci/0.6.0",
+                "User-Agent": f"guaraci/{__version__}",
             },
         )
 
@@ -303,7 +304,7 @@ class NasaFirmsClient:
             url,
             headers={
                 "Accept": "text/csv",
-                "User-Agent": "guaraci/0.6.0",
+                "User-Agent": f"guaraci/{__version__}",
             },
         )
 
@@ -481,7 +482,7 @@ class NasaGesDiscClient:
             headers={
                 "Authorization": f"Bearer {self._token}",
                 "Accept": "text/plain",
-                "User-Agent": "guaraci/0.6.0",
+                "User-Agent": f"guaraci/{__version__}",
             },
         )
 

@@ -44,6 +44,7 @@ from typing import Callable, Dict, List, Mapping, Optional, Sequence, Union
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from guaraci import __version__
 
 from guaraci.core.http import (
     DEFAULT_MAX_ATTEMPTS,
@@ -147,7 +148,7 @@ class AnaHidroClient:
                 "Identificador": self._identificador,
                 "Senha": self._senha,
                 "Accept": "application/json",
-                "User-Agent": "guaraci/0.6.0",
+                "User-Agent": f"guaraci/{__version__}",
             },
         )
         payload = self._send_json(
@@ -259,7 +260,7 @@ class AnaHidroClient:
             headers={
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json",
-                "User-Agent": "guaraci/0.6.0",
+                "User-Agent": f"guaraci/{__version__}",
             },
         )
         try:

@@ -9,6 +9,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from guaraci import __version__
 
 from guaraci.core.http import (
     DEFAULT_MAX_ATTEMPTS,
@@ -173,7 +174,7 @@ class OpenDataSUSClient:
             url,
             headers={
                 "Accept": "application/json",
-                "User-Agent": "guaraci/0.6.0",
+                "User-Agent": f"guaraci/{__version__}",
             },
         )
 
