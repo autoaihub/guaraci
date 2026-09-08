@@ -3,12 +3,11 @@ Guaraci DATASUS SIM Integration
 ===============================
 
 Module for downloading, processing and exporting SIM (Mortality Information
-System) data via PySUS 2.x.
+System) data over the direct anonymous FTP connection to ftp.datasus.gov.br.
 """
 
 from __future__ import annotations
 
-import asyncio
 import datetime
 import os
 from collections import defaultdict
@@ -20,30 +19,12 @@ from loguru import logger
 
 from guaraci.core.datasource import DataSource
 from guaraci.datasus import filtering, frames
-from guaraci.datasus.backend import (
-    BACKEND_FTP as _BACKEND_FTP,
-    get_datasus_backend as _get_datasus_backend,
-)
 from guaraci.utils.mapping import apply_uf_mapping_polars
-
-try:
-    import pysus
-    from pysus.api.client import PySUS
-    PYSUS_AVAILABLE = True
-except ImportError as exc:
-    import logging
-    # Ver a nota em guaraci/datasus/sinan.py: ausência do pysus é o caso comum.
-    logging.getLogger(__name__).debug(f"PySUS não está disponível ou falhou ao importar: {exc}")
-    PYSUS_AVAILABLE = False
-    # Mesmos símbolos definidos em sinan.py pelo mesmo motivo: sem isso, tocar
-    # o módulo sem a dependência opcional troca um erro claro por NameError.
-    pysus = None  # type: ignore[assignment]
-    PySUS = None  # type: ignore[assignment]
 
 
 class SimDataSource(DataSource):
     """
-    SIM data source backed by PySUS 2.x.
+    SIM data source backed by the direct DATASUS FTP layer.
     """
 
     #: O SIM guarda o sexo como código (1 masculino, 2 feminino, 0 ignorado),
@@ -57,18 +38,6 @@ class SimDataSource(DataSource):
         super().__init__(name="sim", output_path=output_path)
         self.data: Dict[str, List[Any]] = defaultdict(list)
 
-        if not PYSUS_AVAILABLE:
-            logger.warning(
-                "PySUS is not installed. SIM functionality will be unavailable. "
-                "Install with: pip install 'guaraci[datasus]'"
-            )
-
-    @property
-    def sim(self):
-        if not PYSUS_AVAILABLE:
-            raise ImportError("PySUS is required for SIM functionality.")
-        return True
-
     def download(
         self,
         start_year: int,
@@ -77,8 +46,6 @@ class SimDataSource(DataSource):
         states: Optional[List[str]] = None,
         progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Dict[str, Any]:
-        backend = _get_datasus_backend()
-
         current_year = datetime.datetime.now().year
         if end_year > current_year:
             logger.warning(f"End year {end_year} is in the future; adjusted to {current_year}")
@@ -102,100 +69,14 @@ class SimDataSource(DataSource):
                 raise ValueError(f"Unknown SIM group(s): {', '.join(sorted(unknown))}")
             normalized_groups = [g.upper() for g in groups]
 
-        logger.info(f"Starting SIM download: {start_year}-{end_year} (backend={backend})")
+        logger.info(f"Starting SIM download: {start_year}-{end_year}")
 
-        if backend == _BACKEND_FTP:
-            return self._download_via_ftp(
-                years=years,
-                groups=normalized_groups,
-                states=states,
-                progress_callback=progress_callback,
-            )
-
-        return self._download_via_pysus(
+        return self._download_via_ftp(
             years=years,
             groups=normalized_groups,
             states=states,
             progress_callback=progress_callback,
         )
-
-    def _download_via_pysus(
-        self,
-        *,
-        years: List[int],
-        groups: List[str],
-        states: Optional[List[str]],
-        progress_callback: Optional[Callable[[int, int], None]],
-    ) -> Dict[str, Any]:
-        if not PYSUS_AVAILABLE:
-            raise ImportError("PySUS is required for the 'pysus' backend.")
-
-        async def _fetch():
-            successful = 0
-            failed_downloads = []
-
-            async with PySUS() as client:
-                files_to_download = []
-                for g in groups:
-                    _states = states if states else [None]
-                    for y in years:
-                        for s in _states:
-                            try:
-                                res = await client.query(dataset="sim", group=g, state=s, year=y)
-                                if res:
-                                    files_to_download.extend(res)
-                            except Exception as exc:
-                                logger.error(f"Failed to query SIM {g} {s} {y}: {exc}")
-                
-                total_files = len(files_to_download)
-                if total_files == 0:
-                    logger.warning("No SIM files found for the specified criteria")
-                    return {"successful_downloads": 0, "failed_downloads": [], "total_files": 0}
-
-                logger.info(f"Found {total_files} SIM files to download")
-                if progress_callback:
-                    progress_callback(0, total_files)
-
-                completed_downloads = 0
-                for file_record in files_to_download:
-                    try:
-                        g_name = file_record.group.name if hasattr(file_record, "group") and file_record.group else "UNKNOWN"
-                    except Exception:
-                        g_name = "UNKNOWN"
-
-                    try:
-                        downloaded = await client.download(file_record)
-                        self.data[g_name].append(str(downloaded.path))
-                        successful += 1
-                    except Exception as exc:
-                        logger.error(f"Failed to download {file_record}: {exc}")
-                        failed_downloads.append((g_name, str(file_record)))
-                    finally:
-                        completed_downloads += 1
-                        if progress_callback:
-                            progress_callback(completed_downloads, total_files)
-
-                return {
-                    "successful_downloads": successful,
-                    "failed_downloads": failed_downloads,
-                    "total_files": total_files,
-                }
-
-        try:
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-                
-            if loop and loop.is_running():
-                import nest_asyncio
-                nest_asyncio.apply()
-                return loop.run_until_complete(_fetch())
-            else:
-                return asyncio.run(_fetch())
-        except Exception as exc:
-            logger.error(f"SIM download process failed: {exc}")
-            raise
 
     def _download_via_ftp(
         self,

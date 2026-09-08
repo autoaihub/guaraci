@@ -1,12 +1,11 @@
-"""Tests for the ``GUARACI_DATASUS_BACKEND`` switch on :class:`SihDataSource`.
+"""Tests for the direct-FTP collection path of :class:`SihDataSource`.
 
-These tests run with no real network and confirm the public dispatch
-contract: by default the PySUS path is taken; when the env var is set to
-``ftp`` the new direct-FTP backend is invoked instead.
-
-Validation logic (year clamp, group whitelist, month range) is shared
-across backends — covered once here, on the FTP path, since the legacy
-path already has its own tests in ``test_sih_datasource.py``.
+These tests run with no real network and confirm the public contract:
+``download`` and ``discover`` delegate to the FTP orchestrator, and the
+validation that precedes them (year clamp, group whitelist, month range)
+holds. Until 0.7.0 this file also covered the ``GUARACI_DATASUS_BACKEND``
+switch between here and the PySUS path; that path is gone, so the FTP one
+is simply the path.
 """
 
 from __future__ import annotations
@@ -82,26 +81,9 @@ def fake_ftp_backend(monkeypatch):
     return calls
 
 
-def test_default_backend_is_ftp(monkeypatch) -> None:
-    # Phase 4 flipped the default to the direct-FTP layer.
-    monkeypatch.delenv("GUARACI_DATASUS_BACKEND", raising=False)
-    assert sih_module._get_datasus_backend() == "ftp"
-
-
-def test_backend_pysus_selected_via_env_var(monkeypatch) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "pysus")
-    assert sih_module._get_datasus_backend() == "pysus"
-
-
-def test_unknown_backend_falls_back_to_default(monkeypatch) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "nonsense")
-    assert sih_module._get_datasus_backend() == "ftp"
-
-
 def test_download_with_ftp_backend_delegates_to_ftp_orchestrator(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     monkeypatch.setenv("GUARACI_FTP_CACHE_DIR", str(tmp_path))
 
     ds = SihDataSource(output_path=str(tmp_path))
@@ -130,14 +112,12 @@ def test_download_with_ftp_backend_delegates_to_ftp_orchestrator(
 
 
 def test_download_with_ftp_backend_validates_groups(monkeypatch, tmp_path) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     ds = SihDataSource(output_path=str(tmp_path))
     with pytest.raises(ValueError, match="Unknown SIH group"):
         ds.download(start_year=2024, end_year=2024, groups=["ZZ"])
 
 
 def test_download_with_ftp_backend_validates_months(monkeypatch, tmp_path) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     ds = SihDataSource(output_path=str(tmp_path))
     with pytest.raises(ValueError, match="Invalid month"):
         ds.download(start_year=2024, end_year=2024, months=[13])
@@ -146,7 +126,6 @@ def test_download_with_ftp_backend_validates_months(monkeypatch, tmp_path) -> No
 def test_download_with_ftp_backend_allows_current_clamps_future(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     monkeypatch.setenv("GUARACI_FTP_CACHE_DIR", str(tmp_path))
 
     # Freeze "now" so the current year is deterministic.
@@ -175,7 +154,6 @@ def test_download_with_ftp_backend_allows_current_clamps_future(
 def test_discover_with_ftp_backend_delegates_and_anchors_filters(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     ds = SihDataSource(output_path=str(tmp_path))
 
     payload = ds.discover(

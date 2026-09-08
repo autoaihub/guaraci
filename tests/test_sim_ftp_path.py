@@ -1,10 +1,10 @@
-"""Tests for the ``GUARACI_DATASUS_BACKEND`` switch on :class:`SimDataSource`.
+"""Tests for the direct-FTP collection path of :class:`SimDataSource`.
 
-These run with no real network and confirm the public dispatch contract:
-when the env var is ``ftp`` the direct-FTP backend is invoked, parameters
-are normalized, and ``paths_by_group`` is unpacked into ``self.data`` for
-``load_dataframe``. The selector contract (default / unknown) is pinned in
-``test_datasus_backend.py``; here we only assert each module wires it in.
+These run with no real network and confirm the public contract: the FTP
+backend is invoked, parameters are normalized, and ``paths_by_group`` is
+unpacked into ``self.data`` for ``load_dataframe``. Until 0.7.0 this file
+also covered the ``GUARACI_DATASUS_BACKEND`` switch; that selector is gone
+along with the PySUS path.
 """
 
 from __future__ import annotations
@@ -52,15 +52,10 @@ def fake_ftp_backend(monkeypatch):
     return calls
 
 
-def test_backend_ftp_selected_via_env_var(monkeypatch) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
-    assert sim_module._get_datasus_backend() == "ftp"
-
 
 def test_download_with_ftp_backend_delegates_to_ftp_orchestrator(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     monkeypatch.setenv("GUARACI_FTP_CACHE_DIR", str(tmp_path))
 
     ds = SimDataSource(output_path=str(tmp_path))
@@ -89,7 +84,6 @@ def test_download_with_ftp_backend_delegates_to_ftp_orchestrator(
 def test_download_with_ftp_backend_defaults_groups_to_cid10(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     monkeypatch.setenv("GUARACI_FTP_CACHE_DIR", str(tmp_path))
 
     ds = SimDataSource(output_path=str(tmp_path))
@@ -99,7 +93,6 @@ def test_download_with_ftp_backend_defaults_groups_to_cid10(
 
 
 def test_download_with_ftp_backend_validates_groups(monkeypatch, tmp_path) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     ds = SimDataSource(output_path=str(tmp_path))
     with pytest.raises(ValueError, match="Unknown SIM group"):
         ds.download(start_year=2024, end_year=2024, groups=["ZZ"])
@@ -108,7 +101,6 @@ def test_download_with_ftp_backend_validates_groups(monkeypatch, tmp_path) -> No
 def test_download_with_ftp_backend_allows_current_clamps_future(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     monkeypatch.setenv("GUARACI_FTP_CACHE_DIR", str(tmp_path))
 
     import datetime as _dt

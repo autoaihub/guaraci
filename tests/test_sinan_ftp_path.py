@@ -1,11 +1,10 @@
-"""Tests for the ``GUARACI_DATASUS_BACKEND`` switch on :class:`SinanDataSource`.
+"""Tests for the direct-FTP collection path of :class:`SinanDataSource`.
 
-These run with no real network and confirm the public dispatch contract:
-when the env var is ``ftp`` the direct-FTP backend is invoked, parameters
-are normalized (diseases default to the neglected-disease list), and
-``paths_by_group`` is unpacked into ``self.data`` keyed by disease. The
-selector contract (default / unknown) is pinned in
-``test_datasus_backend.py``; here we only assert the module wires it in.
+These run with no real network and confirm the public contract: the FTP
+backend is invoked, the default disease list is applied, and the year range
+is clamped. Until 0.7.0 this file also covered the
+``GUARACI_DATASUS_BACKEND`` switch; that selector is gone along with the
+PySUS path.
 """
 
 from __future__ import annotations
@@ -51,15 +50,10 @@ def fake_ftp_backend(monkeypatch):
     return calls
 
 
-def test_backend_ftp_selected_via_env_var(monkeypatch) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
-    assert sinan_module._get_datasus_backend() == "ftp"
-
 
 def test_download_with_ftp_backend_delegates_to_ftp_orchestrator(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     monkeypatch.setenv("GUARACI_FTP_CACHE_DIR", str(tmp_path))
 
     ds = SinanDataSource(output_path=str(tmp_path))
@@ -84,7 +78,6 @@ def test_download_with_ftp_backend_delegates_to_ftp_orchestrator(
 def test_download_with_ftp_backend_defaults_to_neglected_diseases(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     monkeypatch.setenv("GUARACI_FTP_CACHE_DIR", str(tmp_path))
 
     ds = SinanDataSource(output_path=str(tmp_path))
@@ -97,7 +90,6 @@ def test_download_with_ftp_backend_defaults_to_neglected_diseases(
 def test_download_with_ftp_backend_allows_current_clamps_future(
     monkeypatch, tmp_path, fake_ftp_backend
 ) -> None:
-    monkeypatch.setenv("GUARACI_DATASUS_BACKEND", "ftp")
     monkeypatch.setenv("GUARACI_FTP_CACHE_DIR", str(tmp_path))
 
     import datetime as _dt

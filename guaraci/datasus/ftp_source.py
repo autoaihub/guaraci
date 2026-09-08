@@ -1,13 +1,13 @@
 """Generic spec-driven DATASUS data source (phase 5).
 
-SIH/SIM/SINAN keep their bespoke classes (they carry the legacy PySUS
-path). The eleven systems added in phase 5 are FTP-only — there is no
-legacy to preserve — so a single :class:`FtpDataSource`, parametrised by a
+SIH/SIM/SINAN keep their bespoke classes, which carry per-system filtering
+and export rules. The eleven systems added in phase 5 have no such rules,
+so a single :class:`FtpDataSource`, parametrised by a
 :class:`~guaraci.datasus.ftp.specs.SystemSpec`, covers all of them. Each
 source is then just ``FtpDataSource(specs.SINASC)`` etc.
 
 Contract matches the other datasources closely enough that the
-``PysusDownloadSource`` service adapter drives it unchanged: ``download``
+``DatasusDownloadSource`` service adapter drives it unchanged: ``download``
 returns ``{successful_downloads, failed_downloads, total_files}`` and
 populates ``self.data`` (group -> list of parquet paths) for raw
 materialisation and export.

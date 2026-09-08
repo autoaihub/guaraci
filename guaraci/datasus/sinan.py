@@ -2,12 +2,12 @@
 Guaraci DATASUS SINAN Integration
 ================================
 
-Enhanced module for downloading, processing, and exporting SINAN data via PySUS 2.x.
-Includes error handling and performance optimizations.
+Module for downloading, processing, and exporting SINAN data over the direct
+anonymous FTP connection to ftp.datasus.gov.br. Includes error handling and
+performance optimizations.
 """
 
 import os
-import asyncio
 import datetime
 from typing import Optional, Literal, List, Dict, Any, Callable, Sequence
 from pathlib import Path
@@ -19,36 +19,11 @@ from loguru import logger
 
 from guaraci.core.datasource import DataSource
 from guaraci.datasus import filtering, frames
-from guaraci.datasus.backend import (
-    BACKEND_FTP as _BACKEND_FTP,
-    get_datasus_backend as _get_datasus_backend,
-)
 from guaraci.utils.mapping import UF_DICT
-
-try:
-    import pysus
-    from pysus.api.client import PySUS
-    PYSUS_AVAILABLE = True
-except ImportError as exc:
-    import logging
-    # Nível de depuração, e não aviso: o backend padrão é o FTP direto, então a
-    # ausência do pysus é o caso comum, não um defeito. Como três módulos fazem
-    # esta mesma importação, avisar aqui enchia a primeira execução de qualquer
-    # instalação nova com um alarme falso repetido. Quem pede o backend legado
-    # recebe o erro explícito na hora de usá-lo.
-    logging.getLogger(__name__).debug(f"PySUS não está disponível ou falhou ao importar: {exc}")
-    PYSUS_AVAILABLE = False
-    # O símbolo precisa existir mesmo sem a dependência opcional instalada:
-    # quem o referencia já se protege com `PYSUS_AVAILABLE`, e deixá-lo
-    # indefinido trocava um erro claro por `AttributeError` em quem apenas
-    # tocasse o módulo. Era o que mantinha o Python CI vermelho, onde a suíte
-    # roda sem pysus.
-    pysus = None
-    PySUS = None
 
 
 class SinanDataSource(DataSource):
-    """Enhanced SINAN data source with error handling (PySUS 2.x)."""
+    """SINAN data source with error handling, over direct DATASUS FTP."""
 
     NEGLECTED_DISEASES = ['ANIM', 'CHAG', 'CHIK', 'DENG', 'ESQU', 'HANS', 'LEIV', 'LTAN', 'RAIV']
     
@@ -67,18 +42,6 @@ class SinanDataSource(DataSource):
     def __init__(self, output_path: Optional[str] = None):
         super().__init__(name="sinan", output_path=output_path)
         self.data: Dict[str, List[Any]] = defaultdict(list)
-        
-        if not PYSUS_AVAILABLE:
-            logger.warning(
-                "PySUS is not installed. SINAN functionality will be limited. "
-                "Install with: pip install 'guaraci[datasus]'"
-            )
-        
-    @property
-    def sinan(self):
-        if not PYSUS_AVAILABLE:
-            raise ImportError("PySUS is required for SINAN functionality.")
-        return True
 
     def download(
         self,
@@ -87,8 +50,6 @@ class SinanDataSource(DataSource):
         diseases: Optional[List[str]] = None,
         progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> Dict[str, Any]:
-        backend = _get_datasus_backend()
-
         if diseases is None:
             diseases = self.NEGLECTED_DISEASES.copy()
 
@@ -107,96 +68,14 @@ class SinanDataSource(DataSource):
 
         years = list(range(start_year, end_year + 1))
 
-        logger.info(f"Starting SINAN download: {start_year}-{end_year} (backend={backend})")
+        logger.info(f"Starting SINAN download: {start_year}-{end_year}")
         logger.info(f"Diseases: {', '.join([f'{d} ({self.DISEASE_NAMES.get(d, d)})' for d in diseases])}")
 
-        if backend == _BACKEND_FTP:
-            return self._download_via_ftp(
-                years=years,
-                diseases=diseases,
-                progress_callback=progress_callback,
-            )
-
-        return self._download_via_pysus(
+        return self._download_via_ftp(
             years=years,
             diseases=diseases,
             progress_callback=progress_callback,
         )
-
-    def _download_via_pysus(
-        self,
-        *,
-        years: List[int],
-        diseases: List[str],
-        progress_callback: Optional[Callable[[int, int], None]],
-    ) -> Dict[str, Any]:
-        if not PYSUS_AVAILABLE:
-            raise ImportError("PySUS is required for the 'pysus' backend.")
-
-        async def _fetch():
-            successful = 0
-            failed_downloads = []
-
-            async with PySUS() as client:
-                files_to_download = []
-                for g in diseases:
-                    for y in years:
-                        try:
-                            res = await client.query(dataset="sinan", group=g, year=y)
-                            if res:
-                                files_to_download.extend(res)
-                        except Exception as exc:
-                            logger.error(f"Failed to query SINAN {g} {y}: {exc}")
-                
-                total_files = len(files_to_download)
-                if total_files == 0:
-                    logger.warning("No files found for the specified criteria")
-                    return {"successful_downloads": 0, "failed_downloads": [], "total_files": 0}
-                    
-                logger.info(f"Found {total_files} files to download")
-                if progress_callback:
-                    progress_callback(0, total_files)
-
-                completed_downloads = 0
-                for file_record in files_to_download:
-                    try:
-                        g_name = file_record.group.name if hasattr(file_record, "group") and file_record.group else "UNKNOWN"
-                    except Exception:
-                        g_name = "UNKNOWN"
-
-                    try:
-                        downloaded = await client.download(file_record)
-                        self.data[g_name].append(str(downloaded.path))
-                        successful += 1
-                    except Exception as exc:
-                        logger.error(f"Failed to download {file_record}: {exc}")
-                        failed_downloads.append((g_name, str(file_record)))
-                    finally:
-                        completed_downloads += 1
-                        if progress_callback:
-                            progress_callback(completed_downloads, total_files)
-
-                return {
-                    "successful_downloads": successful,
-                    "failed_downloads": failed_downloads,
-                    "total_files": total_files,
-                }
-
-        try:
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-                
-            if loop and loop.is_running():
-                import nest_asyncio
-                nest_asyncio.apply()
-                return loop.run_until_complete(_fetch())
-            else:
-                return asyncio.run(_fetch())
-        except Exception as exc:
-            logger.error(f"SINAN download process failed: {exc}")
-            raise
 
     def _download_via_ftp(
         self,
