@@ -32,8 +32,13 @@ try:
     PYSUS_AVAILABLE = True
 except ImportError as exc:
     import logging
-    logging.getLogger(__name__).warning(f"PySUS não está disponível ou falhou ao importar: {exc}")
+    # Ver a nota em guaraci/datasus/sinan.py: ausência do pysus é o caso comum.
+    logging.getLogger(__name__).debug(f"PySUS não está disponível ou falhou ao importar: {exc}")
     PYSUS_AVAILABLE = False
+    # Mesmos símbolos definidos em sinan.py pelo mesmo motivo: sem isso, tocar
+    # o módulo sem a dependência opcional troca um erro claro por NameError.
+    pysus = None  # type: ignore[assignment]
+    PySUS = None  # type: ignore[assignment]
 
 
 class SimDataSource(DataSource):

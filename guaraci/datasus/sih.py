@@ -31,7 +31,8 @@ try:
     PYSUS_AVAILABLE = True
 except ImportError as exc:  # pragma: no cover - handled at runtime
     import logging
-    logging.getLogger(__name__).warning(f"PySUS não está disponível ou falhou ao importar: {exc}")
+    # Ver a nota em guaraci/datasus/sinan.py: ausência do pysus é o caso comum.
+    logging.getLogger(__name__).debug(f"PySUS não está disponível ou falhou ao importar: {exc}")
     PYSUS_AVAILABLE = False
     PySUS = None  # type: ignore[assignment]
     PySUSFtpClient = None  # type: ignore[assignment]

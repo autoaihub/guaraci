@@ -31,7 +31,12 @@ try:
     PYSUS_AVAILABLE = True
 except ImportError as exc:
     import logging
-    logging.getLogger(__name__).warning(f"PySUS não está disponível ou falhou ao importar: {exc}")
+    # Nível de depuração, e não aviso: o backend padrão é o FTP direto, então a
+    # ausência do pysus é o caso comum, não um defeito. Como três módulos fazem
+    # esta mesma importação, avisar aqui enchia a primeira execução de qualquer
+    # instalação nova com um alarme falso repetido. Quem pede o backend legado
+    # recebe o erro explícito na hora de usá-lo.
+    logging.getLogger(__name__).debug(f"PySUS não está disponível ou falhou ao importar: {exc}")
     PYSUS_AVAILABLE = False
     # O símbolo precisa existir mesmo sem a dependência opcional instalada:
     # quem o referencia já se protege com `PYSUS_AVAILABLE`, e deixá-lo
