@@ -27,20 +27,34 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Scientific/Engineering :: Medical Science Apps."
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "polars>=0.20.0",
+    # `collect_schema()` (guaraci/datasus/filtering.py, frames.py, sinan.py) só
+    # existe a partir do polars 1.0; com 0.20 o pacote instala e quebra em
+    # execução.
+    "polars>=1.0.0",
     "pyarrow>=14.0.0",
     "tqdm>=4.64.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
     "click>=8.1.0",
     "rich>=13.7.0",
-    "loguru>=0.5.1,<0.7.0",
-    "pandas>=1.5.0"
+    # Sem teto: o `<0.7.0` que estava aqui era exigência do pysus, dependência
+    # opcional do extra `datasus-legacy`, e conflitava com qualquer pacote que
+    # pedisse loguru 0.7 ao lado do Guaraci. Quem instalar o extra legado
+    # continua convergindo para 0.6.x pelo pin do próprio pysus.
+    "loguru>=0.6.0",
+    "pandas>=2.0.0",
+    # Importado diretamente em guaraci/utils/mapping.py; vinha só de carona no
+    # pandas.
+    "numpy>=1.26.0",
+    # guaraci/datasus/ftp/orchestration.py precisa dele para rodar dentro de um
+    # loop já em execução (Jupyter, por exemplo), no caminho FTP padrão.
+    "nest-asyncio>=1.5.6"
 ]
 
 [project.optional-dependencies]
@@ -96,7 +110,7 @@ viz = [
 
 [project.urls]
 Homepage = "https://github.com/autoaihub/guaraci"
-Documentation = "https://guaraci.readthedocs.io"
+Documentation = "https://autoaihub.github.io/guaraci/docs.html"
 Repository = "https://github.com/autoaihub/guaraci"
 Issues = "https://github.com/autoaihub/guaraci/issues"
 License = "https://github.com/autoaihub/guaraci/blob/main/LICENSE"
