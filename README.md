@@ -10,7 +10,7 @@
 
 Guaraci is a platform for downloading and orchestrating Brazilian public data sources for scientific and technical workflows. The current project scope includes:
 - `SNIS` and `SINISA` (`gov.br` crawler)
-- `SINAN`, `SIM`, and `SIH` (DATASUS direct FTP by default; PySUS legacy opt-in)
+- `SINAN`, `SIM`, and `SIH` (DATASUS direct FTP)
 - `SINASC`, `SIA`, `CNES`, `PNI`, `CIHA`, `CIH`, `SISCAN`, `SISPRENATAL`, `RESP`, `PCE`, `painel_oncologia` (DATASUS direct FTP)
 - `OpenDataSUS` (`doses_aplicadas_pni`, `zikavirus`, `mpox`, `esavi`, `dengue`, `chikungunya`, `srag_demas`, `sindrome_gripal_leve`, `febre_amarela`, and DEMAS sources generated from the local Swagger catalog)
 - `NASA POWER` (`nasa_power`) — global climate/meteorological series from `power.larc.nasa.gov`
@@ -18,12 +18,12 @@ Guaraci is a platform for downloading and orchestrating Brazilian public data so
 - `NASA GPM IMERG` (`nasa_gpm`) — daily precipitation point series from GES DISC OPeNDAP (`gpm1.gesdisc.eosdis.nasa.gov`; requires an Earthdata token; experimental)
 - `IBGE` (`ibge_populacao`, `ibge_pib_municipios`, `ibge_populacao_idade_sexo`) — population estimates, municipal GDP (PIB), and census population by sex and age, from the SIDRA aggregates API (`servicodados.ibge.gov.br`; keyless; the denominator/socioeconomic layers for health rates)
 
-Current version: `0.6.0`
+Current version: `0.7.0`
 
 ## Project Status
 
 - Officially supported workflow: **Docker-first** (CLI, API, and web UI).
-- Local Python execution without Docker remains **WIP** and is not the primary supported path.
+- Installing with pip and running outside Docker is supported and covered by CI on Python 3.11, 3.12 and 3.13.
 - The desktop launcher centralizes downloads in `Guaraci Downloads` on the user's Desktop.
 
 ## What Works Today
@@ -33,12 +33,12 @@ Current version: `0.6.0`
 - Source-driven dynamic schemas from `/sources/{source}/schema`.
 - Job progress tracking with percentage, current file, transferred bytes, ETA, and structured logs.
 - On-disk job persistence in `data/jobs/download_jobs.json`.
-- Optional processed dataset export in `csv`, `parquet`, or `sqlite` for PySUS and OpenDataSUS sources.
+- Optional processed dataset export in `csv`, `parquet`, or `sqlite` for DATASUS and OpenDataSUS sources.
 
 ## Architecture Summary
 
 - `guaraci/services/downloads.py`
-  Handles source registration, schema-based parameter validation, and adapters for `gov.br crawl`, `pysus ftp`, and `opendatasus api`.
+  Handles source registration, schema-based parameter validation, and adapters for `gov.br crawl`, `datasus ftp`, and `opendatasus api`.
 - `guaraci/services/jobs.py`
   Runs jobs in the background, tracks lifecycle states, supports retry and cancellation, and persists job state and logs.
 - `guaraci/api/main.py`
@@ -98,11 +98,10 @@ uvicorn guaraci.api.main:app --port 8002
 
 From a local clone, use `pip install -e ".[datasus,api]"` instead.
 
-Optional extras, all installable on top of the ones above: `datasus-legacy`
-(PySUS backend, opt-in via `GUARACI_DATASUS_BACKEND=pysus`), `snis-legacy`
-(SNIS via BigQuery), `viz`, `dev`. Installing `datasus-legacy` pins loguru
-below 0.7 and pandas below 3.0, because PySUS requires it; the default install
-has no such ceiling.
+Optional extras, all installable on top of the ones above: `snis-legacy`
+(SNIS via BigQuery), `viz`, `dev`. The `datasus-legacy` extra, which carried
+the PySUS backend, was removed in 0.7.0: DATASUS now has a single collection
+path, the direct FTP one.
 
 ## Using the Web UI
 
@@ -216,7 +215,7 @@ High-level summary:
 - `sih`
   Collection uses `start_year`, `end_year`, `groups`, `states`, and `months`; export filtering includes `output_format`, `uf`, `municipio`, and `sexo`.
   Leaving `groups`, `states`, or `months` empty means no collection filter for that field.
-  SIH, SIM, and SINAN connect directly to the DATASUS FTP server by default (DBC-to-Parquet via `pyreaddbc`/`dbfread`), so the `datasus` extra is enough; the legacy PySUS backend stays opt-in for one release via `GUARACI_DATASUS_BACKEND=pysus` and the `datasus-legacy` extra.
+  SIH, SIM, and SINAN connect directly to the DATASUS FTP server (DBC-to-Parquet via `pyreaddbc`/`dbfread`), so the `datasus` extra is all they need.
 - `nasa_power`
   Single-point climate series from the NASA POWER API. Collection uses `latitude`, `longitude`, `start_date`, `end_date`, `parameters`, and `temporal` (`daily`/`monthly`); technical controls include `community`, `keep_raw`, `timeout`, and `api_base_url`; optional export uses `csv`, `parquet`, or `sqlite`. No authentication or extra dependency required.
 - `nasa_firms`
@@ -240,7 +239,7 @@ OpenDataSUS naming rule:
   manifest.json
 ```
 
-### PySUS sources
+### DATASUS sources
 
 ```text
 <output_dir>/
@@ -306,14 +305,14 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
 
 ## Current Limitations
 
-- The PyPI release lags the repository (`0.3.2` there, `0.6.0` here); install from git until the next upload.
+- The PyPI release lags the repository (`0.3.2` there, `0.7.0` here); install from git until the next upload.
 - Opening folders from the UI in Docker depends on host path mapping.
-- Some PySUS sources can fail due to external FTP or network instability.
+- Some DATASUS sources can fail due to external FTP or network instability.
 - OpenDataSUS reliability still depends on upstream API availability, but error messages now distinguish connectivity, HTTP, and response-format failures more explicitly.
 
 ## Version and Immediate Roadmap
 
-- Current release line: `0.6.0`
+- Current release line: `0.7.0`
 - This release adds the NASA sources (POWER, FIRMS, GPM), makes direct DATASUS FTP the default backend plus 11 additional FTP systems, introduces the generic schema-driven `guaraci fetch` CLI (`list`/`schema`/`run`/`discover`/`fields`), ships a per-source data dictionary ([docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md)), and moves the legacy SNIS BigQuery deps to the optional `snis-legacy` extra.
 
 ## Additional Documentation
@@ -337,5 +336,5 @@ If you use Guaraci in research, technical reports, or derived software, cite the
 Recommended software citation for the current release:
 
 ```text
-Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.6.0) [Computer software]. https://github.com/autoaihub/guaraci
+Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.7.0) [Computer software]. https://github.com/autoaihub/guaraci
 ```

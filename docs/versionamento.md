@@ -19,6 +19,25 @@ Como este repositório usa o submódulo `vogel-stack`, o commit novo dentro do s
 
 ## Histórico de Versões e Fases do Produto
 
+### 0.7.x: caminho único de coleta no DATASUS
+Status: em desenvolvimento (`main`), ainda não publicada no PyPI.
+
+Fecha a migração começada na 0.5.2. O DATASUS passa a ter um só caminho de
+coleta, e o produto deixa de carregar a dependência que ditava o teto de
+várias outras.
+
+- **0.7.0**: remoção do backend PySUS, anunciada quando a 0.6.0 tornou o FTP
+  direto o padrão. Saem o extra `datasus-legacy`, a variável
+  `GUARACI_DATASUS_BACKEND`, o módulo `guaraci/datasus/backend.py` e os ramos
+  `_download_via_pysus`/`_discover_via_pysus` de SIH, SIM e SINAN. O adaptador
+  `PysusDownloadSource` vira `DatasusDownloadSource`, o módulo
+  `services/sources/datasus_pysus.py` vira `datasus_curated.py` e o modo
+  publicado das três fontes deixa de ser `pysus ftp` para juntar-se às outras
+  onze em `datasus ftp`. As 109 fontes seguem as mesmas: o que sai é um
+  caminho interno, não uma base. Com o PySUS fora, o teto `loguru<0.7.0`
+  desaparece do resolvedor, e o User-Agent dos clientes HTTP passa a derivar
+  de `guaraci.__version__` em vez de repetir a versão em sete arquivos.
+
 ### 0.6.x — Ambiente (NASA), FTP direto e CLI unificada
 Amplia o Guaraci para além da saúde, adota a aquisição direta do DATASUS e unifica o acesso por linha de comando.
 

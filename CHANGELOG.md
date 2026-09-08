@@ -2,6 +2,58 @@
 
 ## [Unreleased]
 
+### Removed: backend PySUS, encerrando a migração para o FTP direto
+A 0.6.0 tornou a conexão direta ao `ftp.datasus.gov.br` o padrão de SIH, SIM e
+SINAN, e manteve o PySUS alcançável por uma release para facilitar o retorno,
+conforme registrado no próprio `pyproject.toml`. Essa release passou. Saem:
+
+- o extra `datasus-legacy` e, com ele, o pacote `pysus`;
+- a variável `GUARACI_DATASUS_BACKEND` e o módulo `guaraci/datasus/backend.py`,
+  que existia só para escolher entre os dois caminhos;
+- os ramos `_download_via_pysus` e `_discover_via_pysus` de SIH, SIM e SINAN,
+  junto com os guardas `PYSUS_AVAILABLE` e as propriedades `sih`/`sim`/`sinan`
+  que só serviam para levantar `ImportError`.
+
+As 109 fontes continuam as mesmas: o que sai é um caminho interno alternativo,
+não uma base. SIH, SIM e SINAN seguem coletando pelo FTP direto, que é o que
+já faziam por padrão desde a 0.6.0.
+
+Três consequências que valem registro:
+
+- **O teto `loguru<0.7.0` some do resolvedor.** Ele era exigência do PySUS, que
+  ainda hoje, na versão 2.11.2, pede `loguru<0.7.0`, `numpy>=2.4.0` e
+  `pandas<3.0.0`. Sem ele, a instalação padrão resolve loguru 0.7.3 e não
+  impõe teto de pandas a ninguém.
+- **A imagem Docker perde as dependências transitivas do PySUS**, cerca de
+  vinte pacotes que nenhum caminho ativo importava.
+- **`pip install "guaraci[full]"` deixa de arrastar o backend legado.**
+
+### Changed: identificadores públicos deixam de citar a dependência que saiu
+O nome da biblioteca aparecia em lugares que o usuário lê. O modo publicado de
+`sinan`, `sim` e `sih` era `pysus ftp`, o que anunciava um backend inexistente
+e ainda separava as três fontes das outras onze do DATASUS, que já usavam
+`datasus ftp`. As catorze passam a compartilhar `datasus ftp`, no catálogo, na
+API, no site e na interface web.
+
+Internamente, `PysusDownloadSource` vira `DatasusDownloadSource` (o adaptador
+nunca teve nada de PySUS dentro: é o adaptador comum das catorze fontes) e
+`guaraci/services/sources/datasus_pysus.py` vira `datasus_curated.py`, que é o
+que o módulo sempre foi, as specs curadas à mão de SINAN, SIM e SIH.
+
+Os testes `test_sih_backend_switch.py`, `test_sim_backend_switch.py` e
+`test_sinan_backend_switch.py` passam a se chamar `test_*_ftp_path.py`: sem
+dois backends, não há chave para testar, e o que resta é a cobertura do
+caminho de coleta. Saíram `test_pysus.py`, `test_optional_pysus.py`,
+`test_datasus_backend.py`, `test_sih_datasource.py` e
+`test_sinan_datasource.py`, que exercitavam apenas o caminho removido. A suíte
+fica com 964 testes, todos passando.
+
+### Changed: a versão deixa de estar copiada no User-Agent de sete arquivos
+`"guaraci/0.6.0"` estava escrito à mão em dez pontos de sete clientes HTTP
+(ANA, IBGE, INMET, INPE, NASA, OpenDataSUS e o portal de arquivos), de modo que
+cada release exigia lembrar de todos. Agora derivam de `guaraci.__version__`,
+que já era a fonte única declarada no `pyproject.toml`.
+
 ### Fixed: quatro defeitos na declaração de dependências
 Auditoria dos pacotes importados pelo código contra os declarados no
 `pyproject.toml`, com a suíte completa rodada em três ambientes: um venv limpo
