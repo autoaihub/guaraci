@@ -7,18 +7,24 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 99 sources cataloged; 78 sampled with real field names.
+- 109 sources cataloged; 79 sampled with real field names.
 
 ## Caveats (honest)
 
 - `ana_hidro` (needs_credential): ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
-- `atencao_primaria_pmmb` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb' at endpoint '/atencao-primaria/pmmb' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not found on the server. If you entered the URL
-- `atencao_primaria_pmmb_profissionais_ativos` (error): OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb-profissionais-ativos' at endpoint '/atencao-primaria/pmmb-profissionais-ativos' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not fo
+- `atencao_primaria_pmmb_especialista_consolidado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `atencao_primaria_pmmb_relatorio_historico_cadastro_cnes` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `ciencia_tecnologia_plataformabr_pesquisa_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `ciencia_tecnologia_plataformabr_projeto_aprovado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `cnes_estabelecimentos_por_codigo_cnes` (error): Parameter 'codigo_cnes' is required.
+- `cnes_tipounidades_por_codigo_tipo_unidade` (error): Parameter 'codigo_tipo_unidade' is required.
 - `economia_da_saude_bps` (error): OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {"message": "Ao menos um dos par\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado."} Hint: Check request parameters and endpoint compatibi
 - `febre_amarela` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `mpox` (error): OpenDataSUS DEMAS request failed for dataset 'mpox' at endpoint '/vigilancia-e-meio-ambiente/mpox' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
 - `nasa_firms` (needs_credential): NASA FIRMS requires a MAP_KEY. Set the environment variable GUARACI_FIRMS_MAP_KEY (free key from https://firms.modaps.eosdis.nasa.gov/api/map_key/).
 - `nasa_gpm` (needs_credential): NASA GPM (GES DISC) requires an Earthdata Login token. Set the environment variable GUARACI_EARTHDATA_TOKEN (generate at https://urs.earthdata.nasa.gov, and authorize the 'NASA GESDISC DATA ARCHIVE' application).
+- `ouvidoria_ouvidor2` (error): OpenDataSUS DEMAS request failed for dataset 'ouvidoria/ouvidor2' at endpoint '/ouvidoria/ouvidor2' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
+- `ouvidoria_ouvidor3` (error): OpenDataSUS DEMAS request failed for dataset 'ouvidoria/ouvidor3' at endpoint '/ouvidoria/ouvidor3' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
 - `prevencao_e_promocao_distribuicao_epi_insumo` (error): OpenDataSUS DEMAS request failed for dataset 'prevencao-e-promocao/distribuicao_epi_insumo' at endpoint '/prevencao-e-promocao/distribuicao_epi_insumo' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was no
 - `saude_indigena_acompanhamento_obra_infraestrutura_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `sinisa` (error): expected name token at '<![:e\x90\x02ª/Ü4æ\x03\x17G\x92ý\x83\x0b¦'
@@ -34,9 +40,7 @@ to refresh.
 - `sisagua_vigilancia_demais_parametros` (empty): smallest known resource is 98.0MB, over the 20MB sampling cap (102776276 bytes) - not downloaded
 - `sisagua_vigilancia_parametros_basicos` (empty): smallest known resource is 81.5MB, over the 20MB sampling cap (85434855 bytes) - not downloaded
 - `snis` (empty): no documents matched file_kinds=planilhas, module=gestao_municipal
-- `vacinacao_esavi` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
-- 1 source(s) still `filters_only` (not yet field-sampled): `plataformabr_projetos_{numero_caae}`
 
 ## Legend
 
@@ -49,23 +53,11 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `station_ids`, `start_date`, `end_date`, `variable`, `detail`, `tipo_filtro_data`, `keep_raw`, `timeout`, `api_base_url`
 - **Note:** ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 
-## arboviroses_chikungunya
+## arboviroses_febre_amarela_epzootias
 
 - **Status:** ok (10 rows sampled)
-- **Filters:** `nu_ano`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Fields:** `tp_not`, `id_agravo`, `dt_notific`, `sem_not`, `nu_ano`, `sg_uf_not`, `id_municip`, `id_regiona`, `id_unidade`, `dt_sin_pri`, `sem_pri`, `nu_idade_n`, `cs_sexo`, `cs_gestant`, `cs_raca`, `cs_escol_n`, `sg_uf`, `id_mn_resi`, `id_rg_resi`, `id_pais`, `dt_invest`, `id_ocupa_n`, `febre`, `mialgia`, `cefaleia`, `exantema`, `vomito`, `nausea`, `dor_costas`, `conjuntvit`, `artrite`, `artralgia`, `petequia_n`, `leucopenia`, `laco`, `dor_retro`, `diabetes`, `hematolog`, `hepatopat`, `renal`, `hipertensa`, `acido_pept`, `auto_imune`, `dt_chik_s1`, `dt_chik_s2`, `dt_prnt`, `res_chiks1`, `res_chiks2`, `resul_prnt`, `dt_soro`, `resul_soro`, `dt_ns1`, `resul_ns1`, `dt_viral`, `resul_vi_n`, `dt_pcr`, `resul_pcr_`, `sorotipo`, `histopa_n`, `imunoh_n`, `hospitaliz`, `dt_interna`, `uf`, `municipio`, `tpautocto`, `coufinf`, `copaisinf`, `comuninf`, `classi_fin`, `criterio`, `doenca_tra`, `clinc_chik`, `evolucao`, `dt_obito`, `dt_encerra`, `alrm_hipot`, `alrm_plaq`, `alrm_vom`, `alrm_sang`, `alrm_hemat`, `alrm_abdom`, `alrm_letar`, `alrm_hepat`, `alrm_liq`, `dt_alrm`, `grav_pulso`, `grav_conv`, `grav_ench`, `grav_insuf`, `grav_taqui`, `grav_extre`, `grav_hipot`, `grav_hemat`, `grav_melen`, `grav_metro`, `grav_sang`, `grav_ast`, `grav_mioc`, `grav_consc`, `grav_orgao`, `dt_grav`, `mani_hemor`, `epistaxe`, `gengivo`, `metro`, `petequias`, `hematura`, `sangram`, `laco_n`, `plasmatico`, `evidencia`, `plaq_menor`, `con_fhd`, `complica`, `tp_sistema`, `nduplic_n`, `cs_suspeit`, `in_vincula`, `cs_flxret`, `flxrecebi`, `tpuninot`, `ano_nasc`, `nu_lote_i`, `dt_digita`, `migrado_w`
-
-## arboviroses_dengue
-
-- **Status:** ok (10 rows sampled)
-- **Filters:** `nu_ano`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Fields:** `tp_not`, `id_agravo`, `dt_notific`, `sem_not`, `nu_ano`, `sg_uf_not`, `id_municip`, `id_regiona`, `id_unidade`, `dt_sin_pri`, `sem_pri`, `nu_idade_n`, `cs_sexo`, `cs_gestant`, `cs_raca`, `cs_escol_n`, `sg_uf`, `id_mn_resi`, `id_rg_resi`, `id_pais`, `nduplic_n`, `dt_digita`, `cs_flxret`, `flxrecebi`, `migrado_w`, `dt_invest`, `id_ocupa_n`, `dt_soro`, `resul_soro`, `histopa_n`, `dt_viral`, `resul_vi_n`, `sorotipo`, `imunoh_n`, `dt_pcr`, `resul_pcr_`, `classi_fin`, `criterio`, `tpautocto`, `coufinf`, `copaisinf`, `comuninf`, `doenca_tra`, `evolucao`, `dt_obito`, `dt_encerra`, `mani_hemor`, `epistaxe`, `gengivo`, `metro`, `petequias`, `hematura`, `sangram`, `laco_n`, `plasmatico`, `evidencia`, `plaq_menor`, `con_fhd`, `complica`, `hospitaliz`, `dt_interna`, `uf`, `municipio`, `ano_nasc`, `febre`, `mialgia`, `cefaleia`, `exantema`, `vomito`, `nausea`, `dor_costas`, `conjuntvit`, `artrite`, `artralgia`, `petequia_n`, `leucopenia`, `laco`, `dor_retro`, `diabetes`, `hematolog`, `hepatopat`, `renal`, `hipertensa`, `acido_pept`, `auto_imune`, `dt_chik_s1`, `dt_chik_s2`, `dt_prnt`, `res_chiks1`, `res_chiks2`, `resul_prnt`, `dt_ns1`, `resul_ns1`, `clinc_chik`, `alrm_hipot`, `alrm_plaq`, `alrm_vom`, `alrm_sang`, `alrm_hemat`, `alrm_abdom`, `alrm_letar`, `alrm_hepat`, `alrm_liq`, `dt_alrm`, `grav_pulso`, `grav_conv`, `grav_ench`, `grav_insuf`, `grav_taqui`, `grav_extre`, `grav_hipot`, `grav_hemat`, `grav_melen`, `grav_metro`, `grav_sang`, `grav_ast`, `grav_mioc`, `grav_consc`, `grav_orgao`, `dt_grav`, `tp_sistema`, `acido_pept_c121`, `cs_escolar`, `nu_idade`, `id_dg_not`, `id_ev_not`, `ant_dt_inv`, `ocupacao`, `dengue`, `ano`, `vacinado`, `dt_dose`, `dt_febre`, `duracao`, `dor`, `prostacao`, `nauseas`, `diarreia`, `outros`, `sin_out`, `outros_m`, `outros_m_d`, `ascite`, `pleural`, `pericardi`, `abdominal`, `hepato`, `miocardi`, `hipotensao`, `choque`, `manifesta`, `insuficien`, `outro_s`, `outro_s_d`, `dt_choque`, `dt_col_hem`, `hema_maior`, `dt_col_plq`, `palq_maior`, `dt_col_he2`, `hema_menor`, `dt_col_pl2`, `dt_soro1`, `dt_soro2`, `dt_soror1`, `dt_soror2`, `s1_igm`, `s1_igg`, `s2_igm`, `s2_igg`, `s1_tit1`, `s2_tit1`, `material`, `soro1`, `soro2`, `tecidos`, `resul_vira`, `histopa`, `imunoh`, `amos_pcr`, `resul_pcr`, `amos_out`, `tecnica`, `resul_out`, `con_classi`, `con_criter`, `con_inf_mu`, `con_inf_uf`, `con_inf_pa`, `con_doenca`, `con_evoluc`, `con_dt_obi`, `con_dt_enc`, `in_vincula`, `nduplic`, `in_aids`
-
-## arboviroses_febre_amarela_humanos_primatas_nao_humanos
-
-- **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Fields:** `mun_lpi`, `mes_is`, `sexo`, `dt_is`, `cod_mun_lpi`, `idade`, `dt_obito`, `macrorreg_lpi`, `ano_is`, `se_is`, `monitoramento_is`, `uf_lpi`, `obito`, `cod_uf_lpi`
+- **Filters:** `macrorreg_ocor`, `uf_ocor`, `mes_ocor`, `ano_ocor`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `macrorreg_ocor`, `cod_uf_ocor`, `uf_ocor`, `cod_mun_ocor`, `mun_ocor`, `data_ocor`, `se_ocor`, `mes_ocor`, `ano_ocor`, `monitoramento_ocor`
 
 ## assistencia_a_saude_hospitais_e_leitos
 
@@ -88,7 +80,7 @@ to refresh.
 ## atencao_primaria_cadastro_vinculado_programa_previne_brasil
 
 - **Status:** ok (10 rows sampled)
-- **Filters:** `competencia_referencia`, `sigla_unidade_federacao`, `codigo_municipio_ibge`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Filters:** `competencia_referencia`, `uf`, `codigo_municipio_ibge`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `competencia_referencia`, `sigla_unidade_federacao`, `codigo_municipio_ibge`, `nome_municipio`, `estimativa_populacional_ibge`, `tipo_equipe`, `sigla_equipe`, `situacao_equipe`, `pessoas_vinculadas_criterios_ponderacao`, `pessoas_vinculadas_equipe_municipio`
 
 ## atencao_primaria_indicador_desempenho_programa_previne_brasil
@@ -97,22 +89,52 @@ to refresh.
 - **Filters:** `uf`, `quadrimestre`, `codigo_municipio`, `competencia`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `uf`, `municipio`, `codigo_tipo_indicador`, `numerador`, `denominador_utilizador`, `percentual_quadrimestre`, `visao_equipe`, `denominador_identificado`, `denominador_estimado`, `cadastro`, `base_externa`, `populacao`, `quadrimestre`, `codigo_municipio`, `competencia`, `percentual`
 
-## atencao_primaria_pmmb
+## atencao_primaria_pmmb_consolidado
 
-- **Status:** error
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb' at endpoint '/atencao-primaria/pmmb' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not found on the server. If you entered the URL
+- **Fields:** `nivel`, `regiao`, `uf`, `cir`, `co_ibge`, `municipio_dsei`, `amazonia_legal`, `faixa_fronteira`, `categoria_ivs`, `cobertura`, `ativas_ff`, `ativas_coparticipacao`, `total_vagas_ativas`, `ampliacao_ecr`, `ampliacao_eapp`, `equipe_esf`, `equipe_emsi`, `total_ocupadas`, `em_processo_ocupacao`, `total_desocupadas`, `ativos_ppf`, `ativos_crm_pmm`, `ativos_intercambista_pmm`, `ativos_esf`, `ativos_emsi`, `ativos_eapp`, `ativos_ecr`, `ativos_fem`, `ativos_masc`, `ativos_sem_inf_sx`, `ativos_branca`, `ativos_preta_parda`, `ativos_indigena`, `ativos_amarela`, `ativos_sem_inf_rc`, `dt_geracao`, `dt_referencia`, `id_20_24`, `id_25_29`, `id_30_34`, `id_35_39`, `id_40_44`, `id_45_49`, `id_50_54`, `id_55_59`, `id_60_64`, `id_65_69`, `id_70_74`, `id_75_79`, `id_80_mais`, `nac_boliviano`, `nac_brasileiro`, `nac_outros`, `ativos_celetista_mfc`, `ativos_vinculados`, `nac_cubano`, `nac_venezuelano`, `ativos_tutores`
 
-## atencao_primaria_pmmb_profissionais_ativos
+## atencao_primaria_pmmb_especialista_consolidado
 
-- **Status:** error
+- **Status:** empty
+- **Filters:** `cnes`, `co_ibge`, `tipo_pratica`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+
+## atencao_primaria_pmmb_especialista_relacao_nominal_ativo
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `co_cnes`, `co_ibge`, `uf`, `sexo`, `raca_cor`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `co_ibge`, `co_cnes`, `estabelecimento`, `tipo_pratica`, `cota_medico`, `faixa_atracao`, `curso`, `uf`, `municipio`, `regiao_saude`, `nome`, `sexo`, `raca_cor`, `crm`, `dt_inicio_atividade`, `ciclo`, `regiao`, `dt_referencia`
+
+## atencao_primaria_pmmb_especialista_serie_historica
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `co_cnes`, `co_ibge`, `uf`, `regiao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `co_cnes`, `tipo_estabelecimento`, `curso`, `faixa_atracao`, `co_ibge`, `competencia`, `estabelecimento`, `municipio`, `uf`, `regiao`, `regiao_saude`, `qtd_ativos`, `qtd_feminino`, `qtd_masculino`, `qtd_sexo_nao_informado`, `ivs`
+
+## atencao_primaria_pmmb_relacao_nominal_ativo
+
+- **Status:** ok (10 rows sampled)
 - **Filters:** `uf`, `sexo`, `nacionalidade`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** OpenDataSUS DEMAS request failed for dataset 'atencao-primaria/pmmb-profissionais-ativos' at endpoint '/atencao-primaria/pmmb-profissionais-ativos' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was not fo
+- **Fields:** `crm`, `perfil`, `ciclo`, `uf`, `co_ibge`, `municipio_dsei`, `dt_atualizacao`, `inicio_atividade`, `eixo_integracao`, `tipo_equipe`, `nivel`, `raca_cor`, `sexo`, `nacionalidade`, `faixa_etaria`, `programa_vaga`, `no_profissional`
+
+## atencao_primaria_pmmb_relacao_nominal_coparticipacao
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `ano_inicio_atividades`, `mes_inicio_atividades`, `co_ibge`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `co_ibge`, `no_municipio`, `profissional`, `inicio_atividades`, `dt_referencia`, `dt_atualizacao`
+
+## atencao_primaria_pmmb_relatorio_historico_cadastro_cnes
+
+- **Status:** empty
+- **Filters:** `co_ibge`, `regiao`, `cnes`, `uf`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 
 ## atencao_primaria_pmmb_serie_historica
 
 - **Status:** ok (10 rows sampled)
-- **Filters:** `regiao`, `uf`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Filters:** `regiao`, `uf`, `ibge`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `regiao`, `uf`, `municipio_dsei`, `ibge`, `prof_crm_brasil_pmmb`, `prof_inter_pmmb`, `prof_cooperados_pmmb`, `prof_provab`, `total_prof_ativos`, `dt_referencia`, `prof_bolsista_vinculados`, `prof_celetista_vinculados`, `prof_tutor_vinculados`
 
 ## chikungunya
@@ -145,6 +167,18 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `quantidade`, `tecnologias_diretrizes_covid19`, `demandante`, `analise_inicial_conitec`, `relatorio_recomendacao_inicial`, `relatorios_sociedade`, `consulta_publica`, `contribuicões_experiencia_opiniao`, `contribuicões_tecnico_cientificas`, `analise_final_conitec`, `relatorio_recomendacao_final`, `decisao_ministerio_da_saude`, `decisao_ministerio_da_saude_relatorio`, `decisao_ministerio_da_saude_portarias`, `notas_tecnicas`, `despacho`
 
+## ciencia_tecnologia_plataformabr_pesquisa_saude
+
+- **Status:** empty
+- **Filters:** `uf_pesquisa`, `ano_publicado_edital`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+
+## ciencia_tecnologia_plataformabr_projeto_aprovado
+
+- **Status:** empty
+- **Filters:** `uf_proponente`, `ano_do_parecer`, `uf_cep`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+
 ## cih
 
 - **Status:** ok (1480 rows sampled)
@@ -169,11 +203,11 @@ to refresh.
 - **Filters:** `codigo_tipo_unidade`, `codigo_uf`, `codigo_municipio`, `status`, `estabelecimento_possui_centro_cirurgico`, `estabelecimento_possui_centro_obstetrico`, `data_atualizacao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `codigo_cnes`, `numero_cnpj_entidade`, `nome_razao_social`, `nome_fantasia`, `natureza_organizacao_entidade`, `tipo_gestao`, `descricao_nivel_hierarquia`, `descricao_esfera_administrativa`, `codigo_tipo_unidade`, `codigo_cep_estabelecimento`, `endereco_estabelecimento`, `numero_estabelecimento`, `bairro_estabelecimento`, `numero_telefone_estabelecimento`, `latitude_estabelecimento_decimo_grau`, `longitude_estabelecimento_decimo_grau`, `endereco_email_estabelecimento`, `numero_cnpj`, `codigo_identificador_turno_atendimento`, `descricao_turno_atendimento`, `estabelecimento_faz_atendimento_ambulatorial_sus`, `codigo_estabelecimento_saude`, `codigo_uf`, `codigo_municipio`, `descricao_natureza_juridica_estabelecimento`, `codigo_motivo_desabilitacao_estabelecimento`, `estabelecimento_possui_centro_cirurgico`, `estabelecimento_possui_centro_obstetrico`, `estabelecimento_possui_centro_neonatal`, `estabelecimento_possui_atendimento_hospitalar`, `estabelecimento_possui_servico_apoio`, `estabelecimento_possui_atendimento_ambulatorial`, `codigo_atividade_ensino_unidade`, `codigo_natureza_organizacao_unidade`, `codigo_nivel_hierarquia_unidade`, `codigo_esfera_administrativa_unidade`, `data_atualizacao`
 
-## cnes_estabelecimentos_{codigo_cnes}
+## cnes_estabelecimentos_por_codigo_cnes
 
-- **Status:** ok (1 rows sampled)
+- **Status:** error
 - **Filters:** `codigo_cnes`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Fields:** `codigo_cnes`, `numero_cnpj_entidade`, `nome_razao_social`, `nome_fantasia`, `natureza_organizacao_entidade`, `tipo_gestao`, `descricao_nivel_hierarquia`, `descricao_esfera_administrativa`, `codigo_tipo_unidade`, `codigo_cep_estabelecimento`, `endereco_estabelecimento`, `numero_estabelecimento`, `bairro_estabelecimento`, `numero_telefone_estabelecimento`, `latitude_estabelecimento_decimo_grau`, `longitude_estabelecimento_decimo_grau`, `endereco_email_estabelecimento`, `numero_cnpj`, `codigo_identificador_turno_atendimento`, `descricao_turno_atendimento`, `estabelecimento_faz_atendimento_ambulatorial_sus`, `codigo_estabelecimento_saude`, `codigo_uf`, `codigo_municipio`, `descricao_natureza_juridica_estabelecimento`, `codigo_motivo_desabilitacao_estabelecimento`, `estabelecimento_possui_centro_cirurgico`, `estabelecimento_possui_centro_obstetrico`, `estabelecimento_possui_centro_neonatal`, `estabelecimento_possui_atendimento_hospitalar`, `estabelecimento_possui_servico_apoio`, `estabelecimento_possui_atendimento_ambulatorial`, `codigo_atividade_ensino_unidade`, `codigo_natureza_organizacao_unidade`, `codigo_nivel_hierarquia_unidade`, `codigo_esfera_administrativa_unidade`, `data_atualizacao`
+- **Note:** Parameter 'codigo_cnes' is required.
 
 ## cnes_tipounidades
 
@@ -181,11 +215,11 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `codigo_tipo_unidade`, `descricao_tipo_unidade`
 
-## cnes_tipounidades_{codigo_tipo_unidade}
+## cnes_tipounidades_por_codigo_tipo_unidade
 
-- **Status:** ok (1 rows sampled)
+- **Status:** error
 - **Filters:** `codigo_tipo_unidade`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Fields:** `codigo_tipo_unidade`, `descricao_tipo_unidade`
+- **Note:** Parameter 'codigo_tipo_unidade' is required.
 
 ## daf_estoque_medicamentos_bnafar_horus
 
@@ -208,7 +242,7 @@ to refresh.
 ## economia_da_saude_bps
 
 - **Status:** error
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Filters:** `codigoCatmat`, `estado`, `cnpjInstituicao`, `cnpjFornecedor`, `cnpjFabricante`, `modalidade`, `tipoCompra`, `generico`, `registroAnvisa`, `dataCompraInicio`, `dataCompraFim`, `dataInsercaoInicio`, `dataInsercaoFim`, `anoCompra`, `valorUnitarioMinimo`, `valorUnitarioMaximo`, `quantidadeMinima`, `quantidadeMaxima`, `ordenacao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Note:** OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {"message": "Ao menos um dos par\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado."} Hint: Check request parameters and endpoint compatibi
 
 ## economia_da_saude_sistema_de_apuracao_e_gestao_de_custos_do_sus_apurasus
@@ -349,6 +383,18 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `nome_sistema`, `gestor`, `sigla_sistema`
 
+## ouvidoria_ouvidor2
+
+- **Status:** error
+- **Filters:** `uf_ouvidoria_origem`, `uf_ouvidoria_destino`, `esfera_ouvidoria_origem`, `status_manifestacao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** OpenDataSUS DEMAS request failed for dataset 'ouvidoria/ouvidor2' at endpoint '/ouvidoria/ouvidor2' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
+
+## ouvidoria_ouvidor3
+
+- **Status:** error
+- **Filters:** `canal_entrada`, `uf_ouvidoria_origem`, `esfera_ouvidoria_origem`, `uf_ouvidoria_destino`, `esfera_ouvidoria_destino`, `status_manifestacao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** OpenDataSUS DEMAS request failed for dataset 'ouvidoria/ouvidor3' at endpoint '/ouvidoria/ouvidor3' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
+
 ## painel_oncologia
 
 - **Status:** ok (679417 rows sampled)
@@ -360,17 +406,6 @@ to refresh.
 - **Status:** ok (716 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `states`
 - **Fields:** `ID_UF`, `SG_UF`, `ID_DISTR`, `ID_LOC`, `DT_COMP`, `QT_POP`, `QT_PRED`, `QT_EXAM`, `QT_NRECOL`, `QT_1A4`, `QT_5A16`, `QT_17`, `QT_POS`, `QT_ATRAT`, `QT_TRAT`, `QT_CI`, `QT_REC`, `QT_AUS`, `QT_ASC`, `QT_ANC`, `QT_TAE`, `QT_TT`, `QT_EV`, `QT_SE`, `QT_HN`, `QT_OUT`, `QT_CAP`, `QT_PESQ`, `QT_BGLA`, `QT_BSTR`, `QT_BTEN`, `QT_OUT1`, `QT_POSBGLA`, `QT_POSBTEN`, `QT_POSBSTR`, `QT_POSOUT`
-
-## plataformabr_projetos
-
-- **Status:** ok (10 rows sampled)
-- **Filters:** `uf_comite_etica_pesquisa`, `codigo_situacao_parecer`, `uf_instituicao_proponente`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Fields:** `numero_caae`, `titulo_projeto_pesquisa`, `nome_comite_etica_pesquisa`, `municipio_comite_etica_pesquisa`, `uf_comite_etica_pesquisa`, `data_submissao_projeto_pesquisa`, `numero_parecer `, `data_submissao_ultima_versao_projeto_pesquisa`, `data_emissao_parecer`, `situacao_parecer`, `instituicao_proponente`, `municipio_instituicao_proponente`, `uf_instituicao_proponente`
-
-## plataformabr_projetos_{numero_caae}
-
-- **Status:** filters_only
-- **Filters:** `numero_caae`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 
 ## pni
 
@@ -425,6 +460,18 @@ to refresh.
 - **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `exist_estrut_perc_ald_sem_estrutura`, `est_conserv_estrut_perc_ald_estrut_exist_regular`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_filtro_sumidouro`, `est_conserv_estrut_perc_ald_estrut_exist_requer_interd_subst`, `tipo_trat_esgoto_perc_ald_destinacao_nos_corpos_hidricos`, `tipo_trat_esgoto_perc_ald_sem_informacao`, `exist_estrut_perc_ald_melhorias_sanits_domic_mds_indiv_coletiv`, `exist_estrut_perc_ald_coleta_pela_rede_publica`, `est_conserv_estrut_perc_ald_onde_nao_existe_estrut_tratamento`, `est_conserv_estrut_perc_ald_estrut_exist_satisfatoria`, `exist_estrut_perc_ald_coleta_pela_rede_sesai`, `exist_estrut_perc_ald_sem_informacao`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_seca`, `est_conserv_estrut_perc_ald_sem_informacao_sobre_a_estrutura`, `est_conserv_estrut_perc_ald_estrut_exist_insatisfatoria`, `est_conserv_estrut_perc_ald_estrut_exist_requer_manutencao`, `distrito_sanitario_especial_indigena`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_rudimentar`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_sumidouro`, `tipo_trat_esgoto_perc_ald_sem_tratamento`, `tipo_trat_esgoto_perc_ald_atendidas_por_concessionaria`, `exist_estrut_perc_ald_casinha_latrina`, `exist_estrut_perc_ald_banheiro_particular`
+
+## saude_indigena_sesai_atendimentos
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `sg_uf`, `nu_mes`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `ds_dsei`, `ds_polo_base`, `no_aldeia`, `nu_mes`, `no_municipio`, `sg_uf`, `no_terra_indigena`, `ds_cbo_familia`, `ds_cbo_ocupacao`, `categoria_siconv`, `qt_faixa_etaria_0_4`, `qt_faixa_etaria_5_9`, `qt_faixa_etaria_10_19`, `qt_faixa_etaria_20_29`, `qt_faixa_etaria_30_59`, `qt_faixa_etaria_60_mais`, `qt_faixa_etaria_ignorado`, `todos`, `ds_tipo_aldeia`
+
+## saude_indigena_sesai_recursos_humanos
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `sg_sexo`, `indigena`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `co_colaborador_desidentificado`, `ds_dsei`, `no_tipo_vinculo`, `tp_atuacao1`, `no_categoria`, `ds_escolaridade`, `indigena`, `faixa_etaria`, `sg_sexo`
 
 ## saude_indigena_siasi_acompanhamento_gestacional
 
@@ -640,23 +687,11 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `nu_notific`, `dt_notific`, `sem_not`, `dt_sin_pri`, `sem_pri`, `sg_uf_not`, `id_regiona`, `co_regiona`, `id_municip`, `co_mun_not`, `cs_sexo`, `dt_nasc`, `nu_idade_n`, `tp_idade`, `cod_idade`, `cs_gestant`, `cs_raca`, `cs_etinia`, `cs_escol_n`, `id_pais`, `co_pais`, `sg_uf`, `id_rg_resi`, `co_rg_resi`, `id_mn_resi`, `co_mun_res`, `cs_zona`, `nosocomial`, `ave_suino`, `febre`, `tosse`, `garganta`, `dispneia`, `desc_resp`, `saturacao`, `diarreia`, `vomito`, `outro_sin`, `outro_des`, `fator_risc`, `puerpera`, `cardiopati`, `hematologi`, `sind_down`, `hepatica`, `asma`, `diabetes`, `neurologic`, `pneumopati`, `imunodepre`, `renal`, `obesidade`, `obes_imc`, `out_morbi`, `morb_desc`, `tabag`, `vacina`, `dt_ut_dose`, `mae_vac`, `dt_vac_mae`, `m_amamenta`, `dt_doseuni`, `dt_1_dose`, `dt_2_dose`, `antiviral`, `tp_antivir`, `out_antiv`, `dt_antivir`, `hospital`, `dt_interna`, `sg_uf_inte`, `id_rg_inte`, `co_rg_inte`, `id_mn_inte`, `co_mu_inte`, `nm_un_inte`, `uti`, `dt_entuti`, `dt_saiduti`, `suport_ven`, `raiox_res`, `raiox_out`, `dt_raiox`, `amostra`, `dt_coleta`, `tp_amostra`, `out_amost`, `pcr_resul`, `dt_pcr`, `pos_pcrflu`, `tp_flu_pcr`, `pcr_fluasu`, `fluasu_out`, `pcr_flubli`, `flubli_out`, `pos_pcrout`, `pcr_vsr`, `pcr_para1`, `pcr_para2`, `pcr_para3`, `pcr_para4`, `pcr_adeno`, `pcr_metap`, `pcr_boca`, `pcr_rino`, `pcr_outro`, `ds_pcr_out`, `classi_fin`, `classi_out`, `criterio`, `evolucao`, `dt_evoluca`, `dt_encerra`, `dt_digita`, `histo_vgm`, `pais_vgm`, `co_ps_vgm`, `lo_ps_vgm`, `dt_vgm`, `dt_rt_vgm`, `pcr_sars2`, `pac_cocbo`, `pac_dscbo`, `out_anim`, `dor_abd`, `fadiga`, `perd_olft`, `perd_pala`, `tomo_res`, `tomo_out`, `dt_tomo`, `tp_tes_an`, `dt_res_an`, `res_an`, `pos_an_flu`, `tp_flu_an`, `pos_an_out`, `an_sars2`, `an_vsr`, `an_para1`, `an_para2`, `an_para3`, `an_adeno`, `an_outro`, `ds_an_out`, `tp_am_sor`, `sor_out`, `dt_co_sor`, `tp_sor`, `out_sor`, `dt_res`, `res_igg`, `res_igm`, `res_iga`, `pov_ct`, `tp_pov_ct`, `tem_cpf`, `estrang`, `vacina_cov`, `dose_1_cov`, `dose_2_cov`, `dose_ref`, `dose_2ref`, `dose_adic`, `dos_re_bi`, `fab_cov_1`, `fab_cov_2`, `fab_covrf`, `fab_covrf2`, `fab_adic`, `fab_re_bi`, `lote_1_cov`, `lote_2_cov`, `lote_ref`, `lote_ref2`, `lote_adic`, `lot_re_bi`, `fnt_in_cov`, `trat_cov`, `tipo_trat`, `dt_trt_cov`, `out_trat`, `surto_sg`, `co_detec`, `vg_oms`, `vg_omsout`, `vg_lin`, `vg_met`, `vg_metout`, `vg_dtres`, `vg_enc`, `vg_reinf`, `vg_codest`, `reinf`
 
-## vacinacao_esavi
-
-- **Status:** empty
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
-
 ## vacinacao_sistema_de_informacao_de_insumos_estrategicos
 
 - **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `tx_area`, `qtde`, `mes`, `ibge`, `origem`, `tx_sigla`, `ano`, `tx_insumo`
-
-## vigilancia_e_meio_ambiente_mpox
-
-- **Status:** ok (10 rows sampled)
-- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Fields:** `htlv`, `dt_interna`, `pac_imunossup`, `donovanose`, `hpv`, `dt_sin_pri`, `uti`, `cs_raca`, `linfogranuloma`, `co_uf_res`, `dip`, `data_vacina`, `caract_genomica`, `classi_fin`, `cs_sexo`, `orienta_sexual`, `doenca_tra1`, `dt_coleta`, `clado`, `nu_idade_n`, `transm`, `clamidea`, `hiv`, `evolucao`, `verruga_genital`, `id_mn_resi`, `estrangeiro`, `cancro_mole`, `vacina`, `sg_uf_not`, `comp_sexual`, `vinculo_epi`, `profis_saude`, `contag_cd4`, `trichomomas_vaginals`, `gonorreia`, `id_municip`, `ist_ativa`, `cs_gestant`, `contat_animal`, `dt_notific`, `met_lab`, `ident_genero`, `resultado_exa_lab`, `outro_des`, `tp_amost`, `dt_evolucao`, `mycoplasma_genital`, `sintoma`, `local_cont`, `sg_uf`, `hospital`, `sifilis`, `herpes_genital`, `dt_conclusao`
 
 ## vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_mortalidade
 

@@ -23,6 +23,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    # Permite `python scripts/build_site_catalog.py` sem instalação editável,
+    # como já faz scripts/sample_sources.py; sem isso o script morre num
+    # ModuleNotFoundError na importação de `guaraci`, lá pela linha 260.
+    sys.path.insert(0, str(ROOT))
 OUT = ROOT / "site" / "assets" / "catalog-data.js"
 DICT = ROOT / "guaraci" / "data" / "field_dictionary.json"
 STATS = ROOT / "reports" / "discover_stats.json"

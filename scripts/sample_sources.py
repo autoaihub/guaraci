@@ -83,12 +83,23 @@ def write_report(results: Dict[str, Any]) -> None:
     REPORT_JSON.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
-def promote(existing: Dict[str, Any]) -> Dict[str, Any]:
+def promote(existing: Dict[str, Any], known: set[str]) -> Dict[str, Any]:
     if not REPORT_JSON.exists():
         raise SystemExit(f"{REPORT_JSON} not found — run a collection pass first (no --promote-from-report).")
     report = json.loads(REPORT_JSON.read_text(encoding="utf-8"))
     merged = dict(existing)
     merged.update(report)
+    # Merging alone only ever grows the dictionary. Sources the origin retired
+    # (the two Plataforma Brasil routes) and identifiers we renamed (the CNES
+    # ones that used to carry the path-parameter braces) stayed behind as
+    # entries for sources nobody can request, and inflated the "N sources
+    # cataloged" line of the published document: 120 against the 109 the
+    # catalog actually serves. The catalog is the authority here.
+    stale = sorted(set(merged) - known)
+    for key in stale:
+        del merged[key]
+    if stale:
+        log(f"[prune] dropped {len(stale)} entry(ies) no longer in the catalog: {', '.join(stale)}")
     return merged
 
 
@@ -98,7 +109,7 @@ def main(argv: List[str] | None = None) -> int:
     existing = load_field_dictionary(FIELD_DICT_JSON)
 
     if args.promote_from_report:
-        merged = promote(existing)
+        merged = promote(existing, {d.source for d in DownloadService().list_sources()})
         atomic_write_json(FIELD_DICT_JSON, merged)
         DATA_DICT_MD.write_text(render_data_dictionary_md(merged), encoding="utf-8")
         log(f"Promoted {REPORT_JSON} -> {FIELD_DICT_JSON}, {DATA_DICT_MD}")
