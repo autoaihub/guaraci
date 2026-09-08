@@ -2,7 +2,7 @@
 # Dockerfile for Guaraci Platform
 # ============================
 
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -29,8 +29,12 @@ COPY tests/ ./tests/
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Install guaraci with full extras (datasus + api + dev tools)
-RUN pip install --no-cache-dir -e ".[full]"
+# Install guaraci with the extras the default paths actually use: direct FTP
+# for DATASUS, the web API, and the test tooling that README.md invokes from
+# inside the container. The legacy extras (pysus, BigQuery) stay out on
+# purpose: they add ~30 transitive packages that no default path imports, and
+# pysus caps loguru below 0.7.
+RUN pip install --no-cache-dir -e ".[datasus,api,dev]"
 
 # Smoke test basic import/cli
 RUN python -m pytest tests/test_install.py
@@ -52,5 +56,6 @@ CMD ["python", "-c", "import guaraci; print(f'Guaraci v{guaraci.__version__} rea
 
 # Labels for metadata
 LABEL maintainer="vogel@usp.br"
+# tests/test_versioning.py mantém este rótulo casado com guaraci.__version__.
 LABEL version="0.6.0"
 LABEL description="Guaraci - Brazilian Public Data Integration Platform"
