@@ -43,10 +43,12 @@ dependencies = [
     "pydantic-settings>=2.1.0",
     "click>=8.1.0",
     "rich>=13.7.0",
-    # O teto `<0.7.0` que ficava aqui era exigência do pysus, e conflitava com
-    # qualquer pacote que pedisse loguru 0.7 ao lado do Guaraci. Saiu junto com
-    # o backend legado na 0.7.0, e agora nada mais segura a versão.
-    "loguru>=0.7.0",
+    # Sem teto (o `<0.7.0` daqui era exigência do pysus, removido na 0.7.0) e
+    # com piso baixo de propósito: uma instalação limpa resolve 0.7.3, e quem
+    # mantém pysus no mesmo ambiente por outra razão continua conseguindo
+    # instalar o Guaraci, já que o pysus prende loguru em 0.6.x. A suíte passa
+    # nas duas versões, então exigir 0.7 só excluiria gente sem ganho nenhum.
+    "loguru>=0.6.0",
     "pandas>=2.0.0",
     # Importado diretamente em guaraci/utils/mapping.py; vinha só de carona no
     # pandas.

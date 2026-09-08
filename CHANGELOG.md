@@ -62,9 +62,11 @@ sem PySUS, um venv com o extra legado e o ambiente de trabalho do repositório.
 - **`loguru` estava com teto `<0.7.0` no núcleo.** A restrição não era nossa:
   vinha do PySUS, dependência opcional do extra `datasus-legacy`, e por estar
   no núcleo travava todo mundo em 0.6.0 e conflitava com qualquer pacote que
-  pedisse loguru 0.7 ao lado do Guaraci. O teto saiu; a instalação padrão
-  resolve para 0.7.3, e quem instala o extra legado continua convergindo para
-  0.6.x pelo pin do próprio PySUS. Verificado: 982 testes passam com 0.7.3.
+  pedisse loguru 0.7 ao lado do Guaraci. O teto saiu, e o piso continua baixo
+  de propósito: a instalação padrão resolve 0.7.3, e quem mantiver o PySUS no
+  mesmo ambiente por outra razão ainda consegue instalar, porque o PySUS
+  prende loguru em 0.6.x. Verificado: a suíte passa nas duas versões, então
+  exigir 0.7 excluiria gente sem ganho nenhum.
 - **`polars>=0.20.0` era um piso falso.** O código chama `collect_schema()` em
   cinco pontos (`datasus/filtering.py`, `datasus/frames.py`,
   `datasus/sinan.py`), método que só existe a partir do polars 1.0. Quem
