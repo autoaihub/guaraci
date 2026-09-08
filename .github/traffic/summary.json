@@ -1,13 +1,13 @@
 {
-  "updated_at": "2026-09-07T10:27:14+00:00",
+  "updated_at": "2026-09-08T09:47:45+00:00",
   "repo_count": 31,
-  "total_clones": 219,
-  "total_uniques": 108,
+  "total_clones": 232,
+  "total_uniques": 118,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 171,
-      "total_uniques": 66,
+      "total_clones": 181,
+      "total_uniques": 73,
       "tracking_since": "2026-08-12"
     },
     {
@@ -18,8 +18,14 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 8,
-      "total_uniques": 8,
+      "total_clones": 9,
+      "total_uniques": 9,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/churnlab",
+      "total_clones": 6,
+      "total_uniques": 6,
       "tracking_since": "2026-08-20"
     },
     {
@@ -29,27 +35,21 @@
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/churnlab",
-      "total_clones": 5,
-      "total_uniques": 5,
-      "tracking_since": "2026-08-20"
-    },
-    {
       "repo": "LuisVogelDS/loadbay",
       "total_clones": 4,
       "total_uniques": 4,
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/PlacarBI",
-      "total_clones": 2,
-      "total_uniques": 1,
+      "repo": "LuisVogelDS/Volvo",
+      "total_clones": 3,
+      "total_uniques": 3,
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/Volvo",
+      "repo": "LuisVogelDS/PlacarBI",
       "total_clones": 2,
-      "total_uniques": 2,
+      "total_uniques": 1,
       "tracking_since": "2026-08-20"
     },
     {
