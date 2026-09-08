@@ -54,8 +54,7 @@ Detailed documentation:
 - [UI guide](docs/UI_GUIDE.md)
 - [Sources and filters](docs/SOURCES_AND_FILTERS.md)
 - [AI handoff for OpenDataSUS](docs/AI_HANDOFF_OPENDATASUS.md)
-- [Docker workflow](docs/DOCKER_WORKFLOW.md)
-- [Installation](docs/INSTALL.md)
+- [Installation and Docker workflow](docs/quickstart.md)
 - `AGENTS.md`
 
 ## Quick Start
@@ -76,6 +75,34 @@ Invoke-RestMethod http://localhost:8002/health
 ```
 
 URL padrão: **http://localhost:8002/**
+
+### Install with pip, without Docker
+
+Requires Python 3.11, 3.12 or 3.13. Verified on Windows and on the CI matrix
+for the three versions.
+
+The PyPI release is still on `0.3.2`, so install from the repository to get the
+current line:
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+source .venv/bin/activate
+
+# CLI plus the default DATASUS backend (direct FTP) and the web API
+pip install "guaraci[datasus,api] @ git+https://github.com/autoaihub/guaraci.git"
+
+guaraci fetch list
+uvicorn guaraci.api.main:app --port 8002
+```
+
+From a local clone, use `pip install -e ".[datasus,api]"` instead.
+
+Optional extras, all installable on top of the ones above: `datasus-legacy`
+(PySUS backend, opt-in via `GUARACI_DATASUS_BACKEND=pysus`), `snis-legacy`
+(SNIS via BigQuery), `viz`, `dev`. Installing `datasus-legacy` pins loguru
+below 0.7 and pandas below 3.0, because PySUS requires it; the default install
+has no such ceiling.
 
 ## Using the Web UI
 
@@ -279,7 +306,7 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
 
 ## Current Limitations
 
-- Local Python execution outside Docker remains **WIP**.
+- The PyPI release lags the repository (`0.3.2` there, `0.6.0` here); install from git until the next upload.
 - Opening folders from the UI in Docker depends on host path mapping.
 - Some PySUS sources can fail due to external FTP or network instability.
 - OpenDataSUS reliability still depends on upstream API availability, but error messages now distinguish connectivity, HTTP, and response-format failures more explicitly.

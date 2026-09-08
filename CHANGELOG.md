@@ -2,6 +2,75 @@
 
 ## [Unreleased]
 
+### Fixed: quatro defeitos na declaração de dependências
+Auditoria dos pacotes importados pelo código contra os declarados no
+`pyproject.toml`, com a suíte completa rodada em três ambientes: um venv limpo
+sem PySUS, um venv com o extra legado e o ambiente de trabalho do repositório.
+
+- **`loguru` estava com teto `<0.7.0` no núcleo.** A restrição não era nossa:
+  vinha do PySUS, dependência opcional do extra `datasus-legacy`, e por estar
+  no núcleo travava todo mundo em 0.6.0 e conflitava com qualquer pacote que
+  pedisse loguru 0.7 ao lado do Guaraci. O teto saiu; a instalação padrão
+  resolve para 0.7.3, e quem instala o extra legado continua convergindo para
+  0.6.x pelo pin do próprio PySUS. Verificado: 982 testes passam com 0.7.3.
+- **`polars>=0.20.0` era um piso falso.** O código chama `collect_schema()` em
+  cinco pontos (`datasus/filtering.py`, `datasus/frames.py`,
+  `datasus/sinan.py`), método que só existe a partir do polars 1.0. Quem
+  resolvesse para 0.20 instalava sem erro e quebrava em execução. O piso passa
+  a `>=1.0.0`.
+- **`nest_asyncio` e `numpy` eram usados sem estar declarados.** O primeiro é
+  importado em `datasus/ftp/orchestration.py`, no caminho FTP padrão, para
+  rodar dentro de um laço de eventos já ativo, o que é o caso de qualquer
+  notebook; o segundo é import de topo em `utils/mapping.py` e só funcionava
+  de carona no pandas. Ambos agora constam do núcleo.
+- **`pandas>=1.5.0` não refletia nada testado.** Uma instalação limpa hoje já
+  traz pandas 3.0.5, numpy 2.5.3, polars 1.44.1 e pyarrow 25, combinação que
+  nunca havia sido exercitada. Foi, e passa inteira. O piso vai para `>=2.0.0`.
+
+O link `Documentation` do pacote apontava para `guaraci.readthedocs.io`, que
+responde 404 e aparece assim na página do PyPI. Passa a apontar para a
+documentação publicada em `autoaihub.github.io/guaraci/docs.html`.
+
+### Changed: Python 3.13 entra na matriz oficial, e a imagem larga os extras legados
+A suíte passa em 3.13 (984 testes com PySUS 2.11.2, 982 sem). A versão entra
+nos classifiers e na matriz do CI, que agora cobre 3.11, 3.12 e 3.13, e o job
+de empacotamento passa a construir em 3.13. A imagem Docker sai de
+`python:3.11-slim` para `python:3.13-slim`.
+
+A imagem instalava `.[full]`, que arrasta o PySUS e o stack Google do BigQuery,
+cerca de trinta pacotes que nenhum caminho padrão importa e que impõem o teto
+de loguru e de pandas descrito acima. Passa a instalar `.[datasus,api,dev]`:
+o backend FTP direto, a API web e as ferramentas de teste que o `README.md`
+manda executar de dentro do contêiner. Os extras legados seguem instaláveis
+por quem precisar deles.
+
+### Fixed: instalação nova imprimia três alarmes falsos sobre o PySUS
+Importar o pacote sem a dependência opcional escrevia
+`PySUS não está disponível ou falhou ao importar` uma vez por módulo que a
+importa (`sih`, `sim`, `sinan`), inclusive ao subir a API. Como o backend
+padrão é o FTP direto desde a 0.6.0, a ausência do PySUS é o caso comum e não
+um defeito, de modo que o aviso classificava como problema aquilo que é a
+instalação recomendada. O registro cai para nível de depuração; quem pede o
+backend legado continua recebendo o erro explícito na hora de usá-lo. Na mesma
+passagem, `datasus/sim.py` ganhou os símbolos `pysus`/`PySUS` definidos no
+ramo de falha, que faltavam ali pelo mesmo motivo já corrigido em `sinan.py`.
+
+### Fixed: README apontava para dois documentos que não existem
+`docs/DOCKER_WORKFLOW.md` e `docs/INSTALL.md` estão referenciados na porta de
+entrada do repositório e nunca foram versionados, sendo o segundo justamente o
+link de instalação. Os dois passam a apontar para `docs/quickstart.md`, que
+cobre instalação e operação por Docker. Uma varredura dos links internos de
+todos os arquivos Markdown do repositório não encontrou outros quebrados.
+
+### Added: instalação por pip documentada, sem Docker
+O README classificava a execução fora do Docker como trabalho em andamento e
+não trazia nenhuma linha de `pip install`. Verificado de ponta a ponta num venv
+limpo no Windows: a CLI lista as 109 fontes, a API sobe com as 21 rotas e a
+suíte roda. A seção nova traz o comando com os extras e o aviso de que o
+release publicado no PyPI ainda está na `0.3.2`, três versões menores atrás do
+repositório, o que torna `pip install guaraci` uma armadilha até a próxima
+publicação. A instalação recomendada é a partir do git.
+
 ### Fixed: `guaraci --help` quebrava no Windows fora de um terminal UTF-8
 `sys.stdout` assume a codificação do console (cp1252 por padrão no Windows)
 sempre que não está ligado a um terminal UTF-8, o que inclui qualquer
