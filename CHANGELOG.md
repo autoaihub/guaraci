@@ -85,11 +85,15 @@ O link `Documentation` do pacote apontava para `guaraci.readthedocs.io`, que
 responde 404 e aparece assim na página do PyPI. Passa a apontar para a
 documentação publicada em `autoaihub.github.io/guaraci/docs.html`.
 
-### Changed: Python 3.13 entra na matriz oficial, e a imagem larga os extras legados
-A suíte passa em 3.13 (984 testes com PySUS 2.11.2, 982 sem). A versão entra
-nos classifiers e na matriz do CI, que agora cobre 3.11, 3.12 e 3.13, e o job
-de empacotamento passa a construir em 3.13. A imagem Docker sai de
-`python:3.11-slim` para `python:3.13-slim`.
+### Changed: a matriz vai até o Python mais recente que existe, e a imagem larga os extras legados
+O CI passa a cobrir 3.11, 3.12, 3.13 e 3.14, e o job de empacotamento constrói
+em 3.13. A imagem Docker sai de `python:3.11-slim` para `python:3.13-slim`.
+
+A 3.14, lançada em outubro de 2025, é a estável mais recente do Python, e o
+que impedia de testá-la era o PySUS, que declara `requires-python <3.14`.
+Removido o backend legado, a suíte roda inteira nela: verificado em PR próprio
+antes de entrar aqui, com os quatro jobs verdes. Todas as dependências
+binárias (polars, pyarrow, pydantic-core) já publicam roda para 3.14.
 
 A imagem instalava `.[full]`, que arrasta o PySUS e o stack Google do BigQuery,
 cerca de trinta pacotes que nenhum caminho padrão importa e que impõem o teto
