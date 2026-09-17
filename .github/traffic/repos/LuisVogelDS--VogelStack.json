@@ -104,10 +104,18 @@
     "2026-09-14": {
       "count": 0,
       "uniques": 0
+    },
+    "2026-09-15": {
+      "count": 3,
+      "uniques": 3
+    },
+    "2026-09-16": {
+      "count": 1,
+      "uniques": 1
     }
   },
-  "total_clones": 30,
-  "total_uniques": 21,
+  "total_clones": 34,
+  "total_uniques": 25,
   "tracking_since": "2026-08-20",
-  "updated_at": "2026-09-16T10:00:55+00:00"
+  "updated_at": "2026-09-17T10:04:11+00:00"
 }
