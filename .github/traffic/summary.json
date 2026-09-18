@@ -1,19 +1,19 @@
 {
-  "updated_at": "2026-09-17T10:04:13+00:00",
+  "updated_at": "2026-09-18T09:51:16+00:00",
   "repo_count": 33,
-  "total_clones": 436,
-  "total_uniques": 216,
+  "total_clones": 455,
+  "total_uniques": 230,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 357,
-      "total_uniques": 148,
+      "total_clones": 374,
+      "total_uniques": 160,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 34,
-      "total_uniques": 25,
+      "total_clones": 35,
+      "total_uniques": 26,
       "tracking_since": "2026-08-20"
     },
     {
@@ -29,13 +29,13 @@
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/churnlab",
-      "total_clones": 7,
-      "total_uniques": 7,
+      "repo": "LuisVogelDS/loadbay",
+      "total_clones": 8,
+      "total_uniques": 8,
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/loadbay",
+      "repo": "LuisVogelDS/churnlab",
       "total_clones": 7,
       "total_uniques": 7,
       "tracking_since": "2026-08-20"
