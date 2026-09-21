@@ -1,22 +1,22 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-09-20T09:51:21+00:00. 824 clonagens (255 únicas) em 33 repositórios.
+Atualizado em 2026-09-21T10:49:01+00:00. 861 clonagens (276 únicas) em 33 repositórios.
 
 | Repositório | Clonagens | Únicas | Desde |
 | --- | --: | --: | --- |
-| autoaihub/guaraci | 738 | 183 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 35 | 26 | 2026-08-20 |
-| LuisVogelDS/LuisVogelDS | 11 | 11 | 2026-08-20 |
-| LuisVogelDS/retail-pulse | 9 | 9 | 2026-08-20 |
-| LuisVogelDS/churnlab | 8 | 8 | 2026-08-20 |
-| LuisVogelDS/loadbay | 8 | 8 | 2026-08-20 |
+| autoaihub/guaraci | 761 | 196 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 40 | 28 | 2026-08-20 |
+| LuisVogelDS/LuisVogelDS | 12 | 12 | 2026-08-20 |
+| LuisVogelDS/retail-pulse | 10 | 10 | 2026-08-20 |
+| LuisVogelDS/churnlab | 9 | 9 | 2026-08-20 |
+| LuisVogelDS/loadbay | 9 | 9 | 2026-08-20 |
 | LuisVogelDS/PlacarBI | 6 | 2 | 2026-08-20 |
+| LuisVogelDS/vitrine | 6 | 3 | 2026-08-20 |
 | LuisVogelDS/Volvo | 3 | 3 | 2026-08-20 |
 | LuisVogelDS/Aurora | 2 | 1 | 2026-09-03 |
 | LuisVogelDS/CartaoVermelho | 1 | 1 | 2026-08-18 |
 | LuisVogelDS/IntraAct | 1 | 1 | 2026-08-21 |
 | LuisVogelDS/Prospero | 1 | 1 | 2026-08-21 |
-| LuisVogelDS/vitrine | 1 | 1 | 2026-08-20 |
 | LuisVogelDS/2msQueries | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/Alquimia | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/Bem-te-vi | 0 | 0 | 2026-08-21 |
