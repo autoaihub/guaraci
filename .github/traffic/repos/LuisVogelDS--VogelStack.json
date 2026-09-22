@@ -128,10 +128,14 @@
     "2026-09-20": {
       "count": 5,
       "uniques": 2
+    },
+    "2026-09-21": {
+      "count": 15,
+      "uniques": 10
     }
   },
-  "total_clones": 40,
-  "total_uniques": 28,
+  "total_clones": 55,
+  "total_uniques": 38,
   "tracking_since": "2026-08-20",
-  "updated_at": "2026-09-21T10:48:59+00:00"
+  "updated_at": "2026-09-22T10:04:15+00:00"
 }
