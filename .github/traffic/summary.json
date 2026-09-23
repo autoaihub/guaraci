@@ -1,13 +1,13 @@
 {
-  "updated_at": "2026-09-22T10:04:17+00:00",
+  "updated_at": "2026-09-23T10:04:15+00:00",
   "repo_count": 33,
-  "total_clones": 884,
-  "total_uniques": 292,
+  "total_clones": 899,
+  "total_uniques": 305,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 768,
-      "total_uniques": 201,
+      "total_clones": 774,
+      "total_uniques": 205,
       "tracking_since": "2026-08-12"
     },
     {
@@ -18,26 +18,26 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 12,
-      "total_uniques": 12,
+      "total_clones": 14,
+      "total_uniques": 14,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
+      "total_clones": 13,
+      "total_uniques": 13,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/churnlab",
       "total_clones": 11,
       "total_uniques": 11,
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/churnlab",
-      "total_clones": 9,
-      "total_uniques": 9,
-      "tracking_since": "2026-08-20"
-    },
-    {
       "repo": "LuisVogelDS/loadbay",
-      "total_clones": 9,
-      "total_uniques": 9,
+      "total_clones": 11,
+      "total_uniques": 11,
       "tracking_since": "2026-08-20"
     },
     {
@@ -65,16 +65,16 @@
       "tracking_since": "2026-09-03"
     },
     {
+      "repo": "LuisVogelDS/IntraAct",
+      "total_clones": 2,
+      "total_uniques": 2,
+      "tracking_since": "2026-08-21"
+    },
+    {
       "repo": "LuisVogelDS/CartaoVermelho",
       "total_clones": 1,
       "total_uniques": 1,
       "tracking_since": "2026-08-18"
-    },
-    {
-      "repo": "LuisVogelDS/IntraAct",
-      "total_clones": 1,
-      "total_uniques": 1,
-      "tracking_since": "2026-08-21"
     },
     {
       "repo": "LuisVogelDS/Prospero",
