@@ -29,6 +29,9 @@ jobs:
         env:
           # PAT com acesso de push (o GITHUB_TOKEN padrão não lê /traffic).
           TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+          # Repos que não devem aparecer neste repo público. Fica em secret porque
+          # a própria lista, escrita aqui, exporia os nomes.
+          TRAFFIC_EXCLUDE: ${{ secrets.TRAFFIC_EXCLUDE }}
         run: python scripts/track_clone_traffic.py
 
       - name: Comita o histórico
