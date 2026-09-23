@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-09-23T10:04:15+00:00",
-  "repo_count": 33,
-  "total_clones": 899,
-  "total_uniques": 305,
+  "updated_at": "2026-09-23T18:54:39+00:00",
+  "repo_count": 26,
+  "total_clones": 891,
+  "total_uniques": 302,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
@@ -41,12 +41,6 @@
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/PlacarBI",
-      "total_clones": 6,
-      "total_uniques": 2,
-      "tracking_since": "2026-08-20"
-    },
-    {
       "repo": "LuisVogelDS/vitrine",
       "total_clones": 6,
       "total_uniques": 3,
@@ -57,12 +51,6 @@
       "total_clones": 3,
       "total_uniques": 3,
       "tracking_since": "2026-08-20"
-    },
-    {
-      "repo": "LuisVogelDS/Aurora",
-      "total_clones": 2,
-      "total_uniques": 1,
-      "tracking_since": "2026-09-03"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
@@ -80,12 +68,6 @@
       "repo": "LuisVogelDS/Prospero",
       "total_clones": 1,
       "total_uniques": 1,
-      "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/2msQueries",
-      "total_clones": 0,
-      "total_uniques": 0,
       "tracking_since": "2026-08-21"
     },
     {
@@ -114,12 +96,6 @@
     },
     {
       "repo": "LuisVogelDS/DataSushi",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/DeVirada",
       "total_clones": 0,
       "total_uniques": 0,
       "tracking_since": "2026-08-21"
@@ -161,18 +137,6 @@
       "tracking_since": "2026-08-21"
     },
     {
-      "repo": "LuisVogelDS/MigracaoFortaleza",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/MigracionUniversitario",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "tracking_since": "2026-08-21"
-    },
-    {
       "repo": "LuisVogelDS/ScoutCamisa10",
       "total_clones": 0,
       "total_uniques": 0,
@@ -180,12 +144,6 @@
     },
     {
       "repo": "LuisVogelDS/Tatuacu",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/TicketImporterNewC",
       "total_clones": 0,
       "total_uniques": 0,
       "tracking_since": "2026-08-21"
