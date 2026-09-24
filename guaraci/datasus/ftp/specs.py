@@ -50,6 +50,12 @@ class SystemSpec:
     has_state: bool
     has_month: bool
     min_year: int
+    # Último ano publicado de um sistema descontinuado: vira o teto do
+    # formulário e do orquestrador, que senão pediriam anos que nunca existirão.
+    max_year: Optional[int] = None
+    # Último ano consolidado de um sistema vivo que publica com atraso de mais
+    # de um ano. Só muda o valor inicial do formulário, não o teto.
+    default_year: Optional[int] = None
     national: bool = False
     fixed_group: str = ""  # group label when the regex has no <group>
     groups: Tuple[str, ...] = ()  # selectable groups; () => single implicit group
@@ -94,6 +100,7 @@ SINASC = SystemSpec(
     has_month=False,
     fixed_group="DNRES",
     min_year=1996,
+    default_year=2022,  # 2023 ainda ausente de NOV/DNRES em 2026-09-24
 )
 
 RESP = SystemSpec(
@@ -108,6 +115,7 @@ RESP = SystemSpec(
     has_month=False,
     fixed_group="RESP",
     min_year=2015,
+    default_year=2024,  # 2025 ainda ausente em 2026-09-24
 )
 
 PCE = SystemSpec(
@@ -138,6 +146,7 @@ PNI = SystemSpec(
     groups=("CPNI", "DPNI"),
     default_groups=("CPNI", "DPNI"),
     min_year=1994,
+    max_year=2019,  # SI-PNI legado; nada depois de 2019 no FTP (2026-09-24)
 )
 
 
@@ -214,6 +223,7 @@ SISCAN = SystemSpec(
     groups=("CC", "CM"),
     default_groups=("CC", "CM"),
     min_year=2006,
+    max_year=2015,  # SISCOLO4/SISMAMA param em 2015 (2026-09-24)
 )
 
 SISPRENATAL = SystemSpec(
@@ -228,6 +238,7 @@ SISPRENATAL = SystemSpec(
     has_month=True,
     fixed_group="PN",
     min_year=2012,
+    max_year=2014,  # último arquivo em 2014 (2026-09-24)
 )
 
 CIHA = SystemSpec(
@@ -256,6 +267,7 @@ CIH = SystemSpec(
     has_month=True,
     fixed_group="CR",
     min_year=2008,
+    max_year=2011,  # substituído pelo CIHA; últimos arquivos em 2011
 )
 
 

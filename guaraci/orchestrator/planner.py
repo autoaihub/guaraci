@@ -229,7 +229,8 @@ def plan_backfill(
 
     if profile.kind.is_ftp():
         floor = profile.min_year or year_now
-        years = range(floor, year_now + 1)
+        ceiling = min(year_now, profile.max_year or year_now)
+        years = range(floor, ceiling + 1)
         return _ftp_units(profile, list(years), records_provider)
 
     if profile.kind is Kind.API_WINDOW:
@@ -300,12 +301,16 @@ def plan_update(
 
     if profile.kind.is_ftp():
         low = max(profile.min_year or year_now, year_now - update_lookback_years)
+        high = min(year_now, profile.max_year or year_now)
+        if low > high:
+            # Sistema descontinuado fora da janela de revisão: nada muda mais.
+            return []
         # fetch_sizes=True: sem os tamanhos, src_size fica 0 e o check de
         # volumetria do ledger nunca dispara — arquivos do ano corrente que
         # crescem (SINAN preliminar) jamais seriam repuxados.
         units = _ftp_units(
             profile,
-            list(range(low, year_now + 1)),
+            list(range(low, high + 1)),
             records_provider,
             fetch_sizes=True,
         )

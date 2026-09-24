@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Fixed: defeitos achados pela varredura de rotas
+Nova ferramenta `scripts/verificar_rotas.py` percorre as 124 fontes pela API
+e pela CLI, na camada offline (746 verificações), na de estimativa e na de
+coleta pelos jobs. Na primeira passada ela achou três defeitos que a suíte não
+cobria:
+
+- O botão "Estimar volume" respondia 500 em 25 das 31 fontes que o oferecem
+  (SISAGUA, SRAG, tuberculose SESAI, ENANI): o adapter de arquivos do portal
+  devolve `dataset`/`resources`, e a resposta da API exigia `source` e
+  `total_size_bytes`. A rota agora normaliza o formato.
+- O formulário das fontes FTP abria em 2025 para todas, e seis sistemas não
+  têm esse ano: CIH termina em 2011, SISPRENATAL em 2014, SISCAN em 2015 e
+  PNI em 2019 (conferido ao vivo em 24/09/2026). Esses quatro ganham teto
+  (`max_year`), que também limita o orquestrador. SINASC (último ano em
+  NOV/DNRES: 2022) e RESP (2024) seguem vivos e só mudam o ano inicial.
+- `guaraci fetch run sinasc` e `fetch discover sinasc` sem `--set` quebravam
+  com TypeError/KeyError: a validação aceitava omitir um obrigatório com
+  padrão, mas ninguém aplicava o padrão. O serviço agora o preenche antes de
+  despachar, valendo para CLI, API, jobs e orquestrador.
+
 ### Added: oito fontes da ANVISA, e o tema vigilância sanitária
 O catálogo vai a 124, com a ANVISA como nona instituição de origem. Os
 arquivos vêm de `dados.anvisa.gov.br/dados/`, uma listagem sem API, e são

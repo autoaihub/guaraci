@@ -27,6 +27,8 @@ def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "Datasus
     # future years are out of range. ``last_year`` is ``current_year - 1`` at
     # the call site, so reconstruct ``current_year`` here for the schema cap.
     current_year = last_year + 1
+    ceiling = min(current_year, spec.max_year or current_year)
+    default_year = min(last_year, spec.max_year or last_year, spec.default_year or last_year)
     schema = [
         SourceParameterSpec(
             name="output_dir",
@@ -51,9 +53,9 @@ def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "Datasus
             param_type="integer",
             description="Starting year for file discovery.",
             required=True,
-            default=last_year,
+            default=default_year,
             minimum=spec.min_year,
-            maximum=current_year,
+            maximum=ceiling,
         ),
         SourceParameterSpec(
             name="end_year",
@@ -61,9 +63,9 @@ def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "Datasus
             param_type="integer",
             description="Ending year for file discovery.",
             required=True,
-            default=last_year,
+            default=default_year,
             minimum=spec.min_year,
-            maximum=current_year,
+            maximum=ceiling,
         ),
     ]
     if spec.groups:

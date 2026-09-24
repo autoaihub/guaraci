@@ -1073,6 +1073,21 @@ class DownloadService:
         selected = self._get_registered_source(source)
         selected.validate_params(params)
 
+    def _with_required_defaults(self, source: str, params: Mapping[str, object]) -> Dict[str, object]:
+        """Preenche obrigatórios omitidos com o padrão declarado no schema.
+
+        A validação aceita omitir um obrigatório que tem padrão, mas nada o
+        aplicava: ``fetch run sinasc`` sem ``--set`` chegava ao adapter sem
+        ``start_year`` e quebrava com TypeError. A interface nunca caía nisso
+        porque envia o formulário inteiro.
+        """
+        filled = dict(params)
+        selected = self._get_registered_source(source)
+        for spec in self._get_source_param_specs(selected):
+            if spec.required and spec.default is not None and filled.get(spec.name) is None:
+                filled[spec.name] = spec.default
+        return filled
+
     def run(
         self,
         source: str,
@@ -1080,6 +1095,7 @@ class DownloadService:
         progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
         **kwargs: object,
     ) -> JobResult:
+        kwargs = self._with_required_defaults(source, kwargs)
         self.validate_source_params(source=source, params=kwargs)
         selected = self._get_registered_source(source)
         if progress_callback is not None:
@@ -1108,6 +1124,7 @@ class DownloadService:
     def discover(
         self, source: str, *, fetch_sizes: bool = False, **kwargs: object
     ) -> Dict[str, object]:
+        kwargs = self._with_required_defaults(source, kwargs)
         self.validate_source_params(source=source, params=kwargs)
         key = self._normalize_source_name(source)
 

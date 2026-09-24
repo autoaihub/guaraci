@@ -104,7 +104,11 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         profile = SourceProfile(name, Kind.FTP_SIH, Cadence.MONTHLY, _SIH_MIN_YEAR)
     elif name in SPECS:
         profile = SourceProfile(
-            name, Kind.FTP_GENERIC, Cadence.MONTHLY, SPECS[name].min_year
+            name,
+            Kind.FTP_GENERIC,
+            Cadence.MONTHLY,
+            SPECS[name].min_year,
+            max_year=SPECS[name].max_year,
         )
     elif name.startswith("nasa"):
         profile = SourceProfile(

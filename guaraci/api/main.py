@@ -259,6 +259,14 @@ def discover_source(source: str, payload: SourceDiscoveryRequest) -> SourceDisco
             status_code=500,
             detail="Source discovery unavailable: missing optional dependency on the server.",
         ) from exc
+    # Os adapters de arquivo do portal devolvem ``dataset``/``resources`` e só
+    # informam tamanho com ``fetch_sizes``; sem esta normalização a resposta
+    # quebrava a validação e o botão "Estimar volume" recebia 500.
+    discovery = dict(discovery)
+    discovery.setdefault("source", source.strip().lower())
+    discovery["total_size_bytes"] = int(discovery.get("total_size_bytes") or 0)
+    if not discovery.get("sample") and isinstance(discovery.get("resources"), list):
+        discovery["sample"] = discovery["resources"][:10]
     return SourceDiscoveryResponse(**discovery)
 
 
