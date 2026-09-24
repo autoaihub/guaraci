@@ -1,25 +1,31 @@
 {
-  "updated_at": "2026-09-23T18:54:39+00:00",
+  "updated_at": "2026-09-24T10:08:47+00:00",
   "repo_count": 26,
-  "total_clones": 891,
-  "total_uniques": 302,
+  "total_clones": 998,
+  "total_uniques": 338,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 774,
-      "total_uniques": 205,
+      "total_clones": 804,
+      "total_uniques": 217,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 55,
-      "total_uniques": 38,
+      "total_clones": 96,
+      "total_uniques": 55,
       "tracking_since": "2026-08-20"
     },
     {
+      "repo": "LuisVogelDS/IntraAct",
+      "total_clones": 31,
+      "total_uniques": 3,
+      "tracking_since": "2026-08-21"
+    },
+    {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 14,
-      "total_uniques": 14,
+      "total_clones": 15,
+      "total_uniques": 15,
       "tracking_since": "2026-08-20"
     },
     {
@@ -29,21 +35,21 @@
       "tracking_since": "2026-08-20"
     },
     {
+      "repo": "LuisVogelDS/loadbay",
+      "total_clones": 12,
+      "total_uniques": 12,
+      "tracking_since": "2026-08-20"
+    },
+    {
       "repo": "LuisVogelDS/churnlab",
       "total_clones": 11,
       "total_uniques": 11,
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/loadbay",
-      "total_clones": 11,
-      "total_uniques": 11,
-      "tracking_since": "2026-08-20"
-    },
-    {
       "repo": "LuisVogelDS/vitrine",
-      "total_clones": 6,
-      "total_uniques": 3,
+      "total_clones": 7,
+      "total_uniques": 4,
       "tracking_since": "2026-08-20"
     },
     {
@@ -53,9 +59,9 @@
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/IntraAct",
+      "repo": "LuisVogelDS/Alquimia",
       "total_clones": 2,
-      "total_uniques": 2,
+      "total_uniques": 1,
       "tracking_since": "2026-08-21"
     },
     {
@@ -65,15 +71,21 @@
       "tracking_since": "2026-08-18"
     },
     {
-      "repo": "LuisVogelDS/Prospero",
+      "repo": "LuisVogelDS/LilianeVogelAtelier",
       "total_clones": 1,
       "total_uniques": 1,
       "tracking_since": "2026-08-21"
     },
     {
-      "repo": "LuisVogelDS/Alquimia",
-      "total_clones": 0,
-      "total_uniques": 0,
+      "repo": "LuisVogelDS/MemoriaRam",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Prospero",
+      "total_clones": 1,
+      "total_uniques": 1,
       "tracking_since": "2026-08-21"
     },
     {
@@ -117,18 +129,6 @@
       "total_clones": 0,
       "total_uniques": 0,
       "tracking_since": "2026-08-29"
-    },
-    {
-      "repo": "LuisVogelDS/LilianeVogelAtelier",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/MemoriaRam",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "tracking_since": "2026-08-21"
     },
     {
       "repo": "LuisVogelDS/MemoriasPostumasDeBrazucas",
