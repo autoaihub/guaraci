@@ -7,14 +7,13 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 112 sources cataloged; 81 sampled with real field names.
+- 112 sources cataloged; 82 sampled with real field names.
 
 ## Caveats (honest)
 
 - `ana_hidro` (needs_credential): ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 - `atencao_primaria_pmmb_especialista_consolidado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `atencao_primaria_pmmb_relatorio_historico_cadastro_cnes` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
-- `cetesb_qualar_horario` (needs_credential): CETESB QUALAR requires a free account (create one at https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario). Set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. No account existed at integration time, so no live sample was taken: the field list is the connector's output contract, not a sampled header. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit, not an index.
 - `ciencia_tecnologia_plataformabr_pesquisa_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `ciencia_tecnologia_plataformabr_projeto_aprovado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `cnes_estabelecimentos_por_codigo_cnes` (error): Parameter 'codigo_cnes' is required.
@@ -154,10 +153,10 @@ to refresh.
 
 ## cetesb_qualar_horario
 
-- **Status:** needs_credential
+- **Status:** ok (336 rows sampled)
 - **Filters:** `stations`, `parameters`, `start_date`, `end_date`, `only_validated`, `pause_seconds`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `estacao`, `codigo_estacao`, `latitude`, `longitude`, `parametro`, `codigo_parametro`, `unidade`, `datahora`, `valor`, `validado`
-- **Note:** CETESB QUALAR requires a free account (create one at https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario). Set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. No account existed at integration time, so no live sample was taken: the field list is the connector's output contract, not a sampled header. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit, not an index.
+- **Note:** Live sample from the authenticated CETESB QUALAR on 2026-09-24 (Pinheiros, MP10 and TEMP, 2026-08-01 to 2026-08-07). Requires a free account (https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario); set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit (e.g. ug/m3, degC), not an index. datahora is local Sao Paulo time, naive.
 
 ## chikungunya
 

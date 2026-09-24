@@ -548,8 +548,9 @@
       "timeout",
       "api_base_url"
     ],
-    "note": "CETESB QUALAR requires a free account (create one at https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario). Set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. No account existed at integration time, so no live sample was taken: the field list is the connector's output contract, not a sampled header. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit, not an index.",
-    "status": "needs_credential"
+    "note": "Live sample from the authenticated CETESB QUALAR on 2026-09-24 (Pinheiros, MP10 and TEMP, 2026-08-01 to 2026-08-07). Requires a free account (https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario); set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit (e.g. ug/m3, degC), not an index. datahora is local Sao Paulo time, naive.",
+    "rows_sampled": 336,
+    "status": "ok"
   },
   "chikungunya": {
     "fields": [
