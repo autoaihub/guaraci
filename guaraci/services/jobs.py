@@ -572,7 +572,10 @@ class DownloadJobService:
         if event in {"file_completed", "file_failed", "file_skipped"} and file_key:
             if file_key not in completed_files:
                 completed_files.add(file_key)
-                job.files_completed += 1
+                # O evento pode já trazer a contagem (``files_completed``,
+                # aplicada acima); somar 1 por cima contava o arquivo duas
+                # vezes e a gaveta mostrava "2 / 1".
+                job.files_completed = max(job.files_completed, len(completed_files))
 
         if event == "download_complete":
             output_dir = event_payload.get("output_dir")

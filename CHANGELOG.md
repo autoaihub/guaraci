@@ -22,6 +22,20 @@ cobria:
   padrão, mas ninguém aplicava o padrão. O serviço agora o preenche antes de
   despachar, valendo para CLI, API, jobs e orquestrador.
 
+A camada de interface (`scripts/verificar_interface.py`, Chrome real via
+Playwright) percorre as 124 fontes: abre o formulário, confere que todo
+parâmetro virou campo, estima o volume e captura o pedido que "Iniciar
+coleta" monta. Ela achou mais três defeitos:
+
+- Com o formulário intocado, o formato de saída vinha vazio e `keep_raw`
+  desligado: IBGE, NASA e DEMAS baixavam, descartavam e o job terminava
+  "Concluída" sem arquivo. O formato agora vem em CSV, e a opção vazia se
+  chama "(não exportar)" em vez de "(sem filtro)".
+- A gaveta do job mostrava "2 / 1" arquivos: um `file_completed` que já traz
+  `files_completed` era contado de novo.
+- Trocar o idioma deixava o rodapé em "API: conectando…" até a próxima
+  checagem de saúde.
+
 ### Added: oito fontes da ANVISA, e o tema vigilância sanitária
 O catálogo vai a 124, com a ANVISA como nona instituição de origem. Os
 arquivos vêm de `dados.anvisa.gov.br/dados/`, uma listagem sem API, e são

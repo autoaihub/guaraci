@@ -8,6 +8,7 @@ const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").mat
 const JOBS_LIMIT = 40;
 
 let currentView = "jobs";
+let lastApiOk = null;
 let sourcesList = [];
 let sourcesBySource = {};
 const schemasBySource = {};
@@ -104,6 +105,7 @@ const I18N = {
     select_all: "Selecionar tudo",
     clear_sel: "Limpar",
     no_filter: "(sem filtro)",
+    no_export: "(não exportar)",
     ms_all: "Todos",
     ms_selected_n: "{n} selecionados",
     ms_search_ph: "Buscar opção…",
@@ -219,6 +221,7 @@ const I18N = {
     select_all: "Select all",
     clear_sel: "Clear",
     no_filter: "(no filter)",
+    no_export: "(do not export)",
     ms_all: "All",
     ms_selected_n: "{n} selected",
     ms_search_ph: "Search option…",
@@ -298,6 +301,8 @@ function setLang(lang) {
   currentLang = lang === "en" ? "en" : "pt";
   try { localStorage.setItem("guaraci_lang", currentLang); } catch (error) { /* ignore */ }
   applyI18n();
+  // applyI18n devolve o rótulo da API a "conectando…"; reaplica o último estado.
+  if (lastApiOk !== null) setApiStatus(lastApiOk);
   renderCatalogs();
   if (currentSchema) {
     renderDynamicFields(currentSchema);
@@ -421,6 +426,7 @@ function toast(message, kind) {
 }
 
 function setApiStatus(ok) {
+  lastApiOk = ok;
   const dot = document.getElementById("api-dot");
   const label = document.getElementById("api-label");
   dot.className = "api-dot " + (ok ? "is-on" : "is-off");
@@ -978,10 +984,11 @@ function createFieldCard(spec) {
   if (spec.type === "string" && Array.isArray(spec.allowed_values) && spec.allowed_values.length > 0) {
     const select = document.createElement("select");
     select.dataset.role = "value";
+    const isFormat = spec.name === "output_format";
     if (!spec.required) {
       const empty = document.createElement("option");
       empty.value = "";
-      empty.textContent = t("no_filter");
+      empty.textContent = t(isFormat ? "no_export" : "no_filter");
       select.appendChild(empty);
     }
     spec.allowed_values.forEach((value) => {
@@ -990,7 +997,13 @@ function createFieldCard(spec) {
       option.textContent = String(value);
       select.appendChild(option);
     });
-    if (spec.default !== null && spec.default !== undefined) select.value = String(spec.default);
+    if (spec.default !== null && spec.default !== undefined) {
+      select.value = String(spec.default);
+    } else if (isFormat && spec.allowed_values.includes("csv")) {
+      // Sem formato, várias famílias (IBGE, NASA, DEMAS) baixam e descartam:
+      // o job terminava "concluído" sem arquivo nenhum. CSV por padrão.
+      select.value = "csv";
+    }
     select.addEventListener("change", renderSummary);
     field.appendChild(select);
     return field;

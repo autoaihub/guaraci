@@ -500,6 +500,24 @@ def test_job_collects_progress_metrics_and_logs() -> None:
     assert any(item["event"] == "file_completed" for item in logs)
 
 
+class _HintedProgressDownloadService(_ProgressDownloadService):
+    """Adapter que informa ``files_completed`` no próprio file_completed (IBGE, NASA)."""
+
+    def run(self, source: str, **kwargs):  # noqa: ANN003
+        callback = kwargs.get("progress_callback")
+        callback({"event": "download_start", "documents_total": 1, "source": source})
+        callback({"event": "file_completed", "source": source, "documents_total": 1,
+                  "files_completed": 1, "file_path": "data/x/a.csv"})
+        return JobResult(source=source, documents_found=1, downloaded_count=1)
+
+
+def test_file_completed_with_count_hint_is_not_counted_twice() -> None:
+    service = DownloadJobService(download_service=_HintedProgressDownloadService())
+    job = service.create_job(source="snis", params={})
+    finished = service.wait_for_job(job.job_id, timeout_seconds=3.0)
+    assert (finished.files_completed, finished.files_total) == (1, 1)
+
+
 def test_get_job_output_info_reads_output_dir_metadata() -> None:
     service = DownloadJobService(download_service=_ProgressDownloadService())
     job = service.create_job(source="snis", params={})

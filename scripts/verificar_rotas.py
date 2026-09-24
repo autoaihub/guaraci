@@ -38,6 +38,10 @@ from typing import Any, Callable, Dict, List, Optional
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+# Os jobs de teste não podem cair no histórico real (data/jobs): a raiz de
+# dados precisa estar definida antes do import, que instancia o serviço.
+os.environ.setdefault("GUARACI_DATA_ROOT", tempfile.mkdtemp(prefix="guaraci_verif_"))
+
 from click.testing import CliRunner  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -47,11 +51,32 @@ from guaraci.cli.main import app as cli_app  # noqa: E402
 # Janelas pequenas por modo, para a camada ``jobs``: o objetivo é provar que a
 # rota funciona de ponta a ponta, não trazer a série inteira.
 _SMALL = {
-    "start_year": 2023, "end_year": 2023, "year": 2023,
     "start_month": 1, "end_month": 1, "month": 1,
     "states": ["AC"], "uf": "AC", "ufs": ["AC"],
-    "max_pages": 1, "page_size": 50, "limit": 50, "max_files": 1,
+    "max_pages": 2, "batch_size": 100, "page_size": 50, "limit": 50, "max_files": 1,
 }
+
+# Campos que o usuário teria de preencher, ou recortes que evitam trazer
+# centenas de MB (SINAN nacional por agravo, dengue incluída).
+_OVERRIDES: Dict[str, Dict[str, Any]] = {
+    "sinan": {"diseases": ["HANS"]},
+    "pce": {"states": ["BA"]},
+    "nasa_power": {"latitude": "-23.55", "longitude": "-46.63",
+                   "start_date": "2024-01-01", "end_date": "2024-01-31"},
+    "nasa_firms": {"start_date": "2024-09-01", "end_date": "2024-09-02"},
+    "nasa_gpm": {"latitude": "-23.55", "longitude": "-46.63",
+                 "start_date": "2024-01-01", "end_date": "2024-01-07"},
+    "cetesb_qualar_horario": {"stations": ["Americana"], "parameters": ["O3"],
+                              "start_date": "2024-01-01", "end_date": "2024-01-03"},
+    "cnes_estabelecimentos_por_codigo_cnes": {"codigo_cnes": "2077485"},
+    "cnes_tipounidades_por_codigo_tipo_unidade": {"codigo_tipo_unidade": "05"},
+    "economia_da_saude_bps": {"codigoCatmat": "BR0267614"},
+}
+
+# Recusa por credencial ausente é o comportamento certo sem a chave; a
+# verificação então só exige que a mensagem diga qual variável definir.
+_CREDENCIAIS = ("GUARACI_FIRMS_MAP_KEY", "GUARACI_EARTHDATA_TOKEN",
+                "GUARACI_ANA_", "GUARACI_QUALAR_")
 
 
 def ui_payload(schema: Dict[str, Any]) -> Dict[str, Any]:
@@ -88,7 +113,10 @@ class Relatorio:
                 warnings.simplefilter("always")
                 resultado = fn()
             avisos = sorted({f"{w.category.__name__}: {w.message}" for w in caught})
-            self.registra(fonte, verificacao, True, {"avisos": avisos} if avisos else "")
+            detalhe: Any = resultado if isinstance(resultado, (dict, str)) else ""
+            if avisos:
+                detalhe = {"resultado": detalhe, "avisos": avisos}
+            self.registra(fonte, verificacao, True, detalhe)
             return resultado
         except AssertionError as exc:
             self.registra(fonte, verificacao, False, str(exc) or "assert")
@@ -279,6 +307,11 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
                 if allowed and isinstance(valor, list) and not set(valor) <= set(allowed):
                     continue
                 params[chave] = valor
+        # Ano: o padrão do formulário; sem padrão (INMET, INPE), 2023.
+        for spec in schema["params"]:
+            if spec["name"] in ("start_year", "end_year") and params.get(spec["name"]) is None:
+                params[spec["name"]] = min(2023, spec.get("maximum") or 2023)
+        params.update(_OVERRIDES.get(s, {}))
         params["output_dir"] = str(base / s)
         if "output_format" in nomes and "output_format" not in params:
             params["output_format"] = "csv"
@@ -291,7 +324,7 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
             job: Dict[str, Any] = {}
             while time.monotonic() < fim:
                 job = api.get(f"/jobs/{job_id}").json()
-                if job["status"] in ("succeeded", "failed", "canceled", "cancelled"):
+                if job["status"] in ("completed", "failed", "canceled"):
                     break
                 time.sleep(2)
             else:
@@ -301,7 +334,10 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
             saida = api.get(f"/jobs/{job_id}/output")
             eventos = logs.get("events", logs) if isinstance(logs, dict) else logs
             erros = [e.get("message") for e in eventos if e.get("level") in ("error", "warning")]
-            assert job["status"] == "succeeded", f"{job['status']}: {job.get('error') or erros[-3:]}"
+            motivo = str(job.get("error") or erros[-3:])
+            if job["status"] == "failed" and any(c in motivo for c in _CREDENCIAIS):
+                return {"sem_credencial": motivo[:200]}
+            assert job["status"] == "completed", f"{job['status']}: {motivo}"
             assert saida.status_code == 200, f"/output -> {saida.status_code}"
             arquivos = [p for p in (base / s).rglob("*") if p.is_file()]
             assert arquivos, "job terminou sem arquivo"
@@ -310,6 +346,8 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
                 "arquivos": len(arquivos),
                 "bytes": sum(p.stat().st_size for p in arquivos),
                 "vazios": vazios,
+                "exportados": len(saida.json().get("exported_files") or []),
+                "export_warning": saida.json().get("export_warning"),
                 "avisos_log": erros[:5],
             }
 
@@ -331,7 +369,6 @@ def main() -> int:
     parser.add_argument("--saida", default="")
     args = parser.parse_args()
 
-    os.environ.setdefault("GUARACI_JOBS_STATE_PATH", str(Path(tempfile.mkdtemp()) / "jobs.json"))
     api = TestClient(app)
     fontes = api.get("/sources").json()
     fontes = fontes.get("sources", fontes) if isinstance(fontes, dict) else fontes

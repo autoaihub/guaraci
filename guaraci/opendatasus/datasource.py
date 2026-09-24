@@ -6,7 +6,7 @@ import json
 import re
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Optional, Sequence, Union
 from urllib.parse import quote
@@ -1367,7 +1367,7 @@ class OpenDataSUSDataSource(DataSource):
         end: date,
         uf: Optional[str],
     ) -> str:
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         uf_suffix = uf or "ALL"
         safe_dataset = dataset.replace("/", "_")
         return f"{safe_dataset}_{start.strftime('%Y%m%d')}_{end.strftime('%Y%m%d')}_{uf_suffix}_{timestamp}"
@@ -1500,7 +1500,7 @@ class OpenDataSUSDataSource(DataSource):
         start_year: Optional[int],
         end_year: Optional[int],
     ) -> tuple[int, int]:
-        default_year = datetime.utcnow().year - 1
+        default_year = datetime.now(timezone.utc).year - 1
         start_value = int(start_year if start_year is not None else default_year)
         end_value = int(end_year if end_year is not None else start_value)
         if start_value > end_value:
