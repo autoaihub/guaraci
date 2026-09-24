@@ -2,6 +2,40 @@
 
 ## [Unreleased]
 
+### Fixed: as 14 fontes SISAGUA nunca chegavam ao data lake
+O SISAGUA publica tudo em `.zip`, e a conversão só aceitava CSV e Parquet
+soltos. Na CLI isso aparecia como aviso; no orquestrador, como `empty`,
+porque nenhum CSV era produzido. Verificado ao vivo em 24/09/2026: a varredura
+de `sisagua_cadastro_carro_pipa_populacao` devolvia cinco unidades `empty`, e
+o mesmo valia para as outras 13. Nenhuma fonte SISAGUA tinha chegado ao bronze.
+
+- Um zip com CSV agora é extraído em fluxo, só pelo nome-base de cada membro
+  (sem zip slip), e cada CSV é convertido. Zip sem CSV continua dando erro
+  explícito.
+- As dez fontes SISAGUA cumulativas, que republicam um arquivo único com o
+  estado atual, viram instantâneo mensal no orquestrador. Antes eram pedidas
+  uma vez por ano, e cada unidade baixaria o mesmo arquivo inteiro.
+
+Depois da correção, ao vivo: carro-pipa com 2 107 linhas num instantâneo só,
+pontos de captação com 2,9 milhões e controle semestral de 2026 com 1,43
+milhão.
+
+### Added: tuberculose na saúde indígena e o ENANI-2019
+Duas fontes novas do portal de dados abertos do MS, e o catálogo vai a 116.
+
+- `sesai_tuberculose`: casos de tuberculose atendidos pelo SIASI, com o
+  paciente já desidentificado na origem. Só 2022 está publicado (505 casos).
+- `enani_2019`: microdados do Estudo Nacional de Alimentação e Nutrição
+  Infantil, edição única. Um zip de 223 MB com 26 bancos (cerca de 2,7 GB
+  abertos), o original e 25 cópias imputadas, todas com 741 colunas e 14 558
+  crianças. O orquestrador grava cada banco como arquivo próprio no bronze,
+  com o nome do banco como sufixo, em vez de só o primeiro.
+
+O SIES, terceira candidata desta leva, ficou de fora: os links de download
+no portal redirecionam para a página inicial, e o bucket não tem os arquivos.
+O SIES já está no catálogo pela API, como
+`vacinacao_sistema_de_informacao_de_insumos_estrategicos`.
+
 ### Added: bancos históricos de SRAG, de 2009 a 2018
 Duas fontes novas, `srag_arquivos_2009_2012` e `srag_arquivos_2013_2018`, e o
 catálogo vai a 114. A série de síndrome respiratória aguda grave passa a

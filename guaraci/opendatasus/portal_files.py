@@ -183,6 +183,30 @@ def _csv_separator(path: Path) -> str:
     return ";" if header.count(b";") > header.count(b",") else ","
 
 
+def _extract_csv_members(archive: Path) -> List[Path]:
+    """Extrai os CSV de um zip para a pasta dele, em fluxo.
+
+    Só o nome-base de cada membro é usado no destino, o que impede um membro
+    como ``../../x.csv`` de escrever fora da pasta (zip slip). Um membro já
+    extraído antes, do mesmo tamanho, não é reescrito.
+    """
+    import shutil
+    import zipfile
+
+    extracted: List[Path] = []
+    with zipfile.ZipFile(archive) as bundle:
+        for info in bundle.infolist():
+            name = Path(info.filename).name
+            if info.is_dir() or not name.lower().endswith(".csv"):
+                continue
+            target = archive.parent / name
+            if not (target.exists() and target.stat().st_size == info.file_size):
+                with bundle.open(info) as source, open(target, "wb") as sink:
+                    shutil.copyfileobj(source, sink, 1 << 20)
+            extracted.append(target)
+    return extracted
+
+
 def _utf8_csv(path: Path) -> Path:
     """Devolve ``path`` se ele for UTF-8, ou uma cópia transcodificada.
 
@@ -467,6 +491,25 @@ PACKAGE_SPECS: Dict[str, PortalFilePackageSpec] = {
         include_terms=("gripe influenza",),
         exclude_terms=(" a 20",),
         format_priority=("csv", "json", "xml"),
+    ),
+    # Verificados ao vivo em 2026-09-24. Tuberculose SESAI: um csv.zip por
+    # ano (só 2022 publicado), com uma nota técnica em PDF ao lado. ENANI-2019:
+    # inquérito de edição única, cujo csv.zip traz 26 bancos (as cópias
+    # imputadas descritas na nota técnica), 223 MB comprimidos e cerca de
+    # 2,9 GB abertos; os PDFs e o dicionário ao lado não são dado tabular.
+    "sesai_tuberculose": PortalFilePackageSpec(
+        slug="tuberculose_sesai",
+        include_terms=("sesai tuberculose",),
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+    ),
+    "enani_2019": PortalFilePackageSpec(
+        slug="estudo-nacional-de-alimentacao-e-nutricao-infantil-enani-2019",
+        include_terms=("bancos enani",),
+        format_priority=_SISAGUA_FORMAT_PRIORITY,
+        large_dataset_note=(
+            "ENANI-2019 sao 223 MB comprimidos e cerca de 2,9 GB abertos, em "
+            "26 bancos (copias imputadas)."
+        ),
     ),
     "sisagua_controle_mensal_parametros_basicos": PortalFilePackageSpec(
         slug="sisagua-controle-mensal-parametros-basicos",
@@ -816,15 +859,15 @@ class PortalFileDataSource(DataSource):
                 if not path.exists():
                     continue
                 try:
-                    export_path = self._convert_to_format(path, output_format)
-                    exported_files.append(str(export_path))
+                    export_paths = self._convert_resource(path, output_format, keep_raw=keep_raw)
+                    exported_files.extend(str(item) for item in export_paths)
                     # keep_raw=False discards the originally downloaded raw
                     # file once it has been converted, since SISAGUA/SRAG
                     # bulk files can be multi-GB and users who asked for a
                     # converted export usually don't need both copies.
-                    if not keep_raw and export_path != path and path.exists():
+                    if not keep_raw and export_paths != [path] and path.exists():
                         path.unlink(missing_ok=True)
-                        materialized[index] = str(export_path)
+                        materialized[index] = str(export_paths[0])
                 except Exception as exc:  # noqa: BLE001
                     warnings.append(
                         f"Failed to export '{path.name}' to {output_format}: {exc}"
@@ -924,6 +967,35 @@ class PortalFileDataSource(DataSource):
             if candidates:
                 selected.append(candidates[0])
         return selected
+
+    def _convert_resource(
+        self, path: Path, output_format: str, *, keep_raw: bool = False
+    ) -> List[Path]:
+        """Converte um recurso baixado; um ``.zip`` vira um arquivo por CSV interno.
+
+        SISAGUA publica tudo em zip (um por formato), e antes disso a
+        conversão abortava com "Cannot convert resource format 'zip'". O
+        efeito não era só na CLI: o orquestrador não recebia CSV nenhum e
+        registrava ``empty``, então as 14 fontes SISAGUA nunca chegavam ao
+        bronze (verificado ao vivo em 2026-09-24). O ENANI-2019 é o caso de
+        vários CSV num zip só: 26 bancos imputados.
+        """
+        if path.suffix.lower() != ".zip":
+            return [self._convert_to_format(path, output_format)]
+
+        members = _extract_csv_members(path)
+        if not members:
+            raise ValueError(
+                f"Resource '{path.name}' is a zip with no CSV inside; only "
+                "zipped CSV is convertible."
+            )
+        exported: List[Path] = []
+        for member in members:
+            converted = self._convert_to_format(member, output_format)
+            exported.append(converted)
+            if converted != member and not keep_raw:
+                member.unlink(missing_ok=True)
+        return exported
 
     def _convert_to_format(self, path: Path, output_format: str) -> Path:
         normalized = output_format.strip().lower()

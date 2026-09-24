@@ -29,6 +29,7 @@ from guaraci.orchestrator.model import Cadence, FetchUnit, Granularity, Kind
 from guaraci.orchestrator.orchestrator import Orchestrator
 from guaraci.orchestrator.planner import plan_backfill, plan_update
 from guaraci.orchestrator.runner import run_ftp_batch, run_via_service
+from guaraci.services.sources.opendatasus_files import CUMULATIVE_SOURCES
 
 
 # --------------------------------------------------------------------------- #
@@ -173,7 +174,11 @@ def test_profile_resolution_for_portal_file_sources():
         "sisagua_cadastro_carro_pipa_populacao",
     ):
         profile = profile_for(name, "opendatasus files")
-        assert profile.kind is Kind.API_WINDOW
+        # As cumulativas (arquivo único republicado) são instantâneo mensal;
+        # as divididas por ano seguem janela anual. Ver
+        # tests/test_portal_zip_e_cumulativos.py.
+        expected = Kind.SNAPSHOT if name in CUMULATIVE_SOURCES else Kind.API_WINDOW
+        assert profile.kind is expected, name
         assert profile.cadence is Cadence.MONTHLY, name
 
 

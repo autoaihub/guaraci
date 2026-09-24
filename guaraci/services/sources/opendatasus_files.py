@@ -428,4 +428,59 @@ def build_sources() -> List[DownloadSource]:
             fixed_dataset="sisagua_cadastro_carro_pipa_populacao",
             normalize_params=_normalize_portal_files_params,
         ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="sesai_tuberculose",
+                title="SIASI - Tuberculose na Saude Indigena",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=2022,  # único ano publicado (verificado ao vivo 2026-09-24)
+                default_start_year=2022,
+                default_end_year=current_year,
+            ),
+            fixed_dataset="sesai_tuberculose",
+            normalize_params=_normalize_portal_files_params,
+        ),
+        PortalFileDownloadSource(
+            descriptor=SourceDescriptor(
+                source="enani_2019",
+                title="ENANI-2019 - Estudo Nacional de Alimentacao e Nutricao Infantil",
+                mode="opendatasus files",
+            ),
+            datasource_cls=PortalFileDataSource,
+            params_schema=_params_schema(
+                min_year=2019,
+                max_year=2019,
+                default_start_year=2019,
+                default_end_year=2019,
+                large_dataset_note=(
+                    "223 MB comprimidos e cerca de 2,9 GB abertos, em 26 bancos "
+                    "(verificado ao vivo 2026-09-24)."
+                ),
+            ),
+            fixed_dataset="enani_2019",
+            normalize_params=_normalize_portal_files_params,
+        ),
     ]
+
+
+# Fontes do portal sem particionamento por ano: o portal republica um arquivo
+# só, com o estado atual. O orquestrador as guarda como instantâneo mensal em
+# vez de pedir o mesmo arquivo uma vez por ano. Um teste confere que este
+# conjunto bate com as fontes declaradas ``cumulative=True`` acima.
+CUMULATIVE_SOURCES = frozenset(
+    {
+        "sisagua_tratamento_agua",
+        "sisagua_populacao_abastecida",
+        "sisagua_controle_mensal_demais_parametros",
+        "sisagua_controle_mensal_amostras_fora_do_padrao",
+        "sisagua_controle_mensal_infraestrutura_operacional",
+        "sisagua_vigilancia_demais_parametros",
+        "sisagua_vigilancia_cianobacterias_e_cianotoxinas",
+        "sisagua_pontos_de_captacao",
+        "sisagua_cadastro_carro_pipa_procedencia",
+        "sisagua_cadastro_carro_pipa_populacao",
+    }
+)

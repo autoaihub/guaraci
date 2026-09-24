@@ -318,6 +318,14 @@ def run_via_service(
 
         exported = [str(p) for p in (payload.get("exported_files") or [])]
         produced = _first_csv(exported, out_dir)
+        extras = [
+            Path(item)
+            for item in exported
+            if Path(item).suffix.lower() == ".csv"
+            and Path(item).exists()
+            and produced is not None
+            and Path(item) != produced
+        ]
         if produced is None:
             return _base_row(
                 unit,
@@ -329,8 +337,19 @@ def run_via_service(
                 error=str(payload.get("export_warning") or ""),
             )
 
+        # Um recurso com vários CSV (ENANI: 26 bancos num zip) vira vários
+        # arquivos lado a lado, cada um com o nome do próprio banco como
+        # sufixo, para nenhum perder a identidade que tinha na origem.
+        if extras:
+            target = target.with_name(f"{target.stem}_{produced.stem}.csv")
         target.parent.mkdir(parents=True, exist_ok=True)
         produced.replace(target)
+        n_bytes = target.stat().st_size
+        base = paths.bronze_path(bronze_root, unit)
+        for extra in extras:
+            sibling = base.with_name(f"{base.stem}_{extra.stem}.csv")
+            extra.replace(sibling)
+            n_bytes += sibling.stat().st_size
         return _base_row(
             unit,
             run_id,
@@ -338,7 +357,7 @@ def run_via_service(
             STATUS_OK,
             documents_found=documents,
             downloaded_count=downloaded,
-            n_bytes=target.stat().st_size,
+            n_bytes=n_bytes,
             out_path=str(target),
         )
     finally:

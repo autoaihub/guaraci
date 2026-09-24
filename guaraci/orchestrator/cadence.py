@@ -40,6 +40,7 @@ _QUALAR_HORARIO_MIN_YEAR = 2022
 _FROZEN_YEAR_RANGES: Dict[str, tuple] = {
     "srag_arquivos_2009_2012": (2009, 2012),
     "srag_arquivos_2013_2018": (2013, 2018),
+    "enani_2019": (2019, 2019),
 }
 
 # Edit here to re-tune how often a source is re-checked for new data.
@@ -182,6 +183,10 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         # pouco; um instantâneo por mês mantém o histórico de estações ativas
         # para a junção com a série de concentração.
         profile = SourceProfile(name, Kind.SNAPSHOT, Cadence.MONTHLY, None)
+    elif name in _cumulative_portal_sources():
+        # Arquivo único republicado com o estado atual: um instantâneo por mês
+        # guarda a evolução, e pedir por ano baixaria o mesmo arquivo N vezes.
+        profile = SourceProfile(name, Kind.SNAPSHOT, Cadence.MONTHLY, None)
     elif name in _FROZEN_YEAR_RANGES:
         first, last = _FROZEN_YEAR_RANGES[name]
         profile = SourceProfile(
@@ -206,6 +211,12 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
     if override is not None:
         profile = profile.with_cadence(override)
     return profile
+
+
+def _cumulative_portal_sources() -> frozenset:
+    from guaraci.services.sources.opendatasus_files import CUMULATIVE_SOURCES
+
+    return CUMULATIVE_SOURCES
 
 
 def sweep_params(source: str) -> Dict[str, object]:

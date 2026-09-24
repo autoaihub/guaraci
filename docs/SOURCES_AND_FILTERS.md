@@ -33,6 +33,9 @@ they expose more convenient query layers.
 - `srag_arquivos` (`opendatasus files`) — primary: `dadosabertos.saude.gov.br/dataset/srag-2019-a-2026`
 - `srag_arquivos_2009_2012` and `srag_arquivos_2013_2018` (`opendatasus files`), primary:
   `dadosabertos.saude.gov.br/dataset/srag-2009-2012` and `.../srag-2013-2018`
+- `sesai_tuberculose` (`opendatasus files`), primary: `dadosabertos.saude.gov.br/dataset/tuberculose_sesai`
+- `enani_2019` (`opendatasus files`), primary:
+  `dadosabertos.saude.gov.br/dataset/estudo-nacional-de-alimentacao-e-nutricao-infantil-enani-2019`
   (SRAG annual "banco vivo" bulk files, S3-hosted; discovered by scraping the
   portal, not a CKAN/DEMAS API — see §3.5)
 - `sisagua_controle_mensal_parametros_basicos` (`opendatasus files`) — primary:
@@ -142,7 +145,7 @@ they expose more convenient query layers.
 
 ### Navigating by subject: themes and presets
 
-The catalogue above has 114 entries, and the subject a user is after rarely
+The catalogue above has 116 entries, and the subject a user is after rarely
 coincides with the boundary of a source. Two layers exist for that.
 
 **Themes** (`guaraci/services/themes.py`) answer "where is the data on this
@@ -269,7 +272,7 @@ Cost of date and UF refinements (measured against `/arboviroses/dengue`):
   12% in runtime. Each record costs about 11 KB while held as a dictionary, so
   a full year would previously have required roughly 45 GB of RAM.
 
-### 3.5 OpenDataSUS Bulk Files (`srag_arquivos`, `srag_arquivos_2009_2012`, `srag_arquivos_2013_2018` + all 14 SISAGUA packages: `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`, `sisagua_controle_mensal_demais_parametros`, `sisagua_controle_mensal_amostras_fora_do_padrao`, `sisagua_controle_mensal_plano_amostragem`, `sisagua_controle_mensal_infraestrutura_operacional`, `sisagua_vigilancia_demais_parametros`, `sisagua_vigilancia_cianobacterias_e_cianotoxinas`, `sisagua_pontos_de_captacao`, `sisagua_cadastro_carro_pipa_procedencia`, `sisagua_cadastro_carro_pipa_populacao`)
+### 3.5 OpenDataSUS Bulk Files (`srag_arquivos`, `srag_arquivos_2009_2012`, `srag_arquivos_2013_2018`, `sesai_tuberculose`, `enani_2019` + all 14 SISAGUA packages: `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`, `sisagua_controle_mensal_demais_parametros`, `sisagua_controle_mensal_amostras_fora_do_padrao`, `sisagua_controle_mensal_plano_amostragem`, `sisagua_controle_mensal_infraestrutura_operacional`, `sisagua_vigilancia_demais_parametros`, `sisagua_vigilancia_cianobacterias_e_cianotoxinas`, `sisagua_pontos_de_captacao`, `sisagua_cadastro_carro_pipa_procedencia`, `sisagua_cadastro_carro_pipa_populacao`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -295,6 +298,15 @@ Bulk-files notes:
   S3 link. The aggregate "2009 a 2012" resource is excluded. `start_year` and
   `end_year` are bounded to the bank's own years, and the orchestrator stops
   re-checking a bank once its last year is in the ledger.
+- **`sesai_tuberculose`**: tuberculosis cases in indigenous health (SIASI),
+  one `csv.zip` per year; only 2022 is published (505 cases, verified live
+  2026-09-24). The patient id comes de-identified from the source.
+- **`enani_2019`**: the 2019 national child nutrition survey, a one-off
+  edition. One `csv.zip` of 223 MB holding 26 banks (about 2.7 GB open):
+  `data_crianca_calib_anon` and 25 imputed copies `data_bioq_calib_anon_*`,
+  all with 741 columns and 14 558 children. Read the source's imputation
+  note before pooling the copies. The orchestrator writes each bank as its
+  own bronze file, suffixed with the bank's name.
 - **Every SRAG CSV is `;`-separated**, and the 2016 file is latin-1 (with a
   few characters already corrupted at the source). Conversion detects the
   separator from the header and reads non-UTF-8 files through a transcoded
@@ -323,10 +335,17 @@ Bulk-files notes:
   no parquet, so `csv` > `json` > `xml`).
 - **SISAGUA files are `.zip` archives**, not raw CSV/Parquet directly
   (verified live 2026-08-17 — e.g. `cadastro_populacao_abastecida_csv.zip`).
-  `output_format` conversion is only implemented for raw `csv`/`parquet`
-  resources; requesting a conversion on a SISAGUA `.zip` resource produces an
-  `export_warning` rather than a silent failure (the raw `.zip` is still
-  materialized on disk).
+  Since 2026-09-24 a `.zip` holding CSV is extracted (streaming, member
+  basename only, so no zip slip) and each inner CSV is converted; a zip with
+  several CSVs yields one export per CSV. A zip with no CSV inside (the JSON
+  and XML variants) still raises an explicit `export_warning`. Before this,
+  every SISAGUA conversion aborted, and the orchestrator recorded `empty` for
+  all 14 SISAGUA sources on every run, so none of them had reached bronze.
+- **Cumulative packages are monthly snapshots in the orchestrator.** The ten
+  SISAGUA packages with no year segmentation (`CUMULATIVE_SOURCES` in
+  `guaraci/services/sources/opendatasus_files.py`) republish one file with
+  the current state; the sweep stores one dated copy per month instead of
+  asking for the same file once per year.
 - Idempotency is by basename under `output_dir`: a second run with the same
   params skips files that already exist. SRAG's current ("banco vivo") year
   basename embeds its extraction date and changes weekly, so it naturally
