@@ -129,6 +129,8 @@ CURATED = {
     "sisagua_vigilancia_cianobacterias_e_cianotoxinas": ("Vigilância — cianobactérias e cianotoxinas", "Monitoramento de cianobactérias", G_SIS, AMB, "saude"),
     "sisagua_vigilancia_demais_parametros": ("Vigilância — demais parâmetros", "Parâmetros complementares de vigilância", G_SIS, AMB, "saude"),
     # Saúde indígena
+    "sesai_tuberculose": ("Tuberculose na saúde indígena", "Casos de tuberculose atendidos pelo SIASI, com paciente desidentificado", G_IND, SESAI, "saude"),
+    "enani_2019": ("ENANI-2019", "Inquérito nacional de alimentação e nutrição infantil, microdados com 26 bancos imputados", G_OUT, MS, "saude"),
     "saude_indigena_sesai_atendimentos": ("Atendimentos da SESAI", "Atendimentos em territórios indígenas por UF e mês", G_IND, SESAI, "saude"),
     "saude_indigena_sesai_recursos_humanos": ("Recursos humanos da SESAI", "Profissionais lotados nos distritos sanitários", G_IND, SESAI, "saude"),
     "saude_indigena_sasisus_esgotamento_sanitario": ("Esgotamento sanitário em aldeias", "Saneamento em territórios indígenas", G_IND, SESAI, "saude"),
