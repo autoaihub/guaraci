@@ -1097,17 +1097,19 @@ class DownloadService:
         selected.validate_params(params)
 
     def _with_required_defaults(self, source: str, params: Mapping[str, object]) -> Dict[str, object]:
-        """Preenche obrigatórios omitidos com o padrão declarado no schema.
+        """Preenche parâmetros omitidos com o padrão declarado no schema.
 
-        A validação aceita omitir um obrigatório que tem padrão, mas nada o
-        aplicava: ``fetch run sinasc`` sem ``--set`` chegava ao adapter sem
-        ``start_year`` e quebrava com TypeError. A interface nunca caía nisso
-        porque envia o formulário inteiro.
+        O padrão do schema não era aplicado por ninguém: ``fetch run sinasc``
+        sem ``--set`` chegava ao adapter sem ``start_year`` e quebrava com
+        TypeError, e ``POST /jobs`` de ``ibge_casamentos`` sem ano também
+        (lá o ano é opcional no schema e obrigatório no adapter). A interface
+        nunca caía nisso porque envia o formulário inteiro; preencher todo
+        padrão deixa CLI e API iguais a ela.
         """
         filled = dict(params)
         selected = self._get_registered_source(source)
         for spec in self._get_source_param_specs(selected):
-            if spec.required and spec.default is not None and filled.get(spec.name) is None:
+            if spec.default is not None and filled.get(spec.name) is None:
                 filled[spec.name] = spec.default
         return filled
 

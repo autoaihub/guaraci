@@ -133,8 +133,12 @@ class _FakePortalClient:
     def download_file(self, url: str, destination, **_kwargs) -> int:  # noqa: ANN001
         self.download_calls.append(url)
         destination.parent.mkdir(parents=True, exist_ok=True)
-        payload = f"fake-content-for:{url}".encode("utf-8")
+        # Do tamanho que o HEAD anuncia, como um download real.
+        payload = f"fake-content-for:{url}".encode("utf-8").ljust(1024 * 1024 * 3, b" ")
         destination.write_bytes(payload)
+        progress = _kwargs.get("progress_callback")
+        if progress is not None:
+            progress(len(payload))
         return len(payload)
 
 
@@ -204,6 +208,27 @@ def test_download_is_idempotent_by_basename(tmp_path) -> None:  # noqa: ANN001
     assert second["downloaded_count"] == 0
     # No new network/download call: same basename already exists on disk.
     assert len(client.download_calls) == 1
+
+
+def test_stale_local_copy_is_downloaded_again(tmp_path) -> None:  # noqa: ANN001
+    # Banco vivo republicado com o mesmo nome: a cópia local de outro tamanho
+    # não pode ser entregue como se fosse a atual.
+    client = _FakePortalClient()
+    datasource = PortalFileDataSource(output_path=str(tmp_path), client=client)
+    datasource.download(dataset="srag_arquivos", start_year=2019, end_year=2019)
+    [local] = [p for p in tmp_path.iterdir() if p.is_file() and p.suffix != ".json"]
+    local.write_bytes(b"versao antiga")
+    again = datasource.download(dataset="srag_arquivos", start_year=2019, end_year=2019)
+    assert again["downloaded_count"] == 1 and len(client.download_calls) == 2
+
+
+def test_download_reports_bytes_while_it_runs(tmp_path) -> None:  # noqa: ANN001
+    eventos = []
+    datasource = PortalFileDataSource(output_path=str(tmp_path), client=_FakePortalClient())
+    datasource.download(dataset="srag_arquivos", start_year=2019, end_year=2019,
+                        progress_callback=eventos.append)
+    bytes_vistos = [e["file_bytes_downloaded"] for e in eventos if e["event"] == "file_progress"]
+    assert bytes_vistos and bytes_vistos[-1] == 1024 * 1024 * 3
 
 
 def test_download_resource_filter_excludes_non_matching(tmp_path) -> None:  # noqa: ANN001

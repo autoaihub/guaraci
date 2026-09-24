@@ -47,7 +47,7 @@ def test_zipped_csv_converts_to_parquet_and_cleans_up(tmp_path):
     archive = _zip(tmp_path / "t.csv.zip", {"t.csv": "uf;casos\nPA;3\nAM;5\n"})
     source = PortalFileDataSource(output_path=str(tmp_path))
     [exported] = source._convert_resource(archive, "parquet")
-    assert pl.read_parquet(exported)["casos"].to_list() == [3, 5]
+    assert pl.read_parquet(exported)["casos"].to_list() == ["3", "5"]  # texto: nada se perde
     assert not (tmp_path / "t.csv").exists()  # CSV intermediário removido
 
 
@@ -164,3 +164,58 @@ def test_rejected_rows_file_travels_with_the_bronze_file(tmp_path):
     target = Path(row.out_path)
     assert target.name == "anvisa_tecnovigilancia_202609.csv"
     assert (target.parent / "anvisa_tecnovigilancia_202609.rejeitadas.csv").exists()
+
+
+# --- fidelidade dos valores -------------------------------------------------
+
+
+def test_conversion_keeps_every_value_and_leading_zeros(tmp_path):
+    linhas = ["cnes;cod"] + [f"{i:07d};{i}" for i in range(15000)] + ["0012345;10A"]
+    (tmp_path / "t.csv").write_text("\n".join(linhas) + "\n", encoding="utf-8")
+    source = PortalFileDataSource(output_path=str(tmp_path))
+    for formato in ("parquet", "sqlite"):
+        exported = source._convert_to_format(tmp_path / "t.csv", formato)
+        if formato == "parquet":
+            frame = pl.read_parquet(exported)
+        else:
+            import sqlite3
+
+            with sqlite3.connect(exported) as conn:
+                frame = pl.DataFrame(conn.execute("SELECT cnes, cod FROM records").fetchall(),
+                                     schema=["cnes", "cod"], orient="row")
+        assert frame["cod"].null_count() == 0, formato
+        assert frame["cod"][-1] == "10A" and frame["cnes"][-1] == "0012345", formato
+
+
+def test_csv_export_is_utf8_with_commas(tmp_path):
+    raw = tmp_path / "INFLUD16.csv"
+    raw.write_bytes("NOME;UF\nJOSÉ;SP\n".encode("latin-1"))
+    source = PortalFileDataSource(output_path=str(tmp_path))
+    [exported] = source._convert_resource(raw, "csv", keep_raw=True)
+    assert exported.read_text(encoding="utf-8") == "NOME,UF\nJOSÉ,SP\n"
+    assert (tmp_path / "INFLUD16.original.csv").read_bytes().decode("latin-1").startswith("NOME;UF")
+
+
+def test_headerless_csv_gets_the_declared_header_and_keeps_the_first_row(tmp_path):
+    from guaraci.opendatasus.portal_files import _prepend_header
+
+    csv_path = tmp_path / "p.csv"
+    csv_path.write_bytes('"SUL";"RS";"4ª CRS"\r\n"NORDESTE";"BA";"19 DIRES"\r\n'.encode("latin-1"))
+    _prepend_header(csv_path, ("NO_REGIAO", "SG_UF", "NO_REGIONAL"))
+    _prepend_header(csv_path, ("NO_REGIAO", "SG_UF", "NO_REGIONAL"))  # idempotente
+    frame = pl.read_csv(csv_path, separator=";", encoding="latin-1", infer_schema=False)
+    assert frame.columns == ["NO_REGIAO", "SG_UF", "NO_REGIONAL"]
+    assert frame["NO_REGIAO"].to_list() == ["SUL", "NORDESTE"]
+
+
+def test_headerless_csv_with_another_layout_fails_loudly(tmp_path):
+    from guaraci.opendatasus.portal_files import _prepend_header
+
+    csv_path = tmp_path / "p.csv"
+    csv_path.write_text('"SUL";"RS"\n', encoding="utf-8")
+    try:
+        _prepend_header(csv_path, ("A", "B", "C"))
+    except ValueError as exc:
+        assert "changed its layout" in str(exc)
+    else:  # pragma: no cover
+        raise AssertionError("expected ValueError")

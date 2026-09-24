@@ -7,38 +7,18 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 124 sources cataloged; 94 sampled with real field names.
+- 124 sources cataloged; 114 sampled with real field names.
 
 ## Caveats (honest)
 
 - `ana_hidro` (needs_credential): ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
-- `atencao_primaria_pmmb_especialista_consolidado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `atencao_primaria_pmmb_relatorio_historico_cadastro_cnes` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `ciencia_tecnologia_plataformabr_pesquisa_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `ciencia_tecnologia_plataformabr_projeto_aprovado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
-- `cnes_estabelecimentos_por_codigo_cnes` (error): Parameter 'codigo_cnes' is required.
-- `cnes_tipounidades_por_codigo_tipo_unidade` (error): Parameter 'codigo_tipo_unidade' is required.
-- `economia_da_saude_bps` (error): OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {"message": "Ao menos um dos par\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado."} Hint: Check request parameters and endpoint compatibi
-- `febre_amarela` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
-- `mpox` (error): OpenDataSUS DEMAS request failed for dataset 'mpox' at endpoint '/vigilancia-e-meio-ambiente/mpox' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
 - `nasa_firms` (needs_credential): NASA FIRMS requires a MAP_KEY. Set the environment variable GUARACI_FIRMS_MAP_KEY (free key from https://firms.modaps.eosdis.nasa.gov/api/map_key/).
 - `nasa_gpm` (needs_credential): NASA GPM (GES DISC) requires an Earthdata Login token. Set the environment variable GUARACI_EARTHDATA_TOKEN (generate at https://urs.earthdata.nasa.gov, and authorize the 'NASA GESDISC DATA ARCHIVE' application).
-- `ouvidoria_ouvidor2` (error): OpenDataSUS DEMAS request failed for dataset 'ouvidoria/ouvidor2' at endpoint '/ouvidoria/ouvidor2' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
-- `ouvidoria_ouvidor3` (error): OpenDataSUS DEMAS request failed for dataset 'ouvidoria/ouvidor3' at endpoint '/ouvidoria/ouvidor3' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
-- `prevencao_e_promocao_distribuicao_epi_insumo` (error): OpenDataSUS DEMAS request failed for dataset 'prevencao-e-promocao/distribuicao_epi_insumo' at endpoint '/prevencao-e-promocao/distribuicao_epi_insumo' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was no
 - `saude_indigena_acompanhamento_obra_infraestrutura_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `sinisa` (error): expected name token at '<![:e\x90\x02ª/Ü4æ\x03\x17G\x92ý\x83\x0b¦'
-- `sisagua_controle_mensal_amostras_fora_do_padrao` (empty): smallest known resource is 37.2MB, over the 20MB sampling cap (39000038 bytes) - not downloaded
-- `sisagua_controle_mensal_demais_parametros` (empty): smallest known resource is 138.0MB, over the 20MB sampling cap (144713899 bytes) - not downloaded
-- `sisagua_controle_mensal_infraestrutura_operacional` (empty): smallest known resource is 36.4MB, over the 20MB sampling cap (38193694 bytes) - not downloaded
-- `sisagua_controle_mensal_parametros_basicos` (empty): smallest known resource is 37.7MB, over the 20MB sampling cap (39506123 bytes) - not downloaded
-- `sisagua_controle_mensal_plano_amostragem` (empty): smallest known resource is 77.2MB, over the 20MB sampling cap (80933173 bytes) - not downloaded
-- `sisagua_controle_semestral` (empty): smallest known resource is 25.8MB, over the 20MB sampling cap (27013997 bytes) - not downloaded
-- `sisagua_pontos_de_captacao` (empty): smallest known resource is 52.6MB, over the 20MB sampling cap (55156888 bytes) - not downloaded
-- `sisagua_populacao_abastecida` (empty): smallest known resource is 72.8MB, over the 20MB sampling cap (76384011 bytes) - not downloaded
-- `sisagua_tratamento_agua` (empty): smallest known resource is 78.0MB, over the 20MB sampling cap (81807480 bytes) - not downloaded
-- `sisagua_vigilancia_demais_parametros` (empty): smallest known resource is 98.0MB, over the 20MB sampling cap (102776276 bytes) - not downloaded
-- `sisagua_vigilancia_parametros_basicos` (empty): smallest known resource is 81.5MB, over the 20MB sampling cap (85434855 bytes) - not downloaded
 - `snis` (empty): no documents matched file_kinds=planilhas, module=gestao_municipal
 - `vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 
@@ -57,15 +37,15 @@ to refresh.
 
 - **Status:** ok (25702 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `SUBSTÂNCIA`, `CNPJ`, `LABORATÓRIO`, `CÓDIGO GGREM`, `REGISTRO`, `EAN 1`, `EAN 2`, `EAN 3`, `PRODUTO`, `APRESENTAÇÃO`, `CLASSE TERAPÊUTICA`, `TIPO DE PRODUTO (STATUS DO PRODUTO)`, `REGIME DE PREÇO`, `PF Sem Impostos`, `PF 0%`, `PF 12 %`, `PF 12 %  ALC`, `PF 17 %`, `PF 17 %  ALC`, `PF 17,5 %`, `PF 17,5 %  ALC`, `PF 18 %`, `PF 18 %  ALC`, `PF 19 %`, `PF 19 %  ALC`, `PF 19,5 %`, `PF 19,5 %  ALC`, `PF 20 %`, `PF 20 %  ALC`, `PF 20,5 %`, `PF 20,5 %  ALC`, `PF 21 %`, `PF 21 %  ALC`, `PF 22 %`, `PF 22 %  ALC`, `PF 22,5 %`, `PF 22,5 %  ALC`, `PF 23 %`, `PF 23 %  ALC`, `PMC Sem Impostos`, `PMC 0 %`, `PMC 12 %`, `PMC 12 %  ALC`, `PMC 17 %`, `PMC 17 %  ALC`, `PMC 17,5 %`, `PMC 17,5 %  ALC`, `PMC 18 %`, `PMC 18 %  ALC`, `PMC 19 %`, `PMC 19 %  ALC`, `PMC 19,5 %`, `PMC 19,5 %  ALC`, `PMC 20 %`, `PMC 20 %  ALC`, `PMC 20,5 %`, `PMC 20,5 %  ALC`, `PMC 21 %`, `PMC 21 %  ALC`, `PMC 22 %`, `PMC 22 %  ALC`, `PMC 22,5 %`, `PMC 22,5 %  ALC`, `PMC 23 %`, `PMC 23 %  ALC`, `RESTRIÇÃO HOSPITALAR`, `CAP`, `CONFAZ 87`, `ICMS 0%`, `ANÁLISE RECURSAL`, `LISTA DE CONCESSÃO DE CRÉDITO TRIBUTÁRIO (PIS/COFINS)`, `COMERCIALIZAÇÃO 2025`, `TARJA`, `DESTINAÇÃO COMERCIAL `
-- **Note:** Live collection on 2026-09-24 (25702 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. The source opens with a legal preamble of variable length (59 lines on 2026-09-24); the header row is located by content.
+- **Fields:** `SUBSTÂNCIA`, `CNPJ`, `LABORATÓRIO`, `CÓDIGO GGREM`, `REGISTRO`, `EAN 1`, `EAN 2`, `EAN 3`, `PRODUTO`, `APRESENTAÇÃO`, `CLASSE TERAPÊUTICA`, `TIPO DE PRODUTO (STATUS DO PRODUTO)`, `REGIME DE PREÇO`, `PF Sem Impostos`, `PF 0%`, `PF 12 %`, `PF 12 %  ALC`, `PF 17 %`, `PF 17 %  ALC`, `PF 17,5 %`, `PF 17,5 %  ALC`, `PF 18 %`, `PF 18 %  ALC`, `PF 19 %`, `PF 19 %  ALC`, `PF 19,5 %`, `PF 19,5 %  ALC`, `PF 20 %`, `PF 20 %  ALC`, `PF 20,5 %`, `PF 20,5 %  ALC`, `PF 21 %`, `PF 21 %  ALC`, `PF 22 %`, `PF 22 %  ALC`, `PF 22,5 %`, `PF 22,5 %  ALC`, `PF 23 %`, `PF 23 %  ALC`, `PMC Sem Impostos`, `PMC 0 %`, `PMC 12 %`, `PMC 12 %  ALC`, `PMC 17 %`, `PMC 17 %  ALC`, `PMC 17,5 %`, `PMC 17,5 %  ALC`, `PMC 18 %`, `PMC 18 %  ALC`, `PMC 19 %`, `PMC 19 %  ALC`, `PMC 19,5 %`, `PMC 19,5 %  ALC`, `PMC 20 %`, `PMC 20 %  ALC`, `PMC 20,5 %`, `PMC 20,5 %  ALC`, `PMC 21 %`, `PMC 21 %  ALC`, `PMC 22 %`, `PMC 22 %  ALC`, `PMC 22,5 %`, `PMC 22,5 %  ALC`, `PMC 23 %`, `PMC 23 %  ALC`, `RESTRIÇÃO HOSPITALAR`, `CAP`, `CONFAZ 87`, `ICMS 0%`, `ANÁLISE RECURSAL`, `LISTA DE CONCESSÃO DE CRÉDITO TRIBUTÁRIO (PIS/COFINS)`, `COMERCIALIZAÇÃO 2025`, `TARJA`, `DESTINAÇÃO COMERCIAL`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## anvisa_cmed_precos_governo
 
 - **Status:** ok (25702 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `SUBSTÂNCIA`, `CNPJ`, `LABORATÓRIO`, `CÓDIGO GGREM`, `REGISTRO`, `EAN 1`, `EAN 2`, `EAN 3`, `PRODUTO`, `APRESENTAÇÃO`, `CLASSE TERAPÊUTICA`, `TIPO DE PRODUTO (STATUS DO PRODUTO)`, `REGIME DE PREÇO`, `PF Sem Impostos`, `PF 0%`, `PF 12 %`, `PF 12 %  ALC`, `PF 17 %`, `PF 17 %  ALC`, `PF 17,5 %`, `PF 17,5 %  ALC`, `PF 18 %`, `PF 18 %  ALC`, `PF 19 %`, `PF 19 %  ALC`, `PF 19,5 %`, `PF 19,5 %  ALC`, `PF 20 %`, `PF 20 %  ALC`, `PF 20,5 %`, `PF 20,5 %  ALC`, `PF 21 %`, `PF 21 %  ALC`, `PF 22 %`, `PF 22 %  ALC`, `PF 22,5 %`, `PF 22,5 %  ALC`, `PF 23 %`, `PF 23 %  ALC`, `PMVG Sem Impostos`, `PMVG 0 %`, `PMVG 12 %`, `PMVG 12 %  ALC`, `PMVG 17 %`, `PMVG 17 %  ALC`, `PMVG 17,5 %`, `PMVG 17,5 %  ALC`, `PMVG 18 %`, `PMVG 18 %  ALC`, `PMVG 19 %`, `PMVG 19 %  ALC`, `PMVG 19,5 %`, `PMVG 19,5 %  ALC`, `PMVG 20 %`, `PMVG 20 %  ALC`, `PMVG 20,5 %`, `PMVG 20,5 %  ALC`, `PMVG 21 %`, `PMVG 21 %  ALC`, `PMVG 22 %`, `PMVG 22 %  ALC`, `PMVG 22,5 %`, `PMVG 22,5 %  ALC`, `PMVG 23 %`, `PMVG 23 %  ALC`, `RESTRIÇÃO HOSPITALAR`, `CAP`, `CONFAZ 87`, `ICMS 0%`, `ANÁLISE RECURSAL`, `LISTA DE CONCESSÃO DE CRÉDITO TRIBUTÁRIO (PIS/COFINS)`, `COMERCIALIZAÇÃO 2025`, `TARJA`, `DESTINAÇÃO COMERCIAL 9`
-- **Note:** Live collection on 2026-09-24 (25702 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. Same layout as anvisa_cmed_precos, with the government maximum price (PMVG); preamble of 72 lines on 2026-09-24.
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## anvisa_hemovigilancia
 
@@ -153,9 +133,10 @@ to refresh.
 
 ## atencao_primaria_pmmb_especialista_consolidado
 
-- **Status:** empty
+- **Status:** ok
 - **Filters:** `cnes`, `co_ibge`, `tipo_pratica`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- **Fields:** `cnes`, `estabelecimento`, `tipo_pratica`, `curso`, `faixa_atracao`, `co_ibge`, `tipo_municipio`, `nivel_vaga`, `categoria_ivs`, `amazonia_legal`, `regiao_saude`, `qtd_ativos`, `qtd_feminino`, `qtd_masculino`, `qtd_sexo_n_informado`, `qtd_ciclo_1`, `qtd_ciclo_2`, `qtd_ciclo_3`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## atencao_primaria_pmmb_especialista_relacao_nominal_ativo
 
@@ -282,9 +263,10 @@ to refresh.
 
 ## cnes_estabelecimentos_por_codigo_cnes
 
-- **Status:** error
+- **Status:** ok
 - **Filters:** `codigo_cnes`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** Parameter 'codigo_cnes' is required.
+- **Fields:** `codigo_cnes`, `numero_cnpj_entidade`, `nome_razao_social`, `nome_fantasia`, `natureza_organizacao_entidade`, `tipo_gestao`, `descricao_nivel_hierarquia`, `descricao_esfera_administrativa`, `codigo_tipo_unidade`, `codigo_cep_estabelecimento`, `endereco_estabelecimento`, `numero_estabelecimento`, `bairro_estabelecimento`, `numero_telefone_estabelecimento`, `latitude_estabelecimento_decimo_grau`, `longitude_estabelecimento_decimo_grau`, `endereco_email_estabelecimento`, `numero_cnpj`, `codigo_identificador_turno_atendimento`, `descricao_turno_atendimento`, `estabelecimento_faz_atendimento_ambulatorial_sus`, `codigo_estabelecimento_saude`, `codigo_uf`, `codigo_municipio`, `descricao_natureza_juridica_estabelecimento`, `codigo_motivo_desabilitacao_estabelecimento`, `estabelecimento_possui_centro_cirurgico`, `estabelecimento_possui_centro_obstetrico`, `estabelecimento_possui_centro_neonatal`, `estabelecimento_possui_atendimento_hospitalar`, `estabelecimento_possui_servico_apoio`, `estabelecimento_possui_atendimento_ambulatorial`, `codigo_atividade_ensino_unidade`, `codigo_natureza_organizacao_unidade`, `codigo_nivel_hierarquia_unidade`, `codigo_esfera_administrativa_unidade`, `data_atualizacao`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## cnes_tipounidades
 
@@ -294,9 +276,10 @@ to refresh.
 
 ## cnes_tipounidades_por_codigo_tipo_unidade
 
-- **Status:** error
+- **Status:** ok
 - **Filters:** `codigo_tipo_unidade`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** Parameter 'codigo_tipo_unidade' is required.
+- **Fields:** `codigo_tipo_unidade`, `descricao_tipo_unidade`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## daf_estoque_medicamentos_bnafar_horus
 
@@ -314,13 +297,15 @@ to refresh.
 
 - **Status:** ok (1000 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `uf`, `start_date`, `end_date`, `keep_raw`, `batch_size`, `max_pages`, `resource_id`, `api_base_url`
-- **Fields:** `codigo_vacina_categoria_atendimento`, `codigo_etnia_indigena_paciente`, `descricao_local_aplicacao`, `sg_vacina`, `uf_paciente`, `uf_estabelecimento`, `data_entrada_rnds`, `codigo_vacina_fabricante`, `codigo_dose_vacina`, `codigo_condicao_maternal`, `codigo_via_administracao`, `codigo_cnes_estabelecimento`, `idade_paciente`, `cep_paciente`, `no_razao_social_estabelecimento`, `situacao_documento`, `descricao_vacina`, `codigo_troca_documento`, `nome_uf_estabelecimento`, `descricao_vacina_fabricante`, `codigo_natureza_estabelecimento`, `codigo_vacina`, `codigo_origem_registro`, `codigo_paciente`, `codigo_municipio_paciente`, `municipio_estabelecimento`, `data_vacina`, `codigo_sistema_origem`, `descricao_sistema_origem`, `descricao_natureza_estabelecimento`, `descricao_vacina_categoria_atendimento`, `nome_fantasia_estalecimento`, `descricao_vacina_grupo_atendimento`, `pais_paciente`
+- **Fields:** `descricao_natureza_estabelecimento`, `codigo_via_administracao`, `nome_pais_paciente`, `codigo_origem_registro`, `codigo_pais_paciente`, `nome_raca_cor_paciente`, `codigo_vacina_fabricante`, `data_vacina`, `codigo_condicao_maternal`, `nome_razao_social_estabelecimento`, `sigla_uf_estabelecimento`, `nome_municipio_estabelecimento`, `codigo_sistema_origem`, `status_documento`, `descricao_tipo_estabelecimento`, `codigo_documento`, `codigo_municipio_estabelecimento`, `data_deletado_rnds`, `nome_uf_paciente`, `numero_cep_paciente`, `codigo_etnia_indigena_paciente`, `descricao_local_aplicacao`, `numero_idade_paciente`, `codigo_lote_vacina`, `codigo_cnes_estabelecimento`, `descricao_vacina_fabricante`, `codigo_tipo_estabelecimento`, `codigo_natureza_estabelecimento`, `codigo_raca_cor_paciente`, `codigo_vacina_grupo_atendimento`, `codigo_paciente`, `descricao_sistema_origem`, `codigo_municipio_paciente`, `nome_municipio_paciente`, `nome_fantasia_estalecimento`, `descricao_condicao_maternal`, `codigo_local_aplicacao`, `sigla_uf_paciente`, `nome_uf_estabelecimento`, `codigo_vacina`, `descricao_via_administracao`, `codigo_estrategia_vacinacao`, `descricao_origem_registro`, `data_entrada_rnds`, `nome_etnia_indigena_paciente`, `tipo_sexo_paciente`, `descricao_nacionalidade_paciente`, `codigo_troca_documento`, `codigo_dose_vacina`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## economia_da_saude_bps
 
-- **Status:** error
+- **Status:** ok
 - **Filters:** `codigoCatmat`, `estado`, `cnpjInstituicao`, `cnpjFornecedor`, `cnpjFabricante`, `modalidade`, `tipoCompra`, `generico`, `registroAnvisa`, `dataCompraInicio`, `dataCompraFim`, `dataInsercaoInicio`, `dataInsercaoFim`, `anoCompra`, `valorUnitarioMinimo`, `valorUnitarioMaximo`, `quantidadeMinima`, `quantidadeMaxima`, `ordenacao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** OpenDataSUS DEMAS request failed for dataset 'economia-da-saude/bps' at endpoint '/economia-da-saude/bps' page 1. OpenDataSUS request failed (400): {"message": "Ao menos um dos par\u00e2metros codigoCatmat ou cnpjInstituicao deve ser informado."} Hint: Check request parameters and endpoint compatibi
+- **Fields:** `anoCompra`, `nomeInstituicao`, `cnpjInstituicao`, `municipio`, `estado`, `dataCompra`, `dataInsercao`, `codigoCatmat`, `descricaoItem`, `unidadeFornecimento`, `generico`, `registroAnvisa`, `modalidade`, `tipoCompra`, `capacidade`, `unidadeMedidaCapacidade`, `cnpjFornecedor`, `nomeFornecedor`, `cnpjFabricante`, `nomeFabricante`, `quantidade`, `precoUnitario`, `precoTotal`, `siglaUnidadeMedida`, `codigoClasse`, `nomeClasse`, `codigoGrupo`, `nomeGrupo`, `numeroProcessoCompra`, `esfera`, `numeroAta`, `validadeCompra`, `codigoPdm`, `nomePdm`, `observacoes`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## economia_da_saude_sistema_de_apuracao_e_gestao_de_custos_do_sus_apurasus
 
@@ -349,9 +334,10 @@ to refresh.
 
 ## febre_amarela
 
-- **Status:** empty
+- **Status:** ok
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- **Fields:** `mun_lpi`, `mes_is`, `sexo`, `dt_is`, `cod_mun_lpi`, `idade`, `dt_obito`, `macrorreg_lpi`, `ano_is`, `se_is`, `monitoramento_is`, `uf_lpi`, `obito`, `cod_uf_lpi`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## ibge_area_territorial
 
@@ -439,9 +425,10 @@ to refresh.
 
 ## mpox
 
-- **Status:** error
+- **Status:** ok
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** OpenDataSUS DEMAS request failed for dataset 'mpox' at endpoint '/vigilancia-e-meio-ambiente/mpox' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
+- **Fields:** `htlv`, `dt_interna`, `pac_imunossup`, `donovanose`, `hpv`, `dt_sin_pri`, `uti`, `cs_raca`, `linfogranuloma`, `co_uf_res`, `dip`, `data_vacina`, `caract_genomica`, `classi_fin`, `cs_sexo`, `orienta_sexual`, `doenca_tra1`, `dt_coleta`, `clado`, `nu_idade_n`, `transm`, `clamidea`, `hiv`, `evolucao`, `verruga_genital`, `id_mn_resi`, `estrangeiro`, `cancro_mole`, `vacina`, `sg_uf_not`, `comp_sexual`, `vinculo_epi`, `profis_saude`, `contag_cd4`, `trichomomas_vaginals`, `gonorreia`, `id_municip`, `ist_ativa`, `cs_gestant`, `contat_animal`, `dt_notific`, `met_lab`, `ident_genero`, `resultado_exa_lab`, `outro_des`, `tp_amost`, `dt_evolucao`, `mycoplasma_genital`, `sintoma`, `local_cont`, `sg_uf`, `hospital`, `sifilis`, `herpes_genital`, `dt_conclusao`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## nasa_firms
 
@@ -469,15 +456,17 @@ to refresh.
 
 ## ouvidoria_ouvidor2
 
-- **Status:** error
+- **Status:** ok
 - **Filters:** `uf_ouvidoria_origem`, `uf_ouvidoria_destino`, `esfera_ouvidoria_origem`, `status_manifestacao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** OpenDataSUS DEMAS request failed for dataset 'ouvidoria/ouvidor2' at endpoint '/ouvidoria/ouvidor2' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
+- **Fields:** `data_manifestacao`, `canal_entrada`, `classificacao_manifestacao`, `ouvidoria_origem`, `municipio_ouvidoria_origem`, `uf_ouvidoria_origem`, `esfera_ouvidoria_origem`, `ouvidoria_destino`, `municipio_ouvidoria_destino`, `uf_ouvidoria_destino`, `esfera_ouvidoria_destino`, `status_manifestacao`, `assunto`, `subassunto1`, `subassunto2`, `subassunto3`, `farmaco`, `daps`, `uf_manifestante`, `municipio_manifestante`, `nivel_ouvidoria_destino`, `subassunto4`, `subassunto5`, `subassunto6`, `doenca`, `medicamento`, `status_problema`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## ouvidoria_ouvidor3
 
-- **Status:** error
+- **Status:** ok
 - **Filters:** `canal_entrada`, `uf_ouvidoria_origem`, `esfera_ouvidoria_origem`, `uf_ouvidoria_destino`, `esfera_ouvidoria_destino`, `status_manifestacao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** OpenDataSUS DEMAS request failed for dataset 'ouvidoria/ouvidor3' at endpoint '/ouvidoria/ouvidor3' page 1. OpenDataSUS request failed (500): {"message": "Internal Server Error"} Hint: Retry later, reduce the query window, or lower request volume if the upstream service is unstable.
+- **Fields:** `data_manifestacao`, `canal_entrada`, `classificacao_manifestacao`, `uf_manifestante`, `municipio_manifestante`, `ouvidoria_origem`, `municipio_ouvidoria_origem`, `uf_ouvidoria_origem`, `esfera_ouvidoria_origem`, `ouvidoria_destino`, `municipio_ouvidoria_destino`, `uf_ouvidoria_destino`, `esfera_ouvidoria_destino`, `nivel_ouvidoria_destino`, `status_manifestacao`, `assunto`, `subassunto1`, `subassunto2`, `subassunto3`, `subassunto4`, `subassunto5`, `subassunto6`, `doenca`, `medicamento`, `status_problema`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## painel_oncologia
 
@@ -499,9 +488,10 @@ to refresh.
 
 ## prevencao_e_promocao_distribuicao_epi_insumo
 
-- **Status:** error
+- **Status:** ok
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
-- **Note:** OpenDataSUS DEMAS request failed for dataset 'prevencao-e-promocao/distribuicao_epi_insumo' at endpoint '/prevencao-e-promocao/distribuicao_epi_insumo' page 1. OpenDataSUS request failed (404): <!doctype html> <html lang=en> <title>404 Not Found</title> <h1>Not Found</h1> <p>The requested URL was no
+- **Fields:** `quantidade`, `unidade`, `material`, `numero_do_pedido`, `data_de_saida`, `status`, `requisitante_destino`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## resp
 
@@ -646,75 +636,78 @@ to refresh.
 
 - **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `tipo_de_responsavel`, `numero_da_autorizacao`, `nome_da_instituicao`, `codigo_do_carro_pipa`, `regiao_geografica`, `data_inicio_de_autorizacao`, `placa`, `finalidade`, `nome_do_responsavel_pelo_carro_pipa`, `municipio`, `cnpj_do_escritorio_regionallocal`, `tipo_da_instituicao`, `sigla_da_instituicao`, `regional_de_saude`, `codigo_ibge`, `data_de_preenchimento`, `nome_do_escritorio_regionallocal`, `data_fim_da_autorizacao`, `responsavel_pelas_informacoes`, `uf`, `n_de_pessoas_abastecidas_estimativa`, `data_de_criacao`, `cnpj_da_instituicao`
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `TP_ABRANGENCIA`, `SG_INSTITUICAO`, `NO_INSTITUICAO`, `NU_CNPJ_NO_INSTITUICAO`, `NO_ESCRITORIO_REGIONAL_LOCAL`, `NU_CNPJ_NO_ESCRITORIO_REGIONAL_LOCAL`, `NU_CARRO_PIPA`, `NU_PLACA`, `DT_CRIACAO`, `DT_PREENCHIMENTO_FORMULARIO`, `DT_TRANSPORTE_INICIO`, `DT_TRANSPORTE_FIM`, `NU_AUTORIZACAO`, `DS_TIPO_FINALIDADE`, `NO_RESPONSAVEL_CADASTRO`, `TP_PESSOA`, `NO_RESPONSAVEL_CADASTRO_CARRO_PIPA`, `NU_PESSOAS_ABASTECIDAS`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_cadastro_carro_pipa_procedencia
 
 - **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `c011`, `c006`, `c009`, `c004`, `c003`, `c007`, `c005`, `c010`, `c000`, `c008`, `c012`, `c001`, `c002`
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `NU_CARRO_PIPA`, `NU_PLACA`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NU_ANO`, `NO_CATEGORIA_MANANCIAL`, `NO_MANANCIAL`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_controle_mensal_amostras_fora_do_padrao
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `regiao_geografica`, `sigla_da_instituicao`, `data_de_preenchimento_do_relatorio_mensal`, `tipo_da_instituicao`, `latitude`, `codigo_forma_de_abastecimento`, `zona`, `parametro`, `cnpj_da_instituicao`, `nome_do_escritorio_regionallocal`, `ponto_de_monitoramento`, `area`, `providencia_do_controle`, `data_de_registro`, `nome_da_forma_de_abastecimento`, `categoria_area`, `resultado`, `local`, `regional_de_saude`, `mes_de_referencia`, `endereco`, `municipio`, `ano_de_referencia`, `nome_da_instituicao`, `longitude`, `data_da_coleta`, `cnpj_do_escritorio_regionallocal`, `codigo_ibge`, `tipo_da_forma_de_abastecimento`, `uf`, `tipo_do_local`
-- **Note:** smallest known resource is 37.2MB, over the 20MB sampling cap (39000038 bytes) - not downloaded
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `TP_ABRANGENCIA`, `SG_INSTITUICAO`, `NO_INSTITUICAO`, `NU_CNPJ_INSTITUICAO`, `NO_ESCRITORIO_REGIONAL_LOCAL`, `NU_CNPJ_ESCRITORIO_REGIONAL_LOCAL`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NU_ANO`, `NU_MES`, `DT_INCLUSAO_REGISTRO`, `DT_FORMULARIO_CADASTRO`, `DT_COLETA`, `PT_MONITORAMENTO`, `PARAMETRO`, `ZONA`, `CATEGORIA_AREA`, `AREA`, `TP_LOCAL`, `NO_LOCAL`, `NO_ENDERECO`, `LATITUDE`, `LONGIDADE`, `RESULTADO`, `PROVIDENCIA_CONTROLE`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_controle_mensal_demais_parametros
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `tipo_da_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `sigla_da_instituicao`, `regional_de_saude`, `regiao_geografica`, `unidade`, `data_da_coleta`, `nome_do_escritorio_regionallocal`, `nome_da_instituicao`, `data_de_registro`, `parametro`, `ano_de_referencia`, `codigo_forma_de_abastecimento`, `nome_do_manancial_superficial`, `tipo_de_captacao`, `data_de_preenchimento_do_relatorio_mensal`, `municipio`, `cnpj_da_instituicao`, `cnpj_do_escritorio_regionallocal`, `resultado`, `mes_de_referencia`, `tipo_da_instituicao`, `nome_do_ponto_de_captacao_subterranea`, `nome_da_eta__uta`, `categoria_do_manancial_superficial`, `uf`, `codigo_ibge`, `categoria_do_ponto_de_captacao_subterranea`
-- **Note:** smallest known resource is 138.0MB, over the 20MB sampling cap (144713899 bytes) - not downloaded
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `TP_EMPRESA`, `SG_INSTITUICAO`, `NO_INSTITUICAO`, `NU_CNPJ_INSTITUICAO`, `NO_ESCRITORIO_REGIONAL_LOCAL`, `NU_CNPJ_ESCRITORIO_REGIONAL_LOCAL`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NO_ETA`, `NU_ANO`, `NU_MES`, `DT_INCLUSAO_REGISTRO`, `DT_FORMULARIO_CADASTRO`, `DT_COLETA_AMOSTRA`, `TP_CAPTACAO`, `NO_CATEGORIA_MANANCIAL`, `NO_MANANCIAL`, `TP_CATEGORIA_CAPT_SUB`, `NO_PONTO_CAPTACAO`, `PARAMETRO`, `UNIDADE`, `RESULTADO`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_controle_mensal_infraestrutura_operacional
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `local`, `numero_de_eventos_de_falta_de_agua`, `cnpj_do_escritorio_regionallocal`, `area`, `nome_da_forma_de_abastecimento`, `tipo_da_forma_de_abastecimento`, `data_de_preenchimento_do_relatorio_mensal`, `numero_de_reclamacoes_de_cor_da_agua`, `mes_de_referencia`, `nome_do_escritorio_regionallocal`, `numero_de_reclamacao_de_gosto_e_ou_odor`, `ano_de_referencia`, `regiao_geografica`, `numero_de_reparos_na_rede_somente_para_saa`, `tipo_da_instituicao`, `tipo_do_local`, `categoria_area`, `zona`, `cnpj_da_instituicao`, `codigo_ibge`, `codigo_forma_de_abastecimento`, `sigla_da_instituicao`, `numero_de_eventos_de_intermitencia_somente_para_saa`, `nome_da_instituicao`, `regional_de_saude`, `uf`, `data_de_registro`, `municipio`
-- **Note:** smallest known resource is 36.4MB, over the 20MB sampling cap (38193694 bytes) - not downloaded
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `TP_ABRANGENCIA`, `SG_INSTITUICAO`, `NO_INSTITUICAO`, `NU_CNPJ_INSTITUICAO`, `NO_ESCRITORIO_REGIONAL_LOCAL`, `NU_CNPJ_ESCRITORIO_REGIONAL_LOCAL`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NU_ANO`, `NU_MES`, `DT_INCLUSAO_REGISTRO`, `DT_FORMULARIO_CADASTRO`, `ZONA`, `CATEGORIA_AREA`, `AREA`, `TP_LOCAL`, `NO_LOCAL`, `NU_REPAROS_REDE`, `NU_INTERMITENCIA`, `NU_FALTA_AGUA`, `NU_RECLAMACAO_COR_AGUA`, `NU_RECLAMACAO_GOSTO_AGUA`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_controle_mensal_parametros_basicos
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `regiao_geografica`, `uf`, `regional_de_saude`, `codigo_ibge`, `municipio`, `tipo_da_instituicao`, `sigla_da_instituicao`, `nome_da_instituicao`, `cnpj_da_instituicao`, `nome_do_escritorio_regional_local`, `cnpj_do_escritorio_regional_local`, `tipo_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `nome_da_eta_uta`, `tipo_de_filtracao`, `ano_de_referencia`, `mes_de_referencia`, `ponto_de_monitoramento`, `parametro`, `campo`, `valor`
-- **Note:** smallest known resource is 37.7MB, over the 20MB sampling cap (39506123 bytes) - not downloaded
+- **Fields:** `Região Geográfica`, `UF`, `Regional de Saúde`, `Código IBGE`, `Município`, `Tipo da Instituição`, `Sigla da Instituição`, `Nome da Instituição`, `CNPJ da Instituição`, `Nome do escritório regional/local`, `CNPJ do escritório regional/local`, `Tipo da Forma de Abastecimento`, `Código Forma de abastecimento`, `Nome da Forma de Abastecimento`, `Nome da ETA / UTA`, `Tipo de Filtração`, `Ano de referência`, `Mês de referência`, `Ponto de Monitoramento`, `Parâmetro`, `Campo`, `Valor`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_controle_mensal_plano_amostragem
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `data_de_registro_no_sisagua`, `regiao_geografica`, `captacao_superficial`, `ano_de_referencia`, `cnpj_da_instituicao`, `razao_habitantesdomicilio`, `tipo_da_forma_de_abastecimento`, `uf`, `municipio`, `campo`, `nome_do_escritorio_regionallocal`, `codigo_ibge`, `parameto`, `captacao_de_agua_de_chuva`, `cnpj_do_escritorio_regionallocal`, `numero_de_economias_residenciais_domicilios_permanentes`, `nome_da_forma_de_abastecimento`, `ponto_de_monitoramento`, `nome_da_etauta`, `populacao_abastecida_estimada`, `codigo_forma_de_abastecimento`, `captacao_subterranea`, `regional_de_saude`, `tempo_medio_diario_de_funcionamento`, `nome_da_instiuicao`, `numero_de_filtros`, `tipo_de_filtracao`, `sigla_da_instituicao`, `tipo_da_instituicao`, `valor`
-- **Note:** smallest known resource is 77.2MB, over the 20MB sampling cap (80933173 bytes) - not downloaded
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `TP_ABRANGENCIA`, `SG_INSTITUICAO`, `NO_INSTITUICAO`, `NU_CNPJ_INSTITUICAO`, `NO_ESCRITORIO_REGIONAL_LOCAL`, `NU_CNPJ_ESCRITORIO_REGIONAL_LOCAL`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NO_ETA`, `HR_TEMPO_MEDIO_DIARIO`, `CAPTACAO_SUPERFICIAL`, `CAPTACAO_SUBTERRANEA`, `CAPTACAO_AGUA_CHUVA`, `TP_FILTRACAO`, `NU_FILTROS`, `NU_ECONOMIA_RESIDENCIAIS`, `RAZAO_HAB_DOMICILIO`, `POP_ABASTECIDA_ESTIMADA`, `NU_ANO`, `DT_INCLUSAO_REGISTRO`, `PT_MONITORAMENTO`, `PARAMETRO`, `CAMPO`, `VALOR`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_controle_semestral
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `regiao_geografica`, `uf`, `regional_de_saude`, `municipio`, `codigo_ibge`, `tipo_da_instituicao`, `sigla_da_instituicao`, `nome_da_instituicao`, `cnpj_da_instituicao`, `nome_do_escritorio_regional_local`, `cnpj_do_escritorio_regional_local`, `tipo_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `nome_da_eta_uta`, `ano_de_referencia`, `semestre_de_referencia`, `data_de_registro`, `data_de_preenchimento_do_relatorio_semestral`, `data_da_coleta`, `data_da_analise`, `ponto_de_monitoramento`, `grupo_de_parametros`, `parametro`, `ld`, `lq`, `resultado`, `trimestre_de_referencia`, `tipo_de_captacao`, `categoria_do_manancial_superficial`, `nome_do_manancial_superficial`, `categoria_do_ponto_de_captacao_subterranea`, `nome_do_ponto_de_captacao_subterranea`, `amostra`, `unidade`, `vmp`
-- **Note:** smallest known resource is 25.8MB, over the 20MB sampling cap (27013997 bytes) - not downloaded
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `TP_INSTITUICAO`, `SG_INSTITUICAO`, `NO_INSTITUICAO`, `NU_CNPJ_INSTITUICAO`, `NO_ESCRITORIO_REGIONAL_LOCAL`, `NU_CNPJ_ESCRITORIO_REGIONAL_LOCAL`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NO_ETA`, `NU_ANO`, `NU_SEMESTRE`, `TP_TRIMESTRE`, `DT_INCLUSAO_REGISTRO`, `DT_FORMULARIO_CADASTRO`, `DT_COLETA`, `DT-ANALISE`, `PT_MONITORAMENTO`, `GRUPO_PARAMETROS`, `PAARAMETRO`, `TP_CAPTACAO`, `CAT_MANANCIAL_SUPERFICIAL`, `NO_MANANCIAL_SUPERFICIAL`, `CAT_PT_CAPTACAO_SUBTERRANEA`, `NO_PT_CAPTACAO_SUBTERRANEA`, `AMOSTRA`, `UNIDADE`, `VMP`, `LD`, `LQ`, `RESULTADO`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_pontos_de_captacao
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `nome_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `municipio`, `regional_de_saude`, `codigo_do_ibge`, `tipo_da_forma_de_abastecimento`, `nome_do_escritorio_regional_local`, `cnpj_do_escritorio_regional_local`, `categoria_do_manancial_superficial`, `longitude`, `vazao`, `latitude`, `nome_da_instiuicao`, `regiao_geografica`, `categoria_do_ponto_de_captacao_subterraneo`, `tipo_da_instituicao`, `nome_do_manancial_superficial`, `tipo_de_captacao`, `nome_do_ponto_de_captacao_subterraneo`, `uf`, `nome_da_eta_uta`, `ano_de_referencia`, `sigla_da_instituicao`, `outorga`
-- **Note:** smallest known resource is 52.6MB, over the 20MB sampling cap (55156888 bytes) - not downloaded
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `TP_ABRANGENCIA`, `SG_INSTITUICAO`, `NO_INSTITUICAO`, `NU_CNPJ_INSTITUICAO`, `NO_ESCRITORIO_REGIONAL_LOCAL`, `NU_CNPJ_ESCRITORIO_REGIONAL_LOCAL`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NO_ETA`, `NU_ANO`, `TP_CAPTACAO`, `NO_CATEGORIA_MANANCIAL`, `NO_MANANCIAL`, `TP_CATEGORIA_CAPT_SUB`, `NO_PONTO_CAPTACAO`, `ST_OUTORGA`, `NU_LATITUDE`, `NU_LONGITUDE`, `NU_VAZAO_CAPTADA`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_populacao_abastecida
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `filtracao`, `numero_de_economias_residenciais_domicilios_permanentes`, `populacao_rural`, `cisterna`, `codigo_forma_de_abastecimento`, `caixa_dagua`, `pop_recebe_agua_de_saa`, `carro_pipa`, `regiao_geografica`, `numero_de_economias_residenciais_de_uso_ocasional`, `nome_da_forma_de_abastecimento`, `chafariz`, `regional_de_saude`, `data_de_preenchimento`, `tipo_da_forma_de_abastecimento`, `codigo_ibge`, `outro_tipo_de_suprimento`, `desinfeccao`, `municipio`, `ano_de_referencia`, `pop_recebe_agua_de_saasac`, `fonte`, `sem_reservacao`, `captacao_de_agua_de_chuva`, `tipo_da_instituicao`, `nome_da_instituicao`, `sigla_da_instituicao`, `populacao_urbana`, `canalizacao`, `uf`, `nome_do_escritorio_regionallocal`, `cnpj_do_escritorio_regionallocal`, `data_de_registro_no_sisagua`, `captacao_superficial`, `captacao_subterranea`, `cnpj_da_instituicao`, `populacao_estimada`
-- **Note:** smallest known resource is 72.8MB, over the 20MB sampling cap (76384011 bytes) - not downloaded
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `TP_ABRANGENCIA`, `SG_EMPRESA`, `NO_EMPRESA`, `NU_CNPJ`, `NO_EMPRESA_1`, `NU_CNPJ_1`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NU_ANO`, `DT_INCLUSAO_REGISTRO`, `DT_FORMULARIO_CADASTRO`, `CARRO_PIPA`, `CHAFARIZ`, `FONTE`, `CISTERNA`, `CANALIZAÇÃO`, `CAIXA_DAGUA`, `SEM_RESERVACAO`, `OUTRO_TIPO_SUPRIMENTO`, `CAPTACAO_SUPERFICIAL`, `CAPTACAO_SUBTERRANEA`, `CAPTACAO_AGUA_CHUVA`, `FILTRACAO`, `DESINFECCAO`, `NU_ECONOMIA_DOMICILIO_PERMAN`, `NU_ECONOMIAS_DOMICILIOS_NAO_PE`, `NU_VALOR_POPULACAO_ESTIMADA`, `NU_VALOR_RURAL`, `NU_VALOR_URBANA`, `POP_RECEBE_AGUA_SAA`, `POP_RECEBE_AGUA_SAA_SAC`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_tratamento_agua
 
-- **Status:** empty
+- **Status:** ok
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Note:** smallest known resource is 78.0MB, over the 20MB sampling cap (81807480 bytes) - not downloaded
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `TP_ABRANGENCIA`, `SG_INSTITUICAO`, `NO_INSTITUICAO`, `NU_CNPJ_INSTITUICAO`, `NO_ESCRITORIO_REGIONAL_LOCAL`, `NU_CNPJ_ESCRITORIO_REGIONAL_LOCAL`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NO_ETA`, `NU_ANO`, `DT_INCLUSAO_REGISTRO`, `DT_FORMULARIO_CADASTRO`, `CAPTACAO_SUPERFICIAL`, `CAPTACAO_SUBTERRANEA`, `CAPTACAO_AGUA_CHUVA`, `NU_CEP`, `NO_LOGRADOURO`, `NU_ENDERECO`, `NU_DDD`, `NU_TELEFONE`, `DS_EMAIL`, `HR_TEMPO_MEDIO_DIARIO`, `ST_PRE_OXIDACAO`, `ST_MISTURA_RAPIDA_COAGULACAO`, `ST_FLOCULACAO`, `ST_DECANTACAO`, `ST_FLOTACAO`, `TP_FILTRACAO`, `NU_FILTROS`, `ST_FILTRANTE`, `ST_POSSUI_DESINFECCAO`, `ST_CLORO_GAS_HIPOCLORITO`, `ST_ISOCIANURATOS_CLORADOS`, `ST_CLORAMINA`, `ST_DIOXIDO_DE_CLORO`, `ST_OZONIO`, `ST_UV`, `DS_ESPECIF_OUTRO_TIPO_DESINFEC`, `ST_CLORO_RESIDUAL_LIVRE`, `ST_DIOXIDO_DE_CLORO_RESIDUAL`, `ST_CLORO_RESIDUAL_COMBINADO`, `ST_EPICLORIDRINA`, `ST_ACRILAMIDA`, `ST_FLUORETACAO`, `ST_DESFLUORETACAO`, `DS_ESPECIF_OUTRA_ETAPA_TRATAME`, `NU_VAZAO_TRATAMENTO`, `CARRO_PIPA`, `CHAFARIZ`, `FONTE`, `CISTERNA`, `CANALIZACAO`, `OUTRO_TP_SUPRIMENTO`, `NO_RESPONSAVEL_TECNICO`, `TP_FORMACAO`, `CO_CONSELHO_CLASSE`, `ART`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_tratamento_de_agua
 
@@ -726,21 +719,22 @@ to refresh.
 
 - **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `parametro_ciano`, `nome_da_etauta`, `hora_da_coleta`, `descricao_do_local`, `codigo_forma_de_abastecimento`, `tipo_da_forma_de_abastecimento`, `mes`, `data_da_coleta`, `regional_de_saude`, `categoria_area`, `resultado`, `motivo_da_coleta`, `data_de_registro_no_sisagua`, `grupo`, `ano`, `codigo_ibge`, `data_do_laudo`, `latitude`, `municipio`, `zona`, `local`, `nome_da_forma_de_abastecimento`, `tipo_do_local`, `uf`, `longitude`, `procedencia_da_coleta`, `area`, `numero_da_amostra`, `ponto_de_coleta`, `regiao_geografica`
+- **Fields:** `Região Geográfica`, `UF`, `Regional de Saúde`, `Município`, `Código IBGE`, `Número da amostra`, `Motivo da Coleta`, `Tipo da Forma de Abastecimento`, `Código Forma de Abastecimento`, `Nome da Forma de Abastecimento`, `Nome da ETA/UTA`, `Ano`, `Mês`, `Data da Coleta`, `Hora da coleta`, `Data do Laudo`, `Data de Registro no SISAGUA`, `Procedência da Coleta`, `Ponto de Coleta`, `Descrição do Local`, `Zona`, `Categoria Área`, `Área`, `Tipo do Local`, `Local`, `Latitude`, `Longitude`, `Grupo`, `Parâmetro (ciano)`, `Resultado`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_vigilancia_demais_parametros
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `descricao_do_local`, `area`, `grupo_de_parametros`, `lq`, `longitude`, `parametro_demais_parametros`, `codigo_ibge`, `mes`, `latitude`, `resultado`, `data_da_coleta`, `procedencia_da_coleta`, `zona`, `numero_da_amostra`, `municipio`, `tipo_do_local`, `nome_da_forma_de_abastecimento`, `nome_da_etauta`, `uf`, `regional_de_saude`, `hora_da_coleta`, `tipo_da_forma_de_abastecimento`, `data_da_analise`, `ld`, `codigo_forma_de_abastecimento`, `motivo_da_coleta`, `local`, `regiao_geografica`, `categoria_area`, `ano`, `data_do_laudo`, `ponto_de_coleta`, `data_de_registro_no_sisagua`
-- **Note:** smallest known resource is 98.0MB, over the 20MB sampling cap (102776276 bytes) - not downloaded
+- **Fields:** `Região Geográfica`, `UF`, `Regional de Saúde`, `Município`, `Código IBGE`, `Número da amostra`, `Motivo da coleta`, `Tipo da Forma de Abastecimento`, `Código Forma de abastecimento`, `Nome da Forma de Abastecimento`, `Nome da ETA/UTA`, `Ano`, `Mês`, `Data da Coleta`, `Hora da coleta`, `Data do Laudo`, `Data de Registro no SISAGUA`, `Procedência da Coleta`, `Ponto de Coleta`, `Descrição do Local`, `Zona`, `Categoria Área`, `Área`, `Tipo do local`, `Local`, `Latitude`, `Longitude`, `Grupo de parâmetros`, `Parâmetro (demais parâmetros)`, `Data da análise`, `LD`, `LQ`, `Resultado`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## sisagua_vigilancia_parametros_basicos
 
-- **Status:** empty
+- **Status:** ok (10 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `resource_filter`, `keep_raw`, `timeout`, `api_base_url`
-- **Fields:** `regiao_geografica`, `uf`, `regional_de_saude`, `municipio`, `codigo_ibge`, `numero_da_amostra`, `motivo_da_coleta`, `tipo_da_forma_de_abastecimento`, `codigo_forma_de_abastecimento`, `nome_da_forma_de_abastecimento`, `nome_da_eta_uta`, `ano`, `mes`, `data_da_coleta`, `hora_da_coleta`, `data_do_laudo`, `data_de_registro_no_sisagua`, `procedencia_da_coleta`, `ponto_de_coleta`, `descricao_do_local`, `zona`, `categoria_area`, `area`, `tipo_do_local`, `local`, `latitude`, `longitude`, `parametro`, `analise_realizada`, `data_da_analise`, `ld`, `lq`, `resultado`, `providencia`
-- **Note:** smallest known resource is 81.5MB, over the 20MB sampling cap (85434855 bytes) - not downloaded
+- **Fields:** `NO_REGIAO`, `SG_UF`, `NO_REGIONAL`, `NO_MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `NU_AMOSTRA`, `TP_MOTIVO_COLETA`, `TP_ABASTECIMENTO`, `NU_SOLUCAO_ABASTECIMENTO`, `NO_SOLUCAO_ABASTECIMENTO`, `NO_ETA`, `NU_ANO`, `NU_MES`, `DT_COLETA`, `HR_COLETA`, `DT_LAUDO`, `DT_INCLUSAO_REGISTRO`, `TP_PROCEDENCIA_COLETA`, `TP_PONTO_COLETA`, `DS_LOCAL`, `TP_ZONA`, `NO_CATEGORIA_AREA`, `NO_AREA`, `TP_LOCAL`, `NO_LOCAL`, `NU_LATITUDE`, `NU_LONGITUDE`, `PARAMETRO`, `ANALISE_REALIZADA`, `DT_ANALISE`, `LD`, `LQ`, `RESULTADO`, `PROVIDENCIA`
+- **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
 ## siscan
 

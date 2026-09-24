@@ -2,6 +2,53 @@
 
 ## [Unreleased]
 
+### Fixed: conteúdo exportado e resiliência dos jobs
+Duas verificações novas. `scripts/verificar_conteudo.py` coleta cada fonte em
+CSV, Parquet e SQLite e abre o arquivo: linhas, colunas entre formatos,
+colunas contra o dicionário, acentuação quebrada e valor perdido na
+conversão (nas APIs, contra o JSON bruto da mesma coleta, porque o DEMAS não
+devolve as linhas na mesma ordem duas vezes). `scripts/verificar_resiliencia.py`
+sobe um servidor real e provoca jobs simultâneos, cancelamento no meio do
+download, origem fora do ar e muda, servidor derrubado no meio da coleta e
+entradas inválidas; os seis casos passam.
+
+Defeitos encontrados:
+
+- **Valor perdido na conversão dos arquivos do portal** (SRAG, SISAGUA,
+  tuberculose, ENANI). Parquet e SQLite eram tipados pelas primeiras 10 mil
+  linhas com `ignore_errors`: o que não cabia no tipo virava nulo sem aviso
+  ("10A" numa coluna lida como inteira), e o inteiro comia o zero à esquerda
+  de CNES e CEP. Toda coluna agora sai como texto, como na ANVISA.
+- **CSV do portal fora do padrão**: saía como publicado, com `;`, e a SRAG de
+  2016 em latin-1. Agora é UTF-8 com vírgula, como toda outra fonte; com
+  `keep_raw` o original fica como `<nome>.original.csv`.
+- **Carro-pipa (procedência) sem cabeçalho**: o SISAGUA publica o CSV sem
+  essa linha, e a primeira linha de dado virava nome de coluna e sumia do
+  resultado; o SQLite nem exportava. O cabeçalho é reconstruído pela
+  convenção do próprio SISAGUA (o dicionário da página dá 404), e a conversão
+  falha com erro claro se a origem mudar o número de campos.
+- **Texto codificado duas vezes pela origem** nas APIs do DEMAS
+  ("ALTO RIO JURUÃ\x81" por "ALTO RIO JURUÁ", saúde indígena): corrigido
+  quando a volta é exata, com aviso no job de quantos valores mudaram.
+- **Downloads do portal e da ANVISA sem progresso**: o job mostrava 0 B até
+  o fim e o cancelamento só agia depois do arquivo inteiro. Agora o progresso
+  sai a cada 1 MB e o cancelamento leva menos de um segundo, sem deixar
+  `.part`.
+- **Cópia local desatualizada**: um arquivo já presente na pasta era
+  reaproveitado só por existir, e o banco vivo da SRAG, republicado toda
+  semana com o mesmo nome, podia sair velho. Agora só se o tamanho bater com
+  o do servidor.
+- `POST /jobs` quebrava em fontes cujo ano é opcional no schema e obrigatório
+  no adapter (registro civil do IBGE): todo padrão do schema passa a ser
+  aplicado, como a interface já fazia.
+- Nome de coluna do CMED com espaço não separável no fim
+  (`DESTINAÇÃO COMERCIAL`).
+
+Dicionário de campos: 114 das 124 fontes com colunas reais (eram 94). As 13
+do SISAGUA tinham os nomes da antiga API do DEMAS, e o PNI os nomes antigos
+da API. Ficam como defeito conhecido da origem, sem correção possível: `�`
+no PNI (a API já manda `\ufffd`) e 29 lotes de vacina com `Â` na SRAG 2026.
+
 ### Fixed: defeitos achados pela varredura de rotas
 Nova ferramenta `scripts/verificar_rotas.py` percorre as 124 fontes pela API
 e pela CLI, na camada offline (746 verificações), na de estimativa e na de

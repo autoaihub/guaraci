@@ -118,7 +118,8 @@ class AnvisaClient:
 
         try:
             written = request_with_retry(send, max_attempts=self.max_attempts)
-        except Exception:
+        except BaseException:
+            # BaseException: o cancelamento do job também limpa o .part.
             partial.unlink(missing_ok=True)
             raise
         partial.replace(destination)

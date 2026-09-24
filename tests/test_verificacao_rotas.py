@@ -116,3 +116,25 @@ def test_empty_origin_files_get_an_honest_warning(tmp_path):
     pl.DataFrame({"a": [1]}).write_parquet(cheio)
     assert _all_parquets_empty([str(vazio)])
     assert not _all_parquets_empty([str(vazio), str(cheio)])
+
+
+def test_optional_params_with_defaults_reach_the_adapter(monkeypatch):
+    # ibge_casamentos: ano opcional no schema, obrigatório no adapter.
+    service = DownloadService()
+    captured = {}
+    selected = service._get_registered_source("ibge_casamentos")
+    monkeypatch.setattr(selected, "download", lambda **kw: captured.update(kw) or "ok")
+    service.run("ibge_casamentos")
+    assert captured["start_year"] == captured["end_year"] == 2024
+
+
+def test_double_encoded_text_is_repaired_and_legit_text_kept():
+    from guaraci.opendatasus.datasource import repair_double_encoded, repair_double_encoded_rows
+
+    assert repair_double_encoded("ALTO RIO JURUÃ\u0081") == "ALTO RIO JURUÁ"
+    assert repair_double_encoded("ALTO RIO SOLIMÃ\u0095ES") == "ALTO RIO SOLIMÕES"
+    assert repair_double_encoded("DECRETO NÂº 2.271/97") == "DECRETO Nº 2.271/97"
+    for legit in ("SÃO PAULO", "NÃO INFORMADO", "Fundação", "N�o informado"):
+        assert repair_double_encoded(legit) == legit
+    rows, n = repair_double_encoded_rows([{"dsei": "JURUÃ\u0081", "n": 1}, {"dsei": "SÃO"}])
+    assert n == 1 and rows[0]["dsei"] == "JURUÁ" and rows[1]["dsei"] == "SÃO"

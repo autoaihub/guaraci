@@ -25,7 +25,9 @@ changes basename on every extraction, so it naturally re-downloads).
 
 from __future__ import annotations
 
+import csv
 import re
+import shutil
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
@@ -205,6 +207,32 @@ def _extract_csv_members(archive: Path) -> List[Path]:
                     shutil.copyfileobj(source, sink, 1 << 20)
             extracted.append(target)
     return extracted
+
+
+def _prepend_header(path: Path, columns: Sequence[str]) -> None:
+    """Escreve a linha de cabeçalho num CSV publicado sem ela.
+
+    Confere antes que a primeira linha tem o número de campos esperado: se a
+    origem mudar o layout, a conversão para com erro claro em vez de rotular
+    colunas errado. Já tendo o cabeçalho, não faz nada.
+    """
+    separator = _csv_separator(path)
+    with open(path, "rb") as handle:
+        first = handle.readline()
+    text = first.decode("latin-1").rstrip("\r\n")
+    if text.split(separator)[0].strip('"') == columns[0]:
+        return
+    campos = len(next(csv.reader([text], delimiter=separator)))
+    if campos != len(columns):
+        raise ValueError(
+            f"'{path.name}' has {campos} fields per row, but the header Guaraci supplies "
+            f"for this headerless file has {len(columns)}; the origin changed its layout."
+        )
+    staging = path.with_name(f"{path.stem}.cabecalho.csv")
+    with open(staging, "wb") as sink, open(path, "rb") as source:
+        sink.write((separator.join(columns) + "\r\n").encode("ascii"))
+        shutil.copyfileobj(source, sink, length=1 << 20)
+    staging.replace(path)
 
 
 def _utf8_csv(path: Path) -> Path:
@@ -391,7 +419,9 @@ class PortalFilesClient:
 
         try:
             written = request_with_retry(send, max_attempts=self.max_attempts)
-        except Exception:
+        except BaseException:
+            # BaseException: o cancelamento do job (JobCancelledError) também
+            # precisa limpar o .part, e ele não é Exception.
             if tmp_path.exists():
                 tmp_path.unlink(missing_ok=True)
             raise
@@ -460,6 +490,9 @@ class PortalFilePackageSpec:
     year_regex: str = r"(20\d{2})"
     format_priority: Tuple[str, ...] = ("parquet", "csv")
     large_dataset_note: Optional[str] = None
+    # Cabeçalho para CSV publicado sem linha de cabeçalho. Vazio = o arquivo
+    # traz o próprio cabeçalho.
+    csv_columns: Tuple[str, ...] = ()
 
 
 # SISAGUA resource pages (verified live 2026-08-17) always ship one .zip per
@@ -612,6 +645,18 @@ PACKAGE_SPECS: Dict[str, PortalFilePackageSpec] = {
         slug="sisagua-cadastro-carro-pipa-procedencia",
         exclude_terms=_SISAGUA_EXCLUDE_TERMS,
         format_priority=_SISAGUA_FORMAT_PRIORITY,
+        # Publicado sem cabeçalho (o CSV, e o JSON gerado dele usa a primeira
+        # linha de dado como chave); o dicionário da página dá 404 e a API do
+        # DEMAS devolve c003..c011 (2026-09-24). Os nomes seguem a convenção
+        # do próprio SISAGUA: os 7 primeiros são os do carro_pipa_populacao,
+        # TP/NU/NO_SOLUCAO_ABASTECIMENTO e NU_ANO os do controle mensal (SAA,
+        # S410060000002), e os dois últimos, preenchidos só quando os quatro
+        # anteriores vêm vazios, os de pontos_de_captacao (rio, RIO BRUMADO).
+        csv_columns=(
+            "NO_REGIAO", "SG_UF", "NO_REGIONAL", "NO_MUNICIPIO", "CO_MUNICIPIO_IBGE",
+            "NU_CARRO_PIPA", "NU_PLACA", "TP_ABASTECIMENTO", "NU_SOLUCAO_ABASTECIMENTO",
+            "NO_SOLUCAO_ABASTECIMENTO", "NU_ANO", "NO_CATEGORIA_MANANCIAL", "NO_MANANCIAL",
+        ),
     ),
     "sisagua_cadastro_carro_pipa_populacao": PortalFilePackageSpec(
         slug="sisagua-cadastro-carro-pipa-populacao",
@@ -668,6 +713,7 @@ class PortalFileDataSource(DataSource):
     ) -> None:
         super().__init__(name="opendatasus_portal_files", output_path=output_path)
         self._client = client
+        self._csv_columns: Tuple[str, ...] = ()
 
     # -- spec/client resolution -------------------------------------------------
 
@@ -804,6 +850,7 @@ class PortalFileDataSource(DataSource):
     ) -> Dict[str, object]:
         dataset_key = (dataset or "").strip().lower()
         spec = self._resolve_spec(dataset_key)
+        self._csv_columns = spec.csv_columns
         client = self._resolve_client(api_base_url=api_base_url, timeout=timeout)
         resources = self._discover_resources(
             client,
@@ -830,12 +877,36 @@ class PortalFileDataSource(DataSource):
         failed: List[str] = []
         for index, resource in enumerate(selected, start=1):
             dest_path = self.output_path / resource.basename
-            if dest_path.exists():
+            remote_size = resource.size_bytes
+            if dest_path.exists() and remote_size is None:
+                remote_size = client.head_content_length(resource.url)
+            # A cópia local só é reaproveitada se tiver o tamanho publicado:
+            # o banco vivo da SRAG é republicado toda semana com o mesmo nome,
+            # e checar só a existência entregava a versão velha. Sem tamanho
+            # conhecido, reaproveita (sem como conferir, e offline funciona).
+            if dest_path.exists() and (remote_size is None or dest_path.stat().st_size == remote_size):
                 skipped.append(str(dest_path))
                 materialized.append(str(dest_path))
             else:
+                def on_bytes(written: int, _path=dest_path, _index=index, _total=remote_size) -> None:
+                    # Sem este evento o job via 0 B do começo ao fim, e o
+                    # cancelamento, que só age num evento, esperava o arquivo
+                    # inteiro (a SRAG passa de 300 MB).
+                    if progress_callback is not None:
+                        progress_callback(
+                            {
+                                "event": "file_progress",
+                                "source": dataset_key,
+                                "documents_total": len(selected),
+                                "document_index": _index,
+                                "file_path": str(_path),
+                                "file_bytes_downloaded": written,
+                                "file_total_bytes": _total or 0,
+                            }
+                        )
+
                 try:
-                    client.download_file(resource.url, dest_path)
+                    client.download_file(resource.url, dest_path, progress_callback=on_bytes)
                     materialized.append(str(dest_path))
                 except Exception:  # noqa: BLE001 - recorded as failed, not raised
                     failed.append(resource.url)
@@ -981,7 +1052,7 @@ class PortalFileDataSource(DataSource):
         vários CSV num zip só: 26 bancos imputados.
         """
         if path.suffix.lower() != ".zip":
-            return [self._convert_to_format(path, output_format)]
+            return [self._convert_to_format(path, output_format, keep_raw=keep_raw)]
 
         members = _extract_csv_members(path)
         if not members:
@@ -991,15 +1062,19 @@ class PortalFileDataSource(DataSource):
             )
         exported: List[Path] = []
         for member in members:
-            converted = self._convert_to_format(member, output_format)
+            converted = self._convert_to_format(member, output_format, keep_raw=keep_raw)
             exported.append(converted)
             if converted != member and not keep_raw:
                 member.unlink(missing_ok=True)
         return exported
 
-    def _convert_to_format(self, path: Path, output_format: str) -> Path:
+    def _convert_to_format(self, path: Path, output_format: str, *, keep_raw: bool = False) -> Path:
         normalized = output_format.strip().lower()
         suffix = path.suffix.lower().lstrip(".")
+        if suffix == "csv" and self._csv_columns:
+            _prepend_header(path, self._csv_columns)
+        if suffix == normalized == "csv":
+            return self._normalize_csv(path, keep_raw=keep_raw)
         if suffix == normalized:
             return path
         if suffix not in {"parquet", "csv"}:
@@ -1017,6 +1092,31 @@ class PortalFileDataSource(DataSource):
         finally:
             if read_path != path:
                 read_path.unlink(missing_ok=True)
+
+    @staticmethod
+    def _normalize_csv(path: Path, *, keep_raw: bool) -> Path:
+        """CSV pedido como CSV sai no padrão do Guaraci: UTF-8 e vírgula.
+
+        Antes o arquivo saía como veio da origem: a SRAG com ``;`` e a de
+        2016 em latin-1, enquanto toda outra fonte exporta UTF-8 com vírgula.
+        Quem lia os CSVs do Guaraci com um leitor só recebia essas bases
+        quebradas. Tudo é lido como texto, então nenhum valor muda; com
+        ``keep_raw`` o original fica ao lado como ``<nome>.original.csv``.
+        """
+        separator = _csv_separator(path)
+        read_path = _utf8_csv(path)
+        if separator == "," and read_path == path:
+            return path
+        staging = path.with_name(f"{path.stem}.normalizando.csv")
+        try:
+            pl.scan_csv(read_path, separator=separator, infer_schema=False).sink_csv(staging)
+        finally:
+            if read_path != path:
+                read_path.unlink(missing_ok=True)
+        if keep_raw:
+            path.replace(path.with_name(f"{path.stem}.original.csv"))
+        staging.replace(path)
+        return path
 
     def _convert_file(
         self,
@@ -1048,12 +1148,7 @@ class PortalFileDataSource(DataSource):
         frame = (
             pl.read_parquet(path)
             if suffix == "parquet"
-            else pl.read_csv(
-                path,
-                separator=_csv_separator(path),
-                infer_schema_length=10000,
-                ignore_errors=True,
-            )
+            else pl.read_csv(path, separator=_csv_separator(path), infer_schema=False)
         )
         if normalized == "csv":
             frame.write_csv(dest)
@@ -1067,12 +1162,12 @@ class PortalFileDataSource(DataSource):
     def _scan(path: Path, suffix: str) -> pl.LazyFrame:
         if suffix == "parquet":
             return pl.scan_parquet(path)
-        return pl.scan_csv(
-            path,
-            separator=_csv_separator(path),
-            infer_schema_length=10000,
-            ignore_errors=True,
-        )
+        # Toda coluna como texto. A inferência pelas primeiras 10 mil linhas
+        # com ignore_errors transformava em nulo, sem aviso, o valor que não
+        # cabia no tipo ("10A" numa coluna lida como inteira), e o inteiro
+        # comia o zero à esquerda de CNES e CEP. O CSV não tem tipo; quem
+        # interpreta é a camada prata, como na ANVISA.
+        return pl.scan_csv(path, separator=_csv_separator(path), infer_schema=False)
 
     # -- manifest / abstract contract ---------------------------------------
 

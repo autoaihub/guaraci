@@ -301,34 +301,40 @@ def camada_discovery(api: TestClient, fontes: List[Dict[str, Any]], rel: Relator
 # --- camada jobs ------------------------------------------------------------
 
 
+def params_pequenos(schema: Dict[str, Any], s: str, output_dir: Path) -> Dict[str, Any]:
+    """Pedido do formulário padrão, encolhido para uma coleta de teste."""
+    nomes = {p["name"] for p in schema["params"]}
+    params = ui_payload(schema)
+    for chave, valor in _SMALL.items():
+        if chave in nomes:
+            spec = next(p for p in schema["params"] if p["name"] == chave)
+            lo, hi = spec.get("minimum"), spec.get("maximum")
+            if isinstance(valor, int) and hi is not None and valor > hi:
+                valor = hi
+            if isinstance(valor, int) and lo is not None and valor < lo:
+                valor = lo
+            allowed = spec.get("allowed_values")
+            if allowed and isinstance(valor, list) and not set(valor) <= set(allowed):
+                continue
+            params[chave] = valor
+    # Ano: o padrão do formulário; sem padrão (INMET, INPE), 2023.
+    for spec in schema["params"]:
+        if spec["name"] in ("start_year", "end_year") and params.get(spec["name"]) is None:
+            params[spec["name"]] = min(2023, spec.get("maximum") or 2023)
+    params.update(_OVERRIDES.get(s, {}))
+    params["output_dir"] = str(output_dir)
+    if "output_format" in nomes and "output_format" not in params:
+        params["output_format"] = "csv"
+    return params
+
+
 def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, timeout: int) -> None:
     base = Path(tempfile.mkdtemp(prefix="guaraci_jobs_"))
 
     def um(fonte: Dict[str, Any]) -> None:
         s = fonte["source"]
         schema = api.get(f"/sources/{s}/schema").json()
-        nomes = {p["name"] for p in schema["params"]}
-        params = ui_payload(schema)
-        for chave, valor in _SMALL.items():
-            if chave in nomes:
-                spec = next(p for p in schema["params"] if p["name"] == chave)
-                lo, hi = spec.get("minimum"), spec.get("maximum")
-                if isinstance(valor, int) and hi is not None and valor > hi:
-                    valor = hi
-                if isinstance(valor, int) and lo is not None and valor < lo:
-                    valor = lo
-                allowed = spec.get("allowed_values")
-                if allowed and isinstance(valor, list) and not set(valor) <= set(allowed):
-                    continue
-                params[chave] = valor
-        # Ano: o padrão do formulário; sem padrão (INMET, INPE), 2023.
-        for spec in schema["params"]:
-            if spec["name"] in ("start_year", "end_year") and params.get(spec["name"]) is None:
-                params[spec["name"]] = min(2023, spec.get("maximum") or 2023)
-        params.update(_OVERRIDES.get(s, {}))
-        params["output_dir"] = str(base / s)
-        if "output_format" in nomes and "output_format" not in params:
-            params["output_format"] = "csv"
+        params = params_pequenos(schema, s, base / s)
 
         def roda() -> Dict[str, Any]:
             resp = api.post("/jobs", json={"source": s, "params": params})

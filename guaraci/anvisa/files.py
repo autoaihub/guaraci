@@ -286,10 +286,25 @@ class AnvisaFileDataSource(DataSource):
         remote = client.head(self.spec.filename)
         raw_path = base_dir / self.spec.filename
         skipped = raw_path.exists() and remote.size is not None and raw_path.stat().st_size == remote.size
+        if progress_callback is not None:
+            progress_callback({"event": "download_start", "source": self.name, "documents_total": 1})
         if not skipped:
-            if progress_callback is not None:
-                progress_callback({"event": "download_start", "source": self.name, "documents_total": 1})
-            client.download(self.spec.filename, raw_path)
+            def on_bytes(written: int) -> None:
+                # Sem este evento o job via 0 B até o fim, e o cancelamento,
+                # que só age num evento, esperava o arquivo inteiro.
+                if progress_callback is not None:
+                    progress_callback({
+                        "event": "file_progress", "source": self.name, "documents_total": 1,
+                        "document_index": 1, "file_path": str(raw_path),
+                        "file_bytes_downloaded": written, "file_total_bytes": remote.size or 0,
+                    })
+
+            client.download(self.spec.filename, raw_path, progress_callback=on_bytes)
+        if progress_callback is not None:
+            progress_callback({
+                "event": "file_skipped" if skipped else "file_completed", "source": self.name,
+                "documents_total": 1, "document_index": 1, "file_path": str(raw_path),
+            })
 
         exported: List[str] = []
         warnings: List[str] = []
@@ -335,6 +350,12 @@ class AnvisaFileDataSource(DataSource):
         try:
             rejected = _to_utf8(raw_path, self.spec, utf8, rejects)
             frame = pl.scan_csv(utf8, separator=";", infer_schema=False, quote_char='"')
+            # O CMED publica "DESTINAÇÃO COMERCIAL ": com o espaço não
+            # separável no nome, frame["DESTINAÇÃO COMERCIAL"] falhava.
+            nomes = frame.collect_schema().names()
+            limpos = {n: n.strip() for n in nomes if n != n.strip()}
+            if limpos:
+                frame = frame.rename(limpos)
             if fmt == "csv":
                 dest = base_dir / f"{self.name}.csv"
                 frame.sink_csv(dest)

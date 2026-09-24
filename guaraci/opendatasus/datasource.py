@@ -8,7 +8,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Callable, Dict, List, Mapping, Optional, Sequence, Union
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 from urllib.parse import quote
 
 import polars as pl
@@ -47,6 +47,40 @@ class DemasEndpointPlan:
     label: str
     uf_params: tuple[str, ...]
     query_params: Dict[str, object] = field(default_factory=dict)
+
+
+_DOUBLE_ENCODED = re.compile("[ÃÂ][-¿]")
+
+
+def repair_double_encoded(value: str) -> str:
+    """Desfaz UTF-8 que a origem decodificou como latin-1 e recodificou.
+
+    A API do DEMAS devolve, por exemplo, "ALTO RIO JURU\u00c3\u0081" para
+    "ALTO RIO JURUÁ" (verificado com curl em 2026-09-24, saúde indígena).
+    Só troca quando a volta é exata: o texto inteiro precisa voltar a bytes
+    latin-1 e esses bytes precisam ser UTF-8 válido. Texto legítimo com "Ã"
+    seguido de letra (NÃO, SÃO) não casa com o padrão, que exige um
+    caractere de controle ou símbolo latin-1 logo depois.
+    """
+    if not _DOUBLE_ENCODED.search(value):
+        return value
+    try:
+        repaired = value.encode("latin-1").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return value
+    return repaired
+
+
+def repair_double_encoded_rows(rows: List[Dict[str, object]]) -> Tuple[List[Dict[str, object]], int]:
+    count = 0
+    for row in rows:
+        for key, value in row.items():
+            if isinstance(value, str):
+                fixed = repair_double_encoded(value)
+                if fixed != value:
+                    row[key] = fixed
+                    count += 1
+    return rows, count
 
 
 class OpenDataSUSDataSource(DataSource):
@@ -581,6 +615,7 @@ class OpenDataSUSDataSource(DataSource):
         pages_scanned = 0
         truncated = False
         uf_conferivel = True
+        repaired_values = 0
 
         for endpoint_spec in endpoints:
             endpoint = endpoint_spec.path
@@ -608,6 +643,8 @@ class OpenDataSUSDataSource(DataSource):
                 fetched = self._extract_demas_rows(payload)
                 if not fetched:
                     break
+                fetched, repaired = repair_double_encoded_rows(fetched)
+                repaired_values += repaired
 
                 # A origem aceita o filtro de UF e nem sempre o aplica, então o
                 # recorte é reconferido aqui. Só quando as linhas trazem a UF:
@@ -692,6 +729,12 @@ class OpenDataSUSDataSource(DataSource):
             warnings.append(
                 "No data artifact generated (keep_raw=false and output_format is empty). "
                 "Set output_format or enable keep_raw."
+            )
+
+        if repaired_values:
+            warnings.append(
+                f"{repaired_values} text value(s) arrived double-encoded from the origin "
+                "(e.g. 'JURUÃ\x81' for 'JURUÁ') and were repaired."
             )
 
         if truncated:
