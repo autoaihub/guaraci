@@ -401,6 +401,19 @@ Source-specific parameters:
 - `limit` and `offset` are not exposed to users; Guaraci controls them through `batch_size` and pagination.
 - Unknown parameters are rejected by the standard schema validation path.
 - Contract tests verify every generated source against the local Swagger catalog; live upstream availability can be checked with `scripts/smoke_opendatasus_sources.py`.
+- Point queries (`/cnes/estabelecimentos/{codigo_cnes}`, `/cnes/tipounidades/{codigo_tipo_unidade}`) return the record itself, not a list; it becomes a one-row export named after the requested code.
+- `economia_da_saude_bps`: `codigoCatmat` is numeric at the API (`267614`). The BPS portal shows it as `BR0267614`; that prefix is stripped, since the API answers it with an empty list.
+
+Endpoints empty at the origin. These five answer HTTP 200 with an empty list
+and take no required parameter (checked with a direct request on 2026-09-24),
+so a job on them completes with the warning "No records returned". The
+emptiness is upstream, not a Guaraci filter:
+`ciencia_tecnologia_plataformabr_pesquisa_saude`,
+`ciencia_tecnologia_plataformabr_projeto_aprovado`,
+`atencao_primaria_pmmb_relatorio_historico_cadastro_cnes`,
+`saude_indigena_acompanhamento_obra_infraestrutura_saude`,
+`vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos`
+(for births use `sinasc`).
 
 ### 3.7 SINAN (`sinan`)
 

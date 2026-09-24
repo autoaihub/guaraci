@@ -644,8 +644,15 @@ class OpenDataSUSDataSource(DataSource):
         self._buffers_by_dataset[dataset] = records
         self._latest_dataset = dataset
 
+        # Consulta pontual: o molde "{codigo_cnes}" vira o código pedido no
+        # nome do arquivo, em vez de sair literal.
+        stem_dataset = re.sub(
+            r"\{(\w+)\}",
+            lambda m: str(api_params.get(m.group(1), m.group(1))),
+            dataset,
+        )
         artifact_stem = self._build_artifact_stem(
-            dataset=dataset,
+            dataset=stem_dataset,
             start=effective_start,
             end=effective_end,
             uf=uf,
@@ -998,6 +1005,10 @@ class OpenDataSUSDataSource(DataSource):
                     continue
                 if clean_key in OpenDataSUSDataSource._candidate_uf_param_names():
                     cleaned = cleaned.upper()
+                if clean_key == "codigoCatmat":
+                    # O portal do BPS mostra o código como "BR0267614"; a API
+                    # só casa com "267614" e devolve lista vazia para o resto.
+                    cleaned = re.sub(r"^BR0*", "", cleaned, flags=re.IGNORECASE) or cleaned
                 normalized[clean_key] = cleaned
                 continue
             normalized[clean_key] = value
@@ -1144,6 +1155,11 @@ class OpenDataSUSDataSource(DataSource):
                     if isinstance(item, Mapping):
                         rows.append({str(key): item_value for key, item_value in item.items()})
                 return rows
+        # Consulta pontual (/cnes/estabelecimentos/{codigo_cnes},
+        # /cnes/tipounidades/{codigo}) devolve o próprio registro, sem lista
+        # em volta. Antes ele era descartado e o job dizia "No records".
+        if payload and not any(isinstance(value, Mapping) for value in payload.values()):
+            return [{str(key): value for key, value in payload.items()}]
         return []
 
     def _filter_demas_rows(

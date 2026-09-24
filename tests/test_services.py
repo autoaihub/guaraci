@@ -99,9 +99,10 @@ def test_datasus_source_schema_allows_current_year() -> None:
     current_year = datetime.datetime.now().year
     service = DownloadService()
 
-    # SIH/SIM/SINAN (bespoke) plus a spec-driven FTP system (ciha). SINASC
-    # ficou de fora: publica com atraso e tem padrão próprio (default_year).
-    for source in ("sih", "sim", "sinan", "ciha"):
+    # SIH/SINAN (bespoke) plus a spec-driven FTP system (ciha). SIM e SINASC
+    # ficaram de fora: publicam com atraso e têm padrão próprio
+    # (publication_years.py e default_year do spec).
+    for source in ("sih", "sinan", "ciha"):
         specs = {item["name"]: item for item in service.get_source_schema(source)["params"]}
         assert specs["start_year"]["maximum"] == current_year, source
         assert specs["end_year"]["maximum"] == current_year, source

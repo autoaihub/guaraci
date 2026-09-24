@@ -52,7 +52,9 @@ from guaraci.cli.main import app as cli_app  # noqa: E402
 # rota funciona de ponta a ponta, não trazer a série inteira.
 _SMALL = {
     "start_month": 1, "end_month": 1, "month": 1,
-    "states": ["AC"], "uf": "AC", "ufs": ["AC"],
+    # UF só nas FTP (reduz o volume). Nas APIs o recorte de UF combinado com
+    # duas páginas dava falso vazio: as páginas lidas eram de outros estados.
+    "states": ["AC"],
     "max_pages": 2, "batch_size": 100, "page_size": 50, "limit": 50, "max_files": 1,
 }
 
@@ -61,6 +63,8 @@ _SMALL = {
 _OVERRIDES: Dict[str, Dict[str, Any]] = {
     "sinan": {"diseases": ["HANS"]},
     "pce": {"states": ["BA"]},
+    "resp": {"states": ["BA"]},  # RESPAC24 vem sem registro da origem
+    "inmet_estacoes": {"ufs": ["AC"]},
     "nasa_power": {"latitude": "-23.55", "longitude": "-46.63",
                    "start_date": "2024-01-01", "end_date": "2024-01-31"},
     "nasa_firms": {"start_date": "2024-09-01", "end_date": "2024-09-02"},
@@ -69,8 +73,18 @@ _OVERRIDES: Dict[str, Dict[str, Any]] = {
     "cetesb_qualar_horario": {"stations": ["Americana"], "parameters": ["O3"],
                               "start_date": "2024-01-01", "end_date": "2024-01-03"},
     "cnes_estabelecimentos_por_codigo_cnes": {"codigo_cnes": "2077485"},
-    "cnes_tipounidades_por_codigo_tipo_unidade": {"codigo_tipo_unidade": "05"},
-    "economia_da_saude_bps": {"codigoCatmat": "BR0267614"},
+    "cnes_tipounidades_por_codigo_tipo_unidade": {"codigo_tipo_unidade": "5"},
+    "economia_da_saude_bps": {"codigoCatmat": "BR0267614"},  # prova a normalização
+}
+
+# Endpoints do DEMAS que respondem 200 com lista vazia sem filtro algum
+# (conferido com curl em 2026-09-24): o vazio é da origem, não do Guaraci.
+_ORIGEM_VAZIA = {
+    "ciencia_tecnologia_plataformabr_pesquisa_saude",
+    "ciencia_tecnologia_plataformabr_projeto_aprovado",
+    "atencao_primaria_pmmb_relatorio_historico_cadastro_cnes",
+    "saude_indigena_acompanhamento_obra_infraestrutura_saude",
+    "vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos",
 }
 
 # Recusa por credencial ausente é o comportamento certo sem a chave; a
@@ -342,6 +356,13 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
             arquivos = [p for p in (base / s).rglob("*") if p.is_file()]
             assert arquivos, "job terminou sem arquivo"
             vazios = [p.name for p in arquivos if p.stat().st_size == 0]
+            exportados = saida.json().get("exported_files") or []
+            if params.get("output_format") and not exportados and s not in _ORIGEM_VAZIA:
+                # "Concluído" sem arquivo exportado é o defeito que mais
+                # engana: a tela fica verde e o usuário não recebe dado.
+                raise AssertionError(
+                    f"concluído sem exportar: {saida.json().get('export_warning') or erros[-2:]}"
+                )
             return {
                 "arquivos": len(arquivos),
                 "bytes": sum(p.stat().st_size for p in arquivos),

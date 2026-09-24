@@ -36,6 +36,30 @@ coleta" monta. Ela achou mais três defeitos:
 - Trocar o idioma deixava o rodapé em "API: conectando…" até a próxima
   checagem de saúde.
 
+A camada de coleta real (`--camada jobs`: uma coleta pequena por fonte pela
+API de jobs, 124 fontes em cerca de 10 minutos) achou o resto:
+
+- Sete fontes abriam num ano ainda não publicado, e o job terminava sem dado:
+  SIM e síndrome gripal leve (último ano: 2024), os quatro indicadores do
+  registro civil do IBGE (2024) e o PIB municipal (2023). O último ano
+  publicado agora mora em `guaraci/services/publication_years.py`, conferido
+  ao vivo; o teto continua no ano corrente.
+- A consulta pontual do CNES (`cnes_estabelecimentos_por_codigo_cnes`,
+  `cnes_tipounidades_por_codigo_tipo_unidade`) sempre dizia "No records": a
+  origem devolve o próprio registro, sem lista em volta, e ele era
+  descartado. O arquivo também saía com o molde literal
+  (`cnes_estabelecimentos_{codigo_cnes}_...`) no nome.
+- `economia_da_saude_bps` devolvia vazio para o CATMAT escrito como no portal
+  (`BR0267614`); o prefixo agora é removido.
+- Quando o DATASUS publica um arquivo sem registro (RESP do Acre em 2024), o
+  aviso mandava "conferir formato e filtros"; agora diz que o recorte veio
+  vazio da origem.
+
+Cinco endpoints do DEMAS respondem lista vazia na própria origem, sem
+parâmetro obrigatório; ficam no catálogo e estão listados em
+`docs/SOURCES_AND_FILTERS.md` §3.6. Os 34 testes ao vivo que vêm desligados
+(`GUARACI_*_SMOKE=1`) passam; o da ANA segue pulado por falta de credencial.
+
 ### Added: oito fontes da ANVISA, e o tema vigilância sanitária
 O catálogo vai a 124, com a ANVISA como nona instituição de origem. Os
 arquivos vêm de `dados.anvisa.gov.br/dados/`, uma listagem sem API, e são

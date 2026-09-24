@@ -73,3 +73,46 @@ def test_required_params_with_defaults_are_filled_before_dispatch(monkeypatch):
     monkeypatch.setattr(selected, "download", lambda **kw: captured.update(kw) or "ok")
     service.run("sinasc")
     assert captured["start_year"] == captured["end_year"] == SPECS["sinasc"].default_year
+
+
+# --- segunda passada: coleta real nas 124 fontes ---------------------------
+
+
+def test_point_query_object_is_a_single_row():
+    from guaraci.opendatasus.datasource import OpenDataSUSDataSource
+
+    payload = {"codigo_tipo_unidade": 5, "descricao_tipo_unidade": "HOSPITAL GERAL"}
+    assert OpenDataSUSDataSource._extract_demas_rows(payload) == [payload]
+    assert OpenDataSUSDataSource._extract_demas_rows({"sinasc": []}) == []
+
+
+def test_catmat_code_loses_the_portal_prefix():
+    from guaraci.opendatasus.datasource import OpenDataSUSDataSource
+
+    norm = OpenDataSUSDataSource._normalize_demas_api_params
+    assert norm({"codigoCatmat": "BR0267614"}) == {"codigoCatmat": "267614"}
+    assert norm({"codigoCatmat": "267614"}) == {"codigoCatmat": "267614"}
+
+
+def test_lagging_sources_default_to_their_latest_published_year():
+    from guaraci.services.publication_years import LATEST_PUBLISHED_YEAR
+
+    service = DownloadService()
+    for source, year in LATEST_PUBLISHED_YEAR.items():
+        params = {p["name"]: p for p in service.get_source_schema(source)["params"]}
+        assert params["start_year"]["default"] == year, source
+        assert params["end_year"]["default"] == year, source
+        assert params["start_year"]["maximum"] >= datetime.date.today().year, source
+
+
+def test_empty_origin_files_get_an_honest_warning(tmp_path):
+    import polars as pl
+
+    from guaraci.services.downloads import _all_parquets_empty
+
+    vazio = tmp_path / "RESPAC24.parquet"
+    pl.DataFrame().write_parquet(vazio)
+    cheio = tmp_path / "RESPBA23.parquet"
+    pl.DataFrame({"a": [1]}).write_parquet(cheio)
+    assert _all_parquets_empty([str(vazio)])
+    assert not _all_parquets_empty([str(vazio), str(cheio)])

@@ -72,6 +72,7 @@ from guaraci.services.normalizers import (  # noqa: F401  (reexports)
     _normalize_sinan_params,
 )
 
+from guaraci.services.publication_years import apply_latest_published_year
 from guaraci.services.presets import PRESETS, get_preset
 from guaraci.services.themes import THEMES, sources_by_theme, themes_for
 
@@ -343,7 +344,15 @@ class DatasusDownloadSource:
                 
                 warnings: List[str] = []
                 if not exported_files and requested_output_format:
-                    warnings.append("No processed file was exported. Check format and export filters.")
+                    if materialized_paths and _all_parquets_empty(materialized_paths):
+                        # Ex.: RESPAC24.dbc vem do DATASUS sem registro algum.
+                        # Mandar "conferir o formato" apontava um erro que não existe.
+                        warnings.append(
+                            "The downloaded files have no records (the origin published "
+                            "this slice empty); nothing to export."
+                        )
+                    else:
+                        warnings.append("No processed file was exported. Check format and export filters.")
                     payload["export_warning"] = warnings[0]
                 
                 payload["manifest_path"] = str(
@@ -702,6 +711,20 @@ class DatasusDownloadSource:
             return []
 
 
+def _all_parquets_empty(paths: Sequence[str]) -> bool:
+    """True se todo caminho é Parquet legível com zero linhas."""
+    import polars as pl
+
+    try:
+        return all(
+            str(path).lower().endswith(".parquet")
+            and pl.scan_parquet(path).select(pl.len()).collect().item() == 0
+            for path in paths
+        )
+    except Exception:  # noqa: BLE001
+        return False
+
+
 class OpenDataSUSDownloadSource:
     """Adapter for OpenDataSUS API-backed datasources."""
 
@@ -989,7 +1012,7 @@ class DownloadService:
     def _get_source_param_specs(source: DownloadSource) -> List[SourceParameterSpec]:
         getter = getattr(source, "params_schema", None)
         if callable(getter):
-            return getter()
+            return apply_latest_published_year(source.descriptor.source, getter())
         return []
 
     def list_sources(self, theme: Optional[str] = None) -> List[SourceDescriptor]:
