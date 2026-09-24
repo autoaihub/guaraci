@@ -523,7 +523,39 @@ function familyOf(mode) {
 }
 const FAMILY_ORDER = ["datasus", "opendatasus", "ibge", "nasa", "govbr", "other"];
 
+/* Temas indexados por slug. A API devolve slug em /sources; o rótulo que a
+   pessoa lê e a descrição vêm de /themes. Se /themes falhar, o catálogo
+   continua funcionando e apenas mostra o slug. */
+let themesBySlug = {};
+
+async function loadThemes() {
+  try {
+    const response = await fetch("/themes");
+    if (!response.ok) return;
+    const payload = await response.json();
+    themesBySlug = {};
+    payload.forEach((item) => { themesBySlug[item.slug] = item; });
+  } catch (err) {
+    themesBySlug = {};
+  }
+}
+
+function themeLabel(slug) {
+  const info = themesBySlug[slug];
+  return (info && info.label) || String(slug).replace(/_/g, " ");
+}
+
+/* Texto contra o qual a busca casa um tema. Inclui a DESCRIÇÃO de propósito:
+   o rótulo do tema é "Oncologia", mas quem procura digita "câncer", e é a
+   descrição que carrega essa palavra. Sem isso a busca falharia justamente no
+   termo mais natural. */
+function themeSearchText(slug) {
+  const info = themesBySlug[slug] || {};
+  return [slug, info.label, info.description].filter(Boolean).join(" ").toLowerCase();
+}
+
 async function loadSources() {
+  await loadThemes();
   const response = await fetch("/sources");
   if (!response.ok) throw new Error(t("fail_sources"));
   sourcesList = (await response.json()).slice().sort((a, b) =>
@@ -537,12 +569,19 @@ async function loadSources() {
 function renderCatalogInto(el, query, clickable) {
   el.innerHTML = "";
   const q = String(query || "").trim().toLowerCase();
-  const filtered = sourcesList.filter((item) =>
-    !q ||
-    String(item.title).toLowerCase().includes(q) ||
-    String(item.source).toLowerCase().includes(q) ||
-    String(item.mode).toLowerCase().includes(q)
-  );
+  // A busca casa também com o tema, pelo slug e pelo rótulo legível: quem
+  // digita "oncologia" ou "câncer" precisa chegar ao SISCAN e ao SIA sem saber
+  // que é ali que o dado mora.
+  const filtered = sourcesList.filter((item) => {
+    if (!q) return true;
+    const themes = item.themes || [];
+    return (
+      String(item.title).toLowerCase().includes(q) ||
+      String(item.source).toLowerCase().includes(q) ||
+      String(item.mode).toLowerCase().includes(q) ||
+      themes.some((slug) => themeSearchText(slug).includes(q))
+    );
+  });
   if (filtered.length === 0) {
     el.innerHTML = "<div class='catalog-empty'>" + escapeHtml(t("catalog_empty")) + "</div>";
     return;
@@ -567,10 +606,14 @@ function renderCatalogInto(el, query, clickable) {
       card.className = "src-card";
       card.type = "button";
       if (clickable && currentSource === item.source) card.setAttribute("aria-pressed", "true");
+      const themeChips = (item.themes || [])
+        .map((slug) => "<span class='theme-chip'>" + escapeHtml(themeLabel(slug)) + "</span>")
+        .join("");
       card.innerHTML =
         "<span class='mode'>" + escapeHtml(item.mode) + "</span>" +
         "<strong>" + escapeHtml(item.title) + "</strong>" +
-        "<p>" + escapeHtml(item.source) + "</p>";
+        "<p>" + escapeHtml(item.source) + "</p>" +
+        (themeChips ? "<span class='theme-chips'>" + themeChips + "</span>" : "");
       card.addEventListener("click", () => selectSource(item.source));
       grid.appendChild(card);
     });

@@ -22,19 +22,28 @@ Lists the registered sources.
 
 The response includes the manually curated sources and the OpenDataSUS DEMAS sources generated from the local Swagger catalog.
 
+Query parameters:
+- `theme` (optional): restricts the listing to one theme slug. An unknown slug
+  returns `400`, not an empty list. See `GET /themes`.
+
 Response:
 
 ```json
 [
-  {"source":"doses_aplicadas_pni","title":"Doses Aplicadas PNI","mode":"opendatasus api"},
-  {"source":"zikavirus","title":"Arboviroses Zikavirus","mode":"opendatasus api"},
-  {"source":"sih","title":"SIH","mode":"datasus ftp"},
-  {"source":"sim","title":"SIM","mode":"datasus ftp"},
-  {"source":"sinan","title":"SINAN","mode":"datasus ftp"},
-  {"source":"sinisa","title":"SINISA","mode":"gov.br crawl"},
-  {"source":"snis","title":"SNIS","mode":"gov.br crawl"}
+  {"source":"doses_aplicadas_pni","title":"Doses Aplicadas PNI","mode":"opendatasus api","themes":["imunizacao"]},
+  {"source":"zikavirus","title":"Arboviroses Zikavirus","mode":"opendatasus api","themes":["vigilancia_epidemiologica"]},
+  {"source":"sih","title":"SIH","mode":"datasus ftp","themes":["assistencia_hospitalar","oncologia"]},
+  {"source":"sim","title":"SIM","mode":"datasus ftp","themes":["mortalidade","oncologia"]},
+  {"source":"sinan","title":"SINAN","mode":"datasus ftp","themes":["vigilancia_epidemiologica"]},
+  {"source":"sinisa","title":"SINISA","mode":"gov.br crawl","themes":["saneamento"]},
+  {"source":"snis","title":"SNIS","mode":"gov.br crawl","themes":["saneamento"]}
 ]
 ```
+
+A source may carry more than one theme. That is intentional: `sim` answers both
+`mortalidade` and `oncologia`, because mortality by neoplasm is reached through
+it. A theme means "there is data on this subject here", not "this source is
+only about this".
 
 ### `GET /sources/{source}/schema`
 
@@ -53,6 +62,57 @@ Parameter fields:
 - `allowed_values`
 - `minimum`
 - `maximum`
+
+### `GET /themes`
+
+Returns the controlled theme vocabulary used to navigate the catalogue, with
+the number of registered sources under each theme.
+
+```json
+[
+  {"slug":"oncologia","label":"Oncologia","description":"Rastreamento, diagnóstico, tratamento e mortalidade por câncer.","source_count":5}
+]
+```
+
+### `GET /presets`
+
+Lists the ready-made thematic cuts. A theme answers "where is the data on this
+subject?"; a preset answers the next question, "with which parameters do I pull
+it?", across several sources at once.
+
+### `GET /presets/{name}`
+
+Returns one preset. Reading it validates every step's parameters against the
+live schema of the corresponding source, so a recipe that has gone stale fails
+here instead of failing midway through a long download. Unknown name returns
+`404`.
+
+```json
+{
+  "name": "oncologia",
+  "title": "Oncologia (rastreamento, tratamento, internação e óbito)",
+  "themes": ["oncologia"],
+  "steps": [
+    {"source":"siscan","params":{"groups":["CC","CM"]},"rationale":"...","refine":null},
+    {"source":"sia","params":{"groups":["AQ","AR"]},"rationale":"...","refine":null},
+    {"source":"sim","params":{},"rationale":"...","refine":"O SIM vem completo. Filtre a causa básica (CAUSABAS) por CID-10 C00-C97..."}
+  ],
+  "caveats": ["Não há dado de INCIDÊNCIA neste preset. ..."]
+}
+```
+
+Two fields carry the honesty of the preset and should not be ignored by a
+client:
+
+- `refine`: `null` means the step's `params` already deliver the full cut.
+  Filled means the download brings the whole base and the final cut depends on
+  a post-collection filter, described there. The DATASUS FTP does not filter by
+  CID at the origin, so `sih` and `sim` always arrive whole.
+- `caveats`: known limitations of the cut, including data that is *absent*. The
+  `oncologia` preset has no incidence data, because Brazilian cancer incidence
+  comes from the INCA population-based registries (RCBP), published only as
+  reports and a tabulator, with no automatable path that satisfies the
+  project's primary-source rule.
 
 ### `POST /sources/{source}/discovery`
 

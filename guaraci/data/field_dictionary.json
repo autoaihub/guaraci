@@ -469,6 +469,88 @@
     "rows_sampled": 10,
     "status": "ok"
   },
+  "cetesb_estacoes": {
+    "fields": [
+      "id",
+      "estacao",
+      "municipio",
+      "endereco",
+      "tipo_rede",
+      "situacao_rede",
+      "latitude",
+      "longitude",
+      "datahora",
+      "indice",
+      "qualidade",
+      "poluente_critico",
+      "mensagem_saude",
+      "efeito"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "municipios",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Geolocated registry of the monitoring stations, with the current index per station.",
+    "rows_sampled": 62,
+    "status": "ok"
+  },
+  "cetesb_qualar": {
+    "fields": [
+      "estacao",
+      "municipio",
+      "latitude",
+      "longitude",
+      "poluente",
+      "datahora",
+      "indice"
+    ],
+    "filters": [
+      "pollutants",
+      "stations",
+      "output_dir",
+      "output_format",
+      "municipios",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Live sample from the CETESB public ArcGIS. The values in the indice column are the AIR QUALITY INDEX (CONAMA Resolution 506/2024), NOT a concentration in ug/m3; concentration requires the QUALAR system with a login. The window is rolling: always the last 48 hours, no history.",
+    "rows_sampled": 9645,
+    "status": "ok"
+  },
+  "cetesb_qualar_horario": {
+    "fields": [
+      "estacao",
+      "codigo_estacao",
+      "latitude",
+      "longitude",
+      "parametro",
+      "codigo_parametro",
+      "unidade",
+      "datahora",
+      "valor",
+      "validado"
+    ],
+    "filters": [
+      "stations",
+      "parameters",
+      "start_date",
+      "end_date",
+      "only_validated",
+      "pause_seconds",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "CETESB QUALAR requires a free account (create one at https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario). Set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. No account existed at integration time, so no live sample was taken: the field list is the connector's output contract, not a sampled header. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit, not an index.",
+    "status": "needs_credential"
+  },
   "chikungunya": {
     "fields": [
       "tp_not",

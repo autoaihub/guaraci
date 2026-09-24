@@ -392,6 +392,16 @@ body.drawer-open .drawer-scrim { opacity: 1; pointer-events: auto; }
   color: var(--teal); background: rgba(20, 184, 166, .1); border: 1px solid rgba(20, 184, 166, .28);
   border-radius: 999px; padding: 2px 9px;
 }
+/* Temas no cartão da fonte. Deliberadamente mais discretos que o selo de
+   transporte (.mode): o tema é contexto de navegação, não a identidade da
+   fonte, e num cartão pequeno dois selos berrantes competem entre si. */
+.src-card .theme-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.src-card .theme-chip {
+  font-size: 10px; font-weight: 600; color: var(--muted);
+  background: var(--accent-soft); border: 1px solid var(--line);
+  border-radius: 999px; padding: 1px 8px; white-space: nowrap;
+}
+
 .catalog-empty { text-align: center; color: var(--muted); padding: 40px 0; }
 
 .form-card {

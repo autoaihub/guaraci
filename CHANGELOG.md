@@ -2,6 +2,203 @@
 
 ## [Unreleased]
 
+### Added: concentração medida de poluentes pelo QUALAR autenticado
+`cetesb_qualar_horario`, a contraparte da fonte aberta adicionada na entrada
+seguinte. O catálogo vai a 112. Onde o ArcGIS público entrega índice das
+últimas 48 horas, o QUALAR clássico entrega **concentração medida** em série
+histórica, que é o que um estudo de exposição precisa: índice é transformação
+por faixas e não alimenta modelo dose-resposta.
+
+| | `cetesb_qualar` | `cetesb_qualar_horario` |
+| --- | --- | --- |
+| Medida | índice | concentração (µg/m³, ppm…) |
+| Período | últimas 48h | qualquer intervalo |
+| Credencial | nenhuma | conta no QUALAR |
+| Parâmetros | 6 poluentes | 12 poluentes + 8 meteorológicos |
+
+A segunda linha da direita é o ganho menos esperado: o QUALAR mede temperatura,
+umidade, vento, pressão e radiação **nas mesmas estações** onde mede poluente.
+Dá para montar exposição e confundidor meteorológico a partir de uma fonte só,
+no mesmo ponto geográfico.
+
+A credencial sai apenas de `GUARACI_QUALAR_LOGIN` e `GUARACI_QUALAR_SENHA`,
+nunca de parâmetro de job, porque parâmetro de job é persistido no manifesto e
+no histórico de execuções. É o mesmo tratamento de `nasa_firms`, `nasa_gpm` e
+`ana_hidro`. Conta gratuita em
+`https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario`.
+
+O protocolo foi reconstruído a partir do HTML do próprio sistema e do pacote R
+`qualR` (rOpenSci, MIT, mesma licença do Guaraci), que também é a procedência
+das tabelas de código em `guaraci/cetesb/codes.py`: 75 estações e 20
+parâmetros, cujos códigos não existem publicados fora dos `<select>` do
+formulário, atrás do login. O crédito está registrado no cabeçalho do módulo.
+
+Cinco armadilhas que o conector trata, todas capazes de produzir resposta
+plausível e errada em vez de erro:
+
+- **Senha errada não parece erro.** O QUALAR responde HTTP 200 com a própria
+  tela de login, o que passaria por "nenhum dado no período". O cliente
+  verifica o conteúdo, não o código HTTP.
+- **A resposta é HTML, não CSV**, apesar de o endpoint se chamar
+  `exportaDados`. O parser usa o `html.parser` da biblioteca padrão, sem
+  acrescentar dependência. Ele procura a tabela de 19 colunas em vez de contar
+  posição de tabela, e trabalha com pilha, porque o HTML é dos anos 90 e aninha
+  tabelas como layout; uma implementação de um nível devolveria zero linhas em
+  silêncio.
+- **Números vêm em formato brasileiro.** O ponto de milhar sai antes de a
+  vírgula decimal virar ponto; só trocar a vírgula transformaria `1.234,56` em
+  `1.23456`.
+- **Nem toda linha é dado válido.** A coluna de validação da CETESB diz se a
+  leitura passou pela crítica do órgão. O padrão devolve só as validadas, e a
+  escolha fica exposta em `only_validated` em vez de embutida.
+- **O código de estação do QUALAR não é o `ID` do ArcGIS.** Pinheiros é 99 num
+  e 42 no outro. As duas numerações hoje não se sobrepõem (ArcGIS usa 1-62,
+  QUALAR usa 66-290, conferido ao vivo), então a troca dá erro em vez de
+  devolver outra estação, mas isso é propriedade do dado atual e não promessa
+  da CETESB. Há teste fixando a disjunção.
+
+Um pedido por par estação/parâmetro, sem chamada em lote: varrer a rede inteira
+para seis poluentes são 372 requisições contra um sistema público estadual.
+Daí `pause_seconds`, com padrão de 1 segundo, e a exclusão da varredura do
+orquestrador bronze, que registra o motivo (exige credencial e lista explícita
+de estações) em vez de deixar a fonte cair no ramo de "formato não reconhecido".
+
+**Estado: experimental.** Os 46 testes offline cobrem o parser, o formato
+numérico, as datas, as tabelas de código e os modos de falha. A validação
+contra o sistema ao vivo depende de uma conta no QUALAR, que não existia no
+momento desta integração. É a mesma posição em que `ana_hidro` entrou, e está
+declarada no dicionário de dados como `needs_credential`.
+
+### Added: qualidade do ar da CETESB, e o primeiro publicador estadual do catálogo
+Duas fontes novas, `cetesb_qualar` e `cetesb_estacoes`, elevando o catálogo de
+109 para 111. A CETESB documenta o QUALAR como sistema de consulta com
+cadastro, mas o mesmo banco está exposto sem autenticação nenhuma num ArcGIS
+Server em `servicos.cetesb.sp.gov.br/arcgis`, e é por ali que o conector entra:
+JSON sobre HTTP, sem chave, sem formulário. É também a primeira fonte estadual
+do Guaraci; todas as outras 109 são federais.
+
+**Os valores são ÍNDICE de qualidade do ar, não concentração.** Isso precisa
+ficar dito antes de qualquer outra coisa, porque nada no payload avisa e as
+magnitudes são plausíveis nas duas leituras. A verificação que resolve: em
+2026-09-15 10:00 a camada de MP10 devolveu `M1 = 10` para a estação Americana,
+e a camada de estações devolveu `Indice = 10` com `POLUENTE = MP10` para a
+mesma estação e hora. Bateu em oito estações seguidas. Concentração em µg/m³ só
+pelo QUALAR clássico, com login. O índice é uma transformação por faixas,
+definida pela Resolução CONAMA 506/2024, e não pode alimentar modelo
+dose-resposta como se fosse concentração.
+
+O aviso aparece onde o usuário lê, não só no código: na descrição do parâmetro
+`pollutants` do schema, no título da fonte, no dicionário de dados, no catálogo
+do site e em `docs/SOURCES_AND_FILTERS.md` §3.23. Documentação que só vive em
+docstring não chega a quem usa.
+
+O que cada fonte entrega:
+
+- `cetesb_qualar`: uma linha por estação, poluente e hora, com as colunas
+  `estacao, municipio, latitude, longitude, poluente, datahora, indice`. Seis
+  poluentes (CO, MP10, MP2.5, NO2, O3, SO2), 62 estações;
+- `cetesb_estacoes`: o cadastro geolocalizado das estações, com endereço,
+  município, tipo e situação da rede, e o índice corrente com a mensagem de
+  saúde associada.
+
+Três decisões que valem registro:
+
+- **O município é anexado na coleta.** As camadas de poluente identificam a
+  estação só pelo nome e nunca dizem em que município ela fica. Sem município
+  não há ligação com o dado de saúde, que no Guaraci é indexado por município
+  de ponta a ponta. A junção contra o cadastro acontece uma vez, dentro do
+  conector, em vez de virar tarefa de quem consome. Se a camada de cadastro
+  falhar, a coleta termina assim mesmo, com `municipio` nulo e um aviso: o
+  cadastro enriquece a série, não pode derrubá-la.
+- **Os carimbos de hora são hora local.** Os campos `TM` vêm em milissegundos
+  de época e decodificam para a hora de parede de São Paulo quando lidos como
+  UTC. Aplicar deslocamento de fuso desloca a série inteira em três horas sem
+  que nada quebre. Há teste dedicado a isso.
+- **A janela é móvel, de 48 horas, e não há histórico.** Acumular série exigiria
+  instantâneos periódicos concatenados, um padrão append-only que a árvore
+  bronze, particionada por ano/mês, não modela. As duas fontes entram no
+  orquestrador com `auto=False` e uma nota explicando que ficam fora da
+  varredura de propósito, e não por não terem sido reconhecidas. Existe um
+  serviço `QA_Hist` com 110.301 linhas horárias, mas ele cobre apenas
+  02/03/2021 a 26/10/2021 e parou ali; é um instantâneo morto, também em
+  índice, e não é usado.
+
+Respostas truncadas pelo ArcGIS (`exceededTransferLimit`) viram erro explícito
+em vez de janela silenciosamente incompleta, que passaria por série real.
+
+Cobertura: 35 testes offline com cliente falso, mais um smoke test opt-in
+(`GUARACI_CETESB_SMOKE=1`) que refaz ao vivo a checagem índice versus
+concentração. Se a CETESB um dia passar a publicar concentração naquelas
+colunas, é ali que se descobre, e não através de um estudo construído na
+unidade errada.
+
+Também corrigido de passagem: o site anunciava 17 grupos no contador e 18 no
+texto da mesma seção. São 18.
+
+### Added: o catálogo passa a ser navegável por assunto, com temas e presets
+O Guaraci registra 109 fontes. Saber que a plataforma tem um dado nunca foi o
+mesmo que saber onde ele está: quem procurava "dados de câncer" não tinha como
+adivinhar que a resposta mora nos grupos `AQ` e `AR` do SIA, nos grupos `CC` e
+`CM` do SISCAN, e num recorte de CID aplicado sobre SIH e SIM. Essa receita
+vivia na cabeça de quem já conhece o DATASUS, e era essa barreira, não a
+ausência do dado, que mantinha a base inacessível na prática.
+
+Entram duas camadas, com responsabilidades distintas:
+
+- **Temas** (`guaraci/services/themes.py`): vinte etiquetas que respondem
+  "onde tem dado desse assunto?". Todas as 109 fontes estão classificadas, e
+  uma fonte pode ter mais de um tema, porque é assim que o dado se comporta: o
+  SIM responde tanto a `mortalidade` quanto a `oncologia`. A classificação
+  fica num mapa central, não espalhada pelos dez módulos de
+  `services/sources/`, e é acoplada ao `SourceDescriptor` na leitura. As
+  famílias geradas pelo Swagger DEMAS (`sisagua_*`, `saude_indigena_*`,
+  `atencao_primaria_*`) caem em regras de prefixo, para que o arquivo não
+  nasça desatualizado.
+- **Presets** (`guaraci/services/presets.py`): a resposta à pergunta seguinte,
+  "com quais parâmetros eu puxo isso?". Um preset é uma receita nomeada que
+  atravessa fontes, fixando os parâmetros de cada passo. Nascem dois,
+  `oncologia` e `nascimentos`.
+
+O preset `oncologia` cobre o percurso do paciente pelos sistemas do SUS, na
+ordem em que ele acontece: rastreamento (SISCAN, grupos `CC` e `CM`),
+tratamento ambulatorial de alta complexidade (SIA, grupos `AQ` e `AR`),
+consolidado nacional (Painel de Oncologia), internação (SIH) e óbito (SIM). O
+recorte do SIA é o caso exemplar do problema: o padrão da fonte é o grupo `PA`,
+que não traz APAC nenhuma, então o dado de quimioterapia e radioterapia estava
+lá desde 1994 sem que nada no catálogo indicasse o caminho.
+
+Cada passo declara em qual fase o recorte acontece. SISCAN e SIA saem prontos
+da coleta; SIH e SIM vêm inteiros, porque o FTP do DATASUS não filtra CID na
+origem, e o campo `refine` diz exatamente qual coluna filtrar depois
+(`DIAG_PRINC` e `CAUSABAS`, CID-10 C00-C97). Um preset que escondesse essa
+distinção entregaria um recorte que o usuário acha pronto e não está.
+
+O preset também declara o que **não** tem: não há dado de incidência. No
+Brasil, incidência de câncer vem dos Registros de Câncer de Base Populacional
+do INCA, publicados apenas em relatório e tabulador, sem via automatizável que
+atenda ao critério de fonte primária do projeto (princípio 20 do
+`vogel-stack`). A ausência está em `caveats`, não implícita no silêncio.
+
+Superfícies novas:
+
+- `GET /themes`, `GET /presets` e `GET /presets/{name}` na API;
+- `GET /sources` ganha o campo `themes` e o filtro `?theme=<slug>`; um slug
+  desconhecido responde 400, em vez de devolver lista vazia;
+- `GET /sources/{source}/schema` ganha `themes`;
+- `guaraci fetch themes`, `guaraci fetch presets`, `guaraci fetch preset NOME`
+  e `guaraci fetch list --theme <slug>` no CLI;
+- na interface web, a busca do catálogo passa a casar tema por slug, rótulo e
+  descrição, e os cartões mostram os temas da fonte. Casar contra a descrição
+  é o que faz "câncer" encontrar o tema cujo rótulo é "Oncologia".
+
+A leitura de `GET /presets/{name}` valida os parâmetros de cada passo contra o
+schema vivo da fonte. Um preset é código que descreve parâmetros de terceiros,
+então envelhece mal por conta própria; validar na leitura faz a receita
+desatualizada falhar ali, e não no meio de um download longo.
+
+Nenhuma fonte foi adicionada, removida ou alterada, e nenhum parâmetro mudou de
+nome ou de default. O campo `themes` é aditivo em toda resposta onde aparece.
+
 ### Removed: backend PySUS, encerrando a migração para o FTP direto
 A 0.6.0 tornou a conexão direta ao `ftp.datasus.gov.br` o padrão de SIH, SIM e
 SINAN, e manteve o PySUS alcançável por uma release para facilitar o retorno,

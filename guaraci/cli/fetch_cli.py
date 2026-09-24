@@ -81,16 +81,142 @@ def fetch() -> None:
 
 
 @fetch.command(name="list")
-def list_cmd() -> None:
-    """List every registered source (source, title, transport mode)."""
+@click.option(
+    "--theme",
+    "-t",
+    default=None,
+    help="Só as fontes de um tema (ver 'guaraci fetch themes').",
+)
+def list_cmd(theme: Optional[str]) -> None:
+    """List every registered source (source, title, transport mode, themes)."""
     from guaraci.services.downloads import DownloadService
 
-    table = Table(title="Guaraci registered sources")
-    for col in ("source", "title", "mode"):
+    try:
+        descriptors = DownloadService().list_sources(theme=theme)
+    except ValueError as exc:
+        raise click.BadParameter(str(exc))
+
+    title = "Guaraci registered sources"
+    if theme:
+        title += f" — tema: {theme.strip().lower()}"
+    table = Table(title=title)
+    for col in ("source", "title", "mode", "themes"):
         table.add_column(col, overflow="fold")
-    for descriptor in DownloadService().list_sources():
-        table.add_row(descriptor.source, descriptor.title, descriptor.mode)
+    for descriptor in descriptors:
+        table.add_row(
+            descriptor.source,
+            descriptor.title,
+            descriptor.mode,
+            ", ".join(descriptor.themes),
+        )
     console.print(table)
+    if not descriptors:
+        console.print("[yellow]nenhuma fonte nesse tema ainda[/yellow]")
+
+
+@fetch.command(name="themes")
+def themes_cmd() -> None:
+    """Show the theme vocabulary used to navigate the source catalogue."""
+    from guaraci.services.downloads import DownloadService
+
+    table = Table(title="Guaraci themes")
+    for col in ("slug", "label", "sources", "description"):
+        table.add_column(col, overflow="fold")
+    for item in DownloadService().list_themes():
+        table.add_row(
+            str(item["slug"]),
+            str(item["label"]),
+            str(item["source_count"]),
+            str(item["description"]),
+        )
+    console.print(table)
+    console.print(
+        "[dim]tip: 'guaraci fetch list --theme oncologia' filtra o catálogo; "
+        "'guaraci fetch presets' mostra os recortes prontos[/dim]"
+    )
+
+
+@fetch.command(name="presets")
+def presets_cmd() -> None:
+    """List the ready-made cross-source thematic cuts."""
+    from guaraci.services.downloads import DownloadService
+
+    table = Table(title="Guaraci presets")
+    for col in ("name", "title", "sources"):
+        table.add_column(col, overflow="fold")
+    for item in DownloadService().list_presets():
+        steps = item.get("steps") or []
+        table.add_row(
+            str(item["name"]),
+            str(item["title"]),
+            ", ".join(str(step["source"]) for step in steps),
+        )
+    console.print(table)
+    console.print("[dim]tip: 'guaraci fetch preset oncologia' mostra a receita[/dim]")
+
+
+@fetch.command(name="preset")
+@click.argument("name")
+def preset_cmd(name: str) -> None:
+    """Show the recipe for preset NAME: which source, which params, what is missing.
+
+    Cada passo diz se o recorte sai pronto da coleta ou se ainda depende de um
+    filtro posterior. Os parâmetros são validados contra o schema vivo de cada
+    fonte antes de serem impressos, então uma receita desatualizada falha aqui
+    em vez de falhar no meio de um download.
+    """
+    from guaraci.services.downloads import DownloadService
+
+    try:
+        preset = DownloadService().get_preset(name)
+    except ValueError as exc:
+        raise click.BadParameter(str(exc))
+
+    console.print(f"[bold]{preset['title']}[/bold] ([cyan]{preset['name']}[/cyan])")
+    console.print(str(preset["description"]))
+    console.print()
+
+    table = Table(title="passos")
+    for col in ("source", "params", "por quê", "falta filtrar"):
+        table.add_column(col, overflow="fold")
+    for step in preset["steps"]:
+        params = step.get("params") or {}
+        rendered = (
+            ", ".join(f"{k}={_render_value(v)}" for k, v in params.items())
+            if params
+            else "[dim](padrão da fonte)[/dim]"
+        )
+        table.add_row(
+            str(step["source"]),
+            rendered,
+            str(step["rationale"]),
+            str(step.get("refine") or ""),
+        )
+    console.print(table)
+
+    caveats = preset.get("caveats") or []
+    if caveats:
+        console.print()
+        console.print("[bold yellow]ressalvas[/bold yellow]")
+        for caveat in caveats:
+            console.print(f"  • {caveat}")
+
+    console.print()
+    console.print("[dim]para executar um passo:[/dim]")
+    for step in preset["steps"]:
+        params = step.get("params") or {}
+        sets = " ".join(f"--set {k}={_render_value(v)}" for k, v in params.items())
+        console.print(
+            f"  guaraci fetch run {step['source']} "
+            f"--set start_year=2023 --set end_year=2023 {sets}".rstrip()
+        )
+
+
+def _render_value(value: Any) -> str:
+    """Render a preset param value the way ``--set`` expects to receive it."""
+    if isinstance(value, (list, tuple)):
+        return ",".join(str(item) for item in value)
+    return str(value)
 
 
 @fetch.command(name="schema")

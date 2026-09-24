@@ -29,6 +29,12 @@ FTP_LEGACY_SOURCES = frozenset(
         "srag_demas", "doses_aplicadas_pni", "zikavirus", "chikungunya",
         "nasa_power", "nasa_firms", "nasa_gpm",
         "sia", "cnes", "ciha", "cih", "siscan", "sisprenatal", "resp", "pce",
+        # CETESB não é FTP nem legado: entra neste conjunto porque ele é, na
+        # prática, "fontes preenchidas à mão, fora do escopo do amostrador"
+        # (o mesmo motivo das nasa_* acima). O amostrador genérico monta uma
+        # janela DEMAS com start_year/end_year, parâmetros que as fontes CETESB
+        # não aceitam, então a varredura só produziria um erro falso.
+        "cetesb_qualar", "cetesb_estacoes", "cetesb_qualar_horario",
     }
 )
 

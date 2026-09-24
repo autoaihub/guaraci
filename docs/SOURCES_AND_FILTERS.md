@@ -127,6 +127,50 @@ they expose more convenient query layers.
   while INPE Queimadas is Brazil's own national program with its own
   satellite-reference methodology and locally derived `bioma`/`municipio`
   classification.
+- `cetesb_qualar` (`cetesb qualar api`) — primary: `servicos.cetesb.sp.gov.br/arcgis`
+  (CETESB QUALAR, hourly air quality INDEX for six pollutants across 62
+  stations, rolling 48-hour window; the values are not concentrations — see
+  §3.23). First state-level publisher in the catalogue.
+- `cetesb_estacoes` (`cetesb qualar api`) — primary: same ArcGIS service
+  (geolocated registry of the monitoring stations, with the current index)
+- `cetesb_qualar_horario` (`cetesb qualar auth`) — primary:
+  `qualar.cetesb.sp.gov.br/qualar` (the classic QUALAR system: measured hourly
+  CONCENTRATION for 12 pollutants and 8 meteorological variables, full
+  historical range. Requires a free CETESB account; see §3.24)
+
+### Navigating by subject: themes and presets
+
+The catalogue above has 112 entries, and the subject a user is after rarely
+coincides with the boundary of a source. Two layers exist for that.
+
+**Themes** (`guaraci/services/themes.py`) answer "where is the data on this
+subject?". Twenty slugs, every registered source classified, listed by
+`GET /themes` or `guaraci fetch themes`, and usable as a filter
+(`GET /sources?theme=oncologia`, `guaraci fetch list --theme oncologia`). A
+source may carry several themes; `sim` is both `mortalidade` and `oncologia`.
+
+The classification lives in one central map, not in the `SourceDescriptor`
+built by each module under `guaraci/services/sources/`. The adapters never
+declare a theme: `DownloadService.list_sources` attaches it on read. Generated
+families (`sisagua_*`, `saude_indigena_*`, `atencao_primaria_*`) are matched by
+prefix rules so the map does not rot as the DEMAS Swagger grows.
+
+**Presets** (`guaraci/services/presets.py`) answer the next question, "with
+which parameters do I pull it?", across sources. Listed by `GET /presets` or
+`guaraci fetch presets`; detailed by `GET /presets/{name}` or
+`guaraci fetch preset <name>`.
+
+| Preset | Sources |
+| --- | --- |
+| `oncologia` | `siscan` (`CC`,`CM`), `sia` (`AQ`,`AR`), `painel_oncologia`, `sih`, `sim` |
+| `nascimentos` | `sinasc`, `ibge_nascidos_vivos_rc`, `sisprenatal`, `ibge_populacao` |
+
+Each step declares the phase its cut happens in. `siscan` and `sia` come out of
+collection already cut; `sih` and `sim` arrive whole, because the DATASUS FTP
+offers no CID filter at the origin, and the step's `refine` field names the
+column to filter afterwards. Read `caveats` before using a preset: it states
+what the cut does *not* contain. `oncologia`, in particular, has no incidence
+data, for the reason given in §2 about primary publishers.
 
 Convention:
 - Always use the canonical `source` value returned by `GET /sources`.
@@ -871,6 +915,119 @@ INPE Queimadas notes:
   program with its own satellite-reference methodology.
 - No credential is required. Leaving `output_format` empty and
   `keep_raw=false` produces only a manifest and emits an `export_warning`.
+
+### 3.23 CETESB QUALAR (`cetesb_qualar`, `cetesb_estacoes`)
+
+Air quality for the state of São Paulo, from CETESB's public ArcGIS REST
+service at `servicos.cetesb.sp.gov.br/arcgis` (verified live 2026-09-15). No
+credential required. This is the first **state-level** publisher in the
+catalogue; every other source is federal.
+
+> **These are INDEX values, not concentrations.** The service publishes the
+> CETESB/CONAMA air quality index, not µg/m³. The check that settles it: on
+> 2026-09-15 10:00 the MP10 layer returned `M1 = 10` for the Americana station,
+> and the station layer returned `Indice = 10` with `POLUENTE = MP10` for the
+> same station and hour; it matched across eight stations. Concentration is
+> only available through the classic QUALAR system, which requires a login.
+> The index is a banded, non-linear transform and must not be fed to a
+> dose-response model as though it were a concentration.
+
+`cetesb_qualar` returns one row per station, pollutant and hour:
+`estacao, municipio, latitude, longitude, poluente, datahora, indice`.
+`cetesb_estacoes` returns the station registry, one row per station, with
+address, municipality, coordinates and the current index.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `pollutants` | string_list | coleta | `CO`, `MP10`, `MP2.5`, `NO2`, `O3`, `SO2`; omitted = all. Aliases `MP25`/`PM2.5`/`PM10` are accepted. `cetesb_qualar` only |
+| `stations` | string_list | refinamento | Filter by station name, case-insensitive (e.g. `Cerqueira César`). `cetesb_qualar` only |
+| `municipios` | string_list | refinamento | Filter by municipality; CETESB spells it upper-case and unaccented (`SAO PAULO`), but the comparison ignores case |
+| `output_dir` | string | tecnica | Output folder, defaulting to `Guaraci Downloads` on the Desktop |
+| `output_format` | string | exportacao | `csv`, `parquet`, `sqlite` |
+| `keep_raw` | boolean | tecnica | Also keep the raw ArcGIS JSON; default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds (default `120`) |
+| `api_base_url` | string | tecnica | Optional MapServer base URL override |
+
+CETESB notes:
+- **Rolling 48-hour window, no history.** The service always returns the last
+  48 hours and nothing more. Building a series means taking snapshots
+  periodically and concatenating them. The bronze orchestrator does *not* do
+  this: it is partitioned by year/month and models backfill, so both sources
+  are marked `auto=False` and skipped by the sweep on purpose.
+- **A frozen archive exists and is not used.** The `QA_Hist` service holds a
+  table of 110,301 hourly rows, but it spans only 2021-03-02 to 2021-10-26 and
+  stopped there. It is a dead snapshot, also in index units, not a series.
+- **Municipality is joined at collection time.** The pollutant layers identify
+  a station only by name and never say which municipality it sits in, and
+  without that there is no link to the health data, which is indexed by
+  municipality throughout Guaraci. The join against the station registry
+  happens once, inside the connector. If the registry layer is unavailable the
+  collection still completes, with `municipio` null and a warning.
+- **Timestamps are local time.** `TM` fields are epoch milliseconds that decode
+  to America/São_Paulo wall-clock time when read as UTC. Applying a timezone
+  offset shifts the whole series by three hours and nothing fails loudly.
+- **Index classification was reprocessed.** Since 2026-01-08 the classification
+  follows CONAMA Resolution 506/2024, applied retroactively. Raw index values
+  remain, but the quality bands are not comparable to what was published
+  before that date.
+- Scope is the state of São Paulo only, 62 stations.
+
+### 3.24 CETESB QUALAR, measured concentration (`cetesb_qualar_horario`)
+
+The counterpart to §3.23, and the one to use for exposure work. Where the open
+ArcGIS gives an index for the last 48 hours, the classic QUALAR system gives
+**measured concentration** over any historical range. It requires a free CETESB
+account, created at `https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario`.
+
+| | `cetesb_qualar` | `cetesb_qualar_horario` |
+| --- | --- | --- |
+| Measure | index | concentration (µg/m³, ppm, …) |
+| Range | last 48 h | any period |
+| Credential | none | QUALAR account |
+| Parameters | 6 pollutants | 12 pollutants + 8 meteorological |
+
+Credentials are read **only** from `GUARACI_QUALAR_LOGIN` and
+`GUARACI_QUALAR_SENHA`, never as job parameters, because job parameters are
+persisted to the manifest and to the job history. This matches `nasa_firms`,
+`nasa_gpm` and `ana_hidro`.
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `stations` | string_list | coleta | **Required.** Station name or QUALAR code. QUALAR answers one station per request, so there is no default |
+| `parameters` | string_list | coleta | 12 pollutants (`MP10`, `MP2.5`, `O3`, `NO2`, `SO2`, `CO`, `NO`, `NOx`, `BEN`, `TOL`, `HCNM`, `ERT`) and 8 meteorological (`TEMP`, `UR`, `VV`, `DV`, `DVG`, `PRESS`, `RADG`, `RADUV`). Default: the six common pollutants |
+| `start_date` / `end_date` | string | coleta | `YYYY-MM-DD` or `DD/MM/YYYY` |
+| `only_validated` | boolean | refinamento | Default `true`: keep only readings CETESB marked as validated |
+| `pause_seconds` | integer | tecnica | Delay between requests (default `1`) |
+| `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url` | | | As in §3.23 |
+
+Output columns: `estacao, codigo_estacao, latitude, longitude, parametro,
+codigo_parametro, unidade, datahora, valor, validado`.
+
+QUALAR notes:
+- **One request per station per parameter.** There is no bulk call. Sweeping
+  the whole network for six pollutants is 372 requests against a public state
+  agency system, which is why `pause_seconds` exists and defaults to 1. The
+  source is excluded from the bronze orchestrator sweep for the same reason.
+- **The station code is not the ArcGIS `ID`.** Pinheiros is 99 in QUALAR and 42
+  in the `cetesb_estacoes` layer. The two numberings happen not to overlap
+  (ArcGIS uses 1-62, QUALAR 66-290, checked 2026-09-15), so a mix-up errors
+  instead of silently returning another station. That is a property of the
+  current data, not a guarantee, and there is a test pinning it.
+- **A wrong password does not look like an error.** QUALAR answers HTTP 200
+  with the login page, which would otherwise read as "no data in this period".
+  The client detects this and raises.
+- **Response is HTML, not CSV**, despite the endpoint being called
+  `exportaDados`. Parsed with the standard library's `html.parser`, no new
+  dependency.
+- **Numbers are in Brazilian format** (`1.234,56`). The thousands separator is
+  removed before the decimal comma is swapped; doing only the swap would turn
+  `1.234,56` into `1.23456`.
+- **Status: experimental.** The protocol was reconstructed from the system's
+  own HTML and from the R package `qualR` (rOpenSci, MIT), which is also the
+  source of the station and parameter code tables in
+  `guaraci/cetesb/codes.py`. Offline tests cover the parser and the failure
+  modes; validation against the live system is pending an operator account,
+  the same position `ana_hidro` was integrated in.
 
 ## 4. UI and API Versus Direct CLI
 

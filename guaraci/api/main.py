@@ -32,7 +32,31 @@ class SourceResponse(BaseModel):
     source: str
     title: str
     mode: str
+    themes: List[str] = Field(default_factory=list)
     supports_discovery: bool = False
+
+
+class ThemeResponse(BaseModel):
+    slug: str
+    label: str
+    description: str
+    source_count: int
+
+
+class PresetStepResponse(BaseModel):
+    source: str
+    rationale: str
+    params: Dict[str, object] = Field(default_factory=dict)
+    refine: Optional[str] = None
+
+
+class PresetResponse(BaseModel):
+    name: str
+    title: str
+    description: str
+    themes: List[str] = Field(default_factory=list)
+    steps: List[PresetStepResponse] = Field(default_factory=list)
+    caveats: List[str] = Field(default_factory=list)
 
 
 class SourceParamResponse(BaseModel):
@@ -51,6 +75,7 @@ class SourceSchemaResponse(BaseModel):
     source: str
     title: str
     mode: str
+    themes: List[str] = Field(default_factory=list)
     params: List[SourceParamResponse]
 
 
@@ -170,14 +195,47 @@ def health() -> dict[str, str]:
 
 
 @app.get("/sources", response_model=List[SourceResponse])
-def list_sources() -> List[SourceResponse]:
+def list_sources(
+    theme: Optional[str] = Query(
+        default=None,
+        description="Filtra pelo slug de um tema (ver GET /themes).",
+    ),
+) -> List[SourceResponse]:
+    try:
+        items = download_service.list_sources(theme=theme)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return [
         SourceResponse(
-            **item.__dict__,
+            source=item.source,
+            title=item.title,
+            mode=item.mode,
+            themes=list(item.themes),
             supports_discovery=download_service.supports_discovery(item.source),
         )
-        for item in download_service.list_sources()
+        for item in items
     ]
+
+
+@app.get("/themes", response_model=List[ThemeResponse])
+def list_themes() -> List[ThemeResponse]:
+    """Vocabulário de temas pelo qual o catálogo de fontes pode ser navegado."""
+    return [ThemeResponse(**item) for item in download_service.list_themes()]
+
+
+@app.get("/presets", response_model=List[PresetResponse])
+def list_presets() -> List[PresetResponse]:
+    """Recortes temáticos prontos, atravessando várias fontes."""
+    return [PresetResponse(**item) for item in download_service.list_presets()]
+
+
+@app.get("/presets/{name}", response_model=PresetResponse)
+def get_preset(name: str) -> PresetResponse:
+    try:
+        preset = download_service.get_preset(name)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return PresetResponse(**preset)
 
 
 @app.get("/sources/{source}/schema", response_model=SourceSchemaResponse)

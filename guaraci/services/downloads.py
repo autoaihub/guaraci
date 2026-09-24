@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 import re
@@ -18,6 +18,11 @@ from guaraci.core.contracts import (
     SourceParameterSpec,
     validate_param_relationships,
     validate_source_params,
+)
+from guaraci.cetesb import (
+    CetesbEstacoesDataSource,
+    CetesbQualarDataSource,
+    CetesbQualarHorarioDataSource,
 )
 from guaraci.core.results import JobResult
 from guaraci.core.security import ensure_allowed_crawl_url, ensure_allowed_output_dir
@@ -67,6 +72,9 @@ from guaraci.services.normalizers import (  # noqa: F401  (reexports)
     _normalize_sinan_params,
 )
 
+from guaraci.services.presets import PRESETS, get_preset
+from guaraci.services.themes import THEMES, sources_by_theme, themes_for
+
 EXPORT_FORMAT_VALUES = ["csv", "parquet", "sqlite"]
 
 # Nomes das fontes FTP genericas (fase 5); usados no export e no discover.
@@ -75,11 +83,19 @@ _FTP_SOURCE_NAMES = frozenset(spec.name for spec in ftp_specs.ALL_SPECS)
 
 @dataclass(frozen=True)
 class SourceDescriptor:
-    """Human-readable metadata for supported sources."""
+    """Human-readable metadata for supported sources.
+
+    ``themes`` nasce vazio de propósito. Os adapters em
+    ``guaraci/services/sources/*.py`` não declaram tema; quem preenche é
+    ``DownloadService.list_sources``, lendo o mapa central de
+    :mod:`guaraci.services.themes`. Ver o docstring daquele módulo para o
+    motivo de a classificação morar num lugar só.
+    """
 
     source: str
     title: str
     mode: str
+    themes: tuple[str, ...] = ()
 
 
 class DownloadSource(Protocol):
@@ -976,9 +992,57 @@ class DownloadService:
             return getter()
         return []
 
-    def list_sources(self) -> List[SourceDescriptor]:
-        items = [item.descriptor for item in self._sources.values()]
+    def list_sources(self, theme: Optional[str] = None) -> List[SourceDescriptor]:
+        """Descritores registrados, já enriquecidos com os temas.
+
+        O enriquecimento acontece aqui, e não na construção de cada adapter,
+        para que o mapa fonte -> tema tenha um dono único. ``theme`` filtra a
+        lista; um slug desconhecido levanta ``ValueError`` em vez de devolver
+        lista vazia, porque um filtro digitado errado que "funciona" e não
+        retorna nada é pior que um erro.
+        """
+        items = [
+            replace(item.descriptor, themes=themes_for(item.descriptor.source))
+            for item in self._sources.values()
+        ]
+        if theme is not None:
+            slug = theme.strip().lower()
+            if slug not in THEMES:
+                known = ", ".join(THEMES)
+                raise ValueError(f"Unknown theme '{theme}'. Known: {known}")
+            items = [item for item in items if slug in item.themes]
         return sorted(items, key=lambda item: (item.title.lower(), item.source.lower()))
+
+    def list_themes(self) -> List[Dict[str, object]]:
+        """Vocabulário de temas com a contagem de fontes registradas em cada um."""
+        registered = [descriptor.source for descriptor in self.list_sources()]
+        result: List[Dict[str, object]] = []
+        for slug, theme in THEMES.items():
+            entry: Dict[str, object] = dict(theme.to_dict())
+            entry["source_count"] = len(sources_by_theme(slug, registered))
+            result.append(entry)
+        return result
+
+    def list_presets(self) -> List[Dict[str, object]]:
+        """Presets disponíveis, em forma serializável."""
+        return [preset.to_dict() for preset in PRESETS.values()]
+
+    def get_preset(self, name: str) -> Dict[str, object]:
+        """Um preset pelo nome, com os parâmetros de cada passo já validados.
+
+        A validação é o ponto do método: um preset é código que descreve
+        parâmetros de outras fontes, então ele pode envelhecer mal e apontar
+        para um grupo que deixou de existir. Validar na leitura faz o erro
+        aparecer aqui, e não no meio de um download longo.
+        """
+        preset = get_preset(name)
+        for step in preset.steps:
+            if step.params:
+                self.validate_source_params(step.source, step.params)
+            else:
+                # Sem params o preset ainda afirma que a fonte existe.
+                self._get_registered_source(step.source)
+        return preset.to_dict()
 
     def list_source_schemas(self) -> List[Dict[str, object]]:
         return [self.get_source_schema(item.source) for item in self.list_sources()]
@@ -989,6 +1053,7 @@ class DownloadService:
             "source": selected.descriptor.source,
             "title": selected.descriptor.title,
             "mode": selected.descriptor.mode,
+            "themes": list(themes_for(selected.descriptor.source)),
             "params": [item.to_dict() for item in self._get_source_param_specs(selected)],
         }
 

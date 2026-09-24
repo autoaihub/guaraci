@@ -601,3 +601,52 @@ def _normalize_inpe_queimadas_params(params: Dict[str, object]) -> Dict[str, obj
         normalized["keep_raw"] = bool(keep_raw)
 
     return normalized
+
+
+def _normalize_cetesb_params(params: Dict[str, object]) -> Dict[str, object]:
+    """Normaliza os parâmetros das fontes CETESB.
+
+    Os filtros de estação e município são texto livre porque é assim que a
+    CETESB nomeia as coisas: ``Cerqueira César`` com acento e caixa mista para
+    a estação, ``SAO PAULO`` sem acento e em maiúsculas para o município. A
+    comparação é feita sem caixa no datasource, então aqui basta limpar espaço
+    em branco e descartar entradas vazias, sem tentar padronizar a grafia.
+    """
+    normalized = dict(params)
+
+    output_format = normalized.get("output_format")
+    if isinstance(output_format, str):
+        cleaned = output_format.strip().lower()
+        normalized["output_format"] = cleaned if cleaned else None
+
+    api_base_url = normalized.get("api_base_url")
+    if isinstance(api_base_url, str):
+        normalized["api_base_url"] = api_base_url.strip() or None
+
+    pollutants = normalized.get("pollutants")
+    if isinstance(pollutants, list):
+        cleaned_pollutants = [
+            str(item).strip().upper() for item in pollutants if str(item).strip()
+        ]
+        normalized["pollutants"] = cleaned_pollutants or None
+
+    for key in ("stations", "municipios"):
+        value = normalized.get(key)
+        if isinstance(value, list):
+            cleaned_list = [str(item).strip() for item in value if str(item).strip()]
+            normalized[key] = cleaned_list or None
+
+    timeout = normalized.get("timeout")
+    if isinstance(timeout, str) and timeout.strip():
+        try:
+            normalized["timeout"] = int(timeout.strip())
+        except ValueError:
+            pass
+
+    keep_raw = normalized.get("keep_raw")
+    if isinstance(keep_raw, str):
+        normalized["keep_raw"] = keep_raw.strip().lower() in {"1", "true", "t", "yes", "y", "on"}
+    elif keep_raw is not None:
+        normalized["keep_raw"] = bool(keep_raw)
+
+    return normalized

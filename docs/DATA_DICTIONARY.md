@@ -7,13 +7,14 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 109 sources cataloged; 79 sampled with real field names.
+- 112 sources cataloged; 81 sampled with real field names.
 
 ## Caveats (honest)
 
 - `ana_hidro` (needs_credential): ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 - `atencao_primaria_pmmb_especialista_consolidado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `atencao_primaria_pmmb_relatorio_historico_cadastro_cnes` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `cetesb_qualar_horario` (needs_credential): CETESB QUALAR requires a free account (create one at https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario). Set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. No account existed at integration time, so no live sample was taken: the field list is the connector's output contract, not a sampled header. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit, not an index.
 - `ciencia_tecnologia_plataformabr_pesquisa_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `ciencia_tecnologia_plataformabr_projeto_aprovado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `cnes_estabelecimentos_por_codigo_cnes` (error): Parameter 'codigo_cnes' is required.
@@ -136,6 +137,27 @@ to refresh.
 - **Status:** ok (10 rows sampled)
 - **Filters:** `regiao`, `uf`, `ibge`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `regiao`, `uf`, `municipio_dsei`, `ibge`, `prof_crm_brasil_pmmb`, `prof_inter_pmmb`, `prof_cooperados_pmmb`, `prof_provab`, `total_prof_ativos`, `dt_referencia`, `prof_bolsista_vinculados`, `prof_celetista_vinculados`, `prof_tutor_vinculados`
+
+## cetesb_estacoes
+
+- **Status:** ok (62 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `municipios`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `id`, `estacao`, `municipio`, `endereco`, `tipo_rede`, `situacao_rede`, `latitude`, `longitude`, `datahora`, `indice`, `qualidade`, `poluente_critico`, `mensagem_saude`, `efeito`
+- **Note:** Geolocated registry of the monitoring stations, with the current index per station.
+
+## cetesb_qualar
+
+- **Status:** ok (9645 rows sampled)
+- **Filters:** `pollutants`, `stations`, `output_dir`, `output_format`, `municipios`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `estacao`, `municipio`, `latitude`, `longitude`, `poluente`, `datahora`, `indice`
+- **Note:** Live sample from the CETESB public ArcGIS. The values in the indice column are the AIR QUALITY INDEX (CONAMA Resolution 506/2024), NOT a concentration in ug/m3; concentration requires the QUALAR system with a login. The window is rolling: always the last 48 hours, no history.
+
+## cetesb_qualar_horario
+
+- **Status:** needs_credential
+- **Filters:** `stations`, `parameters`, `start_date`, `end_date`, `only_validated`, `pause_seconds`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `estacao`, `codigo_estacao`, `latitude`, `longitude`, `parametro`, `codigo_parametro`, `unidade`, `datahora`, `valor`, `validado`
+- **Note:** CETESB QUALAR requires a free account (create one at https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario). Set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. No account existed at integration time, so no live sample was taken: the field list is the connector's output contract, not a sampled header. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit, not an index.
 
 ## chikungunya
 

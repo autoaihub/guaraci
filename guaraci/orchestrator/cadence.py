@@ -133,6 +133,42 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         # INPE Queimadas: annual files (2003+), re-checked monthly since the
         # current year's file is republished as new detections arrive.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.MONTHLY, 2003)
+    elif name == "cetesb_qualar_horario":
+        # Diferente das outras duas CETESB: esta TEM histórico e aceita
+        # intervalo de datas, então seria varrível em princípio. Fica fora
+        # mesmo assim por dois motivos concretos: exige credencial do operador
+        # e exige escolher estações, já que o QUALAR responde um par
+        # estação/parâmetro por requisição. Varrer 75 estações por 20
+        # parâmetros seriam 1500 chamadas contra um sistema público estadual.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.IRREGULAR,
+            None,
+            auto=False,
+            note=(
+                "needs QUALAR credentials and an explicit station list - "
+                "collect on demand, not swept"
+            ),
+        )
+    elif name.startswith("cetesb"):
+        # A CETESB publica uma janela MÓVEL de 48 horas, sem histórico: não há
+        # ano para varrer e nada a preencher para trás. Acumular série aqui
+        # exigiria guardar um instantâneo a cada poucas horas e concatenar, que
+        # é um padrão append-only que a árvore bronze, particionada por
+        # ano/mês, não modela. Fica fora da varredura de propósito, e não por
+        # não ter sido reconhecida.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.IRREGULAR,
+            None,
+            auto=False,
+            note=(
+                "rolling 48h window with no history - accumulating a series "
+                "needs periodic snapshots, not a backfill sweep"
+            ),
+        )
     elif "opendatasus" in mode_l or "demas" in mode_l:
         # Date-window API sources; min_year is read from the schema by the planner.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.WEEKLY, None)
