@@ -317,6 +317,14 @@ def main() -> int:
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         resultados = dict(pool.map(um, fontes))
 
+    # Segunda tentativa só para o que falhou: a origem oscila, e a
+    # verificação semanal não deve abrir issue por um 500 passageiro.
+    repetir = [s for s, r in resultados.items() if r.get("problemas")]
+    if repetir:
+        time.sleep(60)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            resultados.update(dict(pool.map(um, repetir)))
+
     saida = ROOT / "reports" / f"verificacao_conteudo_{time.strftime('%Y%m%d_%H%M')}.json"
     saida.parent.mkdir(parents=True, exist_ok=True)
     saida.write_text(json.dumps(resultados, ensure_ascii=False, indent=1, default=str), encoding="utf-8")

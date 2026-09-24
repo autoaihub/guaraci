@@ -1,0 +1,111 @@
+name: Verificação semanal
+
+# Roda contra as origens de verdade toda segunda, 6h de Brasília: rotas da API
+# e da CLI, estimativa, coleta real de cada fonte, conteúdo nos três formatos,
+# filtros e resiliência. As origens mudam sem aviso (endpoint que some, ano que
+# atrasa, coluna renomeada); a suíte offline não enxerga isso. Quando algo
+# quebra, abre uma issue com o resumo, ou comenta na que já estiver aberta.
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: verificacao-semanal
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    name: ${{ matrix.camada }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        camada: [rotas, conteudo, filtros, resiliencia]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[datasus,api,dev]"
+
+      - name: Verificar
+        env:
+          # Opcionais: sem elas as fontes com credencial saem como puladas.
+          GUARACI_QUALAR_LOGIN: ${{ secrets.GUARACI_QUALAR_LOGIN }}
+          GUARACI_QUALAR_SENHA: ${{ secrets.GUARACI_QUALAR_SENHA }}
+          GUARACI_FIRMS_MAP_KEY: ${{ secrets.GUARACI_FIRMS_MAP_KEY }}
+          GUARACI_EARTHDATA_TOKEN: ${{ secrets.GUARACI_EARTHDATA_TOKEN }}
+          PYTHONIOENCODING: utf-8
+        run: |
+          status=0
+          roda() { python "$@" 2>&1 | tee -a saida.log || status=1; }
+          case "${{ matrix.camada }}" in
+            rotas)
+              roda scripts/verificar_rotas.py --camada offline
+              roda scripts/verificar_rotas.py --camada discovery
+              roda scripts/verificar_rotas.py --camada jobs ;;
+            conteudo)    roda scripts/verificar_conteudo.py --workers 4 ;;
+            filtros)     roda scripts/verificar_filtros.py --workers 4 ;;
+            resiliencia) roda scripts/verificar_resiliencia.py ;;
+          esac
+          {
+            echo "### ${{ matrix.camada }}"
+            grep -E "^([0-9]+ (fontes|casos)|FALHA|PROBLEMA)" saida.log | sed 's/^/    /' || true
+          } > resumo.md
+          cat resumo.md >> "$GITHUB_STEP_SUMMARY"
+          exit $status
+
+      - name: Guardar relatórios
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verificacao-${{ matrix.camada }}
+          path: |
+            reports/verificacao_*.json
+            saida.log
+            resumo.md
+          retention-days: 90
+
+  relatar:
+    name: abrir issue se falhou
+    needs: verificar
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: verificacao-*
+
+      - name: Abrir ou comentar a issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          {
+            echo "A verificação semanal de $(date -u +%Y-%m-%d) encontrou falhas."
+            echo "Execução: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            cat verificacao-*/resumo.md 2>/dev/null
+          } > corpo.md
+          gh label create verificacao-semanal --color D93F0B \
+            --description "Falha na verificação semanal contra as origens" 2>/dev/null || true
+          aberta=$(gh issue list --label verificacao-semanal --state open --json number --jq '.[0].number')
+          if [ -n "$aberta" ]; then
+            gh issue comment "$aberta" --body-file corpo.md
+          else
+            gh issue create --title "Verificação semanal: falhas contra as origens" \
+              --label verificacao-semanal --body-file corpo.md
+          fi

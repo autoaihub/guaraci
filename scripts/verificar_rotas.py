@@ -338,6 +338,11 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
 
         def roda() -> Dict[str, Any]:
             resp = api.post("/jobs", json={"source": s, "params": params})
+            if resp.status_code == 400 and "is required" in resp.text:
+                # Campo que só o usuário preenche (estação da ANA): a recusa
+                # nomeando o campo é o comportamento certo, já conferido na
+                # camada offline.
+                return {"pulada": resp.json().get("detail")}
             assert resp.status_code in (200, 201, 202), f"{resp.status_code}: {resp.text[:400]}"
             job_id = resp.json()["job_id"]
             fim = time.monotonic() + timeout
@@ -382,6 +387,19 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
 
     with ThreadPoolExecutor(max_workers=4) as pool:
         list(pool.map(um, fontes))
+
+    # Segunda tentativa para o que falhou: a origem oscila (um 500 do DEMAS
+    # que some minutos depois), e a verificação semanal não deve abrir issue
+    # por isso. O que falha duas vezes fica registrado como falha.
+    falharam = {l["fonte"] for l in rel.falhas if l["verificacao"].startswith("POST /jobs")}
+    if falharam:
+        time.sleep(60)
+        rel.linhas = [l for l in rel.linhas if not (l["fonte"] in falharam and not l["ok"])]
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            list(pool.map(um, [f for f in fontes if f["source"] in falharam]))
+        for linha in rel.linhas:
+            if linha["fonte"] in falharam and linha["ok"]:
+                linha["detalhe"] = {"segunda_tentativa": True, "resultado": linha["detalhe"]}
 
 
 # ---------------------------------------------------------------------------
