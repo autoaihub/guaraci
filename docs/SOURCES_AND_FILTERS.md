@@ -31,6 +31,8 @@ they expose more convenient query layers.
 - `sindrome_gripal_leve` (`opendatasus api`) — same
 - OpenDataSUS DEMAS sources generated from `guaraci/opendatasus/utils/swagger.json`
 - `srag_arquivos` (`opendatasus files`) — primary: `dadosabertos.saude.gov.br/dataset/srag-2019-a-2026`
+- `srag_arquivos_2009_2012` and `srag_arquivos_2013_2018` (`opendatasus files`), primary:
+  `dadosabertos.saude.gov.br/dataset/srag-2009-2012` and `.../srag-2013-2018`
   (SRAG annual "banco vivo" bulk files, S3-hosted; discovered by scraping the
   portal, not a CKAN/DEMAS API — see §3.5)
 - `sisagua_controle_mensal_parametros_basicos` (`opendatasus files`) — primary:
@@ -140,7 +142,7 @@ they expose more convenient query layers.
 
 ### Navigating by subject: themes and presets
 
-The catalogue above has 112 entries, and the subject a user is after rarely
+The catalogue above has 114 entries, and the subject a user is after rarely
 coincides with the boundary of a source. Two layers exist for that.
 
 **Themes** (`guaraci/services/themes.py`) answer "where is the data on this
@@ -267,7 +269,7 @@ Cost of date and UF refinements (measured against `/arboviroses/dengue`):
   12% in runtime. Each record costs about 11 KB while held as a dictionary, so
   a full year would previously have required roughly 45 GB of RAM.
 
-### 3.5 OpenDataSUS Bulk Files (`srag_arquivos` + all 14 SISAGUA packages: `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`, `sisagua_controle_mensal_demais_parametros`, `sisagua_controle_mensal_amostras_fora_do_padrao`, `sisagua_controle_mensal_plano_amostragem`, `sisagua_controle_mensal_infraestrutura_operacional`, `sisagua_vigilancia_demais_parametros`, `sisagua_vigilancia_cianobacterias_e_cianotoxinas`, `sisagua_pontos_de_captacao`, `sisagua_cadastro_carro_pipa_procedencia`, `sisagua_cadastro_carro_pipa_populacao`)
+### 3.5 OpenDataSUS Bulk Files (`srag_arquivos`, `srag_arquivos_2009_2012`, `srag_arquivos_2013_2018` + all 14 SISAGUA packages: `sisagua_controle_mensal_parametros_basicos`, `sisagua_controle_semestral`, `sisagua_vigilancia_parametros_basicos`, `sisagua_tratamento_agua`, `sisagua_populacao_abastecida`, `sisagua_controle_mensal_demais_parametros`, `sisagua_controle_mensal_amostras_fora_do_padrao`, `sisagua_controle_mensal_plano_amostragem`, `sisagua_controle_mensal_infraestrutura_operacional`, `sisagua_vigilancia_demais_parametros`, `sisagua_vigilancia_cianobacterias_e_cianotoxinas`, `sisagua_pontos_de_captacao`, `sisagua_cadastro_carro_pipa_procedencia`, `sisagua_cadastro_carro_pipa_populacao`)
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |
@@ -281,6 +283,22 @@ Cost of date and UF refinements (measured against `/arboviroses/dengue`):
 | `api_base_url` | string | download | Optional `dadosabertos.saude.gov.br` base URL override |
 
 Bulk-files notes:
+- **Historical SRAG banks** (`srag_arquivos_2009_2012`, `srag_arquivos_2013_2018`):
+  frozen SINAN Influenza files, one per year, in a layout that predates the
+  SIVEP-Gripe one used by `srag_arquivos` (113 and 114 columns against 194;
+  names and codes differ, so the three sources do not stack without a
+  mapping). Verified live on 2026-09-24: 125 250 rows for 2009-2012 (88 354 in
+  2009 alone, the H1N1 pandemic) and 201 799 for 2013-2018. Each year is
+  listed three times with no format in its name; the CSV is not on the S3
+  bucket but on the Ministry's CloudFront distribution linked from the
+  resource page, which the scraper accepts as a fallback when the page has no
+  S3 link. The aggregate "2009 a 2012" resource is excluded. `start_year` and
+  `end_year` are bounded to the bank's own years, and the orchestrator stops
+  re-checking a bank once its last year is in the ledger.
+- **Every SRAG CSV is `;`-separated**, and the 2016 file is latin-1 (with a
+  few characters already corrupted at the source). Conversion detects the
+  separator from the header and reads non-UTF-8 files through a transcoded
+  temporary copy; the downloaded file itself is never altered.
 - Different transport from the record-oriented OpenDataSUS sources above:
   each "dataset" here is a handful of whole-file resources (CSV/Parquet/JSON/
   XML, sometimes zipped) hosted on a public S3 bucket

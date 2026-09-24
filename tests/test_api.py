@@ -66,7 +66,7 @@ def test_sources_endpoint_reports_supports_discovery(client: TestClient) -> None
     assert by_source["sih"] is True
     assert by_source["srag_arquivos"] is True
     assert by_source["snis"] is False
-    assert sum(1 for value in by_source.values() if value) == 27
+    assert sum(1 for value in by_source.values() if value) == 29
 
 
 def test_nasa_power_schema_endpoint(client: TestClient) -> None:

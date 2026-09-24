@@ -59,6 +59,16 @@ _CONTAINER_FORMATS: Tuple[str, ...] = ("zip",)
 _S3_URL_RE = re.compile(
     r"https://s3\.sa-east-1\.amazonaws\.com/ckan\.saude\.gov\.br/[^\"'<>\s]+"
 )
+# Alguns recursos antigos (os CSV dos bancos de SRAG 2009-2018, verificado ao
+# vivo em 2026-09-24) não passam pelo bucket: a página do recurso aponta para a
+# distribuição CloudFront do próprio Ministério. Só vale como segunda opção, e
+# só para URL que termina em extensão de dado, porque a página também carrega
+# assets de CDN que não são o arquivo.
+_CDN_DATA_URL_RE = re.compile(
+    r"https://[a-z0-9]+\.cloudfront\.net/[^\"'<>\s]+?"
+    r"\.(?:csv|parquet|json|xml|zip)(?=[\"'<>\s])",
+    re.IGNORECASE,
+)
 
 
 class PortalFilesClientError(ApiClientError):
@@ -155,8 +165,52 @@ def parse_dataset_resources(html: str, slug: str) -> List[Tuple[str, str]]:
 
 def parse_resource_s3_url(html: str) -> Optional[str]:
     """Extract the public S3 file URL embedded in a resource page."""
-    match = _S3_URL_RE.search(html)
+    match = _S3_URL_RE.search(html) or _CDN_DATA_URL_RE.search(html)
     return match.group(0) if match else None
+
+
+def _csv_separator(path: Path) -> str:
+    """Separador de um CSV do portal, lido do cabeçalho.
+
+    Os bancos de SRAG, de 2009 até o banco vivo atual, usam ``;``
+    (verificado ao vivo em 2026-09-24). Ler com a vírgula padrão do polars
+    colapsava cada linha num campo só e a conversão abortava com "found more
+    fields than defined in Schema". Só não aparecia antes porque o
+    ``srag_arquivos`` prefere o parquet da origem e nunca passava por aqui.
+    """
+    with open(path, "rb") as handle:
+        header = handle.readline(65536)
+    return ";" if header.count(b";") > header.count(b",") else ","
+
+
+def _utf8_csv(path: Path) -> Path:
+    """Devolve ``path`` se ele for UTF-8, ou uma cópia transcodificada.
+
+    Os bancos antigos de SRAG misturam codificações: 2009 é ASCII puro e 2016
+    vem em latin-1 (verificado ao vivo em 2026-09-24), o que fazia a conversão
+    abortar com "invalid utf-8 sequence". A checagem e a cópia correm em
+    blocos, para não carregar um CSV de centenas de MB inteiro na memória.
+    latin-1 é a codificação histórica do DATASUS e decodifica qualquer byte.
+    """
+    import codecs
+
+    decoder = codecs.getincrementaldecoder("utf-8")()
+    try:
+        with open(path, "rb") as handle:
+            for block in iter(lambda: handle.read(1 << 20), b""):
+                decoder.decode(block)
+            decoder.decode(b"", final=True)
+        return path
+    except UnicodeDecodeError:
+        pass
+
+    target = path.with_name(f"{path.stem}.utf8.tmp.csv")
+    with open(path, "r", encoding="latin-1", newline="") as source, open(
+        target, "w", encoding="utf-8", newline=""
+    ) as sink:
+        for block in iter(lambda: source.read(1 << 20), ""):
+            sink.write(block)
+    return target
 
 
 def _extract_year(name: str, year_regex: str) -> Optional[int]:
@@ -397,6 +451,22 @@ PACKAGE_SPECS: Dict[str, PortalFilePackageSpec] = {
         slug="srag-2019-a-2026",
         include_terms=("banco vivo",),
         format_priority=("parquet", "csv", "json", "xml"),
+    ),
+    # Bancos históricos (verificados ao vivo em 2026-09-24). Cada ano aparece
+    # três vezes, sem formato no nome ("Gripe influenza 2009"): um CSV na CDN
+    # e um JSON e um XML zipados no bucket. O recurso agregado "2009 a 2012"
+    # fica de fora, porque o ano extraído dele colidiria com o primeiro ano.
+    "srag_arquivos_2009_2012": PortalFilePackageSpec(
+        slug="srag-2009-2012",
+        include_terms=("gripe influenza",),
+        exclude_terms=(" a 20",),
+        format_priority=("csv", "json", "xml"),
+    ),
+    "srag_arquivos_2013_2018": PortalFilePackageSpec(
+        slug="srag-2013-2018",
+        include_terms=("gripe influenza",),
+        exclude_terms=(" a 20",),
+        format_priority=("csv", "json", "xml"),
     ),
     "sisagua_controle_mensal_parametros_basicos": PortalFilePackageSpec(
         slug="sisagua-controle-mensal-parametros-basicos",
@@ -866,7 +936,24 @@ class PortalFileDataSource(DataSource):
                 "(only parquet/csv sources are convertible)."
             )
         dest = path.with_suffix(f".{normalized}")
+        # O polars só lê UTF-8. O arquivo baixado fica intacto; quando ele não
+        # for UTF-8, a leitura passa por uma cópia transcodificada que some
+        # no fim da conversão.
+        read_path = _utf8_csv(path) if suffix == "csv" else path
+        try:
+            return self._convert_file(read_path, suffix, dest, normalized, output_format)
+        finally:
+            if read_path != path:
+                read_path.unlink(missing_ok=True)
 
+    def _convert_file(
+        self,
+        path: Path,
+        suffix: str,
+        dest: Path,
+        normalized: str,
+        output_format: str,
+    ) -> Path:
         if normalized == "sqlite":
             # Aqui o plano lazy compensa, porque `write_sqlite` consome o frame
             # em lotes: medido sobre a SRAG de 2025, 1427 MB de pico contra
@@ -889,7 +976,12 @@ class PortalFileDataSource(DataSource):
         frame = (
             pl.read_parquet(path)
             if suffix == "parquet"
-            else pl.read_csv(path, infer_schema_length=10000, ignore_errors=True)
+            else pl.read_csv(
+                path,
+                separator=_csv_separator(path),
+                infer_schema_length=10000,
+                ignore_errors=True,
+            )
         )
         if normalized == "csv":
             frame.write_csv(dest)
@@ -903,7 +995,12 @@ class PortalFileDataSource(DataSource):
     def _scan(path: Path, suffix: str) -> pl.LazyFrame:
         if suffix == "parquet":
             return pl.scan_parquet(path)
-        return pl.scan_csv(path, infer_schema_length=10000, ignore_errors=True)
+        return pl.scan_csv(
+            path,
+            separator=_csv_separator(path),
+            infer_schema_length=10000,
+            ignore_errors=True,
+        )
 
     # -- manifest / abstract contract ---------------------------------------
 

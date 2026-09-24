@@ -196,6 +196,8 @@ _EXPLICIT: Mapping[str, Tuple[str, ...]] = {
     "mpox": ("vigilancia_epidemiologica",),
     "srag_demas": ("vigilancia_epidemiologica",),
     "srag_arquivos": ("vigilancia_epidemiologica",),
+    "srag_arquivos_2009_2012": ("vigilancia_epidemiologica",),
+    "srag_arquivos_2013_2018": ("vigilancia_epidemiologica",),
     "sindrome_gripal_leve": ("vigilancia_epidemiologica",),
     "esavi": ("imunizacao", "vigilancia_epidemiologica"),
     "doses_aplicadas_pni": ("imunizacao",),

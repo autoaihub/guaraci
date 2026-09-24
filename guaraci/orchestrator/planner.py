@@ -234,7 +234,8 @@ def plan_backfill(
 
     if profile.kind is Kind.API_WINDOW:
         floor = profile.min_year or (year_now - api_backfill_years + 1)
-        return _api_window_units(profile.source, range(floor, year_now + 1))
+        ceiling = min(year_now, profile.max_year or year_now)
+        return _api_window_units(profile.source, range(floor, ceiling + 1))
 
     if profile.kind is Kind.CRAWLER:
         return [FetchUnit(source=profile.source, kind=Kind.CRAWLER)]
@@ -312,9 +313,20 @@ def plan_update(
 
     if profile.kind is Kind.API_WINDOW:
         last = ledger.max_year(profile.source)
+        ceiling = min(year_now, profile.max_year or year_now)
+        if profile.max_year is not None and last is not None and last >= profile.max_year:
+            # Banco congelado já completo: nada a reconsultar.
+            return []
         # Re-pull the last known year (it may have grown) plus any newer years.
-        low = last if last is not None else year_now
-        return _api_window_units(profile.source, range(low, year_now + 1))
+        # Um banco congelado ainda não coletado começa do piso: não existe
+        # "ano corrente" nele.
+        if last is not None:
+            low = last
+        elif profile.max_year is not None:
+            low = profile.min_year or ceiling
+        else:
+            low = year_now
+        return _api_window_units(profile.source, range(low, ceiling + 1))
 
     if profile.kind is Kind.CRAWLER:
         return [FetchUnit(source=profile.source, kind=Kind.CRAWLER)]

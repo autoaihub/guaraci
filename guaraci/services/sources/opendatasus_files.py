@@ -39,8 +39,12 @@ def _params_schema(
     default_end_year: int,
     large_dataset_note: str = "",
     cumulative: bool = False,
+    max_year: "int | None" = None,
 ) -> List[SourceParameterSpec]:
     current_year = datetime.now().year
+    # Banco histórico congelado: o teto é o último ano publicado, não o ano
+    # corrente, para a interface não oferecer anos que nunca existirão.
+    year_ceiling = max_year if max_year is not None else current_year + 1
     description_suffix = f" {large_dataset_note}" if large_dataset_note else ""
     if cumulative:
         description_suffix += (
@@ -78,7 +82,7 @@ def _params_schema(
             required=False,
             default=default_start_year,
             **({"minimum": min_year} if min_year is not None else {}),
-            maximum=current_year + 1,
+            maximum=year_ceiling,
         ),
         SourceParameterSpec(
             name="end_year",
@@ -88,7 +92,7 @@ def _params_schema(
             required=False,
             default=default_end_year,
             **({"minimum": min_year} if min_year is not None else {}),
-            maximum=current_year + 1,
+            maximum=year_ceiling,
         ),
         SourceParameterSpec(
             name="resource_filter",
@@ -151,6 +155,27 @@ def build_sources() -> List[DownloadSource]:
             ),
             fixed_dataset="srag_arquivos",
             normalize_params=_normalize_portal_files_params,
+        ),
+        *(
+            PortalFileDownloadSource(
+                descriptor=SourceDescriptor(
+                    source=f"srag_arquivos_{first}_{last}",
+                    title=f"SRAG - Bancos Históricos ({first}-{last})",
+                    mode="opendatasus files",
+                ),
+                datasource_cls=PortalFileDataSource,
+                params_schema=_params_schema(
+                    min_year=first,
+                    max_year=last,
+                    default_start_year=first,
+                    default_end_year=last,
+                ),
+                fixed_dataset=f"srag_arquivos_{first}_{last}",
+                normalize_params=_normalize_portal_files_params,
+            )
+            # Bancos congelados do SINAN Influenza, anteriores ao SIVEP-Gripe
+            # atual. O layout de colunas difere do banco de 2019 em diante.
+            for first, last in ((2009, 2012), (2013, 2018))
         ),
         PortalFileDownloadSource(
             descriptor=SourceDescriptor(

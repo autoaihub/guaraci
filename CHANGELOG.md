@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+### Added: bancos históricos de SRAG, de 2009 a 2018
+Duas fontes novas, `srag_arquivos_2009_2012` e `srag_arquivos_2013_2018`, e o
+catálogo vai a 114. A série de síndrome respiratória aguda grave passa a
+começar em 2009 em vez de 2019, o que traz a pandemia de H1N1: 88 354
+notificações só em 2009. As duas espelham os conjuntos do portal como estão
+publicados, no layout antigo do SINAN Influenza (113 e 114 colunas contra as
+194 do SIVEP-Gripe atual), então não empilham com `srag_arquivos` sem um
+mapeamento de colunas.
+
+Coletadas ao vivo em 24/09/2026, ano a ano, pelo orquestrador: 125 250 linhas
+em 2009-2012 e 201 799 em 2013-2018, sem erro. O update seguinte não pediu
+nada, porque um banco congelado agora tem teto de ano (`max_year` no perfil
+de cadência) e sai da reconsulta quando o último ano entra no ledger. Sem o
+teto, o update semanal pediria todo ano de 2012 até o corrente.
+
+### Fixed: três defeitos na conversão dos arquivos do portal
+Apareceram na primeira coleta dos bancos históricos. Os dois primeiros valem
+também para o `srag_arquivos` atual.
+
+- **Todo CSV de SRAG usa `;`**, de 2009 ao banco vivo de 2026, e o conversor
+  lia com a vírgula padrão. Cada linha virava um campo só e a conversão
+  abortava com "found more fields than defined in Schema". Não aparecia antes
+  porque o `srag_arquivos` prefere o parquet da origem e nunca passava pelo
+  CSV. O separador agora sai do cabeçalho.
+- **O polars só lê UTF-8**, e o banco de 2016 vem em latin-1. Um arquivo que
+  não seja UTF-8 é lido por uma cópia transcodificada, feita em blocos e
+  apagada ao fim. O arquivo baixado não é alterado.
+- **O CSV desses bancos não está no bucket S3**, e sim na distribuição
+  CloudFront do Ministério que a página do recurso linka. O scraper só
+  reconhecia o S3, então esses recursos sumiam da descoberta sem aviso. A
+  CDN entra como segunda opção, e só para URL com extensão de dado, porque a
+  página também carrega fontes e estilos de CDN.
+
 ## [0.8.0] - 2026-09-24
 
 ### Added: a CETESB entra na varredura do data lake

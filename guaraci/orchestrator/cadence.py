@@ -36,6 +36,12 @@ _INMET_MIN_YEAR = 2000
 # noite. O QUALAR tem série bem mais antiga: basta baixar este piso.
 _QUALAR_HORARIO_MIN_YEAR = 2022
 
+# Bancos históricos que a origem não atualiza mais: (primeiro, último) ano.
+_FROZEN_YEAR_RANGES: Dict[str, tuple] = {
+    "srag_arquivos_2009_2012": (2009, 2012),
+    "srag_arquivos_2013_2018": (2013, 2018),
+}
+
 # Edit here to re-tune how often a source is re-checked for new data.
 # SISAGUA bulk-file sources publish (at most) monthly/semestral batches on
 # the portal; the "opendatasus" mode default (WEEKLY) is tuned for the
@@ -70,6 +76,9 @@ class SourceProfile:
     min_year: Optional[int] = None
     auto: bool = True
     note: str = ""
+    # Último ano publicado de um banco congelado. O update para de reconsultar
+    # a fonte depois que esse ano está no ledger.
+    max_year: Optional[int] = None
 
     def with_cadence(self, cadence: Cadence) -> "SourceProfile":
         return replace(self, cadence=cadence)
@@ -173,6 +182,11 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         # pouco; um instantâneo por mês mantém o histórico de estações ativas
         # para a junção com a série de concentração.
         profile = SourceProfile(name, Kind.SNAPSHOT, Cadence.MONTHLY, None)
+    elif name in _FROZEN_YEAR_RANGES:
+        first, last = _FROZEN_YEAR_RANGES[name]
+        profile = SourceProfile(
+            name, Kind.API_WINDOW, Cadence.ANNUAL, first, max_year=last
+        )
     elif "opendatasus" in mode_l or "demas" in mode_l:
         # Date-window API sources; min_year is read from the schema by the planner.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.WEEKLY, None)
