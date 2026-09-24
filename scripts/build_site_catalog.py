@@ -88,6 +88,8 @@ CURATED = {
     "sindrome_gripal_leve": ("Síndrome gripal leve", "Notificações de síndrome gripal leve", G_VIG, SVS, "saude"),
     "srag_demas": ("SRAG", "Síndrome respiratória aguda grave", G_VIG, SVS, "saude"),
     "srag_arquivos": ("SRAG — bancos anuais", "Bancos anuais consolidados (2019–2026), arquivo bruto do portal", G_VIG, SVS, "saude"),
+    "srag_arquivos_2009_2012": ("SRAG: banco histórico 2009-2012", "Gripe influenza no layout antigo do SINAN, com a pandemia de H1N1 de 2009", G_VIG, SVS, "saude"),
+    "srag_arquivos_2013_2018": ("SRAG: banco histórico 2013-2018", "Gripe influenza no layout antigo do SINAN, anterior ao SIVEP-Gripe atual", G_VIG, SVS, "saude"),
     "esavi": ("ESAVI", "Eventos adversos pós-vacinação", G_VIG, SVS, "saude"),
     "doses_aplicadas_pni": ("Doses aplicadas (PNI)", "Painel de vacinação — doses aplicadas", G_VIG, PNI_M, "saude"),
     # Arboviroses · catálogo aberto
