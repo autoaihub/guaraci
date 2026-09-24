@@ -142,3 +142,25 @@ def test_every_csv_of_a_multi_bank_resource_reaches_bronze(tmp_path):
     ]
     assert Path(row.out_path).name == "enani_2019_2019_data_crianca.csv"
     assert row.n_bytes == sum(p.stat().st_size for p in folder.glob("*.csv"))
+
+
+class _RejectsService(_MultiCsvService):
+    def run(self, source, **kwargs):
+        out = Path(kwargs["output_dir"])
+        out.mkdir(parents=True, exist_ok=True)
+        data = out / "a.csv"
+        data.write_text("a\n1\n", encoding="utf-8")
+        rejects = out / "a.rejeitadas.csv"
+        rejects.write_text("linha;conteudo_original\n3;x;y\n", encoding="utf-8")
+        return _Result({
+            "documents_found": 1, "downloaded_count": 1,
+            "exported_files": [str(data)], "rejected_file": str(rejects),
+        })
+
+
+def test_rejected_rows_file_travels_with_the_bronze_file(tmp_path):
+    unit = FetchUnit("anvisa_tecnovigilancia", Kind.SNAPSHOT, year=2026, month=9)
+    row = run_via_service(unit, service=_RejectsService(), bronze_root=tmp_path, run_id="r", ts="t")
+    target = Path(row.out_path)
+    assert target.name == "anvisa_tecnovigilancia_202609.csv"
+    assert (target.parent / "anvisa_tecnovigilancia_202609.rejeitadas.csv").exists()

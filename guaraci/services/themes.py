@@ -151,6 +151,11 @@ _THEME_LIST: Tuple[Theme, ...] = (
         "Orçamento, custos e preços no setor saúde.",
     ),
     Theme(
+        "vigilancia_sanitaria",
+        "Vigilância sanitária",
+        "Farmacovigilância, tecnovigilância, hemovigilância e registro de produtos.",
+    ),
+    Theme(
         "gestao",
         "Gestão, ciência e tecnologia",
         "Ouvidoria, avaliação de tecnologias, pesquisa e demais temas de gestão.",
@@ -207,6 +212,15 @@ _EXPLICIT: Mapping[str, Tuple[str, ...]] = {
     "macrorregiao_e_regiao_de_saude_municipio": ("estabelecimentos",),
     "daf_estoque_medicamentos_bnafar_horus": ("medicamentos",),
     "outros_temas_ced": ("gestao",),
+    # ANVISA, arquivos de dados abertos
+    "anvisa_vigimed_notificacoes": ("vigilancia_sanitaria", "medicamentos"),
+    "anvisa_vigimed_medicamentos": ("vigilancia_sanitaria", "medicamentos"),
+    "anvisa_vigimed_reacoes": ("vigilancia_sanitaria", "medicamentos"),
+    "anvisa_tecnovigilancia": ("vigilancia_sanitaria",),
+    "anvisa_hemovigilancia": ("vigilancia_sanitaria", "assistencia_hospitalar"),
+    "anvisa_medicamentos_registrados": ("medicamentos", "vigilancia_sanitaria"),
+    "anvisa_cmed_precos": ("economia_saude", "medicamentos"),
+    "anvisa_cmed_precos_governo": ("economia_saude", "medicamentos"),
     "educacao_em_saude_pvc": ("forca_trabalho", "gestao"),
     "prevencao_e_promocao_distribuicao_epi_insumo": ("medicamentos",),
     "vacinacao_sistema_de_informacao_de_insumos_estrategicos": (

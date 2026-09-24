@@ -142,6 +142,12 @@ they expose more convenient query layers.
   `qualar.cetesb.sp.gov.br/qualar` (the classic QUALAR system: measured hourly
   CONCENTRATION for 12 pollutants and 8 meteorological variables, full
   historical range. Requires a free CETESB account; see §3.24)
+- eight ANVISA sources (`anvisa files`), primary: `dados.anvisa.gov.br/dados/`
+  (whole files republished over the previous ones; see §3.25):
+  `anvisa_vigimed_notificacoes`, `anvisa_vigimed_medicamentos`,
+  `anvisa_vigimed_reacoes`, `anvisa_tecnovigilancia`, `anvisa_hemovigilancia`,
+  `anvisa_medicamentos_registrados`, `anvisa_cmed_precos`,
+  `anvisa_cmed_precos_governo`
 
 ### Navigating by subject: themes and presets
 
@@ -1068,6 +1074,57 @@ QUALAR notes:
   from the system's own HTML and from the R package `qualR` (rOpenSci, MIT),
   which is also the source of the station and parameter code tables in
   `guaraci/cetesb/codes.py`.
+
+### 3.25 ANVISA open-data files (`anvisa_*`)
+
+Eight whole files from `https://dados.anvisa.gov.br/dados/`, a plain file
+listing with no API (`/api` answers 404, verified live 2026-09-24). ANVISA
+overwrites each file on update with no versioning, so history exists only if
+the collector keeps copies; the orchestrator stores one snapshot per month.
+
+| Source | File | Rows (2026-09-24) | Notes |
+| --- | --- | --- | --- |
+| `anvisa_vigimed_notificacoes` | `VigiMed_Notificacoes.csv` | 356 107 | pharmacovigilance notifications, patient data pseudonymised |
+| `anvisa_vigimed_medicamentos` | `VigiMed_Medicamentos.csv` | 699 311 | drugs per notification, WHODrug and ATC |
+| `anvisa_vigimed_reacoes` | `VigiMed_Reacoes.csv` | 1 093 739 | reactions in MedDRA, severity and outcome |
+| `anvisa_tecnovigilancia` | `DADOS_ABERTOS_TECNOVIGILANCIA.csv` | 287 464 | medical devices, since 2012 |
+| `anvisa_hemovigilancia` | `DADOS_ABERTOS_HEMOVIGILANCIA.csv` | 237 737 | transfusion reactions, since 2006 |
+| `anvisa_medicamentos_registrados` | `DADOS_ABERTOS_MEDICAMENTOS.csv` | 43 557 | drug registrations |
+| `anvisa_cmed_precos` | `TA_PRECO_MEDICAMENTO.csv` | 25 702 | CMED consumer price list |
+| `anvisa_cmed_precos_governo` | `TA_PRECO_MEDICAMENTO_GOV.csv` | 25 702 | CMED government price (PMVG) |
+
+| Parameter | Type | Phase | Notes |
+| --- | --- | --- | --- |
+| `output_format` | string | exportacao | `csv` (UTF-8), `parquet` or `sqlite`, every column as text; omit to keep the file as published (cp1252, `;`) |
+| `keep_raw` | boolean | tecnica | Keep the published file next to the export, default `false` |
+| `timeout` | integer | tecnica | HTTP timeout in seconds, default 600 (VigiMed files pass 100 MB) |
+| `output_dir`, `api_base_url` | string | tecnica | Output folder; base URL override |
+
+ANVISA notes:
+- **Every column is exported as text.** Date formats change between files
+  (MM/DD in VigiMed and hemovigilância, DD/MM in tecnovigilância) and
+  `None` appears as a literal null; interpreting them belongs to the silver
+  layer. Text also keeps leading zeros in registration numbers and EANs.
+- **Download is skipped when the local copy has the size the server reports**
+  in `Content-Length`; the payload carries `source_size` and
+  `source_last_modified`.
+- **Files without quoting are re-split line by line.** VigiMed does not quote
+  fields, and a field starting with a quote (`"500" Dosage unit...`) made a
+  CSV reader swallow the rest of the file. Tecnovigilância publishes
+  `OCORRENCIA_NIVEL_1/2` as `" ; "`-separated lists without quotes (3 439
+  rows with 2 to 8 extra fields); a `;` with a space on each side stays inside
+  the field. A row that still does not fit (1 of 287 465, an unquoted `;` in
+  the product name) is not cut by guess: it goes verbatim, with its line
+  number, to `<source>.rejeitadas.csv`, reported in `rejected_rows` and in the
+  warning. The orchestrator keeps that file next to the bronze CSV.
+- **CMED opens with a legal preamble of variable length** (59 lines in one
+  file, 72 in the other on 2026-09-24); the header row is found by content.
+- **Left out on purpose:** `notivisa2_nsp_da.csv` (patient-safety adverse
+  events, 1.3 GB) has no header row, and the dictionary ANVISA publishes for it
+  describes a different table (an 11-field establishment registry, against 19
+  event columns in the file), so any column name would be a guess. SNGPC
+  (controlled-drug sales) is about 1 GB per month and is missing every month
+  from 2021-11 to 2025-12.
 
 ## 4. UI and API Versus Direct CLI
 

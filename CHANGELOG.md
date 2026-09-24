@@ -2,6 +2,47 @@
 
 ## [Unreleased]
 
+### Added: oito fontes da ANVISA, e o tema vigilância sanitária
+O catálogo vai a 124, com a ANVISA como nona instituição de origem. Os
+arquivos vêm de `dados.anvisa.gov.br/dados/`, uma listagem sem API, e são
+sobrescritos a cada atualização: o orquestrador guarda um instantâneo por mês
+para existir histórico.
+
+| Fonte | Linhas em 24/09/2026 |
+| --- | --- |
+| `anvisa_vigimed_notificacoes` (farmacovigilância) | 356 107 |
+| `anvisa_vigimed_medicamentos` | 699 311 |
+| `anvisa_vigimed_reacoes` (MedDRA) | 1 093 739 |
+| `anvisa_tecnovigilancia` (dispositivos médicos) | 287 464 |
+| `anvisa_hemovigilancia` (reações transfusionais) | 237 737 |
+| `anvisa_medicamentos_registrados` | 43 557 |
+| `anvisa_cmed_precos` | 25 702 |
+| `anvisa_cmed_precos_governo` (PMVG) | 25 702 |
+
+Todas coletadas ao vivo pelo orquestrador, sem erro, e a segunda execução não
+baixou nada. A exportação converte cp1252 para UTF-8 em fluxo e mantém toda
+coluna como texto, porque o formato de data muda de um arquivo para outro.
+Três defeitos da origem são tratados sem adivinhar:
+
+- O VigiMed não usa aspas, mas um campo começa com uma (`"500" Dosage
+  unit...`), e o leitor engolia o resto do arquivo. Arquivos sem aspas agora
+  são redivididos linha a linha.
+- A tecnovigilância publica listas `" ; "` dentro de dois campos, sem aspas.
+  O `;` entre espaços fica dentro do campo. A única linha que ainda não
+  encaixa (1 de 287 465) vai inteira para `.rejeitadas.csv`, com o número da
+  linha, em vez de ser cortada por palpite; o orquestrador leva esse arquivo
+  junto para o bronze.
+- O CMED abre com preâmbulo de tamanho variável (59 e 72 linhas); o
+  cabeçalho é achado pelo conteúdo.
+
+Novo tema `vigilancia_sanitaria` (farmacovigilância, tecnovigilância,
+hemovigilância e registro de produtos), porque nenhum dos 20 anteriores
+cobria esse assunto.
+
+Ficaram de fora: o NOTIVISA do Núcleo de Segurança do Paciente, que não tem
+cabeçalho e cujo dicionário publicado descreve outra tabela, e o SNGPC, com
+cerca de 1 GB por mês e sem os meses de 2021-11 a 2025-12.
+
 ### Fixed: as 14 fontes SISAGUA nunca chegavam ao data lake
 O SISAGUA publica tudo em `.zip`, e a conversão só aceitava CSV e Parquet
 soltos. Na CLI isso aparecia como aviso; no orquestrador, como `empty`,

@@ -192,6 +192,11 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         profile = SourceProfile(
             name, Kind.API_WINDOW, Cadence.ANNUAL, first, max_year=last
         )
+    elif "anvisa" in mode_l:
+        # A ANVISA sobrescreve cada arquivo a cada atualização, sem versão:
+        # o histórico só existe guardando cópias. Mensal equilibra o custo
+        # (VigiMed soma cerca de 575 MB por cópia) com a resolução temporal.
+        profile = SourceProfile(name, Kind.SNAPSHOT, Cadence.MONTHLY, None)
     elif "opendatasus" in mode_l or "demas" in mode_l:
         # Date-window API sources; min_year is read from the schema by the planner.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.WEEKLY, None)

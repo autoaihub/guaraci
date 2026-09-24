@@ -350,6 +350,11 @@ def run_via_service(
             sibling = base.with_name(f"{base.stem}_{extra.stem}.csv")
             extra.replace(sibling)
             n_bytes += sibling.stat().st_size
+        # Linhas que a fonte separou por não caberem no cabeçalho (ANVISA)
+        # acompanham o arquivo no bronze; na área temporária seriam apagadas.
+        rejected = payload.get("rejected_file")
+        if rejected and Path(str(rejected)).exists():
+            Path(str(rejected)).replace(target.with_name(f"{target.stem}.rejeitadas.csv"))
         return _base_row(
             unit,
             run_id,

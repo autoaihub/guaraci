@@ -10,6 +10,7 @@ from typing import List
 from guaraci.services.downloads import DownloadSource
 from guaraci.services.sources import (
     ana,
+    anvisa,
     cetesb,
     datasus_ftp,
     datasus_curated,
@@ -42,4 +43,5 @@ def build_default_sources() -> List[DownloadSource]:
         *inpe.build_sources(),
         *ana.build_sources(),
         *cetesb.build_sources(),
+        *anvisa.build_sources(),
     ]

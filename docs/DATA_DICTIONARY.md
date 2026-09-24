@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 116 sources cataloged; 86 sampled with real field names.
+- 124 sources cataloged; 94 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -52,6 +52,62 @@ to refresh.
 - **Status:** needs_credential
 - **Filters:** `output_dir`, `output_format`, `station_ids`, `start_date`, `end_date`, `variable`, `detail`, `tipo_filtro_data`, `keep_raw`, `timeout`, `api_base_url`
 - **Note:** ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
+
+## anvisa_cmed_precos
+
+- **Status:** ok (25702 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `SUBSTÂNCIA`, `CNPJ`, `LABORATÓRIO`, `CÓDIGO GGREM`, `REGISTRO`, `EAN 1`, `EAN 2`, `EAN 3`, `PRODUTO`, `APRESENTAÇÃO`, `CLASSE TERAPÊUTICA`, `TIPO DE PRODUTO (STATUS DO PRODUTO)`, `REGIME DE PREÇO`, `PF Sem Impostos`, `PF 0%`, `PF 12 %`, `PF 12 %  ALC`, `PF 17 %`, `PF 17 %  ALC`, `PF 17,5 %`, `PF 17,5 %  ALC`, `PF 18 %`, `PF 18 %  ALC`, `PF 19 %`, `PF 19 %  ALC`, `PF 19,5 %`, `PF 19,5 %  ALC`, `PF 20 %`, `PF 20 %  ALC`, `PF 20,5 %`, `PF 20,5 %  ALC`, `PF 21 %`, `PF 21 %  ALC`, `PF 22 %`, `PF 22 %  ALC`, `PF 22,5 %`, `PF 22,5 %  ALC`, `PF 23 %`, `PF 23 %  ALC`, `PMC Sem Impostos`, `PMC 0 %`, `PMC 12 %`, `PMC 12 %  ALC`, `PMC 17 %`, `PMC 17 %  ALC`, `PMC 17,5 %`, `PMC 17,5 %  ALC`, `PMC 18 %`, `PMC 18 %  ALC`, `PMC 19 %`, `PMC 19 %  ALC`, `PMC 19,5 %`, `PMC 19,5 %  ALC`, `PMC 20 %`, `PMC 20 %  ALC`, `PMC 20,5 %`, `PMC 20,5 %  ALC`, `PMC 21 %`, `PMC 21 %  ALC`, `PMC 22 %`, `PMC 22 %  ALC`, `PMC 22,5 %`, `PMC 22,5 %  ALC`, `PMC 23 %`, `PMC 23 %  ALC`, `RESTRIÇÃO HOSPITALAR`, `CAP`, `CONFAZ 87`, `ICMS 0%`, `ANÁLISE RECURSAL`, `LISTA DE CONCESSÃO DE CRÉDITO TRIBUTÁRIO (PIS/COFINS)`, `COMERCIALIZAÇÃO 2025`, `TARJA`, `DESTINAÇÃO COMERCIAL `
+- **Note:** Live collection on 2026-09-24 (25702 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. The source opens with a legal preamble of variable length (59 lines on 2026-09-24); the header row is located by content.
+
+## anvisa_cmed_precos_governo
+
+- **Status:** ok (25702 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `SUBSTÂNCIA`, `CNPJ`, `LABORATÓRIO`, `CÓDIGO GGREM`, `REGISTRO`, `EAN 1`, `EAN 2`, `EAN 3`, `PRODUTO`, `APRESENTAÇÃO`, `CLASSE TERAPÊUTICA`, `TIPO DE PRODUTO (STATUS DO PRODUTO)`, `REGIME DE PREÇO`, `PF Sem Impostos`, `PF 0%`, `PF 12 %`, `PF 12 %  ALC`, `PF 17 %`, `PF 17 %  ALC`, `PF 17,5 %`, `PF 17,5 %  ALC`, `PF 18 %`, `PF 18 %  ALC`, `PF 19 %`, `PF 19 %  ALC`, `PF 19,5 %`, `PF 19,5 %  ALC`, `PF 20 %`, `PF 20 %  ALC`, `PF 20,5 %`, `PF 20,5 %  ALC`, `PF 21 %`, `PF 21 %  ALC`, `PF 22 %`, `PF 22 %  ALC`, `PF 22,5 %`, `PF 22,5 %  ALC`, `PF 23 %`, `PF 23 %  ALC`, `PMVG Sem Impostos`, `PMVG 0 %`, `PMVG 12 %`, `PMVG 12 %  ALC`, `PMVG 17 %`, `PMVG 17 %  ALC`, `PMVG 17,5 %`, `PMVG 17,5 %  ALC`, `PMVG 18 %`, `PMVG 18 %  ALC`, `PMVG 19 %`, `PMVG 19 %  ALC`, `PMVG 19,5 %`, `PMVG 19,5 %  ALC`, `PMVG 20 %`, `PMVG 20 %  ALC`, `PMVG 20,5 %`, `PMVG 20,5 %  ALC`, `PMVG 21 %`, `PMVG 21 %  ALC`, `PMVG 22 %`, `PMVG 22 %  ALC`, `PMVG 22,5 %`, `PMVG 22,5 %  ALC`, `PMVG 23 %`, `PMVG 23 %  ALC`, `RESTRIÇÃO HOSPITALAR`, `CAP`, `CONFAZ 87`, `ICMS 0%`, `ANÁLISE RECURSAL`, `LISTA DE CONCESSÃO DE CRÉDITO TRIBUTÁRIO (PIS/COFINS)`, `COMERCIALIZAÇÃO 2025`, `TARJA`, `DESTINAÇÃO COMERCIAL 9`
+- **Note:** Live collection on 2026-09-24 (25702 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. Same layout as anvisa_cmed_precos, with the government maximum price (PMVG); preamble of 72 lines on 2026-09-24.
+
+## anvisa_hemovigilancia
+
+- **Status:** ok (237737 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `NU_NOTIFICACAO`, `DATA_OCORRENCIA_EVENTO`, `DATA_NOTIFICACAO_EVENTO`, `STATUS_ANALISE`, `PRODUTO_MOTIVO`, `TIPO_REACAO_TRANSFUSIONAL`, `GRAU_RISCO`, `CATEGORIA_NOTIFICADOR`, `TIPO_HEMOCOMPONENTE`, `FAIXA_ETARIA_PACIENTE`, `CIDADE_NOTIFICACAO`, `UF_NOTIFICACAO`, `DS_TEMPORALIDADE_REACAO`, `TIPO_EVENTO_ADVERSO`, `ETAPA_CICLO_SANGUE`, `DS_ESPECIFICACAO_EVENTO`
+- **Note:** Live collection on 2026-09-24 (237737 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. Dates mix DD/MM and MM/DD between columns; kept as text.
+
+## anvisa_medicamentos_registrados
+
+- **Status:** ok (43557 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `TIPO_PRODUTO`, `NOME_PRODUTO`, `DATA_FINALIZACAO_PROCESSO`, `CATEGORIA_REGULATORIA`, `NUMERO_REGISTRO_PRODUTO`, `DATA_VENCIMENTO_REGISTRO`, `NUMERO_PROCESSO`, `CLASSE_TERAPEUTICA`, `EMPRESA_DETENTORA_REGISTRO`, `SITUACAO_REGISTRO`, `PRINCIPIO_ATIVO`
+- **Note:** Live collection on 2026-09-24 (43557 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. Quoted fields; registration numbers keep leading zeros because every column is text.
+
+## anvisa_tecnovigilancia
+
+- **Status:** ok (287464 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `ANO_NOTIFICACAO`, `DATA_NOTIFICACAO`, `NU_NOTIFICACAO`, `TIPO_NOTIFICACAO`, `SUBTIPO_QUEIXA`, `CATEGORIA_DISPOSITIVO`, `CODIFICACAO_EVENTO_ADVERSO`, `UF_EMPRESA_NOTIFICANTE`, `MUNICIPIO_EMP_NOTIFICANTE`, `TIPO_NOTIFICANTE`, `UF_OCORRENCIA`, `MUNICIPIO_OCORRENCIA`, `CLASSE_RISCO`, `NOME_TECNICO_PRODUTO`, `OCORRENCIA_NIVEL_1`, `OCORRENCIA_NIVEL_2`, `UF_EMPRESA_REGISTRO`, `MUNICIPIO_EMPRESA_REGISTRO`
+- **Note:** Live collection on 2026-09-24 (287464 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. OCORRENCIA_NIVEL_1/2 hold ' ; '-separated lists published without quotes; kept inside the field. One row (line 84 048 on 2026-09-24) has an unquoted ';' in the product name and goes to the .rejeitadas.csv file instead of being cut by guess. Dates are DD/MM/YYYY.
+
+## anvisa_vigimed_medicamentos
+
+- **Status:** ok (699311 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `IDENTIFICACAO_NOTIFICACAO`, `RELACAO_MEDICAMENTO_EVENTO`, `NOME_MEDICAMENTO_WHODRUG`, `PRINCIPIOS_ATIVOS_WHODRUG`, `CODIGO_ATC`, `DETENTOR_REGISTRO`, `CONCENTRACAO`, `COMPONENTE_SUSPEITO`, `ACAO_ADOTADA`, `PROBLEMAS_ADICIONAIS_RELCIONADOS_MEDICAMENTO`, `INDICACAO_MEDDRA`, `INDICACAO_RELATADA_NOTIFICADOR_INICIAL`, `DOSE`, `FREQUENCIA_DOSE`, `POSOLOGIA`, `DURACAO`, `INICIO_ADMINISTRACAO`, `FIM_ADMINISTRACAO`, `FORMA_FARMACEUTICA`, `VIA_ADMINISTRACAO`, `VIA_ADMINISTRACAO_MAE_PAI`, `NUMELO_LOTE`
+- **Note:** Live collection on 2026-09-24 (699311 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. One row per drug per notification; join to notifications on IDENTIFICACAO_NOTIFICACAO.
+
+## anvisa_vigimed_notificacoes
+
+- **Status:** ok (356107 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `UF`, `TIPO_ENTRADA_VIGIMED`, `RECEBIDO_DE`, `IDENTIFICACAO_NOTIFICACAO`, `DATA_INCLUSAO_SISTEMA`, `DATA_ULTIMA_ATUALIZACAO`, `DATA_NOTIFICACAO`, `TIPO_NOTIFICACAO`, `NOTIFICACAO_PARENT_CHILD`, `DATA_NASCIMENTO`, `IDADE_MOMENTO_REACAO`, `GRUPO_IDADE`, `IDADE_GESTACIONAL_MOMENTO_REACAO`, `SEXO`, `GESTANTE`, `LACTANTE`, `PESO_KG`, `ALTURA_CM`, `REACAO_EVENTO_ADVERSO_MEDDRA`, `GRAVE`, `GRAVIDADE`, `DESFECHO`, `DATA_INICIO_HORA`, `DATA_FINAL_HORA`, `DURACAO`, `RELACAO_MEDICAMENTO_EVENTO`, `NOME_MEDICAMENTO_WHODRUG`, `ACAO_ADOTADA`, `NOTIFICADOR`
+- **Note:** Live collection on 2026-09-24 (356107 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. Dates are MM/DD/YYYY with a time part; 'None' is a literal null.
+
+## anvisa_vigimed_reacoes
+
+- **Status:** ok (1093739 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `IDENTIFICACAO_NOTIFICACAO`, `REACAO_EVTO_ADVERSO_MEDDRA_LLT`, `PT`, `HLT`, `HLGT`, `SOC`, `DATA_INICIO_HORA`, `DATA_FINAL_HORA`, `DURACAO`, `GRAVE`, `GRAVIDADE`, `DESFECHO`
+- **Note:** Live collection on 2026-09-24 (1093739 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. One row per reaction per notification, MedDRA LLT to SOC; join on IDENTIFICACAO_NOTIFICACAO.
 
 ## arboviroses_febre_amarela_epzootias
 

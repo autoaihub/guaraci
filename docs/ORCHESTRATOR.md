@@ -26,6 +26,7 @@ granularity**, with no filtering, no UF remap and no month split:
 | Date window (API) | OpenDataSUS | 1 slice / year | annual |
 | Month window (API) | `cetesb_qualar_horario` | 1 slice / month, fixed station set | monthly |
 | Rolling window | `cetesb_qualar`, `cetesb_estacoes` | dated copy per run | snapshot |
+| Overwritten file | ten cumulative SISAGUA packages, eight `anvisa_*` | dated copy per month | snapshot |
 | Point (API) | NASA | needs lat/lon | **on demand** (not swept) |
 | Portal crawl | `snis`, `sinisa` | whole portal | folder |
 
