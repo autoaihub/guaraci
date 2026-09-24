@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Fixed: falha de rede registrada como vazio no orquestrador
+No ciclo real do orquestrador (backfill, atualização e backfill de novo, dez
+fontes de cinco tipos de perfil, 503 unidades), quatro anos do IBGE
+(2017 a 2020) deram timeout e entraram no ledger como `empty`. A atualização
+só revisita o último ano, então esses anos ficariam faltando no bronze sem
+ninguém perceber. Duas camadas:
+
+- Nas fontes SIDRA do IBGE, erro recuperável (timeout, conexão) conta em
+  `failed_count` e, se todos os anos pedidos falharem, sobe como erro. O ano
+  que a SIDRA recusa por não existir (censo sem estimativa) segue pulado.
+- No runner, para toda fonte, `failed_count` maior que zero ou falha de
+  exportação reportada como aviso viram `error`, e a unidade volta a ser
+  pedida na próxima execução.
+
 ### Fixed: conteúdo exportado e resiliência dos jobs
 Duas verificações novas. `scripts/verificar_conteudo.py` coleta cada fonte em
 CSV, Parquet e SQLite e abre o arquivo: linhas, colunas entre formatos,

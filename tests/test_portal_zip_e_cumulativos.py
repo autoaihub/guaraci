@@ -219,3 +219,28 @@ def test_headerless_csv_with_another_layout_fails_loudly(tmp_path):
         assert "changed its layout" in str(exc)
     else:  # pragma: no cover
         raise AssertionError("expected ValueError")
+
+
+class _FailedPartService(_MultiCsvService):
+    def run(self, source, **kwargs):
+        return _Result({"documents_found": 0, "downloaded_count": 0, "failed_count": 1,
+                        "warnings": ["IBGE year 2018 failed: request timed out"], "exported_files": []})
+
+
+class _ExportFailedService(_MultiCsvService):
+    def run(self, source, **kwargs):
+        return _Result({"documents_found": 5, "downloaded_count": 5, "exported_files": [],
+                        "export_warning": "INPE Queimadas export failed after download. Error: x"})
+
+
+def test_network_failure_is_an_error_not_empty(tmp_path):
+    # Timeout registrado como empty virava buraco permanente no bronze.
+    unit = FetchUnit("ibge_casamentos", Kind.API_WINDOW, year=2018)
+    row = run_via_service(unit, service=_FailedPartService(), bronze_root=tmp_path, run_id="r", ts="t")
+    assert row.status == "error" and "timed out" in row.error
+
+
+def test_export_failure_is_an_error_not_empty(tmp_path):
+    unit = FetchUnit("inpe_queimadas", Kind.API_WINDOW, year=2024)
+    row = run_via_service(unit, service=_ExportFailedService(), bronze_root=tmp_path, run_id="r", ts="t")
+    assert row.status == "error" and "export failed" in row.error

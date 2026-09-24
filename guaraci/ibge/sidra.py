@@ -10,7 +10,11 @@ classifications) builds the SIDRA ``classificacao`` filter.
 Output is one row per (locality, year[, classification categories]):
 ``nivel, localidade_id, localidade_nome, ano, [<classif> ...], variavel_id,
 unidade, valor``. Missing markers ("-", "..") become null; a year with no data
-is skipped with a warning, not a failure.
+is skipped with a warning, not a failure (SIDRA answers some of those, such as
+a census year with no estimate, with a non-retryable error). A year whose
+request fails in a retryable way (timeout, connection, 5xx) is different: it
+counts in ``failed_count``, and when every year failed the error is raised, so
+nothing downstream mistakes it for "no data".
 """
 from __future__ import annotations
 
@@ -90,6 +94,8 @@ class SidraAggregateSource(DataSource):
         records: List[Dict[str, object]] = []
         raw_by_year: Dict[str, Any] = {}
         warnings: List[str] = []
+        failed_years: List[int] = []
+        last_error: Optional[IbgeClientError] = None
         if progress_callback is not None:
             progress_callback(
                 {"event": "download_start", "source": self.name, "documents_total": total}
@@ -105,7 +111,15 @@ class SidraAggregateSource(DataSource):
                     classificacao=classificacao,
                 )
             except IbgeClientError as exc:
-                warnings.append(f"IBGE year {year} skipped: {exc}")
+                # Erro recuperável (timeout, conexão) é falha de verdade e não
+                # pode passar por "sem dados"; o não recuperável é a SIDRA
+                # dizendo que o ano não existe (censo sem estimativa).
+                if getattr(exc, "retryable", False):
+                    warnings.append(f"IBGE year {year} failed: {exc}")
+                    failed_years.append(year)
+                    last_error = exc
+                else:
+                    warnings.append(f"IBGE year {year} skipped: {exc}")
                 payload = None
             if payload:
                 records.extend(self._parse(payload, nivel))
@@ -123,13 +137,16 @@ class SidraAggregateSource(DataSource):
                     }
                 )
 
+        if failed_years and len(failed_years) == total and last_error is not None:
+            raise last_error
+
         self._records = records
         stem = self._artifact_stem(nivel, y0, y1)
         raw_path = self._write_raw(stem, raw_by_year) if (keep_raw and raw_by_year) else None
 
         requested_format = self._normalize_format(output_format)
         exported: List[str] = []
-        if not records:
+        if not records and not failed_years:
             warnings.append(self._empty_result_warning(client, years))
         if requested_format and records:
             try:
@@ -162,7 +179,7 @@ class SidraAggregateSource(DataSource):
                     "source": self.name,
                     "documents_total": total,
                     "downloaded_count": len(records),
-                    "failed_count": 0,
+                    "failed_count": len(failed_years),
                     "skipped_count": 0,
                     "output_dir": str(self.output_path),
                 }
@@ -172,7 +189,7 @@ class SidraAggregateSource(DataSource):
             "documents_found": len(records),
             "downloaded_count": len(records),
             "skipped_count": 0,
-            "failed_count": 0,
+            "failed_count": len(failed_years),
             "manifest_path": str(manifest_path),
             "output_dir": str(self.output_path),
             "table": self.TABLE,

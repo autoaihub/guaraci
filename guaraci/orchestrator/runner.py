@@ -37,6 +37,9 @@ from guaraci.orchestrator.ledger import (
 from guaraci.orchestrator.model import FetchUnit, Kind
 
 
+_EXPORT_FAILED = re.compile(r"export failed|failed to export", re.IGNORECASE)
+
+
 # ---------------------------------------------------------------------------
 # ledger-row helpers
 # ---------------------------------------------------------------------------
@@ -302,6 +305,29 @@ def run_via_service(
 
         documents = int(payload.get("documents_found", 0) or 0)
         downloaded = int(payload.get("downloaded_count", 0) or 0)
+
+        # Falha de rede no meio da coleta não é "vazio": o ledger daria a
+        # unidade por resolvida e a atualização, que só revisita o último
+        # ano, nunca mais a pediria. Em 2026-09-24 quatro anos do IBGE (2017 a
+        # 2020) deram timeout e ficaram registrados como empty, um buraco
+        # permanente no bronze. Qualquer falha marca a unidade como error.
+        failed = int(payload.get("failed_count", 0) or 0)
+        avisos = [str(a) for a in (payload.get("warnings") or [])]
+        avisos.append(str(payload.get("export_warning") or ""))
+        # Os adapters reportam falha de exportação como aviso ("export
+        # failed", "Failed to export"); sem arquivo, isso também viraria empty.
+        export_quebrou = any(_EXPORT_FAILED.search(a) for a in avisos)
+        if failed or export_quebrou:
+            detalhe = "; ".join(a for a in avisos if a)
+            return _base_row(
+                unit,
+                run_id,
+                ts,
+                STATUS_ERROR,
+                documents_found=documents,
+                downloaded_count=downloaded,
+                error=(f"{failed} item(s) failed: " if failed else "export failed: ") + detalhe[:900],
+            )
 
         # Crawlers write their own folder tree; record it as-is.
         if unit.kind is Kind.CRAWLER:

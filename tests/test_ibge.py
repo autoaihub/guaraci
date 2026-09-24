@@ -289,3 +289,19 @@ def test_idade_sexo_rejects_bad_options(tmp_path):
 
 def test_idade_sexo_profile_floor_2022():
     assert profile_for("ibge_populacao_idade_sexo", "ibge api").min_year == 2022
+
+
+def test_retryable_failure_is_not_reported_as_no_data(tmp_path):
+    class TimeoutClient(FakeClient):
+        def aggregate(self, *, period, **kwargs):
+            if period == "2020":
+                raise IbgeClientError("IBGE request timed out", category="timeout", retryable=True)
+            return super().aggregate(period=period, **kwargs)
+
+    ds = IbgePopulacaoDataSource(output_path=str(tmp_path), client=TimeoutClient(
+        by_period={"2019": _payload("2019", ("3550308", "SP", "10"))}))
+    payload = ds.download(start_year=2019, end_year=2020)
+    assert payload["failed_count"] == 1 and "2020 failed" in payload["export_warning"]
+    with pytest.raises(IbgeClientError):  # todos os anos falharam: erro, não vazio
+        IbgePopulacaoDataSource(output_path=str(tmp_path), client=TimeoutClient()).download(
+            start_year=2020, end_year=2020)
