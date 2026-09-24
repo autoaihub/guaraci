@@ -1022,12 +1022,15 @@ QUALAR notes:
 - **Numbers are in Brazilian format** (`1.234,56`). The thousands separator is
   removed before the decimal comma is swapped; doing only the swap would turn
   `1.234,56` into `1.23456`.
-- **Status: experimental.** The protocol was reconstructed from the system's
-  own HTML and from the R package `qualR` (rOpenSci, MIT), which is also the
-  source of the station and parameter code tables in
-  `guaraci/cetesb/codes.py`. Offline tests cover the parser and the failure
-  modes; validation against the live system is pending an operator account,
-  the same position `ana_hidro` was integrated in.
+- **A good login answers 302 with no `Location` header.** `urllib` cannot
+  follow it and raises; the client reads any 3xx as a response, since the
+  session cookie is already set. A wrong password still comes back as 200
+  with the login page.
+- **Status: validated live on 2026-09-24** (Pinheiros, MP10 and TEMP,
+  2026-08-01 to 2026-08-07: 336 readings). The protocol was reconstructed
+  from the system's own HTML and from the R package `qualR` (rOpenSci, MIT),
+  which is also the source of the station and parameter code tables in
+  `guaraci/cetesb/codes.py`.
 
 ## 4. UI and API Versus Direct CLI
 

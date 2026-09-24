@@ -370,6 +370,36 @@ def test_datasource_survives_one_failing_pair(tmp_path):
     )
     assert payload["failed_count"] == 1
     assert source.load_dataframe().height == 1
+    assert "falharam" in str(payload.get("export_warning"))
+
+
+def test_datasource_raises_when_every_pair_fails(tmp_path):
+    """A shared cause (login, network) must surface, not end as 'empty dataframe'."""
+    from guaraci.cetesb.client import CetesbClientError
+
+    fake = _FakeQualarClient({}, fail_pairs={("Pinheiros", "MP10"), ("Pinheiros", "O3")})
+    source = CetesbQualarHorarioDataSource(output_path=str(tmp_path), client=fake)
+    with pytest.raises(CetesbClientError, match="boom"):
+        source.download(
+            stations=["Pinheiros"], parameters=["MP10", "O3"],
+            start_date="2024-01-01", end_date="2024-01-02", output_dir=str(tmp_path),
+        )
+
+
+def test_redirect_without_location_is_read_as_a_successful_login():
+    """The live QUALAR answers a good login with 302 and no Location header."""
+    import io
+    from email.message import Message
+    from urllib.error import HTTPError
+
+    class _Opener:
+        def open(self, request, timeout=None):
+            raise HTTPError(request.full_url, 302, "Moved Temporarily", Message(), io.BytesIO(b""))
+
+    client = QualarClient(login="user", password="pass", pause_seconds=0)
+    client._opener = _Opener()
+    client.authenticate()
+    assert client._authenticated
 
 
 @pytest.mark.parametrize("value", ["2024-01-05", "05/01/2024"])

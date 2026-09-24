@@ -372,6 +372,12 @@ class QualarClient:
             with self._opener.open(request, timeout=self.timeout_seconds) as response:
                 raw = response.read()
         except HTTPError as exc:
+            if 300 <= exc.code < 400:
+                # O autenticador confirma login certo com 302 SEM cabeçalho
+                # Location (verificado ao vivo em 2026-09-24). O urllib não tem
+                # para onde seguir e levanta HTTPError, mas o cookie de sessão
+                # já foi gravado: é resposta de sucesso, não falha.
+                return exc.read().decode("latin-1", errors="replace")
             raise CetesbClientError(
                 f"QUALAR request failed ({exc.code}).",
                 category="http_error",

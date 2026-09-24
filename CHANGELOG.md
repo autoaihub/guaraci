@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Fixed: login do QUALAR autenticado, validado ao vivo
+A primeira coleta real de `cetesb_qualar_horario` (24/09/2026, Pinheiros,
+MP10 e temperatura, 01 a 07/08/2026) expôs dois defeitos que os testes
+offline não alcançavam, porque a resposta simulada do login era 200.
+
+- O QUALAR confirma login certo com **302 sem cabeçalho `Location`**. O
+  `urllib` não tem para onde seguir e levanta `HTTPError`, que o cliente
+  convertia em falha. Nenhum login funcionava. Um 3xx agora é lido como
+  resposta; o cookie de sessão já veio nele. Senha errada continua
+  detectada pela tela de login devolvida com 200, conferido ao vivo.
+- Com todos os pares estação/parâmetro falhando, a coleta terminava em
+  "dataframe vazio", que parece ausência de dado. Agora levanta
+  `CetesbClientError` com a primeira causa, e falha parcial vira aviso com os
+  pares afetados.
+
+Depois da correção a mesma coleta trouxe 336 leituras (168 horas de cada
+parâmetro), em µg/m³ e °C, com a hora `24:00` da CETESB convertida para a
+meia-noite do dia seguinte. A fonte deixa de ser experimental.
+
 ### Added: concentração medida de poluentes pelo QUALAR autenticado
 `cetesb_qualar_horario`, a contraparte da fonte aberta adicionada na entrada
 seguinte. O catálogo vai a 112. Onde o ArcGIS público entrega índice das
@@ -63,11 +82,10 @@ Daí `pause_seconds`, com padrão de 1 segundo, e a exclusão da varredura do
 orquestrador bronze, que registra o motivo (exige credencial e lista explícita
 de estações) em vez de deixar a fonte cair no ramo de "formato não reconhecido".
 
-**Estado: experimental.** Os 46 testes offline cobrem o parser, o formato
-numérico, as datas, as tabelas de código e os modos de falha. A validação
-contra o sistema ao vivo depende de uma conta no QUALAR, que não existia no
-momento desta integração. É a mesma posição em que `ana_hidro` entrou, e está
-declarada no dicionário de dados como `needs_credential`.
+**Estado: validado ao vivo em 24/09/2026** (ver a entrada de correção acima).
+Os testes offline cobrem o parser, o formato numérico, as datas, as tabelas de
+código e os modos de falha. A fonte está declarada no dicionário de dados como
+`needs_credential`.
 
 ### Added: qualidade do ar da CETESB, e o primeiro publicador estadual do catálogo
 Duas fontes novas, `cetesb_qualar` e `cetesb_estacoes`, elevando o catálogo de

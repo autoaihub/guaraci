@@ -21,11 +21,9 @@ A credencial é lida SÓ do ambiente (``GUARACI_QUALAR_LOGIN`` e
 vale para NASA FIRMS e ANA: parâmetro de job é persistido em disco no
 manifesto e no histórico de execuções.
 
-Estado: **experimental.** O protocolo foi reconstruído a partir do HTML do
-sistema e do pacote R `qualR`, e os testes offline cobrem o parser com uma
-página real fixada. A validação contra o sistema ao vivo depende de uma conta
-no QUALAR, que ainda não existe no momento desta integração. É a mesma
-situação em que `ana_hidro` entrou.
+Estado: **validado ao vivo em 24/09/2026.** O protocolo foi reconstruído a
+partir do HTML do sistema e do pacote R `qualR`, e os testes offline cobrem o
+parser com uma página real fixada.
 """
 
 from __future__ import annotations
@@ -179,10 +177,26 @@ class CetesbQualarHorarioDataSource(_CetesbBase):
                     }
                 )
 
+        if failed and collected == 0:
+            # Todos os pares falharam: o motivo é comum (login, rede, sistema
+            # fora do ar) e precisa chegar ao usuário. Seguir adiante
+            # terminaria em "dataframe vazio", que parece falta de dado.
+            raise CetesbClientError(
+                f"All {len(failed)} QUALAR request(s) failed. First: {failed[0]}",
+                category="upstream_error",
+                retryable=True,
+            )
+
         dataframe = self._records_to_dataframe(records)
         self._dataframe = dataframe
 
         warnings: List[str] = []
+        if failed:
+            warnings.append(
+                f"{len(failed)} par(es) estação/parâmetro falharam: "
+                + "; ".join(failed[:3])
+                + ("…" if len(failed) > 3 else "")
+            )
         if empty_pairs:
             warnings.append(
                 f"{len(empty_pairs)} par(es) estação/parâmetro sem leitura no "
