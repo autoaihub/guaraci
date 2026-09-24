@@ -18,7 +18,7 @@ Guaraci is a platform for downloading and orchestrating Brazilian public data so
 - `NASA GPM IMERG` (`nasa_gpm`) — daily precipitation point series from GES DISC OPeNDAP (`gpm1.gesdisc.eosdis.nasa.gov`; requires an Earthdata token; experimental)
 - `IBGE` (`ibge_populacao`, `ibge_pib_municipios`, `ibge_populacao_idade_sexo`) — population estimates, municipal GDP (PIB), and census population by sex and age, from the SIDRA aggregates API (`servicodados.ibge.gov.br`; keyless; the denominator/socioeconomic layers for health rates)
 
-Current version: `0.7.0`
+Current version: `0.8.0`
 
 ## Project Status
 
@@ -305,14 +305,14 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
 
 ## Current Limitations
 
-- The PyPI release lags the repository (`0.3.2` there, `0.7.0` here); install from git until the next upload.
+- The PyPI release lags the repository (`0.3.2` there, `0.8.0` here); install from git until the next upload.
 - Opening folders from the UI in Docker depends on host path mapping.
 - Some DATASUS sources can fail due to external FTP or network instability.
 - OpenDataSUS reliability still depends on upstream API availability, but error messages now distinguish connectivity, HTTP, and response-format failures more explicitly.
 
 ## Version and Immediate Roadmap
 
-- Current release line: `0.7.0`
+- Current release line: `0.8.0`
 - This release adds the NASA sources (POWER, FIRMS, GPM), makes direct DATASUS FTP the default backend plus 11 additional FTP systems, introduces the generic schema-driven `guaraci fetch` CLI (`list`/`schema`/`run`/`discover`/`fields`), ships a per-source data dictionary ([docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md)), and moves the legacy SNIS BigQuery deps to the optional `snis-legacy` extra.
 
 ## Additional Documentation
@@ -336,5 +336,5 @@ If you use Guaraci in research, technical reports, or derived software, cite the
 Recommended software citation for the current release:
 
 ```text
-Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.7.0) [Computer software]. https://github.com/autoaihub/guaraci
+Vogel Lopes, Luis Felipe, dos Reis Teixeira, Pedro Guilherme, Bonidia, Robson Parmezan, and de Carvalho, André Carlos Ponce de Leon Ferreira. 2026. Guaraci (Version 0.8.0) [Computer software]. https://github.com/autoaihub/guaraci
 ```

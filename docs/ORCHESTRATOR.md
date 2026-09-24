@@ -131,7 +131,8 @@ Re-tune a source's cadence in `CADENCE_OVERRIDES`; NASA sources are `auto=False`
   the current one because CETESB validates late. Without
   `GUARACI_QUALAR_LOGIN`/`GUARACI_QUALAR_SENHA` in the environment the
   source is skipped with that reason. Budget about 240 requests per month
-  of history.
+  of history (about 8 minutes, measured live).
+  The full backfill from 2022 takes about 7 hours: run it once, off-peak.
 
 For the daily snapshot to accumulate, the server cron must run `update` at
 least once a day (the documented `0 3 * * *` does).

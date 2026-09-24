@@ -19,8 +19,23 @@ Como este repositório usa o submódulo `vogel-stack`, o commit novo dentro do s
 
 ## Histórico de Versões e Fases do Produto
 
-### 0.7.x: caminho único de coleta no DATASUS
+### 0.8.x: primeira fonte estadual e catálogo por assunto
 Status: em desenvolvimento (`main`), ainda não publicada no PyPI.
+
+O catálogo vai de 109 para 112 fontes com a CETESB, o primeiro publicador
+estadual, e passa a ser navegável por assunto.
+
+- **0.8.0** (24/09/2026): `cetesb_qualar` (índice de qualidade do ar, janela
+  de 48h, sem login), `cetesb_estacoes` (cadastro das 62 estações) e
+  `cetesb_qualar_horario` (concentração medida e meteorologia em série
+  histórica, pelo QUALAR autenticado, validada ao vivo). Temas e presets
+  (`/themes`, `/presets`, `guaraci fetch themes|presets`), com o preset
+  `oncologia` expondo quimioterapia e radioterapia do SIA. O orquestrador
+  ganha os formatos `snapshot` e `api_monthly`, e as três fontes entram na
+  varredura do data lake.
+
+### 0.7.x: caminho único de coleta no DATASUS
+Status: fechada em 10/09/2026 (tag `v0.7.0`), ainda não publicada no PyPI.
 
 Fecha a migração começada na 0.5.2. O DATASUS passa a ter um só caminho de
 coleta, e o produto deixa de carregar a dependência que ditava o teto de

@@ -2,6 +2,42 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-24
+
+### Added: a CETESB entra na varredura do data lake
+As três fontes CETESB ficavam fora do orquestrador bronze. Para duas delas
+isso custava dado: a janela aberta de 48 horas não tem histórico, e o que não
+for guardado no dia se perde. O orquestrador ganha dois formatos de fonte.
+
+| Fonte | Formato | Cadência | Partição bronze |
+| --- | --- | --- | --- |
+| `cetesb_qualar` | `snapshot` | diária | `CETESB_QUALAR/2026/09/cetesb_qualar_20260924.csv` |
+| `cetesb_estacoes` | `snapshot` | mensal | `CETESB_ESTACOES/2026/09/cetesb_estacoes_202609.csv` |
+| `cetesb_qualar_horario` | `api_monthly` | mensal, desde 2022 | `CETESB_QUALAR_HORARIO/2026/08/cetesb_qualar_horario_202608.csv` |
+
+- **Instantâneo** (`snapshot`): cada execução grava uma cópia com a data da
+  coleta como identidade da partição. Não há backfill, porque o passado já
+  não está na fonte. A janela de 48h é o dobro do intervalo diário, então um
+  dia de falha do servidor não abre buraco. Instantâneos consecutivos se
+  sobrepõem por construção; a deduplicação por estação, poluente e hora é
+  papel da camada prata.
+- **Série mensal** (`api_monthly`): o QUALAR autenticado é varrido um mês
+  civil por unidade, num recorte fixo, porque cada par estação/parâmetro é
+  uma requisição e a rede inteira seriam 1500 por mês. O recorte é a Grande
+  São Paulo (30 estações) com os seis poluentes, temperatura e umidade,
+  definido em `SWEEP_STATIONS` e `SWEEP_PARAMETERS`. O bronze guarda também
+  a leitura ainda não validada, marcada na coluna `validado`, e o update
+  repuxa sempre os dois meses anteriores ao corrente, porque a CETESB valida
+  com atraso. Sem `GUARACI_QUALAR_LOGIN`/`GUARACI_QUALAR_SENHA` no ambiente
+  a fonte sai da varredura com o motivo, em vez de gerar erro todo mês.
+
+Verificado ao vivo em 24/09/2026 numa árvore bronze temporária: as duas
+fontes abertas materializaram 9 940 leituras e 62 estações, e a segunda
+execução não repetiu nada. Um mês do recorte autenticado (agosto de 2026)
+rendeu 82 877 leituras de 26 das 30 estações, nos oito parâmetros, em 7,7
+minutos; o backfill desde 2022 fica em torno de 7 horas, para rodar uma vez
+fora do horário de pico.
+
 ### Fixed: login do QUALAR autenticado, validado ao vivo
 A primeira coleta real de `cetesb_qualar_horario` (24/09/2026, Pinheiros,
 MP10 e temperatura, 01 a 07/08/2026) expôs dois defeitos que os testes
@@ -216,6 +252,8 @@ desatualizada falhar ali, e não no meio de um download longo.
 
 Nenhuma fonte foi adicionada, removida ou alterada, e nenhum parâmetro mudou de
 nome ou de default. O campo `themes` é aditivo em toda resposta onde aparece.
+
+## [0.7.0] - 2026-09-10
 
 ### Removed: backend PySUS, encerrando a migração para o FTP direto
 A 0.6.0 tornou a conexão direta ao `ftp.datasus.gov.br` o padrão de SIH, SIM e
