@@ -42,6 +42,7 @@ APS = "Ministério da Saúde — Atenção Primária à Saúde"
 DGITS = "Ministério da Saúde — DGITS"
 DTS = "Ministério da Saúde (DATASUS)"
 CONEP = "Ministério da Saúde, CONEP"
+ANV = "ANVISA, Agência Nacional de Vigilância Sanitária"
 
 G_FTP = "DATASUS · sistemas nacionais"
 G_VIG = "Emergências e vigilância"
@@ -61,6 +62,7 @@ G_IBGE = "IBGE · população e economia"
 G_NASA = "NASA · clima e ambiente"
 G_SAN = "Saneamento · gov.br"
 G_AMB = "Ambiental · clima, água e território"
+G_ANV = "ANVISA · vigilância sanitária"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -129,6 +131,14 @@ CURATED = {
     "sisagua_vigilancia_cianobacterias_e_cianotoxinas": ("Vigilância — cianobactérias e cianotoxinas", "Monitoramento de cianobactérias", G_SIS, AMB, "saude"),
     "sisagua_vigilancia_demais_parametros": ("Vigilância — demais parâmetros", "Parâmetros complementares de vigilância", G_SIS, AMB, "saude"),
     # Saúde indígena
+    "anvisa_vigimed_notificacoes": ("VigiMed: notificações", "Farmacovigilância: eventos adversos a medicamentos e vacinas notificados à ANVISA", G_ANV, ANV, "saude"),
+    "anvisa_vigimed_medicamentos": ("VigiMed: medicamentos", "Medicamentos citados em cada notificação, com princípio ativo e código ATC", G_ANV, ANV, "saude"),
+    "anvisa_vigimed_reacoes": ("VigiMed: reações", "Reações de cada notificação em MedDRA, com gravidade e desfecho", G_ANV, ANV, "saude"),
+    "anvisa_tecnovigilancia": ("Tecnovigilância", "Queixas técnicas e eventos adversos com dispositivos médicos, desde 2012", G_ANV, ANV, "saude"),
+    "anvisa_hemovigilancia": ("Hemovigilância", "Reações transfusionais e eventos do ciclo do sangue, desde 2006", G_ANV, ANV, "saude"),
+    "anvisa_medicamentos_registrados": ("Medicamentos registrados", "Registro, categoria regulatória, classe terapêutica e situação de cada medicamento", G_ANV, ANV, "saude"),
+    "anvisa_cmed_precos": ("CMED: preços de medicamentos", "Preço fábrica e preço máximo ao consumidor por apresentação e alíquota de ICMS", G_ANV, ANV, "saude"),
+    "anvisa_cmed_precos_governo": ("CMED: preços para compras públicas", "Preço máximo de venda ao governo (PMVG) por apresentação", G_ANV, ANV, "saude"),
     "sesai_tuberculose": ("Tuberculose na saúde indígena", "Casos de tuberculose atendidos pelo SIASI, com paciente desidentificado", G_IND, SESAI, "saude"),
     "enani_2019": ("ENANI-2019", "Inquérito nacional de alimentação e nutrição infantil, microdados com 26 bancos imputados", G_OUT, MS, "saude"),
     "saude_indigena_sesai_atendimentos": ("Atendimentos da SESAI", "Atendimentos em territórios indígenas por UF e mês", G_IND, SESAI, "saude"),
@@ -229,6 +239,7 @@ MODE_LABEL = {
     "ana hidro api": "API ANA HidroWebService",
     "cetesb qualar api": "API CETESB QUALAR (ArcGIS)",
     "cetesb qualar auth": "QUALAR CETESB (autenticado)",
+    "anvisa files": "Arquivos abertos ANVISA",
 }
 
 CADENCE_PT = {
