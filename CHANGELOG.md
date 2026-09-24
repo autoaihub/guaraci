@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Fixed: backfill repetido baixava tudo de novo
+A segunda passada do backfill puxava de novo cada unidade que não vem do FTP:
+os 2,6 GB do ENANI, a foto do mês da CMED e todos os anos do IBGE. O pulo por
+ledger só existia no caminho do FTP. Agora vale para toda fonte: unidade com
+`ok` no ledger e arquivo presente no bronze sai como `skipped`. Continuam
+voltando o ano ou mês corrente (ainda crescem), unidade `empty` ou `error` e
+o crawler do SINISA, que decide sozinho o que já tem.
+
+O teste expôs um segundo defeito, também no FTP: a linha `skipped` substituía
+a `ok` no índice do ledger, então a terceira passada não achava nada satisfeito
+e baixava tudo. O índice passou a ignorar o `skipped` quando já há registro
+da partição.
+
 ### Fixed: falha de rede registrada como vazio no orquestrador
 No ciclo real do orquestrador (backfill, atualização e backfill de novo, dez
 fontes de cinco tipos de perfil, 503 unidades), quatro anos do IBGE

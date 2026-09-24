@@ -145,9 +145,15 @@ class Ledger:
             return [LedgerRow.from_csv_dict(row) for row in csv.DictReader(fh)]
 
     def index(self) -> Dict[str, LedgerRow]:
-        """Latest row per ``partition_key`` (later appends win)."""
+        """Latest row per ``partition_key`` (later appends win).
+
+        A ``skipped`` row is a no-op and does not replace the row it confirmed:
+        otherwise the run after a skip would see no ``ok`` and fetch it again.
+        """
         latest: Dict[str, LedgerRow] = {}
         for row in self.read_all():
+            if row.status == STATUS_SKIPPED and row.partition_key in latest:
+                continue
             latest[row.partition_key] = row
         return latest
 

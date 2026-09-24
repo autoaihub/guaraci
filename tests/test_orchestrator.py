@@ -556,3 +556,54 @@ def test_run_via_service_limpa_o_staging_mesmo_sem_exportacao(tmp_path):
     assert row.status == STATUS_EMPTY
     sobras = list((tmp_path / ".staging").rglob("*")) if (tmp_path / ".staging").exists() else []
     assert sobras == []
+
+
+def test_backfill_repetido_nao_baixa_de_novo_o_que_ja_tem(tmp_path):
+    chamadas = []
+    service = _mixed_service()
+    original = service.run
+
+    def contando(source, **kwargs):
+        chamadas.append(kwargs.get("start_year"))
+        return original(source, **kwargs)
+
+    service.run = contando
+    orch = Orchestrator(
+        bronze_root=tmp_path,
+        service=service,
+        records_provider=sinan_records,
+        clock=lambda: "2002-07-13T00:00:00+00:00",
+        ftp_client_factory=FakeClient,
+        dbc_reader=good_dbc_reader,
+    )
+    orch.backfill(sources=["dengue"], current_year=2002)
+    assert len(chamadas) == 5
+    chamadas.clear()
+
+    report = orch.backfill(sources=["dengue"], current_year=2002)
+    # Os anos fechados saem como skipped; o ano corrente (ainda cresce) volta.
+    assert chamadas == [2002]
+    assert report.by_source["dengue"][STATUS_SKIPPED] == 4
+    assert report.by_source["dengue"]["ok"] == 1
+
+    # Arquivo apagado do bronze: a unidade volta a ser baixada.
+    alvo = next(r for r in Ledger(tmp_path / "_ledger.csv").read_all() if r.year == 1998 and r.status == STATUS_OK)
+    Path(alvo.out_path).unlink()
+    chamadas.clear()
+    orch.backfill(sources=["dengue"], current_year=2002)
+    assert sorted(chamadas) == [1998, 2002]
+
+
+def test_ftp_terceira_passada_continua_pulando(tmp_path):
+    orch = Orchestrator(
+        bronze_root=tmp_path,
+        service=_mixed_service(),
+        records_provider=sinan_records,
+        clock=lambda: "2026-07-13T00:00:00+00:00",
+        ftp_client_factory=FakeClient,
+        dbc_reader=good_dbc_reader,
+    )
+    for _ in range(2):
+        orch.backfill(sources=["sinan"], current_year=2002)
+    report = orch.backfill(sources=["sinan"], current_year=2002)
+    assert report.by_source["sinan"][STATUS_SKIPPED] == 2

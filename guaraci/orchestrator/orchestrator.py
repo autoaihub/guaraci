@@ -19,14 +19,14 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from guaraci.orchestrator.cadence import SourceProfile, profile_for
-from guaraci.orchestrator.ledger import Ledger, LedgerRow
-from guaraci.orchestrator.model import FetchUnit
+from guaraci.orchestrator.ledger import STATUS_SKIPPED, Ledger, LedgerRow
+from guaraci.orchestrator.model import FetchUnit, Kind
 from guaraci.orchestrator.planner import (
     default_ftp_records,
     plan_backfill,
     plan_update,
 )
-from guaraci.orchestrator.runner import run_ftp_batch, run_via_service
+from guaraci.orchestrator.runner import _base_row, run_ftp_batch, run_via_service
 
 Clock = Callable[[], str]
 ProgressHook = Callable[[SourceProfile, List[LedgerRow]], None]
@@ -66,6 +66,10 @@ class RunReport:
             "skipped_sources": self.skipped_sources,
             "source_errors": self.source_errors,
         }
+
+
+def _skipped_row(unit: FetchUnit, previous: LedgerRow, run_id: str, ts: str) -> LedgerRow:
+    return _base_row(unit, run_id, ts, STATUS_SKIPPED, out_path=previous.out_path)
 
 
 class Orchestrator:
@@ -180,7 +184,14 @@ class Orchestrator:
                 continue
             if not units:
                 continue
-            rows = self._materialise(profile, units, run_id=run_id, dry_run=dry_run)
+            rows = self._materialise(
+                profile,
+                units,
+                run_id=run_id,
+                dry_run=dry_run,
+                reuse=mode == "backfill",
+                current_year=current_year,
+            )
             report.record(profile.source, rows)
             if progress is not None:
                 progress(profile, rows)
@@ -194,6 +205,8 @@ class Orchestrator:
         *,
         run_id: str,
         dry_run: bool,
+        reuse: bool = False,
+        current_year: Optional[int] = None,
     ) -> List[LedgerRow]:
         ts = self.clock()
         # Append incremental: cada linha vai ao ledger assim que existe, para
@@ -214,7 +227,19 @@ class Orchestrator:
             )
         else:
             rows = []
+            index = self.ledger.index() if reuse else {}
             for unit in units:
+                # Backfill repetido não baixa de novo o que já está no bronze:
+                # antes disso, a segunda passada puxava de novo os 2,6 GB do
+                # ENANI e todos os anos do IBGE. Ficam de fora o período em
+                # aberto (ano ou mês corrente, que ainda cresce) e o crawler,
+                # que decide sozinho o que já tem.
+                if reuse and self._reusable(unit, index, ts, current_year):
+                    row = _skipped_row(unit, index[unit.partition_key()], run_id, ts)
+                    rows.append(row)
+                    if on_row is not None:
+                        on_row(row)
+                    continue
                 row = run_via_service(
                     unit,
                     service=self.service,
@@ -227,6 +252,28 @@ class Orchestrator:
                 if on_row is not None:
                     on_row(row)
         return rows
+
+    def _reusable(
+        self,
+        unit: FetchUnit,
+        index: Dict[str, LedgerRow],
+        ts: str,
+        current_year: Optional[int],
+    ) -> bool:
+        if unit.kind is Kind.CRAWLER or not self.ledger.satisfied(unit, index=index):
+            return False
+        previous = index[unit.partition_key()]
+        if not previous.out_path or not Path(previous.out_path).exists():
+            return False
+        now = datetime.fromisoformat(ts)
+        year_now = current_year or now.year
+        if unit.kind is Kind.SNAPSHOT:
+            return True  # a chave já carrega o mês da foto
+        if unit.year is not None and unit.year >= year_now:
+            return False
+        if unit.end_date and unit.end_date[:7] >= f"{now.year:04d}-{now.month:02d}":
+            return False
+        return True
 
     def _new_run_id(self, mode: str) -> str:
         # 20 dígitos preservam subsegundos do timestamp ISO — dois runs no
