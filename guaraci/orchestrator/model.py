@@ -25,6 +25,8 @@ class Kind(str, Enum):
     FTP_SIH = "ftp_sih"              # per group/UF, monthly (competência)
     FTP_GENERIC = "ftp_generic"      # spec-driven (SINASC, SIA, CNES, PNI, ...)
     API_WINDOW = "api_window"        # OpenDataSUS: date-window / year, no disease
+    API_MONTHLY = "api_monthly"      # date-range API swept one month per unit (CETESB QUALAR)
+    SNAPSHOT = "snapshot"            # rolling window with no history: a dated copy per run
     API_POINT = "api_point"          # NASA: needs lat/lon — not auto-backfillable
     CRAWLER = "crawler"              # gov.br (SNIS/SINISA): whole-portal crawl
     UNKNOWN = "unknown"
@@ -44,6 +46,7 @@ class Granularity(str, Enum):
     MONTHLY = "monthly"
     ANNUAL = "annual"
     WINDOW = "window"
+    SNAPSHOT = "snapshot"
     IRREGULAR = "irregular"
 
 
@@ -96,6 +99,8 @@ class FetchUnit:
 
     @property
     def granularity(self) -> Granularity:
+        if self.kind is Kind.SNAPSHOT:
+            return Granularity.SNAPSHOT
         if self.month is not None:
             return Granularity.MONTHLY
         if self.start_date is not None:

@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from guaraci.orchestrator import paths
+from guaraci.orchestrator.cadence import sweep_params
 from guaraci.orchestrator.ledger import (
     STATUS_EMPTY,
     STATUS_ERROR,
@@ -269,6 +270,15 @@ def run_via_service(
             kwargs["start_year"] = unit.year
         if "end_year" in param_names:
             kwargs["end_year"] = unit.year
+    if unit.kind is Kind.API_MONTHLY and unit.start_date:
+        kwargs["start_date"] = unit.start_date
+        kwargs["end_date"] = unit.end_date
+    # Recorte fixo de fontes que exigem escolha explícita (ex.: estações do
+    # QUALAR). Filtrado pelo schema para um recorte desatualizado não quebrar
+    # a execução com parâmetro desconhecido.
+    kwargs.update(
+        {key: value for key, value in sweep_params(unit.source).items() if key in param_names}
+    )
 
     if unit.kind is Kind.CRAWLER:
         # Crawler escreve direto na árvore final, então não há staging a limpar.

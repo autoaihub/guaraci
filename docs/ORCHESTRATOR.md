@@ -24,6 +24,8 @@ granularity**, with no filtering, no UF remap and no month split:
 | Per UF, annual | `sim`, `sinasc`, … | 1 file / UF / year | annual |
 | Per UF, monthly | `sih`, `sia`, `cnes`, … | 1 file / UF / competência | monthly |
 | Date window (API) | OpenDataSUS | 1 slice / year | annual |
+| Month window (API) | `cetesb_qualar_horario` | 1 slice / month, fixed station set | monthly |
+| Rolling window | `cetesb_qualar`, `cetesb_estacoes` | dated copy per run | snapshot |
 | Point (API) | NASA | needs lat/lon | **on demand** (not swept) |
 | Portal crawl | `snis`, `sinisa` | whole portal | folder |
 
@@ -57,6 +59,8 @@ Pick tiers with `--tier raw|refined|both` (default `both`).
     SIM/CID10/SP/2020/DOSP2020.csv             #   per UF, annual
     SIH/RD/PR/2024/01/RDPR2401.csv             #   per UF, monthly
     DENGUE/2023/dengue_2023.csv                #   OpenDataSUS, per year
+    CETESB_QUALAR/2026/09/cetesb_qualar_20260924.csv   # daily snapshot
+    CETESB_QUALAR_HORARIO/2026/08/cetesb_qualar_horario_202608.csv
   refined/                                     # tier 2: repartitioned by month
     SINAN/DENG/2024/03/DENGBR24-202403.csv     #   SINAN split by DT_NOTIFIC
     SINAN/DENG/2024/00/DENGBR24-202400.csv     #   unknown-month bucket
@@ -109,6 +113,28 @@ with a publication **cadence** (`daily`/`weekly`/`monthly`/`annual`/`irregular`)
 so the updater re-checks on the right rhythm instead of a single fixed sweep.
 Re-tune a source's cadence in `CADENCE_OVERRIDES`; NASA sources are `auto=False`
 (collected on demand because they need a latitude/longitude).
+
+### CETESB: snapshots and a monthly slice
+
+- **`snapshot`** (`cetesb_qualar` daily, `cetesb_estacoes` monthly): the
+  source is a rolling window with no history, so each run stores a dated
+  copy; the collection date (or month) is the partition identity. There is
+  no backfill: the past is no longer at the source. The 48h window is twice
+  the daily interval, so one missed server run leaves no gap. Consecutive
+  snapshots overlap by design; dedup by station/pollutant/hour is silver's
+  job.
+- **`api_monthly`** (`cetesb_qualar_horario`): one calendar month per unit,
+  from 2022, over a fixed slice (Greater São Paulo, 30 stations, six
+  pollutants plus `TEMP` and `UR`; `SWEEP_STATIONS`/`SWEEP_PARAMETERS` in
+  `guaraci/cetesb/horario.py`). Unvalidated readings are kept, flagged in
+  the `validado` column, and `update` always re-pulls the two months before
+  the current one because CETESB validates late. Without
+  `GUARACI_QUALAR_LOGIN`/`GUARACI_QUALAR_SENHA` in the environment the
+  source is skipped with that reason. Budget about 240 requests per month
+  of history.
+
+For the daily snapshot to accumulate, the server cron must run `update` at
+least once a day (the documented `0 3 * * *` does).
 
 ## Running on the server
 

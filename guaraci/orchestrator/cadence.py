@@ -17,6 +17,7 @@ overridden per source in :data:`CADENCE_OVERRIDES`.
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, replace
 from typing import Dict, Optional
 
@@ -30,6 +31,10 @@ _SINAN_MIN_YEAR = 2001
 _SIM_MIN_YEAR = 1979
 _SIH_MIN_YEAR = 1992
 _INMET_MIN_YEAR = 2000
+# Piso do backfill mensal do QUALAR autenticado. Cada mês do recorte custa por
+# volta de 240 requisições; de 2022 em diante o backfill inteiro fica em uma
+# noite. O QUALAR tem série bem mais antiga: basta baixar este piso.
+_QUALAR_HORARIO_MIN_YEAR = 2022
 
 # Edit here to re-tune how often a source is re-checked for new data.
 # SISAGUA bulk-file sources publish (at most) monthly/semestral batches on
@@ -134,41 +139,40 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         # current year's file is republished as new detections arrive.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.MONTHLY, 2003)
     elif name == "cetesb_qualar_horario":
-        # Diferente das outras duas CETESB: esta TEM histórico e aceita
-        # intervalo de datas, então seria varrível em princípio. Fica fora
-        # mesmo assim por dois motivos concretos: exige credencial do operador
-        # e exige escolher estações, já que o QUALAR responde um par
-        # estação/parâmetro por requisição. Varrer 75 estações por 20
-        # parâmetros seriam 1500 chamadas contra um sistema público estadual.
+        # Tem histórico e aceita intervalo de datas, então é varrida mês a mês,
+        # mas só num recorte fixo (SWEEP_STATIONS x SWEEP_PARAMETERS em
+        # guaraci/cetesb/horario.py): o QUALAR responde um par
+        # estação/parâmetro por requisição, e a rede inteira seriam 1500
+        # chamadas por mês. Sem credencial no ambiente a fonte sai da
+        # varredura com o motivo, em vez de gerar uma linha de erro por mês.
+        has_credential = bool(
+            os.getenv("GUARACI_QUALAR_LOGIN") and os.getenv("GUARACI_QUALAR_SENHA")
+        )
         profile = SourceProfile(
             name,
-            Kind.API_WINDOW,
-            Cadence.IRREGULAR,
-            None,
-            auto=False,
+            Kind.API_MONTHLY,
+            Cadence.MONTHLY,
+            _QUALAR_HORARIO_MIN_YEAR,
+            auto=has_credential,
             note=(
-                "needs QUALAR credentials and an explicit station list - "
-                "collect on demand, not swept"
+                ""
+                if has_credential
+                else "needs GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA in the "
+                "environment - skipped until the credential is set"
             ),
         )
+    elif name == "cetesb_qualar":
+        # Janela MÓVEL de 48 horas, sem histórico: o que não for guardado se
+        # perde. A varredura diária grava um instantâneo datado; como a janela
+        # é o dobro do intervalo, um dia de falha do servidor não abre buraco.
+        # A sobreposição entre instantâneos consecutivos é esperada no bronze
+        # e se resolve na camada prata, deduplicando por estação/poluente/hora.
+        profile = SourceProfile(name, Kind.SNAPSHOT, Cadence.DAILY, None)
     elif name.startswith("cetesb"):
-        # A CETESB publica uma janela MÓVEL de 48 horas, sem histórico: não há
-        # ano para varrer e nada a preencher para trás. Acumular série aqui
-        # exigiria guardar um instantâneo a cada poucas horas e concatenar, que
-        # é um padrão append-only que a árvore bronze, particionada por
-        # ano/mês, não modela. Fica fora da varredura de propósito, e não por
-        # não ter sido reconhecida.
-        profile = SourceProfile(
-            name,
-            Kind.API_WINDOW,
-            Cadence.IRREGULAR,
-            None,
-            auto=False,
-            note=(
-                "rolling 48h window with no history - accumulating a series "
-                "needs periodic snapshots, not a backfill sweep"
-            ),
-        )
+        # Cadastro das estações (com o índice corrente de cada uma). Muda
+        # pouco; um instantâneo por mês mantém o histórico de estações ativas
+        # para a junção com a série de concentração.
+        profile = SourceProfile(name, Kind.SNAPSHOT, Cadence.MONTHLY, None)
     elif "opendatasus" in mode_l or "demas" in mode_l:
         # Date-window API sources; min_year is read from the schema by the planner.
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.WEEKLY, None)
@@ -188,3 +192,23 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
     if override is not None:
         profile = profile.with_cadence(override)
     return profile
+
+
+def sweep_params(source: str) -> Dict[str, object]:
+    """Parâmetros fixos que a varredura passa a uma fonte, além das datas.
+
+    Só existe para fontes cujo recorte não sai do schema: hoje, o QUALAR
+    autenticado, que exige lista explícita de estações.
+    """
+    if source == "cetesb_qualar_horario":
+        from guaraci.cetesb.horario import SWEEP_PARAMETERS, SWEEP_STATIONS
+
+        return {
+            "stations": list(SWEEP_STATIONS),
+            "parameters": list(SWEEP_PARAMETERS),
+            # Bronze guarda o dado como publicado. A coluna ``validado`` diz
+            # o que já passou pela validação da CETESB; filtrar aqui apagaria
+            # o mês corrente inteiro.
+            "only_validated": False,
+        }
+    return {}

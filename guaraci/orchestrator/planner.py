@@ -12,17 +12,25 @@ Per source shape:
   file yields a monthly unit, an annual file an annual unit.
 * **API-window** (OpenDataSUS): one unit per year (backfill floor is a bounded
   heuristic; DATASUS microdata is the priority surface).
+* **Snapshot** (CETESB índice, cadastro de estações): janela móvel sem
+  histórico. Uma unidade por dia (cadência diária) ou por mês (mensal), com a
+  data da coleta como identidade. Backfill não existe: o passado não está mais
+  na fonte.
+* **API monthly** (QUALAR autenticado): uma unidade por mês civil, do piso do
+  perfil até o mês corrente. O update repuxa os últimos meses, porque a CETESB
+  valida dado com atraso e a coluna ``validado`` muda depois de publicada.
 * **NASA / unknown**: skipped by the sweep (NASA needs a lat/lon → on demand).
 """
 from __future__ import annotations
 
+import calendar
 import inspect
-from datetime import datetime
+from datetime import date, datetime
 from typing import Callable, List, Optional, Sequence
 
 from guaraci.orchestrator.cadence import SourceProfile
 from guaraci.orchestrator.ledger import Ledger
-from guaraci.orchestrator.model import FetchUnit, Kind
+from guaraci.orchestrator.model import Cadence, FetchUnit, Kind
 
 # Provider signature: (kind, source, years) -> list of FileRecord-like objects
 # (duck-typed: .group .state .year .month .basename .path .size).
@@ -31,6 +39,11 @@ FtpRecordsProvider = Callable[[Kind, str, Sequence[int]], List[object]]
 # Bounded default backfill window for API-window sources (years). DATASUS FTP is
 # the priority; OpenDataSUS floors can be widened per source when needed.
 _API_BACKFILL_YEARS = 5
+
+# Meses anteriores ao corrente que o update de uma fonte API_MONTHLY sempre
+# repuxa. A CETESB valida a série horária com atraso; sem repuxar, o bronze
+# congelaria a versão preliminar desses meses.
+_MONTHLY_REVALIDATION_MONTHS = 2
 
 
 def _now_year() -> int:
@@ -137,6 +150,53 @@ def _call_records_provider(
     return provider(kind, source, years)
 
 
+def _snapshot_unit(profile: SourceProfile, today: date) -> FetchUnit:
+    """O instantâneo desta execução: um por dia ou um por mês, pela cadência."""
+    if profile.cadence is Cadence.DAILY:
+        iso = today.isoformat()
+        return FetchUnit(
+            source=profile.source,
+            kind=Kind.SNAPSHOT,
+            year=today.year,
+            month=today.month,
+            start_date=iso,
+            end_date=iso,
+        )
+    return FetchUnit(
+        source=profile.source, kind=Kind.SNAPSHOT, year=today.year, month=today.month
+    )
+
+
+def _month_unit(source: str, year: int, month: int, today: date) -> FetchUnit:
+    last_day = date(year, month, calendar.monthrange(year, month)[1])
+    return FetchUnit(
+        source=source,
+        kind=Kind.API_MONTHLY,
+        year=year,
+        month=month,
+        start_date=date(year, month, 1).isoformat(),
+        # O mês corrente vai só até hoje: pedir datas futuras ao QUALAR é
+        # desperdício, e a unidade é repuxada no próximo update de todo modo.
+        end_date=min(last_day, today).isoformat(),
+    )
+
+
+def _months_between(first: date, last: date) -> List[tuple]:
+    months = []
+    year, month = first.year, first.month
+    while (year, month) <= (last.year, last.month):
+        months.append((year, month))
+        month += 1
+        if month == 13:
+            year, month = year + 1, 1
+    return months
+
+
+def _shift_months(day: date, delta: int) -> date:
+    index = day.year * 12 + (day.month - 1) + delta
+    return date(index // 12, index % 12 + 1, 1)
+
+
 def _api_window_units(source: str, years: Sequence[int]) -> List[FetchUnit]:
     return [
         FetchUnit(source=source, kind=Kind.API_WINDOW, year=int(y)) for y in years
@@ -149,11 +209,23 @@ def plan_backfill(
     current_year: Optional[int] = None,
     records_provider: FtpRecordsProvider = default_ftp_records,
     api_backfill_years: int = _API_BACKFILL_YEARS,
+    today: Optional[date] = None,
 ) -> List[FetchUnit]:
     """Full-history units for ``profile`` ("sair tudo")."""
     if not profile.auto:
         return []
     year_now = current_year or _now_year()
+    day = today or date.today()
+
+    if profile.kind is Kind.SNAPSHOT:
+        return [_snapshot_unit(profile, day)]
+
+    if profile.kind is Kind.API_MONTHLY:
+        floor = profile.min_year or (year_now - api_backfill_years + 1)
+        return [
+            _month_unit(profile.source, y, m, day)
+            for y, m in _months_between(date(floor, 1, 1), day)
+        ]
 
     if profile.kind.is_ftp():
         floor = profile.min_year or year_now
@@ -177,6 +249,7 @@ def plan_update(
     current_year: Optional[int] = None,
     records_provider: FtpRecordsProvider = default_ftp_records,
     update_lookback_years: int = 1,
+    today: Optional[date] = None,
 ) -> List[FetchUnit]:
     """Delta units: what the ledger doesn't already have, unchanged, at source.
 
@@ -188,6 +261,41 @@ def plan_update(
         return []
     year_now = current_year or _now_year()
     index = ledger.index()
+    day = today or date.today()
+
+    if profile.kind is Kind.SNAPSHOT:
+        unit = _snapshot_unit(profile, day)
+        return [] if ledger.satisfied(unit, index=index) else [unit]
+
+    if profile.kind is Kind.API_MONTHLY:
+        # Os últimos meses sempre voltam (revalidação), e qualquer mês sem
+        # linha ok desde o último que o ledger conhece também. Com o ledger
+        # vazio, só a janela de revalidação: o histórico é papel do backfill.
+        recent_start = _shift_months(day, -_MONTHLY_REVALIDATION_MONTHS)
+        units = [
+            _month_unit(profile.source, y, m, day)
+            for y, m in _months_between(recent_start, day)
+        ]
+        known = [
+            (row.year, row.month)
+            for row in index.values()
+            if row.source == profile.source
+            and row.status == "ok"
+            and row.year is not None
+            and row.month is not None
+        ]
+        if known:
+            last_y, last_m = max(known)
+            gap_start = _shift_months(date(last_y, last_m, 1), 1)
+            if gap_start < recent_start:
+                gap = [
+                    _month_unit(profile.source, y, m, day)
+                    for y, m in _months_between(
+                        gap_start, _shift_months(recent_start, -1)
+                    )
+                ]
+                units = gap + units
+        return units
 
     if profile.kind.is_ftp():
         low = max(profile.min_year or year_now, year_now - update_lookback_years)

@@ -37,7 +37,7 @@ from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 import polars as pl
 
 from guaraci.cetesb.client import CetesbClientError
-from guaraci.cetesb.codes import resolve_parameter, resolve_station
+from guaraci.cetesb.codes import STATIONS, resolve_parameter, resolve_station
 from guaraci.cetesb.qualar import _CetesbBase, _normalize_format
 from guaraci.cetesb.qualar_client import REGISTRATION_URL, QualarClient
 
@@ -63,6 +63,19 @@ HOURLY_COLUMNS: Tuple[str, ...] = (
 # Servem de default para quem não quer escolher, e coincidem com o que o
 # conector do ArcGIS cobre, o que torna as duas fontes comparáveis.
 DEFAULT_PARAMETERS: Tuple[str, ...] = ("MP10", "MP2.5", "O3", "NO2", "SO2", "CO")
+
+# Recorte que o orquestrador bronze varre todo mês. A rede inteira com todos os
+# parâmetros seriam 1500 requisições por mês contra um sistema público
+# estadual; a Grande São Paulo (regiões "São Paulo" e "MASP" da tabela, 30
+# estações) com os seis poluentes mais temperatura e umidade cobre exposição e
+# o confundidor meteorológico onde mora metade da população do estado.
+# Estação sem o sensor responde vazio e rápido, então o custo real fica abaixo
+# das 240 combinações nominais.
+SWEEP_REGIONS: Tuple[str, ...] = ("São Paulo", "MASP")
+SWEEP_STATIONS: Tuple[str, ...] = tuple(
+    sorted(item.name for item in STATIONS.values() if item.region in SWEEP_REGIONS)
+)
+SWEEP_PARAMETERS: Tuple[str, ...] = DEFAULT_PARAMETERS + ("TEMP", "UR")
 
 
 class CetesbQualarHorarioDataSource(_CetesbBase):

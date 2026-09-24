@@ -53,6 +53,10 @@ def filename(unit: FetchUnit) -> str:
     if unit.src_basename:
         stem = Path(unit.src_basename).stem
         return f"{_sanitize(stem)}.csv"
+    if unit.kind is Kind.SNAPSHOT and unit.start_date:
+        # Instantâneo diário: a data da coleta é a identidade do arquivo. Sem
+        # ela, os instantâneos de um mesmo mês cairiam no mesmo nome.
+        return f"{unit.source}_{unit.start_date.replace('-', '')}.csv"
     bits = [unit.source]
     for value in (unit.group, unit.state):
         if value:
