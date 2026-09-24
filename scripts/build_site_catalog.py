@@ -204,6 +204,12 @@ CURATED = {
     "sinisa": ("SINISA", "Sistema Nacional de Informações em Saneamento Básico", G_SAN, "Governo federal — gov.br (SNIS/SINISA)", "san"),
     # Ambiental (INPE/INMET/ANA)
     "ana_hidro": ("ANA HidroWebService", "Séries telemétricas de chuva, nível e vazão por estação", G_AMB, "ANA — Agência Nacional de Águas", "clima"),
+    # Qualidade do ar (CETESB/SP). A descrição diz "índice" e não "concentração"
+    # de propósito: é o que a fonte entrega, e confundir os dois inviabiliza
+    # qualquer uso dose-resposta.
+    "cetesb_qualar": ("CETESB QUALAR", "Índice horário de qualidade do ar por estação, últimas 48 horas (não é concentração)", G_AMB, "CETESB — Companhia Ambiental do Estado de São Paulo", "clima"),
+    "cetesb_estacoes": ("CETESB · estações de monitoramento", "Cadastro geolocalizado das estações de qualidade do ar, com município e índice corrente", G_AMB, "CETESB — Companhia Ambiental do Estado de São Paulo", "clima"),
+    "cetesb_qualar_horario": ("CETESB QUALAR · concentração horária", "Concentração medida de poluentes e variáveis meteorológicas por estação, série histórica (exige conta no QUALAR)", G_AMB, "CETESB — Companhia Ambiental do Estado de São Paulo", "clima"),
 }
 
 MODE_LABEL = {
@@ -217,6 +223,8 @@ MODE_LABEL = {
     "inpe queimadas api": "API INPE Queimadas",
     "gov.br crawl": "Crawler gov.br",
     "ana hidro api": "API ANA HidroWebService",
+    "cetesb qualar api": "API CETESB QUALAR (ArcGIS)",
+    "cetesb qualar auth": "QUALAR CETESB (autenticado)",
 }
 
 CADENCE_PT = {
