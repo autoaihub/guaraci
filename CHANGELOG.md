@@ -18,6 +18,12 @@ início a cada vez: custo quadrático, cerca de 870 releituras num ano de SIH
 SP. Agora o plano vai em streaming para um parquet temporário e é lido de
 volta por lotes, em tempo linear (33 s por 3,6 milhões de linhas).
 
+Nos arquivos do portal, a conversão de CSV para Parquet lia o arquivo
+inteiro: o CSV de 1,9 GB do SISAGUA mensal custava 6,6 GB de pico. A leitura
+eager tinha sido escolhida por uma medição antiga na SRAG, que não se
+repete com o Polars 1.41. Em streaming, o mesmo arquivo fica em 2,8 GB e a
+SRAG 2024 cai de 1,5 GB para 1,1 GB, no mesmo tempo.
+
 ### Fixed: filtros que não recortavam, achados pela verificação de filtros
 A verificação de filtros roda cada parâmetro de cada fonte contra a origem e
 compara com a coleta sem filtro. Ela achou quatro defeitos:

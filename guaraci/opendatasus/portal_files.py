@@ -1140,22 +1140,26 @@ class PortalFileDataSource(DataSource):
                 )
             return escrito
 
-        # Para csv e parquet a leitura eager é a mais barata, e não por acaso:
-        # os parquet da origem vêm num único row group (336 mil linhas por 194
+        if normalized not in {"csv", "parquet"}:
+            raise ValueError(f"Unsupported output format '{output_format}'.")
+        if suffix == "csv":
+            # CSV de origem vai em streaming. Medido em 2026-09-25 com Polars
+            # 1.41: o CSV de 1,9 GB do SISAGUA mensal custava 6,3 GB de pico
+            # lido inteiro e custa 2,5 GB assim; o de 212 MB da SRAG 2024 caiu
+            # de 1,5 GB para 1,1 GB, no mesmo tempo.
+            plano = self._scan(path, suffix)
+            if normalized == "csv":
+                plano.sink_csv(dest)
+            else:
+                plano.sink_parquet(dest)
+            return dest
+        # Os parquet da origem vêm num único row group (336 mil linhas por 194
         # colunas na SRAG de 2025), abaixo do qual não há streaming possível.
-        # Medido sobre o CSV de 288 MB da SRAG de 2024, o caminho lazy custou
-        # 832 MB de pico contra 689 MB do eager, sem ganho de tempo.
-        frame = (
-            pl.read_parquet(path)
-            if suffix == "parquet"
-            else pl.read_csv(path, separator=_csv_separator(path), infer_schema=False)
-        )
+        frame = pl.read_parquet(path)
         if normalized == "csv":
             frame.write_csv(dest)
-        elif normalized == "parquet":
-            frame.write_parquet(dest)
         else:
-            raise ValueError(f"Unsupported output format '{output_format}'.")
+            frame.write_parquet(dest)
         return dest
 
     @staticmethod

@@ -32,7 +32,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -84,52 +84,98 @@ def _bruto_da_coleta(pasta: Path, antes: set) -> Optional[pl.DataFrame]:
     )
 
 
-def _ler(path: Path) -> List[Tuple[str, pl.DataFrame]]:
-    """Devolve (rótulo, frame) por tabela do arquivo exportado."""
+_AMOSTRA = 50_000
+
+
+def _ler(path: Path) -> List[Dict[str, Any]]:
+    """Resumo de cada tabela do arquivo exportado, sem carregá-lo inteiro.
+
+    Contagem de linhas e nulos por coluna saem de agregação (Polars em
+    streaming, SQL no SQLite); o resto olha só uma amostra. Ler o arquivo
+    inteiro derrubava o runner do GitHub (16 GB): o ENANI tem 280 milhões de
+    células, e o SQLite vinha por fetchall() como objetos Python.
+    """
     ext = path.suffix.lower()
-    if ext == ".csv":
-        return [(path.stem, pl.read_csv(path, infer_schema=False, encoding="utf8"))]
-    if ext == ".parquet":
-        return [(path.stem, pl.read_parquet(path))]
+    if ext in (".csv", ".parquet"):
+        if ext == ".csv":
+            lf = pl.scan_csv(path, infer_schema=False, encoding="utf8")
+        else:
+            lf = pl.scan_parquet(path)
+        colunas = lf.collect_schema().names()
+        stats = lf.select([pl.len().alias("__linhas__")] + [pl.col(c).null_count() for c in colunas])
+        linha = stats.collect(engine="streaming").row(0)
+        return [{
+            "rotulo": path.stem,
+            "linhas": int(linha[0]),
+            "colunas": colunas,
+            "nulos": {c: int(n) for c, n in zip(colunas, linha[1:])},
+            "amostra": lf.head(_AMOSTRA).collect(),
+        }]
     if ext in (".sqlite", ".db", ".sqlite3"):
         saida = []
         with sqlite3.connect(path) as conn:
             tabelas = [r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")]
             for tabela in tabelas:
-                cur = conn.execute(f'SELECT * FROM "{tabela}"')
-                nomes = [c[0] for c in cur.description]
-                linhas = cur.fetchall()
-                frame = pl.DataFrame(
-                    {n: [str(r[i]) if r[i] is not None else None for r in linhas] for i, n in enumerate(nomes)},
+                nomes = [r[1] for r in conn.execute(f'PRAGMA table_info("{tabela}")')]
+                linhas = conn.execute(f'SELECT COUNT(*) FROM "{tabela}"').fetchone()[0]
+                nulos: Dict[str, int] = {}
+                for k in range(0, len(nomes), 500):  # limite de colunas por SELECT
+                    bloco = nomes[k:k + 500]
+                    somas = ", ".join(f'SUM("{n}" IS NULL)' for n in bloco)
+                    valores = conn.execute(f'SELECT {somas} FROM "{tabela}"').fetchone()
+                    nulos.update({n: int(v or 0) for n, v in zip(bloco, valores)})
+                cur = conn.execute(f'SELECT * FROM "{tabela}" LIMIT {_AMOSTRA}')
+                registros = cur.fetchall()
+                amostra = pl.DataFrame(
+                    {n: [str(r[i]) if r[i] is not None else None for r in registros] for i, n in enumerate(nomes)},
                     schema={n: pl.Utf8 for n in nomes},
                 )
-                saida.append((f"{path.stem}:{tabela}", frame))
+                saida.append({"rotulo": f"{path.stem}:{tabela}", "linhas": int(linhas), "colunas": nomes,
+                              "nulos": nulos, "amostra": amostra})
         return saida
     raise ValueError(f"extensão inesperada no export: {path.name}")
 
 
-def _resumo(frames: List[Tuple[str, pl.DataFrame]]) -> Dict[str, Any]:
-    linhas = sum(f.height for _, f in frames)
+def _parte_de_frame(rotulo: str, frame: pl.DataFrame) -> Dict[str, Any]:
+    return {"rotulo": rotulo, "linhas": frame.height, "colunas": frame.columns,
+            "nulos": dict(zip(frame.columns, (int(n) for n in frame.null_count().row(0)))),
+            "amostra": frame.head(_AMOSTRA)}
+
+
+def _resumo(partes: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
+    """Resumo acumulado, uma parte por vez.
+
+    ``partes`` pode ser um gerador: cada amostra é resumida e descartada antes
+    da próxima. No ENANI cada banco tem menos linhas que a amostra, então
+    guardar as 26 amostras era guardar o dado inteiro (19,7 GB de pico).
+    """
+    linhas = 0
     colunas: List[str] = []
-    for _, f in frames:
-        colunas.extend(c for c in f.columns if c not in colunas)
     nulos: Dict[str, int] = {}
-    for _, f in frames:
-        for nome, n in zip(f.columns, f.null_count().row(0)):
-            nulos[nome] = nulos.get(nome, 0) + int(n)
     mojibake = 0
     exemplos: List[str] = []
     vazias: List[str] = []
-    for _, f in frames:
-        amostra = f.head(50_000)
-        for nome, tipo in amostra.schema.items():
-            if amostra[nome].null_count() == amostra.height and amostra.height > 0:
-                vazias.append(nome)
-            if tipo == pl.Utf8:
-                achados = amostra.filter(pl.col(nome).str.contains(_MOJIBAKE.pattern))[nome]
-                if achados.len():
-                    mojibake += achados.len()
-                    exemplos.extend(str(v)[:60] for v in achados.head(2).to_list())
+    for p in partes:
+        linhas += p["linhas"]
+        colunas.extend(c for c in p["colunas"] if c not in colunas)
+        for nome, n in p["nulos"].items():
+            nulos[nome] = nulos.get(nome, 0) + n
+        amostra = p["amostra"]
+        if amostra.height:
+            vazias.extend(n for n, k in zip(amostra.columns, amostra.null_count().row(0)) if k == amostra.height)
+        texto = [n for n, t in amostra.schema.items() if t == pl.Utf8]
+        if texto and amostra.height:
+            # Uma consulta por arquivo, não um filter por coluna: o ENANI tem
+            # 741 colunas em cada um de 26 bancos.
+            contagens = amostra.select(
+                [pl.col(n).str.contains(_MOJIBAKE.pattern).sum().alias(n) for n in texto]
+            ).row(0)
+            for nome, k in zip(texto, contagens):
+                if k:
+                    mojibake += int(k)
+                    if len(exemplos) < 4:
+                        achados = amostra.filter(pl.col(nome).str.contains(_MOJIBAKE.pattern))[nome]
+                        exemplos.extend(str(v)[:60] for v in achados.head(2).to_list())
     return {
         "linhas": linhas,
         "colunas": colunas,
@@ -173,15 +219,14 @@ def confere_fonte(service: DownloadService, s: str, base: Path, dicionario: Dict
             problemas.append(f"{formato}: nada exportado ({resultado.get('export_warning')})")
             continue
         try:
-            frames = [fr for arq in arquivos for fr in _ler(arq)]
+            info = _resumo(parte for arq in arquivos for parte in _ler(arq))
         except Exception as exc:  # noqa: BLE001
             problemas.append(f"{formato}: arquivo ilegível: {type(exc).__name__}: {str(exc)[:200]}")
             continue
-        info = _resumo(frames)
         bruto = _bruto_da_coleta(pasta, antes)
         if bruto is not None:
             brutos[formato] = bruto
-            if info["mojibake"] and _resumo([("bruto", bruto)])["mojibake"]:
+            if info["mojibake"] and _resumo([_parte_de_frame("bruto", bruto)])["mojibake"]:
                 avisos.append(f"{formato}: acentuação quebrada já vem da origem, ex. {info['mojibake_exemplos'][:2]}")
                 info["mojibake"] = 0
         if info["mojibake"] and s in _MOJIBAKE_DA_ORIGEM:
