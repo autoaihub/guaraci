@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Fixed: exportação do DATASUS com memória proporcional ao período pedido
+A verificação de volume mediu 6,8 GB de pico para um ano de SIH de SP. A
+causa foi isolada exportando o mesmo mês repetido: 2,5 GB com um arquivo,
+9,3 GB com quatro e 22,8 GB com doze. O plano era lazy e a escrita em
+`sink_*`, mas a normalização de UF usava `replace_strict` com dicionário,
+e com essa expressão o Polars 1.41 abandona o streaming e materializa tudo.
+A mesma troca escrita como cadeia `when/then` fica em 2,6 GB com doze
+arquivos, sem crescer com o período. Vale para SIH, SIM, SINAN e as demais
+fontes FTP que passam por `scan_parquet_group`.
+
+Na exportação para SQLite, o plano lazy era percorrido com
+`slice(offset).collect()` a cada lote de 50 mil linhas, relendo tudo desde o
+início a cada vez: custo quadrático, cerca de 870 releituras num ano de SIH
+SP. Agora o plano vai em streaming para um parquet temporário e é lido de
+volta por lotes, em tempo linear (33 s por 3,6 milhões de linhas).
+
 ### Fixed: filtros que não recortavam, achados pela verificação de filtros
 A verificação de filtros roda cada parâmetro de cada fonte contra a origem e
 compara com a coleta sem filtro. Ela achou quatro defeitos:

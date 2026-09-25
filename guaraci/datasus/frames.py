@@ -174,17 +174,27 @@ def sqlite_safe(frame: Frame) -> Frame:
 
 
 def _iter_batches(frame: Frame, batch_rows: int):
-    """Percorre o frame em pedaços, sem materializar o conjunto inteiro."""
+    """Percorre o frame em pedaços, sem materializar o conjunto inteiro.
+
+    O plano lazy vai primeiro para um parquet temporário, em streaming, e é
+    lido de volta por lotes. O caminho anterior, ``slice(offset).collect()``
+    a cada lote, relia o plano desde o início a cada vez: com 43 milhões de
+    linhas (um ano de SIH SP) eram cerca de 870 releituras.
+    """
     if isinstance(frame, pl.LazyFrame):
-        offset = 0
-        while True:
-            lote = frame.slice(offset, batch_rows).collect()
-            if lote.is_empty():
-                return
-            yield lote
-            if lote.height < batch_rows:
-                return
-            offset += batch_rows
+        import tempfile
+
+        import pyarrow.parquet as pq
+
+        with tempfile.TemporaryDirectory(prefix="guaraci_sqlite_") as tmp:
+            staged = Path(tmp) / "staged.parquet"
+            frame.sink_parquet(staged)
+            arquivo = pq.ParquetFile(staged)
+            try:
+                for lote in arquivo.iter_batches(batch_size=batch_rows):
+                    yield pl.from_arrow(lote)
+            finally:
+                arquivo.close()
         return
     yield from frame.iter_slices(batch_rows)
 

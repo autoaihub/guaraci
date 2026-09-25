@@ -218,7 +218,15 @@ def uf_normalization_expr(frame: Frame, column: str, sample_rows: int = 10_000) 
         )
         return pl.col(column)
 
-    return normalized.replace_strict(lookup, default=None).cast(pl.Utf8).alias(column)
+    # Cadeia when/then em vez de replace_strict: com o dicionário, o Polars
+    # 1.41 abandona o streaming e materializa o plano inteiro. Medido em
+    # 2026-09-25 exportando 12 meses de SIH SP (grupo SP): 22,8 GB de pico
+    # com replace_strict e 2,5 GB com esta forma, que não cresce com o
+    # número de arquivos.
+    mapped: Optional[pl.Expr] = None
+    for code, sigla in lookup.items():
+        mapped = (pl.when if mapped is None else mapped.when)(normalized == code).then(pl.lit(sigla))
+    return mapped.otherwise(pl.lit(None, dtype=pl.Utf8)).alias(column)
 
 
 def uf_column_names(columns: Sequence[str]) -> List[str]:

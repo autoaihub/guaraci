@@ -192,3 +192,30 @@ def test_sidra_divide_municipios_por_uf_quando_estoura_o_limite():
     assert S._localities("N6", "2[6794]|287[100362]") == ["N6[all]"]
     partes = S._localities("N6", "2[4,5]|287[" + ",".join(str(i) for i in range(21)) + "]")
     assert len(partes) == 27 and partes[0] == "N6[N3[11]]" and "N6[N3[35]]" in partes
+
+
+def test_lotes_do_sqlite_cobrem_o_plano_lazy_na_ordem(tmp_path):
+    import polars as pl
+
+    from guaraci.datasus import frames
+
+    lf = pl.LazyFrame({"i": list(range(1_050))})
+    lotes = list(frames._iter_batches(lf, 100))
+    assert [len(l) for l in lotes][:2] == [100, 100]
+    assert pl.concat(lotes)["i"].to_list() == list(range(1_050))
+
+    caminho = frames.write_sqlite(lf, db_path=tmp_path / "t.db", table="t", batch_rows=100)
+    import sqlite3
+
+    with sqlite3.connect(caminho) as con:
+        assert con.execute("SELECT COUNT(*), MIN(i), MAX(i) FROM t").fetchone() == (1_050, 0, 1_049)
+
+
+def test_normalizacao_de_uf_sem_replace_mapeia_codigo_e_sigla():
+    import polars as pl
+
+    from guaraci.datasus import filtering
+
+    lf = pl.LazyFrame({"SG_UF": ["35", "sp", " 12 ", "35.0", "99", None]})
+    expr = filtering.uf_normalization_expr(lf, "SG_UF")
+    assert lf.with_columns(expr).collect()["SG_UF"].to_list() == ["SP", "SP", "AC", "SP", None, None]
