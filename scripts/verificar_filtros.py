@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -59,19 +60,36 @@ def _frame(resultado: Dict[str, Any]) -> Optional[pl.DataFrame]:
     return pl.concat(frames, how="diagonal") if len(frames) > 1 else frames[0]
 
 
+def _coleta(service: DownloadService, s: str, params: Dict[str, Any]) -> Optional[pl.DataFrame]:
+    """Coleta, lê o CSV para a memória e apaga a pasta: o disco não acumula."""
+    try:
+        return _frame(service.run(s, **params).to_dict())
+    finally:
+        shutil.rmtree(params["output_dir"], ignore_errors=True)
+
+
 def _assinatura(frame: Optional[pl.DataFrame]) -> str:
     if frame is None:
         return "vazio"
     return hashlib.sha1(frame.write_csv().encode("utf-8")).hexdigest()
 
 
-def _valores_de_filtro(spec: Dict[str, Any], base: Optional[pl.DataFrame]) -> Optional[Any]:
+def _valores_de_filtro(
+    spec: Dict[str, Any], base: Optional[pl.DataFrame], base_params: Dict[str, Any]
+) -> Optional[Any]:
     nome, tipo, padrao = spec["name"], spec["type"], spec.get("default")
     permitidos = spec.get("allowed_values") or []
     if permitidos:
         padroes = set(padrao if isinstance(padrao, list) else [padrao])
+        na_base = base_params.get(nome)
+        padroes |= set(na_base if isinstance(na_base, list) else [na_base])
         preferidos = [v for v in permitidos if v not in padroes]
-        if nome in ("uf", "states", "ufs"):
+        if nome == "states":
+            # FTP: a base já vem com AC; outra UF pequena mantém a coleta leve.
+            preferidos = [v for v in ("RR", "AP") if v in permitidos] or preferidos
+        elif nome in ("uf", "ufs") and "states" in base_params:
+            preferidos = [v for v in ("RR", "AP") if v in permitidos] or preferidos
+        elif nome in ("uf", "ufs"):
             preferidos = [v for v in ("SP", "BA", "RJ") if v in permitidos] or preferidos
         if not preferidos:
             return None
@@ -103,11 +121,14 @@ def confere_fonte(service: DownloadService, s: str, pasta: Path) -> Dict[str, An
         return {"pulada": "sem filtro de conteúdo"}
     base_params = vr.params_pequenos(schema, s, pasta / "base")
     base_params["output_format"] = "csv"
-    for spec in specs:  # a linha de base não leva os filtros encolhidos pelo verificador
-        if spec["name"] in ("states", "uf", "ufs") and s not in vr._OVERRIDES:
+    # Nas APIs a base vai sem recorte de UF. No FTP fica o AC do verificador:
+    # sem ele a base baixava o país inteiro (CIHA 4,8 GB, CNES 3,8 GB) e a
+    # verificação semanal esgotava o disco do runner.
+    for spec in specs:
+        if spec["name"] in ("uf", "ufs") and s not in vr._OVERRIDES:
             base_params.pop(spec["name"], None)
     try:
-        base = _frame(service.run(s, **base_params).to_dict())
+        base = _coleta(service, s, base_params)
     except Exception as exc:  # noqa: BLE001
         texto = f"{type(exc).__name__}: {exc}"
         if any(c in texto for c in vr._CREDENCIAIS) or "is required" in texto:
@@ -119,15 +140,19 @@ def confere_fonte(service: DownloadService, s: str, pasta: Path) -> Dict[str, An
     avisos: List[str] = []
     filtros: Dict[str, Any] = {}
     for spec in specs:
-        valor = _valores_de_filtro(spec, base)
+        valor = _valores_de_filtro(spec, base, base_params)
         if valor is None:
             filtros[spec["name"]] = "sem valor testável"
             continue
         params = dict(base_params, output_dir=str(pasta / spec["name"]))
         params[spec["name"]] = valor
+        if spec["name"] in ("uf", "ufs") and "states" in params:
+            # uf filtra dentro dos arquivos baixados por states; com UFs
+            # diferentes a combinação sai sempre vazia.
+            params["states"] = valor if isinstance(valor, list) else [valor]
         rotulo = f"{spec['name']}={valor}"
         try:
-            frame = _frame(service.run(s, **params).to_dict())
+            frame = _coleta(service, s, params)
         except Exception as exc:  # noqa: BLE001
             problemas.append(f"{rotulo}: coleta quebrou: {type(exc).__name__}: {str(exc)[:200]}")
             continue

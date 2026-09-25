@@ -61,6 +61,8 @@ _SMALL = {
 # Campos que o usuário teria de preencher, ou recortes que evitam trazer
 # centenas de MB (SINAN nacional por agravo, dengue incluída).
 _OVERRIDES: Dict[str, Dict[str, Any]] = {
+    # Um mês de SIH em vez do ano: AC com todos os grupos passava de 2 milhões de linhas.
+    "sih": {"months": ["1"]},
     "sinan": {"diseases": ["HANS"]},
     "pce": {"states": ["BA"]},
     "resp": {"states": ["BA"]},  # RESPAC24 vem sem registro da origem

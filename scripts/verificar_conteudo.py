@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 import sqlite3
 import sys
 import time
@@ -312,6 +313,10 @@ def main() -> int:
             return s, confere_fonte(service, s, base, dicionario)
         except Exception as exc:  # noqa: BLE001
             return s, {"problemas": [f"verificador quebrou: {type(exc).__name__}: {str(exc)[:300]}"], "avisos": []}
+        finally:
+            # O resultado já está em memória; sem isto o runner do GitHub
+            # (14 GB de disco) esgota antes do fim das 124 fontes.
+            shutil.rmtree(base / s, ignore_errors=True)
 
     t0 = time.monotonic()
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
