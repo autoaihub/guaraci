@@ -2,9 +2,10 @@ name: Verificação semanal
 
 # Roda contra as origens de verdade toda segunda, 6h de Brasília: rotas da API
 # e da CLI, estimativa, coleta real de cada fonte, conteúdo nos três formatos,
-# filtros e resiliência. As origens mudam sem aviso (endpoint que some, ano que
-# atrasa, coluna renomeada); a suíte offline não enxerga isso. Quando algo
-# quebra, abre uma issue com o resumo, ou comenta na que já estiver aberta.
+# filtros, resiliência e pico de memória nas coletas grandes. As origens mudam
+# sem aviso (endpoint que some, ano que atrasa, coluna renomeada); a suíte
+# offline não enxerga isso. Quando algo quebra, abre uma issue com o resumo,
+# ou comenta na que já estiver aberta.
 
 on:
   schedule:
@@ -27,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        camada: [rotas, conteudo, filtros, resiliencia]
+        camada: [rotas, conteudo, filtros, resiliencia, volume]
     steps:
       - uses: actions/checkout@v7
 
@@ -71,6 +72,9 @@ jobs:
             conteudo)    roda scripts/verificar_conteudo.py --workers 2 ;;
             filtros)     roda scripts/verificar_filtros.py --workers 4 ;;
             resiliencia) roda scripts/verificar_resiliencia.py ;;
+            # Pico de memória acima de 4 GB é falha. Ficam de fora os dois
+            # casos de mais de 45 minutos (dengue_250_paginas e sih_sp_ano).
+            volume)      roda scripts/verificar_volume.py --casos srag_2024_csv,srag_2024_sqlite,sisagua_tratamento_parquet,sisagua_mensal_basicos_parquet,sisagua_mensal_basicos_sqlite,enani_sqlite,vigimed_reacoes_sqlite,sih_sp_mes ;;
           esac
           {
             echo "### ${{ matrix.camada }}"
