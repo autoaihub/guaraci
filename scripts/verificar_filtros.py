@@ -243,6 +243,7 @@ def main() -> int:
         with ThreadPoolExecutor(max_workers=2) as pool:
             resultados.update(dict(pool.map(um, repetir)))
     saida = vr.ROOT / "reports" / f"verificacao_filtros_{time.strftime('%Y%m%d_%H%M')}.json"
+    saida.parent.mkdir(parents=True, exist_ok=True)  # reports/ não vem no checkout
     saida.write_text(json.dumps(resultados, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     testados = sum(1 for r in resultados.values() for v in (r.get("filtros") or {}).values() if str(v).startswith("ok"))
     falhas = {s: r for s, r in resultados.items() if r.get("problemas")}

@@ -36,6 +36,14 @@ jobs:
           python-version: "3.13"
           cache: pip
 
+      # O runner tem 14 GB livres; o ENANI em três formatos e as coletas em
+      # paralelo passam disso, e o runner cai sem deixar log. Os SDKs
+      # pré-instalados que o Guaraci não usa liberam mais de 20 GB.
+      - name: Liberar disco
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
       - name: Instalar
         run: |
           python -m pip install --upgrade pip
@@ -51,13 +59,16 @@ jobs:
           PYTHONIOENCODING: utf-8
         run: |
           status=0
+          mkdir -p reports
+          # pipefail: sem ele o código de saída é o do tee e a falha passa verde.
+          set -o pipefail
           roda() { python "$@" 2>&1 | tee -a saida.log || status=1; }
           case "${{ matrix.camada }}" in
             rotas)
               roda scripts/verificar_rotas.py --camada offline
               roda scripts/verificar_rotas.py --camada discovery
               roda scripts/verificar_rotas.py --camada jobs ;;
-            conteudo)    roda scripts/verificar_conteudo.py --workers 4 ;;
+            conteudo)    roda scripts/verificar_conteudo.py --workers 2 ;;
             filtros)     roda scripts/verificar_filtros.py --workers 4 ;;
             resiliencia) roda scripts/verificar_resiliencia.py ;;
           esac
