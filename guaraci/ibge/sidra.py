@@ -86,7 +86,7 @@ class SidraAggregateSource(DataSource):
         if y0 > y1:
             raise ValueError("Parameter 'start_year' cannot be after 'end_year'.")
         nivel = self._resolve_level(level)
-        localities = f"{nivel}[all]"
+        localities_list = self._localities(nivel, classificacao)
         client = self._resolve_client(api_base_url=api_base_url, timeout=timeout)
 
         years = list(range(y0, y1 + 1))
@@ -103,13 +103,18 @@ class SidraAggregateSource(DataSource):
 
         for index, year in enumerate(years, start=1):
             try:
-                payload = client.aggregate(
-                    table=self.TABLE,
-                    variable=self.VARIABLE,
-                    period=str(year),
-                    localities=localities,
-                    classificacao=classificacao,
-                )
+                payload = []
+                for localities in localities_list:
+                    payload.extend(
+                        client.aggregate(
+                            table=self.TABLE,
+                            variable=self.VARIABLE,
+                            period=str(year),
+                            localities=localities,
+                            classificacao=classificacao,
+                        )
+                        or []
+                    )
             except IbgeClientError as exc:
                 # Erro recuperável (timeout, conexão) é falha de verdade e não
                 # pode passar por "sem dados"; o não recuperável é a SIDRA
@@ -335,6 +340,31 @@ class SidraAggregateSource(DataSource):
         if self._client is not None:
             return self._client
         return IbgeSidraClient(timeout_seconds=timeout_value)
+
+    # A SIDRA responde 500 quando a consulta passa de ~100 mil valores. Nível
+    # município com classificação detalhada estoura: 5.570 municípios x 2
+    # sexos x 21 faixas de idade (tabela 9514, verificado em 2026-09-24).
+    # Nesses casos os municípios são pedidos por UF, com N6[N3[uf]].
+    _SIDRA_MAX_VALUES = 100_000
+    _MUNICIPIOS = 5570
+    _UF_CODES = (
+        11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+        31, 32, 33, 35, 41, 42, 43, 50, 51, 52, 53,
+    )
+
+    @classmethod
+    def _localities(cls, nivel: str, classificacao: Optional[str]) -> List[str]:
+        if nivel != "N6" or not classificacao:
+            return [f"{nivel}[all]"]
+        valores = cls._MUNICIPIOS
+        for categorias in re.findall(r"\[([^\]]*)\]", classificacao):
+            # `all` não diz quantas categorias há; as combinações de `all`
+            # que estouram já são recusadas pela validação de cada fonte.
+            if categorias.strip().lower() != "all":
+                valores *= len([c for c in categorias.split(",") if c.strip()])
+        if valores <= cls._SIDRA_MAX_VALUES:
+            return [f"{nivel}[all]"]
+        return [f"N6[N3[{uf}]]" for uf in cls._UF_CODES]
 
     def _resolve_level(self, level: str) -> str:
         key = str(level).strip().lower()

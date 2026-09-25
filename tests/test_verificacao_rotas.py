@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import datetime
 
+import pytest
+
 from fastapi.testclient import TestClient
 
 from guaraci.api import main as api_main
@@ -138,3 +140,55 @@ def test_double_encoded_text_is_repaired_and_legit_text_kept():
         assert repair_double_encoded(legit) == legit
     rows, n = repair_double_encoded_rows([{"dsei": "JURUÃ\u0081", "n": 1}, {"dsei": "SÃO"}])
     assert n == 1 and rows[0]["dsei"] == "JURUÁ" and rows[1]["dsei"] == "SÃO"
+
+
+def test_uf_reconhecida_por_nome_e_por_campo_de_notificacao():
+    from guaraci.opendatasus.datasource import OpenDataSUSDataSource as D
+
+    # ESAVI: a origem ignora `uf` e só traz o estado por extenso.
+    esavi = [{"nome_estado": "São Paulo"}, {"nome_estado": "Paraná"}, {"nome_estado": "SAO PAULO"}]
+    assert D._rows_have_uf_field(esavi)
+    assert [D._extract_record_uf(r) for r in esavi] == ["SP", "PR", "SP"]
+    # Síndrome gripal leve: a sigla vem em estado_notificacao_ibge.
+    assert D._extract_record_uf({"estado_notificacao_ibge": "ac", "estado": "Acre"}) == "AC"
+    assert D._extract_record_uf({"nome_estado": "Atlântida"}) is None
+
+
+def test_pagina_do_demas_resiste_a_rodadas_de_timeout(monkeypatch):
+    from guaraci.opendatasus.client import OpenDataSUSClientError
+    from guaraci.opendatasus.datasource import OpenDataSUSDataSource
+
+    pausas = []
+    monkeypatch.setattr(OpenDataSUSDataSource, "_sleep", staticmethod(pausas.append))
+
+    class Cliente:
+        chamadas = 0
+
+        def demas_get(self, path, params):
+            Cliente.chamadas += 1
+            if Cliente.chamadas < 3:
+                raise OpenDataSUSClientError("timed out", retryable=True)
+            return {"dados": [{"a": 1}]}
+
+    ds = OpenDataSUSDataSource.__new__(OpenDataSUSDataSource)
+    assert ds._demas_page_with_pauses(Cliente(), "/x", {}) == {"dados": [{"a": 1}]}
+    assert pausas == [30.0, 90.0]
+
+    class Recusa:
+        def demas_get(self, path, params):
+            raise OpenDataSUSClientError("400", retryable=False)
+
+    pausas.clear()
+    with pytest.raises(OpenDataSUSClientError):
+        ds._demas_page_with_pauses(Recusa(), "/x", {})
+    assert pausas == []
+
+
+def test_sidra_divide_municipios_por_uf_quando_estoura_o_limite():
+    from guaraci.ibge.sidra import SidraAggregateSource as S
+
+    assert S._localities("N3", "2[4,5]|287[1,2,3]") == ["N3[all]"]
+    assert S._localities("N6", None) == ["N6[all]"]
+    assert S._localities("N6", "2[6794]|287[100362]") == ["N6[all]"]
+    partes = S._localities("N6", "2[4,5]|287[" + ",".join(str(i) for i in range(21)) + "]")
+    assert len(partes) == 27 and partes[0] == "N6[N3[11]]" and "N6[N3[35]]" in partes

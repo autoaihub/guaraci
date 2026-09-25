@@ -164,13 +164,14 @@ def main() -> int:
     def origem_fechada(cli: httpx.Client) -> str:
         job_id = cria(cli, "mpox", {"api_base_url": f"http://127.0.0.1:{porta_livre()}", "max_pages": 1,
                                     "output_format": "csv", "output_dir": str(out / "fechada")})
-        job = espera(cli, job_id, 180, lambda j: j["status"] in TERMINAIS)
+        # A página é tentada de novo após 30 s e 90 s antes de o job falhar.
+        job = espera(cli, job_id, 300, lambda j: j["status"] in TERMINAIS)
         assert job["status"] == "failed", job["status"]
         assert job.get("error"), "falhou sem mensagem"
         nova = cli.post(f"/jobs/{job_id}/retry")
         assert nova.status_code in (200, 201, 202), f"retry -> {nova.status_code} {nova.text[:200]}"
         assert nova.json().get("attempt") == 2 and nova.json().get("retry_of") == job_id
-        espera(cli, nova.json()["job_id"], 180, lambda j: j["status"] in TERMINAIS)
+        espera(cli, nova.json()["job_id"], 300, lambda j: j["status"] in TERMINAIS)
         return f"falhou com: {job['error'][:120]}; retry criou tentativa 2"
 
     caso("origem com porta fechada", origem_fechada)
@@ -196,8 +197,9 @@ def main() -> int:
 
     # 4. servidor derrubado no meio ----------------------------------------------
     def derrubado(cli: httpx.Client) -> str:
-        job_id = cria(cli, "srag_arquivos", {"start_year": 2024, "end_year": 2024, "output_format": "parquet",
-                                             "output_dir": str(out / "derrubado")})
+        # ENANI (2,6 GB): com rede rápida, os 212 MB do SRAG terminavam entre
+        # duas consultas e o servidor caía com o job já concluído.
+        job_id = cria(cli, "enani_2019", {"output_format": "csv", "output_dir": str(out / "derrubado")})
         espera(cli, job_id, 300, lambda j: (j.get("bytes_downloaded") or 0) > 5_000_000)
         srv.derruba()
         srv.sobe()

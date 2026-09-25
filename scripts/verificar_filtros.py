@@ -34,6 +34,7 @@ import verificar_rotas as vr  # noqa: E402
 import polars as pl  # noqa: E402
 from loguru import logger  # noqa: E402
 
+from guaraci.opendatasus.datasource import _UF_BY_NAME as _UF_POR_NOME, _fold  # noqa: E402
 from guaraci.services.downloads import DownloadService  # noqa: E402
 
 # Não são filtros de conteúdo: técnica, exportação, janela de tempo (já
@@ -43,7 +44,11 @@ _NAO_FILTRO = {
     "max_pages", "start_year", "end_year", "start_date", "end_date", "results_url",
     "overwrite", "extract_archives", "pause_seconds", "latitude", "longitude",
     "codigo_cnes", "codigo_tipo_unidade", "station_ids", "stations",
+    # NASA: a comunidade muda a unidade de algumas grandezas, não o recorte.
+    "community",
 }
+# Valores que pedem todas as categorias: a coluna traz várias, e está certo.
+_TODAS = {"AMBOS", "ALL", "TODOS", "TOTAL"}
 # Colunas em que o valor do filtro aparece com outro nome.
 _ALIASES = {
     "uf": ["uf", "sg_uf", "sg_uf_not", "estado", "sigla_uf", "uf_residencia"],
@@ -101,8 +106,27 @@ def _valores_de_filtro(
         comuns = base[coluna].drop_nulls().value_counts(sort=True)
         if comuns.height == 0:
             return None
-        return str(comuns[coluna][0])
+        valor = str(comuns[coluna][0])
+        # A origem manda inteiros como 7.0 no JSON; devolvido como filtro, o
+        # endpoint de campo inteiro responde 400.
+        return valor[:-2] if valor.endswith(".0") and valor[:-2].lstrip("-").isdigit() else valor
     return None
+
+
+def _casa(visto: str, esperado: set) -> bool:
+    """Valor da coluna corresponde ao pedido: igual, sigla por extenso
+    (RR e RORAIMA) ou nome que começa pelo pedido (7ª REGIAO DE SAUDE -
+    METROPOLITANA para 7ª REGIAO DE SAUDE)."""
+    if visto.endswith(".0") and visto[:-2].lstrip("-").isdigit():
+        visto = visto[:-2]
+    if visto in esperado or _UF_POR_NOME.get(_fold(visto)) in esperado:
+        return True
+    return any(len(e) > 3 and visto.startswith(e) for e in esperado)
+
+
+def _todos_casam(coluna: pl.Series, esperado: set) -> bool:
+    valores = {str(v).upper() for v in coluna.drop_nulls().unique().to_list()}
+    return bool(valores) and all(_casa(v, esperado) for v in valores)
 
 
 def _coluna_do_filtro(nome: str, frame: pl.DataFrame) -> Optional[str]:
@@ -154,23 +178,33 @@ def confere_fonte(service: DownloadService, s: str, pasta: Path) -> Dict[str, An
         try:
             frame = _coleta(service, s, params)
         except Exception as exc:  # noqa: BLE001
+            if isinstance(exc, ValueError) and "not supported together" in str(exc):
+                # Recusa da própria validação do Guaraci, com mensagem clara:
+                # a combinação com o nível padrão (município) não existe na SIDRA.
+                avisos.append(f"{rotulo}: combinação recusada pela validação")
+                filtros[spec["name"]] = "recusado pela validação"
+                continue
             problemas.append(f"{rotulo}: coleta quebrou: {type(exc).__name__}: {str(exc)[:200]}")
             continue
         if frame is None or frame.height == 0:
             avisos.append(f"{rotulo}: nada voltou")
             filtros[spec["name"]] = "vazio"
             continue
+        esperado = {str(v).upper() for v in (valor if isinstance(valor, list) else [valor])}
         if _assinatura(frame) == assinatura_base and base is not None and base.height > 0:
+            coluna_base = _coluna_do_filtro(spec["name"], base)
+            if coluna_base is not None and _todos_casam(base[coluna_base], esperado):
+                filtros[spec["name"]] = f"ok (a base já só tinha {sorted(esperado)[0]})"
+                continue
             problemas.append(f"{rotulo}: resultado idêntico ao sem filtro ({frame.height} linhas): filtro ignorado?")
             continue
         coluna = _coluna_do_filtro(spec["name"], frame)
-        esperado = {str(v).upper() for v in (valor if isinstance(valor, list) else [valor])}
-        if coluna is not None:
+        if coluna is not None and not esperado & _TODAS:
             vistos = {str(v).upper() for v in frame[coluna].drop_nulls().unique().to_list()}
-            fora = vistos - esperado
+            fora = {v for v in vistos if not _casa(v, esperado)}
             # Coluna de UF pode vir como código IBGE (35) em vez de sigla (SP):
             # só acusa quando os valores são do mesmo tipo do pedido.
-            mesmo_tipo = all(v.isalpha() == next(iter(esperado)).isalpha() for v in vistos) if vistos else True
+            mesmo_tipo = all(v.isalpha() == next(iter(esperado)).isalpha() for v in fora) if fora else True
             if fora and mesmo_tipo:
                 problemas.append(f"{rotulo}: coluna {coluna} traz {sorted(fora)[:5]}")
                 continue

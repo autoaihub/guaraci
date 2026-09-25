@@ -402,6 +402,8 @@ Source-specific parameters:
 - Unknown parameters are rejected by the standard schema validation path.
 - Contract tests verify every generated source against the local Swagger catalog; live upstream availability can be checked with `scripts/smoke_opendatasus_sources.py`.
 - Point queries (`/cnes/estabelecimentos/{codigo_cnes}`, `/cnes/tipounidades/{codigo_tipo_unidade}`) return the record itself, not a list; it becomes a one-row export named after the requested code.
+- UF filter the origin ignores: `esavi`, `sindrome_gripal_leve` and the primary care endpoints accept `uf` and return every state. Guaraci re-checks the UF on the returned rows (`estado_notificacao_ibge`, `nome_estado` by full name, `sigla_unidade_federacao` and others). `assistencia_a_saude_hospitais_e_leitos` answers 500 to any `uf`, so there the filter is never sent and is applied locally on `unidade_da_federacao_onde_fica_o_hospital` (checked on 2026-09-24).
+- A page that times out is retried by the client three times, then again after 30 s and after 90 s, before the job fails.
 - `economia_da_saude_bps`: `codigoCatmat` is numeric at the API (`267614`). The BPS portal shows it as `BR0267614`; that prefix is stripped, since the API answers it with an empty list.
 
 Endpoints empty at the origin. These five answer HTTP 200 with an empty list
@@ -633,7 +635,7 @@ R$ 1000. Same base schema and phases as `ibge_populacao`, with `start_year` /
 
 Census population (2022 reference) from SIDRA table 9514 (variable 93), split by
 sex and age classification — the denominators for age-standardised rates. The
-default level is `uf` (municipal breakdown is a much larger extract).
+default level is `uf`. At `municipio` with the default slices the request exceeds the SIDRA limit (about 100 thousand values), so Guaraci asks for the municipalities one state at a time, 27 requests per year.
 
 | Parameter | Type | Phase | Notes |
 | --- | --- | --- | --- |

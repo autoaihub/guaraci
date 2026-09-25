@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 import sqlite3
+import time
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -12,6 +14,7 @@ from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Uni
 from urllib.parse import quote
 
 import polars as pl
+from loguru import logger
 
 from guaraci.core.contracts import DownloadManifest
 from guaraci.core.datasource import DataSource
@@ -23,7 +26,7 @@ from guaraci.opendatasus.utils.swagger_catalog import (
     load_local_get_params_catalog,
     load_local_pni_catalog,
 )
-from guaraci.utils.mapping import UF_DICT
+from guaraci.utils.mapping import STATE_NAMES, UF_DICT
 
 
 @dataclass(frozen=True)
@@ -37,6 +40,15 @@ class OpenDataSUSDatasetSpec:
     demas_strategy: str = "pni_yearly"
     demas_static_path: Optional[str] = None
     ckan_supported: bool = True
+
+
+def _fold(text: str) -> str:
+    """Maiúsculas sem acento, para casar nome de estado escrito de vários jeitos."""
+    decomposed = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).upper().strip()
+
+
+_UF_BY_NAME = {_fold(name): sigla for sigla, name in STATE_NAMES.items()}
 
 
 @dataclass(frozen=True)
@@ -619,7 +631,13 @@ class OpenDataSUSDataSource(DataSource):
 
         for endpoint_spec in endpoints:
             endpoint = endpoint_spec.path
-            uf_param_name = self._select_uf_param(endpoint_spec.uf_params)
+            uf_param_name = self._select_uf_param(
+                tuple(
+                    nome
+                    for nome in endpoint_spec.uf_params
+                    if nome not in demas_quirks.local_only_params(endpoint)
+                )
+            )
             for page in range(max_pages_per_year):
                 params: Dict[str, object] = dict(endpoint_spec.query_params)
                 params.update(
@@ -631,7 +649,7 @@ class OpenDataSUSDataSource(DataSource):
                     params[uf_param_name] = uf
 
                 try:
-                    payload = client.demas_get(endpoint, params=params)
+                    payload = self._demas_page_with_pauses(client, endpoint, params)
                 except OpenDataSUSClientError as exc:
                     raise self._annotate_client_error(
                         exc,
@@ -999,7 +1017,11 @@ class OpenDataSUSDataSource(DataSource):
         # A paginação é responsabilidade do laço de coleta em qualquer um dos
         # esquemas; deixar o usuário passá-la pelos parâmetros da fonte faria a
         # janela ser sobrescrita no meio da varredura.
-        ignored = demas_quirks.PAGINATION_PARAM_NAMES | path_params
+        ignored = (
+            demas_quirks.PAGINATION_PARAM_NAMES
+            | path_params
+            | set(demas_quirks.local_only_params(path_template))
+        )
         query: Dict[str, object] = {}
         for key, value in api_params.items():
             if key in ignored:
@@ -1135,6 +1157,35 @@ class OpenDataSUSDataSource(DataSource):
         "uf_estabelecimento",
         "uf_ocor",
     )
+
+    # Pausas entre rodadas de tentativas de uma mesma página. O cliente já
+    # tenta três vezes com espera de frações de segundo, o que não basta
+    # quando a origem engasga em offset profundo: em 2026-09-24 a página 84 de
+    # uma coleta de dengue deu três timeouts seguidos e 13 minutos de coleta
+    # foram perdidos.
+    _DEMAS_PAGE_PAUSES: tuple[float, ...] = (30.0, 90.0)
+
+    def _demas_page_with_pauses(
+        self,
+        client: OpenDataSUSClient,
+        endpoint: str,
+        params: Mapping[str, object],
+    ) -> Dict[str, object]:
+        for pause in self._DEMAS_PAGE_PAUSES + (None,):
+            try:
+                return client.demas_get(endpoint, params=params)
+            except OpenDataSUSClientError as exc:
+                if pause is None or not getattr(exc, "retryable", False):
+                    raise
+                logger.warning(
+                    f"DEMAS {endpoint} failed ({exc}); retrying the same page in {pause:.0f}s"
+                )
+                self._sleep(pause)
+        raise AssertionError("unreachable")
+
+    @staticmethod
+    def _sleep(seconds: float) -> None:
+        time.sleep(seconds)
 
     @staticmethod
     def _select_uf_param(uf_params: tuple[str, ...]) -> Optional[str]:
@@ -1282,6 +1333,13 @@ class OpenDataSUSDataSource(DataSource):
             "sigla_uf",
             "uf_ocor",
             "uf",
+            # Síndrome gripal leve e ESAVI aceitam `uf` e devolvem o país
+            # inteiro (verificado em 2026-09-24); a UF só vem nestes campos, o
+            # do ESAVI por extenso.
+            "estado_notificacao_ibge",
+            "unidade_da_federacao_onde_fica_o_hospital",
+            "nome_estado_notificacao",
+            "nome_estado",
         ]
         numeric_to_uf = {
             "11": "RO",
@@ -1319,7 +1377,7 @@ class OpenDataSUSDataSource(DataSource):
             cleaned = str(value).strip().upper()
             if len(cleaned) == 2 and cleaned.isalpha():
                 return cleaned
-            mapped = numeric_to_uf.get(cleaned)
+            mapped = numeric_to_uf.get(cleaned) or _UF_BY_NAME.get(_fold(cleaned))
             if mapped:
                 return mapped
         return None

@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### Fixed: filtros que não recortavam, achados pela verificação de filtros
+A verificação de filtros roda cada parâmetro de cada fonte contra a origem e
+compara com a coleta sem filtro. Ela achou quatro defeitos:
+
+- **ESAVI e síndrome gripal leve** aceitam `uf` e devolvem o país inteiro. O
+  Guaraci reconfere a UF nas linhas, mas não reconhecia os campos dessas duas
+  fontes (`estado_notificacao_ibge` e `nome_estado`, este por extenso) e
+  entregava tudo com o aviso de que não havia como conferir. Os dois campos
+  entraram na conferência, e o nome do estado passa a casar com a sigla.
+- **Hospitais e leitos**: a origem declara `uf` no swagger e responde 500 a
+  qualquer valor. O parâmetro deixou de ir à origem nesse endpoint, e o
+  recorte é feito sobre `unidade_da_federacao_onde_fica_o_hospital`.
+- **População por idade e sexo em nível município**: a SIDRA responde 500
+  acima de cerca de 100 mil valores, e 5.570 municípios x 2 sexos x 21 faixas
+  passam disso. Quando a conta estoura, os municípios são pedidos por UF
+  (`N6[N3[uf]]`), 27 consultas em vez de uma.
+- **Coleta paginada do DEMAS** perdia tudo num timeout isolado: numa coleta
+  de dengue, a página 84 deu três timeouts seguidos e 13 minutos de coleta
+  foram descartados. A página agora é tentada de novo após 30 s e após 90 s
+  antes de o erro subir.
+
 ### Fixed: backfill repetido baixava tudo de novo
 A segunda passada do backfill puxava de novo cada unidade que não vem do FTP:
 os 2,6 GB do ENANI, a foto do mês da CMED e todos os anos do IBGE. O pulo por

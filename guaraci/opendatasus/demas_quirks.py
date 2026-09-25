@@ -24,6 +24,14 @@ REQUIRED_ANY_OF: Dict[str, Tuple[str, ...]] = {
     "/economia-da-saude/bps": ("codigoCatmat", "cnpjInstituicao"),
 }
 
+# Parâmetros que o swagger declara e a origem não suporta: qualquer valor
+# derruba a chamada. Verificado em 2026-09-24: ``/assistencia-a-saude/
+# hospitais-e-leitos`` responde 500 a ``uf=SP`` e a ``uf=AC``, e 200 sem o
+# parâmetro. O recorte desses nomes é feito localmente, sobre as linhas.
+LOCAL_ONLY_PARAMS: Dict[str, Tuple[str, ...]] = {
+    "/assistencia-a-saude/hospitais-e-leitos": ("uf",),
+}
+
 
 # Nomes reservados à paginação, em qualquer um dos dois esquemas.
 PAGINATION_PARAM_NAMES: frozenset[str] = frozenset(
@@ -42,6 +50,11 @@ def pagination_params(endpoint: str, *, page: int, page_size: int) -> Dict[str, 
     # DEMAS conta offset em LINHAS, não em páginas, apesar de o swagger dizer
     # "Número da página": limit=5&offset=1 sobrepõe 4 das 5 linhas de offset=0.
     return {"limit": page_size, "offset": page * page_size}
+
+
+def local_only_params(endpoint: str) -> Tuple[str, ...]:
+    """Parâmetros que não podem ir à origem neste endpoint."""
+    return LOCAL_ONLY_PARAMS.get(_normalize(endpoint), ())
 
 
 def required_filters(endpoint: str) -> Tuple[str, ...]:

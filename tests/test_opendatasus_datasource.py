@@ -287,7 +287,8 @@ def test_download_demas_export_error_becomes_warning(tmp_path) -> None:  # noqa:
     assert manifest["warnings"]
 
 
-def test_download_demas_failure_adds_endpoint_context(tmp_path) -> None:  # noqa: ANN001
+def test_download_demas_failure_adds_endpoint_context(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.setattr(OpenDataSUSDataSource, "_sleep", staticmethod(lambda _s: None))
     class _FailingDemasClient:
         mode = "demas"
         base_url = "https://apidadosabertos.saude.gov.br"

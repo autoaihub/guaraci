@@ -110,16 +110,16 @@ def test_sem_campo_de_uf_nada_e_descartado(tmp_path: Path) -> None:
     assert "could not be verified" in avisos
 
 
-def test_uf_por_extenso_nao_zera_o_resultado(tmp_path: Path) -> None:
-    """A origem escrevendo o estado por extenso não casa com a sigla pedida."""
+def test_uf_por_extenso_e_recortada_pelo_nome(tmp_path: Path) -> None:
+    """Estado por extenso casa com a sigla pedida (ESAVI escreve assim)."""
     linhas = [{"id": "1", "uf": "São Paulo"}, {"id": "2", "uf": "Minas Gerais"}]
     client = _ClienteQueIgnoraOFiltro(linhas)
 
     payload = _baixa(client, tmp_path, uf="SP")
 
-    assert payload["downloaded_count"] == 2
+    assert payload["downloaded_count"] == 1
     avisos = " ".join(str(item) for item in payload.get("warnings") or [])
-    assert "could not be verified" in avisos
+    assert "could not be verified" not in avisos
 
 
 def test_sem_pedido_de_uf_nada_muda(tmp_path: Path) -> None:
@@ -130,3 +130,17 @@ def test_sem_pedido_de_uf_nada_muda(tmp_path: Path) -> None:
     assert payload["downloaded_count"] == 4
     avisos = " ".join(str(item) for item in payload.get("warnings") or [])
     assert "could not be verified" not in avisos
+
+
+def test_hospitais_e_leitos_recorta_uf_so_localmente(tmp_path: Path) -> None:
+    """A origem responde 500 a qualquer `uf` neste endpoint (2026-09-24)."""
+    campo = "unidade_da_federacao_onde_fica_o_hospital"
+    client = _ClienteQueIgnoraOFiltro(_linhas_de_varias_ufs(campo), campo_chave="hospitais_leitos")
+    datasource = OpenDataSUSDataSource(output_path=str(tmp_path), client=client)  # type: ignore[arg-type]
+
+    payload = datasource.download(
+        dataset="assistencia-a-saude/hospitais-e-leitos", batch_size=100, max_pages=2, uf="SP"
+    )
+
+    assert all("uf" not in chamada for chamada in client.calls)
+    assert payload["downloaded_count"] == 2
