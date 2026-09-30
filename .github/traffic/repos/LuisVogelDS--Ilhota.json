@@ -1,22 +1,6 @@
 {
-  "repo": "LuisVogelDS/GolDePlaca",
+  "repo": "LuisVogelDS/Ilhota",
   "days": {
-    "2026-09-13": {
-      "count": 0,
-      "uniques": 0
-    },
-    "2026-09-14": {
-      "count": 0,
-      "uniques": 0
-    },
-    "2026-09-15": {
-      "count": 0,
-      "uniques": 0
-    },
-    "2026-09-16": {
-      "count": 0,
-      "uniques": 0
-    },
     "2026-09-17": {
       "count": 0,
       "uniques": 0
@@ -50,8 +34,8 @@
       "uniques": 0
     },
     "2026-09-25": {
-      "count": 2,
-      "uniques": 2
+      "count": 0,
+      "uniques": 0
     },
     "2026-09-26": {
       "count": 0,
@@ -68,10 +52,14 @@
     "2026-09-29": {
       "count": 0,
       "uniques": 0
+    },
+    "2026-09-30": {
+      "count": 0,
+      "uniques": 0
     }
   },
-  "total_clones": 2,
-  "total_uniques": 2,
-  "tracking_since": "2026-09-13",
-  "updated_at": "2026-09-30T11:12:47+00:00"
+  "total_clones": 0,
+  "total_uniques": 0,
+  "tracking_since": "2026-09-17",
+  "updated_at": "2026-09-30T11:12:48+00:00"
 }
