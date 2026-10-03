@@ -1,14 +1,6 @@
 {
-  "repo": "LuisVogelDS/GobbleGoblinMobile",
+  "repo": "LuisVogelDS/HarpyNest",
   "days": {
-    "2026-09-17": {
-      "count": 0,
-      "uniques": 0
-    },
-    "2026-09-18": {
-      "count": 0,
-      "uniques": 0
-    },
     "2026-09-19": {
       "count": 0,
       "uniques": 0
@@ -64,14 +56,10 @@
     "2026-10-02": {
       "count": 0,
       "uniques": 0
-    },
-    "2026-10-03": {
-      "count": 0,
-      "uniques": 0
     }
   },
   "total_clones": 0,
   "total_uniques": 0,
-  "tracking_since": "2026-09-17",
+  "tracking_since": "2026-09-19",
   "updated_at": "2026-10-03T10:27:35+00:00"
 }

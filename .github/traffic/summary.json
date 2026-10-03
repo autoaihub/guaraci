@@ -1,19 +1,19 @@
 {
-  "updated_at": "2026-10-02T11:09:49+00:00",
-  "repo_count": 29,
-  "total_clones": 1634,
-  "total_uniques": 543,
+  "updated_at": "2026-10-03T10:27:38+00:00",
+  "repo_count": 31,
+  "total_clones": 1663,
+  "total_uniques": 554,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1172,
-      "total_uniques": 334,
+      "total_clones": 1194,
+      "total_uniques": 342,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 261,
-      "total_uniques": 109,
+      "total_clones": 265,
+      "total_uniques": 111,
       "tracking_since": "2026-08-20"
     },
     {
@@ -65,6 +65,12 @@
       "tracking_since": "2026-08-21"
     },
     {
+      "repo": "LuisVogelDS/GolDePlaca",
+      "total_clones": 5,
+      "total_uniques": 3,
+      "tracking_since": "2026-09-13"
+    },
+    {
       "repo": "LuisVogelDS/Volvo",
       "total_clones": 3,
       "total_uniques": 3,
@@ -75,12 +81,6 @@
       "total_clones": 2,
       "total_uniques": 1,
       "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/GolDePlaca",
-      "total_clones": 2,
-      "total_uniques": 2,
-      "tracking_since": "2026-09-13"
     },
     {
       "repo": "LuisVogelDS/LilianeVogelAtelier",
@@ -105,6 +105,12 @@
       "total_clones": 0,
       "total_uniques": 0,
       "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Cajuice",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-09-19"
     },
     {
       "repo": "LuisVogelDS/Cantin-do-Fogueu",
@@ -141,6 +147,12 @@
       "total_clones": 0,
       "total_uniques": 0,
       "tracking_since": "2026-08-29"
+    },
+    {
+      "repo": "LuisVogelDS/HarpyNest",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-09-19"
     },
     {
       "repo": "LuisVogelDS/Ilhota",
