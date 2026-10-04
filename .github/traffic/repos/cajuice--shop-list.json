@@ -1,18 +1,6 @@
 {
-  "repo": "LuisVogelDS/GobbleGoblinMobile",
+  "repo": "cajuice/shop-list",
   "days": {
-    "2026-09-17": {
-      "count": 0,
-      "uniques": 0
-    },
-    "2026-09-18": {
-      "count": 0,
-      "uniques": 0
-    },
-    "2026-09-19": {
-      "count": 0,
-      "uniques": 0
-    },
     "2026-09-20": {
       "count": 0,
       "uniques": 0
@@ -54,28 +42,24 @@
       "uniques": 0
     },
     "2026-09-30": {
-      "count": 0,
-      "uniques": 0
+      "count": 15,
+      "uniques": 1
     },
     "2026-10-01": {
-      "count": 0,
-      "uniques": 0
+      "count": 32,
+      "uniques": 2
     },
     "2026-10-02": {
-      "count": 0,
-      "uniques": 0
+      "count": 3,
+      "uniques": 1
     },
     "2026-10-03": {
-      "count": 0,
-      "uniques": 0
-    },
-    "2026-10-04": {
-      "count": 0,
-      "uniques": 0
+      "count": 12,
+      "uniques": 1
     }
   },
-  "total_clones": 0,
-  "total_uniques": 0,
-  "tracking_since": "2026-09-17",
-  "updated_at": "2026-10-04T11:09:11+00:00"
+  "total_clones": 62,
+  "total_uniques": 5,
+  "tracking_since": "2026-09-20",
+  "updated_at": "2026-10-04T11:09:17+00:00"
 }

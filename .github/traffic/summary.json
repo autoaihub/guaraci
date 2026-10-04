@@ -1,19 +1,19 @@
 {
-  "updated_at": "2026-10-03T10:27:38+00:00",
-  "repo_count": 31,
-  "total_clones": 1663,
-  "total_uniques": 554,
+  "updated_at": "2026-10-04T11:09:17+00:00",
+  "repo_count": 33,
+  "total_clones": 1738,
+  "total_uniques": 567,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1194,
-      "total_uniques": 342,
+      "total_clones": 1202,
+      "total_uniques": 347,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 265,
-      "total_uniques": 111,
+      "total_clones": 267,
+      "total_uniques": 113,
       "tracking_since": "2026-08-20"
     },
     {
@@ -21,6 +21,12 @@
       "total_clones": 76,
       "total_uniques": 9,
       "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "cajuice/shop-list",
+      "total_clones": 62,
+      "total_uniques": 5,
+      "tracking_since": "2026-09-20"
     },
     {
       "repo": "LuisVogelDS/MemoriaRam",
@@ -69,6 +75,12 @@
       "total_clones": 5,
       "total_uniques": 3,
       "tracking_since": "2026-09-13"
+    },
+    {
+      "repo": "LuisVogelDS/HarpyNest",
+      "total_clones": 3,
+      "total_uniques": 1,
+      "tracking_since": "2026-09-19"
     },
     {
       "repo": "LuisVogelDS/Volvo",
@@ -149,12 +161,6 @@
       "tracking_since": "2026-08-29"
     },
     {
-      "repo": "LuisVogelDS/HarpyNest",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "tracking_since": "2026-09-19"
-    },
-    {
       "repo": "LuisVogelDS/Ilhota",
       "total_clones": 0,
       "total_uniques": 0,
@@ -189,6 +195,12 @@
       "total_clones": 0,
       "total_uniques": 0,
       "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "cajuice/Cajuice",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "tracking_since": "2026-09-20"
     }
   ],
   "unreachable": []
