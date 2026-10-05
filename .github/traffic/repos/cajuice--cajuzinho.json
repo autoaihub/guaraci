@@ -1,31 +1,6 @@
 {
-  "repo": "LuisVogelDS/GobbleGoblinMobile",
+  "repo": "cajuice/cajuzinho",
   "days": {
-    "2026-09-17": {
-      "count": 0,
-      "uniques": 0,
-      "ci": 0
-    },
-    "2026-09-18": {
-      "count": 0,
-      "uniques": 0,
-      "ci": 0
-    },
-    "2026-09-19": {
-      "count": 0,
-      "uniques": 0,
-      "ci": 0
-    },
-    "2026-09-20": {
-      "count": 0,
-      "uniques": 0,
-      "ci": 0
-    },
-    "2026-09-21": {
-      "count": 0,
-      "uniques": 0,
-      "ci": 0
-    },
     "2026-09-22": {
       "count": 0,
       "uniques": 0,
@@ -99,7 +74,7 @@
   },
   "total_clones": 0,
   "total_uniques": 0,
-  "tracking_since": "2026-09-17",
-  "updated_at": "2026-10-05T16:37:38+00:00",
-  "total_ci": 0
+  "total_ci": 0,
+  "tracking_since": "2026-09-22",
+  "updated_at": "2026-10-05T16:40:38+00:00"
 }
