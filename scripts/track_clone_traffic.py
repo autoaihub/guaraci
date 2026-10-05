@@ -13,6 +13,15 @@ Arquivos gerados (em `.github/traffic/`):
 - `summary.json`        : totais por repositório mais o agregado da conta.
 - `summary.md`          : a mesma tabela em Markdown, para leitura humana.
 
+Clonagens do próprio CI: cada `actions/checkout` de um workflow conta como uma
+clonagem na API de tráfego. Para cada dia, o script também conta os checkouts
+feitos pelas Actions do repositório (campo `ci` do dia, `total_ci` no acumulado).
+Por ora é só registro: `total_clones` e o badge seguem com o número bruto da API.
+A contagem reconhece o passo pelo nome ("checkout" em qualquer caixa); um passo
+de checkout renomeado sem essa palavra fica de fora, e o clone de submódulos
+conta no repositório do submódulo, não aqui. Por isso `ci` é um piso. Os logs das
+Actions somem depois de 90 dias, e dias mais antigos que isso ficam sem `ci`.
+
 Autenticação: os endpoints de tráfego exigem permissão de *push*, e o
 `GITHUB_TOKEN` padrão das Actions **não** basta. Defina o secret `TRAFFIC_TOKEN`
 com um PAT clássico de escopo `repo`. Um token *fine-grained* pertence a um único
@@ -159,7 +168,60 @@ def load_history(repo: str) -> dict:
     return data
 
 
-def merge(history: dict, payload: dict) -> dict:
+def _get_pages(url: str, token: str, key: str) -> list[dict]:
+    items: list[dict] = []
+    page = 1
+    while True:
+        sep = "&" if "?" in url else "?"
+        batch = get_json(f"{url}{sep}per_page=100&page={page}", token).get(key, [])
+        items.extend(batch)
+        if len(batch) < 100:
+            return items
+        page += 1
+
+
+def fetch_ci_checkouts(repo: str, token: str, since: str) -> dict[str, int]:
+    """Checkouts feitos pelas Actions do repositório, por dia, desde `since`.
+
+    Conta os passos de checkout concluídos com sucesso em todas as tentativas
+    de cada execução (uma reexecução clona de novo). O passo `Post ...` é a
+    limpeza do checkout e não clona.
+    """
+    runs = _get_pages(
+        f"{API}/repos/{repo}/actions/runs?created=%3E%3D{since}", token, "workflow_runs"
+    )
+    per_day: dict[str, int] = {}
+    for run in runs:
+        jobs = _get_pages(
+            f"{API}/repos/{repo}/actions/runs/{run['id']}/jobs?filter=all", token, "jobs"
+        )
+        for job in jobs:
+            day = (job.get("started_at") or run["created_at"])[:10]
+            for step in job.get("steps") or []:
+                name = step.get("name", "")
+                if (
+                    "checkout" in name.lower()
+                    and not name.startswith("Post ")
+                    and step.get("conclusion") == "success"
+                ):
+                    per_day[day] = per_day.get(day, 0) + 1
+    return per_day
+
+
+def ci_since(history: dict, payload: dict) -> str | None:
+    """Primeiro dia cuja contagem de CI precisa ser (re)calculada.
+
+    Recalcula sempre a janela corrente da API e, além dela, qualquer dia do
+    histórico que ainda não tenha o campo `ci` dentro da retenção das Actions.
+    """
+    window = [entry["timestamp"][:10] for entry in payload.get("clones", [])]
+    retention = (_today() - datetime.timedelta(days=90)).isoformat()
+    missing = [d for d, v in history["days"].items() if "ci" not in v and d >= retention]
+    candidates = window + missing
+    return min(candidates) if candidates else None
+
+
+def merge(history: dict, payload: dict, ci: dict[str, int] | None = None) -> dict:
     """Funde a janela de 14 dias no histórico.
 
     Cada dia guarda o maior valor já visto: a contagem do dia corrente ainda
@@ -173,13 +235,28 @@ def merge(history: dict, payload: dict) -> dict:
             "count": max(previous.get("count", 0), int(entry.get("count", 0))),
             "uniques": max(previous.get("uniques", 0), int(entry.get("uniques", 0))),
         }
+        if "ci" in previous:
+            days[day]["ci"] = previous["ci"]
+
+    if ci is not None:
+        since = min(ci) if ci else None
+        for day, value in days.items():
+            if day in ci:
+                value["ci"] = max(value.get("ci", 0), ci[day])
+            elif since is not None and day >= since:
+                value.setdefault("ci", 0)
 
     history["days"] = dict(sorted(days.items()))
     history["total_clones"] = sum(d["count"] for d in days.values())
     history["total_uniques"] = sum(d["uniques"] for d in days.values())
+    history["total_ci"] = sum(d.get("ci", 0) for d in days.values())
     history["tracking_since"] = next(iter(history["days"]), None)
     history["updated_at"] = _now()
     return history
+
+
+def _today() -> datetime.date:
+    return datetime.datetime.now(datetime.timezone.utc).date()
 
 
 def _now() -> str:
@@ -199,6 +276,7 @@ def write_summary(entries: list[dict], failures: list[dict]) -> dict:
         "repo_count": len(entries),
         "total_clones": sum(e["total_clones"] for e in entries),
         "total_uniques": sum(e["total_uniques"] for e in entries),
+        "total_ci": sum(e["total_ci"] for e in entries),
         "repos": entries,
         "unreachable": failures,
     }
@@ -209,15 +287,17 @@ def write_summary(entries: list[dict], failures: list[dict]) -> dict:
         "",
         f"Atualizado em {summary['updated_at']}. "
         f"{summary['total_clones']} clonagens ({summary['total_uniques']} únicas) "
-        f"em {summary['repo_count']} repositórios.",
+        f"em {summary['repo_count']} repositórios. Dessas, ao menos "
+        f"{summary['total_ci']} vieram do checkout das próprias Actions (coluna CI).",
         "",
-        "| Repositório | Clonagens | Únicas | Desde |",
-        "| --- | --: | --: | --- |",
+        "| Repositório | Clonagens | Únicas | CI | Desde |",
+        "| --- | --: | --: | --: | --- |",
     ]
     for entry in entries:
         lines.append(
             f"| {entry['repo']} | {entry['total_clones']} | "
-            f"{entry['total_uniques']} | {entry['tracking_since'] or 'n/d'} |"
+            f"{entry['total_uniques']} | {entry['total_ci']} | "
+            f"{entry['tracking_since'] or 'n/d'} |"
         )
     if failures:
         lines += ["", "## Inacessíveis", ""]
@@ -248,19 +328,33 @@ def main() -> int:
             print(f"aviso: {repo} inacessível ({reason})", file=sys.stderr)
             continue
 
-        history = merge(load_history(repo), payload)
+        history = load_history(repo)
+        ci = None
+        since = ci_since(history, payload)
+        if since:
+            try:
+                ci = fetch_ci_checkouts(repo, token, since)
+                # Dias da janela sem nenhuma execução também ficam registrados.
+                ci.setdefault(since, 0)
+            except urllib.error.HTTPError as exc:
+                # Sem acesso às Actions o tráfego ainda vale; só a coluna CI falta.
+                print(f"aviso: {repo} sem contagem de CI (HTTP {exc.code})", file=sys.stderr)
+
+        history = merge(history, payload, ci)
         write_json(history_path(repo), history)
         entries.append(
             {
                 "repo": repo,
                 "total_clones": history["total_clones"],
                 "total_uniques": history["total_uniques"],
+                "total_ci": history["total_ci"],
                 "tracking_since": history["tracking_since"],
             }
         )
         print(
             f"{repo}: {history['total_clones']} clonagens acumuladas "
-            f"({history['total_uniques']} únicas) desde {history['tracking_since']}"
+            f"({history['total_uniques']} únicas, {history['total_ci']} do CI) "
+            f"desde {history['tracking_since']}"
         )
 
     if not entries:
