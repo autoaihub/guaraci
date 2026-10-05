@@ -3,238 +3,191 @@
   "days": {
     "2026-08-20": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-08-21": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-08-22": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-08-23": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-08-24": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-08-25": {
       "count": 4,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-08-26": {
       "count": 3,
-      "uniques": 2,
-      "ci": 0
+      "uniques": 2
     },
     "2026-08-27": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-08-28": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-08-29": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-08-30": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-08-31": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-01": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-09-02": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-09-03": {
       "count": 2,
-      "uniques": 2,
-      "ci": 0
+      "uniques": 2
     },
     "2026-09-04": {
       "count": 2,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-09-05": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-09-06": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-07": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-08": {
       "count": 5,
-      "uniques": 2,
-      "ci": 0
+      "uniques": 2
     },
     "2026-09-09": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-10": {
       "count": 5,
-      "uniques": 4,
-      "ci": 0
+      "uniques": 4
     },
     "2026-09-11": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-09-12": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-13": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-09-14": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-15": {
       "count": 3,
-      "uniques": 3,
-      "ci": 0
+      "uniques": 3
     },
     "2026-09-16": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-09-17": {
       "count": 1,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-09-18": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-19": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-20": {
       "count": 5,
-      "uniques": 2,
-      "ci": 0
+      "uniques": 2
     },
     "2026-09-21": {
       "count": 15,
-      "uniques": 10,
-      "ci": 1
+      "uniques": 10
     },
     "2026-09-22": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-23": {
       "count": 41,
-      "uniques": 17,
-      "ci": 2
+      "uniques": 17
     },
     "2026-09-24": {
       "count": 40,
-      "uniques": 8,
-      "ci": 3
+      "uniques": 8
     },
     "2026-09-25": {
       "count": 20,
-      "uniques": 6,
-      "ci": 1
+      "uniques": 6
     },
     "2026-09-26": {
       "count": 30,
-      "uniques": 14,
-      "ci": 1
+      "uniques": 14
     },
     "2026-09-27": {
       "count": 33,
-      "uniques": 13,
-      "ci": 3
+      "uniques": 13
     },
     "2026-09-28": {
       "count": 4,
-      "uniques": 2,
-      "ci": 0
+      "uniques": 2
     },
     "2026-09-29": {
       "count": 4,
-      "uniques": 2,
-      "ci": 0
+      "uniques": 2
     },
     "2026-09-30": {
       "count": 12,
-      "uniques": 1,
-      "ci": 0
+      "uniques": 1
     },
     "2026-10-01": {
       "count": 22,
-      "uniques": 8,
-      "ci": 1
+      "uniques": 8
     },
     "2026-10-02": {
       "count": 4,
-      "uniques": 2,
-      "ci": 0
+      "uniques": 2
     },
     "2026-10-03": {
       "count": 2,
-      "uniques": 2,
-      "ci": 0
+      "uniques": 2
     },
     "2026-10-04": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     }
   },
   "total_clones": 267,
   "total_uniques": 113,
   "tracking_since": "2026-08-20",
-  "updated_at": "2026-10-05T16:39:02+00:00",
-  "total_ci": 12
+  "updated_at": "2026-10-05T16:39:02+00:00"
 }

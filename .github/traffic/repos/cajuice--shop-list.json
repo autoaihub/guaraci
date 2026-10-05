@@ -3,83 +3,67 @@
   "days": {
     "2026-09-20": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-21": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-22": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-23": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-24": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-25": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-26": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-27": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-28": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-29": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     },
     "2026-09-30": {
       "count": 15,
-      "uniques": 1,
-      "ci": 15
+      "uniques": 1
     },
     "2026-10-01": {
       "count": 32,
-      "uniques": 2,
-      "ci": 31
+      "uniques": 2
     },
     "2026-10-02": {
       "count": 3,
-      "uniques": 1,
-      "ci": 3
+      "uniques": 1
     },
     "2026-10-03": {
       "count": 12,
-      "uniques": 1,
-      "ci": 12
+      "uniques": 1
     },
     "2026-10-04": {
       "count": 0,
-      "uniques": 0,
-      "ci": 0
+      "uniques": 0
     }
   },
   "total_clones": 62,
   "total_uniques": 5,
   "tracking_since": "2026-09-20",
-  "updated_at": "2026-10-05T16:41:07+00:00",
-  "total_ci": 61
+  "updated_at": "2026-10-05T16:41:07+00:00"
 }
