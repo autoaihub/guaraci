@@ -261,6 +261,18 @@
     }
   }
 
+  /* ── Vídeo: troca a capa pelo player do YouTube só quando a pessoa clica ── */
+  document.querySelectorAll(".video-play[data-yt]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const iframe = document.createElement("iframe");
+      iframe.src = "https://www.youtube-nocookie.com/embed/" + btn.dataset.yt + "?autoplay=1&rel=0";
+      iframe.title = "Guaraci: vídeo de apresentação";
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.allowFullscreen = true;
+      btn.replaceWith(iframe);
+    });
+  });
+
   /* ── Logo: fallback enquanto a arte final não existe ── */
   document.querySelectorAll("img[data-logo]").forEach((img) => {
     img.addEventListener("error", () => {
