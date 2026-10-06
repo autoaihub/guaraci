@@ -216,10 +216,23 @@
     "2026-10-04": {
       "count": 27,
       "uniques": 17
+    },
+    "2026-10-05": {
+      "count": 38,
+      "uniques": 7,
+      "ci": 22
     }
   },
-  "total_clones": 1229,
-  "total_uniques": 364,
+  "total_clones": 1245,
+  "total_uniques": 371,
   "tracking_since": "2026-08-12",
-  "updated_at": "2026-10-05T16:40:36+00:00"
+  "updated_at": "2026-10-06T12:07:17+00:00",
+  "windows": {
+    "2026-10-06": {
+      "from": "2026-09-22",
+      "to": "2026-10-05",
+      "uniques": 140
+    }
+  },
+  "uniques_14d": 140
 }

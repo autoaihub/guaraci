@@ -189,10 +189,23 @@
       "count": 0,
       "uniques": 0,
       "ci": 0
+    },
+    "2026-10-06": {
+      "count": 0,
+      "uniques": 0,
+      "ci": 0
     }
   },
   "total_clones": 1,
   "total_uniques": 1,
   "tracking_since": "2026-08-18",
-  "updated_at": "2026-10-05T16:37:35+00:00"
+  "updated_at": "2026-10-06T12:04:53+00:00",
+  "windows": {
+    "2026-10-06": {
+      "from": "2026-09-23",
+      "to": "2026-10-06",
+      "uniques": 0
+    }
+  },
+  "uniques_14d": 0
 }
