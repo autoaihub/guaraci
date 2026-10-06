@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Guaraci architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sun: #f7a41d; --sun-2: #ffd166; --ember: #f85a40;
+    --teal: #14b8a6; --teal-deep: #008374;
+    --bg: #04120f; --bg-2: #05231f;
+    --surface: rgba(255,255,255,.04); --surface-2: rgba(255,255,255,.07);
+    --line: rgba(20,184,166,.22);
+    --txt: #e8f2ee; --txt-2: #9db8b0;
+    --grad: linear-gradient(135deg, #ffd166, #f7a41d 40%, #14b8a6);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    width: 1800px; height: 900px; overflow: hidden;
+    font-family: 'Inter', sans-serif; color: var(--txt);
+    background:
+      radial-gradient(900px 500px at 8% -10%, rgba(247,164,29,.16), transparent 60%),
+      radial-gradient(900px 600px at 105% 110%, rgba(20,184,166,.18), transparent 60%),
+      linear-gradient(180deg, var(--bg-2), var(--bg));
+    padding: 44px 52px;
+  }
+  header { display: flex; align-items: baseline; gap: 22px; margin-bottom: 30px; }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif; font-size: 40px; margin: 0; letter-spacing: -.02em;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { margin: 0; color: var(--txt-2); font-size: 18px; }
+
+  .flow { display: grid; grid-template-columns: 330px 34px 300px 34px 330px 34px 300px 34px 270px; align-items: stretch; height: 650px; }
+  .col { display: flex; flex-direction: column; gap: 12px; }
+  .col-title {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 15px;
+    text-transform: uppercase; letter-spacing: .14em; color: var(--sun-2); margin: 0 0 4px 4px;
+  }
+  .col-title span { color: var(--txt-2); font-weight: 500; letter-spacing: .06em; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    padding: 13px 16px;
+  }
+  .card strong { font-family: 'Space Grotesk', sans-serif; font-size: 17px; display: block; }
+  .card small { color: var(--txt-2); font-size: 13.5px; line-height: 1.35; display: block; margin-top: 3px; }
+  .card code, .mono { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--sun-2); }
+  .src { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; }
+  .src .n {
+    font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 14px; color: var(--bg);
+    background: var(--grad); border-radius: 999px; padding: 2px 10px; min-width: 38px; text-align: center;
+  }
+  .src small { margin-top: 1px; }
+  .total { text-align: center; color: var(--txt-2); font-size: 14px; margin-top: 2px; }
+  .total b { color: var(--sun-2); font-family: 'Space Grotesk', sans-serif; font-size: 18px; }
+
+  .layer { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .accent { border-color: rgba(247,164,29,.45); background: linear-gradient(160deg, rgba(247,164,29,.10), rgba(20,184,166,.05)); }
+  .teal { border-color: rgba(20,184,166,.5); background: linear-gradient(160deg, rgba(20,184,166,.12), rgba(255,255,255,.02)); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--txt); border: 1px solid var(--line); }
+
+  .arrow { display: flex; align-items: center; justify-content: center; }
+  .arrow svg { width: 30px; height: 30px; }
+
+  .container-box {
+    grid-column: 3 / 8; grid-row: 1;
+    border: 1.5px dashed rgba(20,184,166,.45); border-radius: 26px;
+    margin: -14px -12px -14px -12px; position: relative; pointer-events: none;
+  }
+  .container-box span {
+    position: absolute; bottom: -13px; left: 50%; transform: translateX(-50%);
+    background: var(--bg); padding: 0 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--teal);
+    white-space: nowrap;
+  }
+  .stack > * + * { margin-top: 12px; }
+  footer { margin-top: 40px; color: var(--txt-2); font-size: 14px; display: flex; gap: 28px; }
+  footer i { font-style: normal; color: var(--sun-2); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Guaraci</h1>
+  <p>Architecture of the Brazilian public data integration platform (v0.8.0)</p>
+</header>
+
+<div class="flow">
+  <!-- 1. Sources -->
+  <div class="col" style="grid-column:1;grid-row:1">
+    <div class="col-title">Public sources <span>· external</span></div>
+    <div class="card src"><div><strong>OpenDataSUS</strong><small>DEMAS API and file packages</small></div><span class="n">80</span></div>
+    <div class="card src"><div><strong>DATASUS</strong><small>FTP: SINAN, SIM, SIH, SINASC, SIA, CNES…</small></div><span class="n">14</span></div>
+    <div class="card src"><div><strong>IBGE SIDRA</strong><small>population, GDP, census</small></div><span class="n">11</span></div>
+    <div class="card src"><div><strong>ANVISA</strong><small>open data files</small></div><span class="n">8</span></div>
+    <div class="card src"><div><strong>Environment</strong><small>CETESB QUALAR, INMET, INPE, ANA</small></div><span class="n">6</span></div>
+    <div class="card src"><div><strong>NASA</strong><small>POWER, FIRMS, GPM IMERG</small></div><span class="n">3</span></div>
+    <div class="card src"><div><strong>gov.br</strong><small>SNIS, SINISA (sanitation)</small></div><span class="n">2</span></div>
+    <div class="total"><b>124</b> registered sources</div>
+  </div>
+
+  <div class="arrow" style="grid-column:2;grid-row:1"><svg viewBox="0 0 24 24"><path d="M4 12h14m-5-6 6 6-6 6" stroke="#f7a41d" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+  <!-- 2. Acquisition layer -->
+  <div class="col" style="grid-column:3;grid-row:1">
+    <div class="col-title">Acquisition <span>· datasources</span></div>
+    <div class="layer stack">
+      <div class="card">
+        <strong>Source clients</strong>
+        <small>One package per provider, each with an isolated HTTP/FTP client</small>
+        <div class="chips">
+          <span class="chip">datasus</span><span class="chip">opendatasus</span><span class="chip">ibge</span>
+          <span class="chip">anvisa</span><span class="chip">cetesb</span><span class="chip">nasa</span>
+          <span class="chip">inmet</span><span class="chip">inpe</span><span class="chip">ana</span><span class="chip">snis</span>
+        </div>
+      </div>
+      <div class="card">
+        <strong>Readers and normalizers</strong>
+        <small>DBC/DBF, CSV, JSON and OPeNDAP decoding into Polars frames; UF and date filters</small>
+      </div>
+      <div class="card accent">
+        <strong>core</strong>
+        <small>DataSource contract, <code>JobResult</code>, HTTP retry, credential redaction, configuration</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow" style="grid-column:4;grid-row:1"><svg viewBox="0 0 24 24"><path d="M4 12h14m-5-6 6 6-6 6" stroke="#f7a41d" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+  <!-- 3. Services -->
+  <div class="col" style="grid-column:5;grid-row:1">
+    <div class="col-title">Services</div>
+    <div class="layer stack">
+      <div class="card accent">
+        <strong>DownloadService</strong>
+        <small>Source registry, per-source parameter schemas, validation and adapters to a common result</small>
+      </div>
+      <div class="card accent">
+        <strong>DownloadJobService</strong>
+        <small>Asynchronous job queue: progress, ETA, structured logs, cancel and retry, on-disk persistence</small>
+      </div>
+      <div class="card">
+        <strong>Themes, presets and data dictionary</strong>
+        <small>Catalog navigable by subject (e.g. oncology preset), field descriptions</small>
+      </div>
+      <div class="card teal">
+        <strong>Orchestrator</strong>
+        <small>Sweeps every source into a bronze tree (raw and refined) with an append-only ledger and incremental updates</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow" style="grid-column:6;grid-row:1"><svg viewBox="0 0 24 24"><path d="M4 12h14m-5-6 6 6-6 6" stroke="#f7a41d" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+  <!-- 4. Interfaces -->
+  <div class="col" style="grid-column:7;grid-row:1">
+    <div class="col-title">Interfaces</div>
+    <div class="layer stack">
+      <div class="card">
+        <strong>Web UI</strong>
+        <small>Schema-driven forms, job monitoring, for non-programmers</small>
+      </div>
+      <div class="card">
+        <strong>REST API</strong>
+        <small>FastAPI: <code>/sources</code>, <code>/jobs</code>, <code>/presets</code></small>
+      </div>
+      <div class="card">
+        <strong>CLI</strong>
+        <small><code>guaraci fetch</code>, <code>guaraci orchestrate</code></small>
+      </div>
+      <div class="card">
+        <strong>Python library</strong>
+        <small><code>import guaraci</code> in scripts and notebooks</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-box" style="grid-column:3 / 8"><span>Docker container · localhost:8002 · also pip-installable (Python 3.11+)</span></div>
+
+  <div class="arrow" style="grid-column:8;grid-row:1"><svg viewBox="0 0 24 24"><path d="M4 12h14m-5-6 6 6-6 6" stroke="#f7a41d" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+  <!-- 5. Outputs -->
+  <div class="col" style="grid-column:9;grid-row:1">
+    <div class="col-title">Outputs</div>
+    <div class="layer stack">
+      <div class="card">
+        <strong>Raw files</strong>
+        <small>Official files kept verbatim</small>
+      </div>
+      <div class="card accent">
+        <strong>Processed datasets</strong>
+        <div class="chips"><span class="chip">CSV</span><span class="chip">Parquet</span><span class="chip">SQLite</span></div>
+      </div>
+      <div class="card">
+        <strong>Manifests</strong>
+        <small>Parameters, provenance and warnings for reproducibility</small>
+      </div>
+      <div class="card teal">
+        <strong>Sabiá data lake</strong>
+        <small>Bronze layer fed by the orchestrator</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span><i>●</i> MIT License</span>
+  <span><i>●</i> github.com/autoaihub/guaraci</span>
+</footer>
+</body>
+</html>
