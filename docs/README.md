@@ -31,7 +31,7 @@
 ## Legais e Contribuição
 
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md): guia de contribuição técnica.
-- [`../LICENSE`](../LICENSE): licença MIT.
+- [`../LICENSE.txt`](../LICENSE.txt): licença MIT.
 - [`../TERMS_OF_USE.md`](../TERMS_OF_USE.md): termos de uso do projeto.
 - [`../CITATION.cff`](../CITATION.cff): metadados formais de citação.
 

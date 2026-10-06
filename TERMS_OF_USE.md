@@ -1,6 +1,6 @@
 # Terms of Use
 
-These terms apply to the use, redistribution, and operation of the Guaraci software project. They complement the permissions granted by the [MIT License](LICENSE).
+These terms apply to the use, redistribution, and operation of the Guaraci software project. They complement the permissions granted by the [MIT License](LICENSE.txt).
 
 ## 1. Scope
 

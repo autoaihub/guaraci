@@ -111,7 +111,7 @@ Homepage = "https://github.com/autoaihub/guaraci"
 Documentation = "https://autoaihub.github.io/guaraci/docs.html"
 Repository = "https://github.com/autoaihub/guaraci"
 Issues = "https://github.com/autoaihub/guaraci/issues"
-License = "https://github.com/autoaihub/guaraci/blob/main/LICENSE"
+License = "https://github.com/autoaihub/guaraci/blob/main/LICENSE.txt"
 Citation = "https://github.com/autoaihub/guaraci/blob/main/CITATION.cff"
 TermsOfUse = "https://github.com/autoaihub/guaraci/blob/main/TERMS_OF_USE.md"
 

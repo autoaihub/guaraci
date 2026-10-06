@@ -4,7 +4,7 @@
 
 | Quick Access | Resource |
 | --- | --- |
-| License | [MIT License](LICENSE) |
+| License | [MIT License](LICENSE.txt) |
 | Terms of Use | [TERMS_OF_USE.md](TERMS_OF_USE.md) |
 | Citation | [CITATION.cff](CITATION.cff) |
 
@@ -323,7 +323,7 @@ docker run --rm -v "$(pwd):/app" guaraci python -m pytest \
 
 ## License
 
-Guaraci is distributed under the MIT License. See [LICENSE](LICENSE) for the full text.
+Guaraci is distributed under the MIT License. See [LICENSE.txt](LICENSE.txt) for the full text.
 
 ## Terms of Use
 
