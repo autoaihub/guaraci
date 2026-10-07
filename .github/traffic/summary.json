@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-10-06T12:07:43+00:00",
-  "repo_count": 42,
-  "total_clones": 1791,
-  "total_uniques": 598,
+  "updated_at": "2026-10-07T11:53:06+00:00",
+  "repo_count": 43,
+  "total_clones": 1834,
+  "total_uniques": 631,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1245,
-      "total_uniques": 371,
-      "uniques_14d": 140,
+      "total_clones": 1274,
+      "total_uniques": 389,
+      "uniques_14d": 150,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 272,
-      "total_uniques": 115,
-      "uniques_14d": 63,
+      "total_clones": 274,
+      "total_uniques": 117,
+      "uniques_14d": 64,
       "tracking_since": "2026-08-20"
     },
     {
@@ -41,9 +41,9 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 19,
-      "total_uniques": 19,
-      "uniques_14d": 7,
+      "total_clones": 20,
+      "total_uniques": 20,
+      "uniques_14d": 6,
       "tracking_since": "2026-08-20"
     },
     {
@@ -55,22 +55,22 @@
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
+      "total_clones": 17,
+      "total_uniques": 17,
+      "uniques_14d": 4,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/loadbay",
       "total_clones": 16,
       "total_uniques": 16,
       "uniques_14d": 5,
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/loadbay",
+      "repo": "LuisVogelDS/churnlab",
       "total_clones": 15,
       "total_uniques": 15,
-      "uniques_14d": 6,
-      "tracking_since": "2026-08-20"
-    },
-    {
-      "repo": "LuisVogelDS/churnlab",
-      "total_clones": 13,
-      "total_uniques": 13,
       "uniques_14d": 4,
       "tracking_since": "2026-08-20"
     },
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 7,
-      "total_uniques": 4,
+      "total_uniques": 5,
       "uniques_14d": 2,
       "tracking_since": "2026-09-19"
     },
@@ -117,6 +117,20 @@
       "tracking_since": "2026-08-21"
     },
     {
+      "repo": "cajuice/cajuzinho",
+      "total_clones": 2,
+      "total_uniques": 2,
+      "uniques_14d": 2,
+      "tracking_since": "2026-09-22"
+    },
+    {
+      "repo": "LuisVogelDS/Cajuice",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-19"
+    },
+    {
       "repo": "LuisVogelDS/CartaoVermelho",
       "total_clones": 1,
       "total_uniques": 1,
@@ -131,7 +145,35 @@
       "tracking_since": "2026-08-21"
     },
     {
-      "repo": "cajuice/cajuzinho",
+      "repo": "cajuice/Cajuice",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-20"
+    },
+    {
+      "repo": "cajuice/clinica",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-23"
+    },
+    {
+      "repo": "cajuice/conteudo",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-22"
+    },
+    {
+      "repo": "cajuice/game-slime",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-23"
+    },
+    {
+      "repo": "cajuice/site",
       "total_clones": 1,
       "total_uniques": 1,
       "uniques_14d": 1,
@@ -143,13 +185,6 @@
       "total_uniques": 0,
       "uniques_14d": 0,
       "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/Cajuice",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "uniques_14d": 0,
-      "tracking_since": "2026-09-19"
     },
     {
       "repo": "LuisVogelDS/Cantin-do-Fogueu",
@@ -257,42 +292,14 @@
       "tracking_since": "2026-08-21"
     },
     {
-      "repo": "cajuice/Cajuice",
+      "repo": "cajuice/game-duct-tape",
       "total_clones": 0,
       "total_uniques": 0,
       "uniques_14d": 0,
-      "tracking_since": "2026-09-20"
-    },
-    {
-      "repo": "cajuice/clinica",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "uniques_14d": 0,
-      "tracking_since": "2026-09-23"
-    },
-    {
-      "repo": "cajuice/conteudo",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "uniques_14d": 0,
-      "tracking_since": "2026-09-22"
-    },
-    {
-      "repo": "cajuice/game-slime",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "uniques_14d": 0,
-      "tracking_since": "2026-09-23"
+      "tracking_since": "2026-09-24"
     },
     {
       "repo": "cajuice/prospero",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "uniques_14d": 0,
-      "tracking_since": "2026-09-22"
-    },
-    {
-      "repo": "cajuice/site",
       "total_clones": 0,
       "total_uniques": 0,
       "uniques_14d": 0,
