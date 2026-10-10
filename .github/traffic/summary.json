@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-10-09T11:59:19+00:00",
-  "repo_count": 45,
-  "total_clones": 1956,
-  "total_uniques": 688,
+  "updated_at": "2026-10-10T11:16:05+00:00",
+  "repo_count": 46,
+  "total_clones": 1996,
+  "total_uniques": 713,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1318,
-      "total_uniques": 414,
-      "uniques_14d": 118,
+      "total_clones": 1331,
+      "total_uniques": 423,
+      "uniques_14d": 108,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 339,
-      "total_uniques": 131,
-      "uniques_14d": 53,
+      "total_clones": 366,
+      "total_uniques": 144,
+      "uniques_14d": 62,
       "tracking_since": "2026-08-20"
     },
     {
@@ -28,7 +28,7 @@
     {
       "repo": "cajuice/shop-list",
       "total_clones": 62,
-      "total_uniques": 6,
+      "total_uniques": 7,
       "uniques_14d": 2,
       "tracking_since": "2026-09-20"
     },
@@ -49,7 +49,7 @@
     {
       "repo": "LuisVogelDS/vitrine",
       "total_clones": 19,
-      "total_uniques": 11,
+      "total_uniques": 12,
       "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
@@ -64,7 +64,7 @@
       "repo": "LuisVogelDS/loadbay",
       "total_clones": 16,
       "total_uniques": 16,
-      "uniques_14d": 4,
+      "uniques_14d": 3,
       "tracking_since": "2026-08-20"
     },
     {
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 7,
+      "total_uniques": 8,
       "uniques_14d": 3,
       "tracking_since": "2026-09-19"
     },
@@ -92,7 +92,7 @@
       "repo": "LuisVogelDS/GolDePlaca",
       "total_clones": 5,
       "total_uniques": 4,
-      "uniques_14d": 2,
+      "uniques_14d": 1,
       "tracking_since": "2026-09-13"
     },
     {
@@ -304,6 +304,13 @@
       "total_uniques": 0,
       "uniques_14d": 0,
       "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "cajuice/bus-tracker",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-09-27"
     },
     {
       "repo": "cajuice/music-channels",

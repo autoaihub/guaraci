@@ -1,18 +1,6 @@
 {
-  "repo": "cajuice/game-duct-tape",
+  "repo": "cajuice/bus-tracker",
   "days": {
-    "2026-09-24": {
-      "count": 0,
-      "uniques": 0
-    },
-    "2026-09-25": {
-      "count": 0,
-      "uniques": 0
-    },
-    "2026-09-26": {
-      "count": 0,
-      "uniques": 0
-    },
     "2026-09-27": {
       "count": 0,
       "uniques": 0
@@ -56,8 +44,8 @@
       "ci": 0
     },
     "2026-10-07": {
-      "count": 1,
-      "uniques": 1,
+      "count": 0,
+      "uniques": 0,
       "ci": 0
     },
     "2026-10-08": {
@@ -66,36 +54,26 @@
       "ci": 0
     },
     "2026-10-09": {
+      "count": 0,
+      "uniques": 0,
+      "ci": 0
+    },
+    "2026-10-10": {
       "count": 0,
       "uniques": 0,
       "ci": 0
     }
   },
   "windows": {
-    "2026-10-07": {
-      "from": "2026-09-24",
-      "to": "2026-10-07",
-      "uniques": 0
-    },
-    "2026-10-08": {
-      "from": "2026-09-24",
-      "to": "2026-10-07",
-      "uniques": 1
-    },
-    "2026-10-09": {
-      "from": "2026-09-25",
-      "to": "2026-10-08",
-      "uniques": 1
-    },
     "2026-10-10": {
-      "from": "2026-09-26",
-      "to": "2026-10-09",
-      "uniques": 1
+      "from": "2026-09-27",
+      "to": "2026-10-10",
+      "uniques": 0
     }
   },
-  "total_clones": 1,
-  "total_uniques": 1,
-  "uniques_14d": 1,
-  "tracking_since": "2026-09-24",
-  "updated_at": "2026-10-10T11:15:35+00:00"
+  "total_clones": 0,
+  "total_uniques": 0,
+  "uniques_14d": 0,
+  "tracking_since": "2026-09-27",
+  "updated_at": "2026-10-10T11:15:32+00:00"
 }
