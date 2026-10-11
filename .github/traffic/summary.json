@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-10-10T11:16:05+00:00",
+  "updated_at": "2026-10-11T11:28:59+00:00",
   "repo_count": 46,
-  "total_clones": 1996,
-  "total_uniques": 713,
+  "total_clones": 2005,
+  "total_uniques": 720,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1331,
-      "total_uniques": 423,
-      "uniques_14d": 108,
+      "total_clones": 1335,
+      "total_uniques": 426,
+      "uniques_14d": 104,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 366,
-      "total_uniques": 144,
-      "uniques_14d": 62,
+      "total_clones": 368,
+      "total_uniques": 146,
+      "uniques_14d": 51,
       "tracking_since": "2026-08-20"
     },
     {
@@ -40,24 +40,24 @@
       "tracking_since": "2026-08-21"
     },
     {
-      "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 20,
-      "total_uniques": 20,
-      "uniques_14d": 5,
+      "repo": "LuisVogelDS/vitrine",
+      "total_clones": 21,
+      "total_uniques": 13,
+      "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/vitrine",
-      "total_clones": 19,
-      "total_uniques": 12,
-      "uniques_14d": 2,
+      "repo": "LuisVogelDS/LuisVogelDS",
+      "total_clones": 20,
+      "total_uniques": 20,
+      "uniques_14d": 4,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
       "total_clones": 18,
       "total_uniques": 18,
-      "uniques_14d": 5,
+      "uniques_14d": 4,
       "tracking_since": "2026-08-20"
     },
     {
@@ -71,7 +71,7 @@
       "repo": "LuisVogelDS/churnlab",
       "total_clones": 15,
       "total_uniques": 15,
-      "uniques_14d": 4,
+      "uniques_14d": 3,
       "tracking_since": "2026-08-20"
     },
     {
@@ -110,6 +110,13 @@
       "tracking_since": "2026-08-20"
     },
     {
+      "repo": "cajuice/clinica",
+      "total_clones": 3,
+      "total_uniques": 3,
+      "uniques_14d": 3,
+      "tracking_since": "2026-09-23"
+    },
+    {
       "repo": "LuisVogelDS/Cajuice",
       "total_clones": 2,
       "total_uniques": 2,
@@ -136,13 +143,6 @@
       "total_uniques": 2,
       "uniques_14d": 2,
       "tracking_since": "2026-09-20"
-    },
-    {
-      "repo": "cajuice/clinica",
-      "total_clones": 2,
-      "total_uniques": 2,
-      "uniques_14d": 2,
-      "tracking_since": "2026-09-23"
     },
     {
       "repo": "cajuice/conteudo",
