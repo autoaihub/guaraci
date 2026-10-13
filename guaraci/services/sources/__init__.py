@@ -15,6 +15,7 @@ from guaraci.services.sources import (
     cetesb,
     datasus_ftp,
     datasus_curated,
+    fns,
     govbr,
     ibge,
     inmet,
@@ -52,4 +53,5 @@ def build_default_sources() -> List[DownloadSource]:
         *siaps.build_sources(),
         *arquivos.build_sources(),
         *tesouro.build_sources(),
+        *fns.build_sources(),
     ]
