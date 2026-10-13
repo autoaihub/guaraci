@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "description": "API para disponibilização de dados abertos para repartições pertencentes ao DEMAS.",
-    "version": "1.8.19",
+    "version": "1.8.32",
     "title": "DEMAS - API de Dados Abertos",
     "license": {
       "name": "MIT",
@@ -10,10 +10,6 @@
     }
   },
   "tags": [
-    {
-      "name": "Autenticação",
-      "description": "Controle de Acesso da API"
-    },
     {
       "name": "Agravo Arboviroses",
       "description": "Cadastro de ocorrência de agravo de arboviroses"
@@ -47,8 +43,8 @@
       "description": "Informações de Macrorregião e Região de Saúde"
     },
     {
-      "name": "Plataforma Brasil",
-      "description": "Cadastro de Projetos de Pesquisa na Plataforma Brasil"
+      "name": "Ouvidoria",
+      "description": "Manifestações registradas na Ouvidoria"
     },
     {
       "name": "SISAGUA",
@@ -57,198 +53,16 @@
     {
       "name": "SISVAN",
       "description": "Sistema de Vigilância Alimentar e Nutricional"
+    },
+    {
+      "name": "Vigilância e Meio Ambiente",
+      "description": ""
     }
   ],
   "schemes": [
     "https"
   ],
   "paths": {
-    "/atencao-primaria/siaps-atendimento-individual": {
-      "get": {
-        "tags": [
-          "Atenção Primária"
-        ],
-        "summary": "SIAPS - Modelo de Informação de Atendimento Individual (MIAI)",
-        "description": "Dados do Modelo de Informação de Atendimento Individual (MIAI) do Sistema de Informação para a Atenção Primária à Saúde (SIAPS), contendo informações sobre atendimentos individuais realizados na atenção primária, incluindo competência, localização, perfil do indivíduo, classificação CID/CIAP-2, categoria profissional, quantidades de registros e pessoas atendidas.",
-        "parameters": [
-          {
-            "name": "competencia_siaps",
-            "in": "query",
-            "description": "Ano e mês da realização do registro (Ex.: 202605)",
-            "required": false,
-            "type": "integer"
-          },
-          {
-            "name": "municipio",
-            "in": "query",
-            "description": "Código do município IBGE do registro (sem dígito verificador)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "raca_cor",
-            "in": "query",
-            "description": "Raça/cor declarada no cadastro individual pelo indivíduo, considerando o cadastro mais recente antes do atendimento",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "sexo",
-            "in": "query",
-            "description": "Sexo do indivíduo",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "escolaridade",
-            "in": "query",
-            "description": "Categorias de escolaridade do indivíduo (ficha mais recente antes do atendimento)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "co_uf_ibge",
-            "in": "query",
-            "description": "Código IBGE da Unidade da Federação",
-            "required": false,
-            "type": "integer"
-          },
-          {
-            "name": "nacionalidade",
-            "in": "query",
-            "description": "Nacionalidade do indivíduo (ficha mais recente antes do atendimento)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
-            "required": false,
-            "type": "integer",
-            "default": 100
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
-            "required": false,
-            "type": "integer",
-            "default": 0
-          }
-        ],
-        "produces": [
-          "application/json",
-          "text/csv"
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {},
-              "text/csv": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/atencao-primaria/siaps-cadastro-individual": {
-      "get": {
-        "tags": [
-          "Atenção Primária"
-        ],
-        "summary": "SIAPS - Modelo de Informação de Cadastro Individual (MICI)",
-        "description": "Dados do Modelo de Informação de Cadastro Individual (MICI) do Sistema de Informação para a Atenção Primária à Saúde (SIAPS), contendo informações sobre cadastros individuais realizados na atenção primária, incluindo competência, localização, perfil do indivíduo, membro de comunidade tradicional, situação de rua, deficiência, situação no mercado de trabalho, tipo de estabelecimento, tipo de equipe e quantidade de pessoas cadastradas.",
-        "parameters": [
-          {
-            "name": "regiao",
-            "in": "query",
-            "description": "Região do registro",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "competencia_siaps",
-            "in": "query",
-            "description": "Ano e mês da realização do registro (Ex.: 202605)",
-            "required": false,
-            "type": "integer"
-          },
-          {
-            "name": "municipio",
-            "in": "query",
-            "description": "Código do município IBGE do registro (sem dígito verificador)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "raca_cor",
-            "in": "query",
-            "description": "Raça/cor declarada no cadastro individual pelo indivíduo",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "sexo",
-            "in": "query",
-            "description": "Sexo do indivíduo",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "escolaridade",
-            "in": "query",
-            "description": "Categorias de escolaridade do indivíduo",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "nacionalidade",
-            "in": "query",
-            "description": "Nacionalidade do indivíduo",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
-            "required": false,
-            "type": "integer",
-            "default": 100
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
-            "required": false,
-            "type": "integer",
-            "default": 0
-          }
-        ],
-        "produces": [
-          "application/json",
-          "text/csv"
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {},
-              "text/csv": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/cnes/tipounidades": {
       "get": {
         "tags": [
@@ -471,7 +285,7 @@
             "in": "query",
             "description": "Filtra pelo código do município",
             "required": false,
-            "type": "string"
+            "type": "integer"
           },
           {
             "name": "motivo_da_coleta",
@@ -1466,6 +1280,13 @@
             "required": false,
             "type": "integer",
             "default": 0
+          },
+          {
+            "name": "campos",
+            "in": "query",
+            "description": "Lista de campos específicos a serem retornados (separados por vírgula). Os nomes disponíveis são as chaves do JSON de resposta do endpoint. Exemplo: nu_notific,dt_notific,cs_sexo",
+            "required": false,
+            "type": "string"
           }
         ],
         "produces": [
@@ -1524,6 +1345,13 @@
             "required": false,
             "type": "integer",
             "default": 0
+          },
+          {
+            "name": "campos",
+            "in": "query",
+            "description": "Lista de campos específicos a serem retornados (separados por vírgula). Os nomes disponíveis são as chaves do JSON de resposta do endpoint. Exemplo: nu_notific,dt_notific,cs_sexo",
+            "required": false,
+            "type": "string"
           }
         ],
         "produces": [
@@ -1582,6 +1410,13 @@
             "required": false,
             "type": "integer",
             "default": 0
+          },
+          {
+            "name": "campos",
+            "in": "query",
+            "description": "Lista de campos específicos a serem retornados (separados por vírgula). Os nomes disponíveis são as chaves do JSON de resposta do endpoint. Exemplo: nu_notific,dt_notific,cs_sexo",
+            "required": false,
+            "type": "string"
           }
         ],
         "produces": [
@@ -3952,6 +3787,13 @@
             "required": false,
             "type": "integer",
             "default": 0
+          },
+          {
+            "name": "campos",
+            "in": "query",
+            "description": "Lista de campos específicos a serem retornados (separados por vírgula). Os nomes disponíveis são as chaves do JSON de resposta do endpoint. Exemplo: nu_notific,dt_notific,cs_sexo",
+            "required": false,
+            "type": "string"
           }
         ],
         "produces": [
@@ -4353,6 +4195,782 @@
         ],
         "summary": "Microdados de informações registradas no Módulo de Saúde Bucal do Sistema de Informação da Atenção à Saúde Indígena (SIASI). Ficha 7 - Consolidado Mensal de Odontologia – Procedimentos Individuais, que possibilitam a análise das características dos atendimentos e procedimentos odontológicos realizados pelas Equipes Multidisciplinares de saúde Indígena (EMSI).",
         "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-acidentes-ofidicos": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena registros de acidentes ofidicos ocorridos em indigenas registrados no Sistema de Informacao da Atencao a Saude dos Povos Indigenas (Siasi).",
+        "parameters": [
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da UF de residencia do indigena.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_municipio_ibge",
+            "in": "query",
+            "description": "Codigo do municipio de residencia do indigena conforme IBGE.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tp_sexo",
+            "in": "query",
+            "description": "Identifica o sexo do indigena: M - Masculino, F - Feminino",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_mes_atendimento",
+            "in": "query",
+            "description": "Ano e mes do atendimento (formato YYYYMM).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-arboviroses": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena dados dos casos de Dengue, Zika Virus, Chihungunya e Febre Amarela e outras arboviroses registrados na populacao indigena assistida pelo Subsistema de Atencao a Saude Indigena (SasiSUS) e disponibilizados pelo Sistema de Informacao da Atencao a Saude Indigena (Siasi).",
+        "parameters": [
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da UF de residencia do indigena.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_municipio_ibge",
+            "in": "query",
+            "description": "Codigo do municipio de residencia do indigena conforme IBGE.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "ano_mes_atendimento",
+            "in": "query",
+            "description": "Ano e mes do atendimento (formato YYYYMM).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-assistencia-farmaceutica": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena o registro, o controle e o monitoramento das atividades relacionadas ao ciclo da assistencia farmaceutica, contemplando os processos de recebimento, armazenamento, movimentacao, distribuicao e dispensacao de medicamentos e insumos em saude.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-cobertura-vacinal": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena a base de Coberturas Vacinais, no ano de 2022 dos Distritos Sanitarios Especiais Indigenas (Dsei) no ambito do Plano de Dados Abertos (PDA).",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "query",
+            "description": "Unidade Federativa/Estado de localizacao do Polo Base",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano",
+            "in": "query",
+            "description": "Ano de referencia da cobertura vacinal",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-covid19": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena os registros de COVID-19 ocorridos em indigenas registrados na Plataforma de Emergencia em Saude Indigena.",
+        "parameters": [
+          {
+            "name": "tp_sexo",
+            "in": "query",
+            "description": "Identifica o sexo do indigena: M - Masculino, F - Feminino",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_mes_sintomas",
+            "in": "query",
+            "description": "Ano e mes de inicio dos sintomas (formato YYYYMM).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_mes_notificacao",
+            "in": "query",
+            "description": "Ano e mes da notificacao (formato YYYYMM).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-demografico": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena dados demograficos da populacao assistida com o SIASI.",
+        "parameters": [
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da UF de residencia do indigena.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_municipio_ibge",
+            "in": "query",
+            "description": "Codigo do municipio de residencia do indigena conforme IBGE.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tp_sexo",
+            "in": "query",
+            "description": "Identifica o sexo do indigena: M - Masculino, F - Feminino",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-doencas-diarreicas-agudas": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena registros de Doencas Diarreicas Agudas ocorridos em indigenas registrados no Sistema de Informacao da Atencao a Saude dos Povos Indigenas (Siasi).",
+        "parameters": [
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da UF de residencia do indigena.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_municipio_ibge",
+            "in": "query",
+            "description": "Codigo do municipio de residencia do indigena conforme IBGE.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tp_sexo",
+            "in": "query",
+            "description": "Identifica o sexo do indigena: M - Masculino, F - Feminino",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_mes_atendimento",
+            "in": "query",
+            "description": "Ano e mes do atendimento (formato YYYYMM).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-doencas-imunopreveniveis": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena registros doencas imunopreveniveis ocorridos em indigenas registrados no Sistema de Informacao da Atencao a Saude dos Povos Indigenas (Siasi).",
+        "parameters": [
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da UF de residencia do indigena.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_municipio_ibge",
+            "in": "query",
+            "description": "Codigo do municipio de residencia do indigena conforme IBGE.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tp_sexo",
+            "in": "query",
+            "description": "Identifica o sexo do indigena: M - Masculino, F - Feminino",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_mes_atendimento",
+            "in": "query",
+            "description": "Ano e mes do atendimento (formato YYYYMM).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-doencas-zoonoticas": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena registros de acidentes ofidicos ocorridos em indigenas registrados no Sistema de Informacao da Atencao a Saude dos Povos Indigenas (Siasi).",
+        "parameters": [
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da UF de residencia do indigena.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_municipio_ibge",
+            "in": "query",
+            "description": "Codigo do municipio de residencia do indigena conforme IBGE.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tp_sexo",
+            "in": "query",
+            "description": "Identifica o sexo do indigena: M - Masculino, F - Feminino",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_mes_atendimento",
+            "in": "query",
+            "description": "Ano e mes do atendimento (formato YYYYMM).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-hepatites-virais": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena os registros de hepatites virais ocorridos em indigenas registrados no Sistema de Informacao da Atencao a Saude dos Povos Indigenas (Siasi).",
+        "parameters": [
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da UF de residencia do indigena.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_municipio_ibge",
+            "in": "query",
+            "description": "Codigo do municipio de residencia do indigena conforme IBGE.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tp_sexo",
+            "in": "query",
+            "description": "Identifica o sexo do indigena: M - Masculino, F - Feminino",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ano_mes_atendimento",
+            "in": "query",
+            "description": "Ano e mes do atendimento (formato YYYYMM).",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-obitos": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Armazena registros de obitos ocorridos em indigenas registrados no Sistema de Informacao da Atencao a Saude dos Povos Indigenas (Siasi).",
+        "parameters": [
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da UF de residencia do indigena.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_municipio_ibge",
+            "in": "query",
+            "description": "Codigo do municipio de residencia do indigena conforme IBGE.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "tp_sexo",
+            "in": "query",
+            "description": "Identifica o sexo do indigena: M - Masculino, F - Feminino",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por pagina. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Numero da pagina de itens que deve ser retornada. Observacao: As paginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/saude-indigena/sesai-doencas-respiratorias": {
+      "get": {
+        "tags": [
+          "Saúde Indígena"
+        ],
+        "summary": "Registros de doenças respiratórias em indígenas registrados no Siasi",
+        "description": "Retorna os registros de doenças respiratórias ocorridas em indígenas, contendo distrito sanitário, código DSEI, polo base, município, UF, sexo, CID-10, categoria/subcategoria, datas de atendimento e primeiros sintomas, critério de confirmação e faixa etária.",
+        "parameters": [
+          {
+            "name": "co_municipio_ibge",
+            "in": "query",
+            "description": "Código do município conforme IBGE.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sg_uf",
+            "in": "query",
+            "description": "Sigla da UF.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tp_sexo",
+            "in": "query",
+            "description": "Identifica o sexo: M - Masculino, F - Feminino",
+            "required": false,
+            "type": "string"
+          },
           {
             "name": "limit",
             "in": "query",
@@ -5082,32 +5700,1024 @@
           }
         }
       }
-    }
-  },
-  "securityDefinitions": {
-    "Bearer": {
-      "type": "apiKey",
-      "name": "Authorization",
-      "in": "header"
-    }
-  },
-  "definitions": {
-    "login": {
-      "type": "object",
-      "required": [
-        "login",
-        "senha"
-      ],
-      "properties": {
-        "login": {
-          "type": "string",
-          "example": "<nome do usuário>"
-        },
-        "senha": {
-          "type": "string",
-          "example": "<senha do usuário>"
+    },
+    "/atencao-primaria/pmme-instituicoes-formadoras": {
+      "get": {
+        "summary": "Instituições formadoras dos especialistas do PMME",
+        "description": "Retorna os dados das instituições formadoras dos especialistas, contendo nome do especialista, nome da rede formadora e nome da instituição formadora.",
+        "tags": [
+          "Atenção Primária"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de instituições formadoras dos especialistas do PMME"
+          }
+        }
+      }
+    },
+    "/atencao-primaria/siaps-atendimento-individual": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "SIAPS - Modelo de Informação de Atendimento Individual (MIAI)",
+        "description": "Dados do Modelo de Informação de Atendimento Individual (MIAI) do Sistema de Informação para a Atenção Primária à Saúde (SIAPS), contendo informações sobre atendimentos individuais realizados na atenção primária, incluindo competência, localização, perfil do indivíduo, classificação CID/CIAP-2, categoria profissional, quantidades de registros e pessoas atendidas.",
+        "parameters": [
+          {
+            "name": "competencia_siaps",
+            "in": "query",
+            "description": "Ano e mês da realização do registro (Ex.: 202605)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "municipio",
+            "in": "query",
+            "description": "Código do município IBGE do registro (sem dígito verificador)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "raca_cor",
+            "in": "query",
+            "description": "Raça/cor declarada no cadastro individual pelo indivíduo, considerando o cadastro mais recente antes do atendimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sexo",
+            "in": "query",
+            "description": "Sexo do indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "escolaridade",
+            "in": "query",
+            "description": "Categorias de escolaridade do indivíduo (ficha mais recente antes do atendimento)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_uf_ibge",
+            "in": "query",
+            "description": "Código IBGE da Unidade da Federação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "nacionalidade",
+            "in": "query",
+            "description": "Nacionalidade do indivíduo (ficha mais recente antes do atendimento)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/cnes-equipamentos": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Informações dos equipamentos cadastrados nos estabelecimentos de saúde, incluindo tipo de equipamento, quantidade existente, quantidade em uso e demais características registradas no CNES.",
+        "parameters": [
+          {
+            "name": "nu_comp",
+            "in": "query",
+            "description": "Competência (ano e mês) da informação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_cnes",
+            "in": "query",
+            "description": "Código CNES do estabelecimento de saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "no_grupo_nat_jur",
+            "in": "query",
+            "description": "Nome do grupo da natureza jurídica",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/cnes-estabelecimentos": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Informações essenciais sobre unidades ativas/desativadas do CNES, incluindo localização, gestão, natureza jurídica e tipo de estabelecimento.",
+        "parameters": [
+          {
+            "name": "nu_comp",
+            "in": "query",
+            "description": "Competência (ano e mês) da informação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_cnes",
+            "in": "query",
+            "description": "Código CNES do estabelecimento de saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "no_grupo_nat_jur",
+            "in": "query",
+            "description": "Nome do grupo da natureza jurídica",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tp_gestao",
+            "in": "query",
+            "description": "Tipo de gestão do estabelecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/cnes-leitos": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Informações dos estabelecimentos com leitos hospitalares, incluindo tipo do leito, quantitativo existente e quantitativo destinado ao SUS.",
+        "parameters": [
+          {
+            "name": "nu_comp",
+            "in": "query",
+            "description": "Competência (ano e mês) da informação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_cnes",
+            "in": "query",
+            "description": "Código CNES do estabelecimento de saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "no_grupo_nat_jur",
+            "in": "query",
+            "description": "Nome do grupo da natureza jurídica",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tp_leito",
+            "in": "query",
+            "description": "Tipo do leito hospitalar",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/cnes-profissionais": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Informações dos profissionais e equipes cadastrados nos estabelecimentos de saúde, incluindo ocupação, vínculo, carga horária e composição das equipes registradas no CNES.",
+        "parameters": [
+          {
+            "name": "nu_comp",
+            "in": "query",
+            "description": "Competência (ano e mês) da informação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_cnes",
+            "in": "query",
+            "description": "Código CNES do estabelecimento de saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tp_gestao",
+            "in": "query",
+            "description": "Tipo de gestão do estabelecimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "st_atende_sus",
+            "in": "query",
+            "description": "Indicador se o profissional atende SUS",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/cnes-servicos-especializados": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Informações dos serviços especializados cadastrados nos estabelecimentos de saúde, incluindo código, descrição, classificação e demais características dos serviços disponibilizados.",
+        "parameters": [
+          {
+            "name": "nu_comp",
+            "in": "query",
+            "description": "Competência (ano e mês) da informação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_cnes",
+            "in": "query",
+            "description": "Código CNES do estabelecimento de saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "no_grupo_nat_jur",
+            "in": "query",
+            "description": "Nome do grupo da natureza jurídica",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/sia-procedimentos-ambulatoriais": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Produção ambulatorial do SUS, contendo procedimentos realizados pelos estabelecimentos de saúde, município, CNES, tipo de estabelecimento, natureza jurídica, complexidade, quantidade produzida e valores aprovados no SIA/SUS.",
+        "parameters": [
+          {
+            "name": "nu_ano",
+            "in": "query",
+            "description": "Ano de referência da produção",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "nu_comp",
+            "in": "query",
+            "description": "Competência (ano e mês) da informação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_cnes",
+            "in": "query",
+            "description": "Código CNES do estabelecimento de saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ds_grupo_nat_jur",
+            "in": "query",
+            "description": "Nome do grupo da natureza jurídica",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assistencia-a-saude/sih-procedimentos-hospitalares": {
+      "get": {
+        "tags": [
+          "Assistência à Saúde"
+        ],
+        "summary": "Produção hospitalar do SUS, contendo procedimentos realizados nas internações hospitalares, CNES, município, natureza jurídica, financiamento, complexidade, quantidade de AIH e valores aprovados no SIH/SUS.",
+        "parameters": [
+          {
+            "name": "nu_ano",
+            "in": "query",
+            "description": "Ano de referência da produção",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "nu_comp",
+            "in": "query",
+            "description": "Competência (ano e mês) da informação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_cnes",
+            "in": "query",
+            "description": "Código CNES do estabelecimento de saúde",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ds_grupo_nat_jur",
+            "in": "query",
+            "description": "Nome do grupo da natureza jurídica",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/siaps-cadastro-individual": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "SIAPS - Modelo de Informação de Cadastro Individual (MICI)",
+        "description": "Dados do Modelo de Informação de Cadastro Individual (MICI) do Sistema de Informação para a Atenção Primária à Saúde (SIAPS), contendo informações sobre cadastros individuais realizados na atenção primária, incluindo competência, localização, perfil do indivíduo, membro de comunidade tradicional, situação de rua, deficiência, situação no mercado de trabalho, tipo de estabelecimento, tipo de equipe e quantidade de pessoas cadastradas.",
+        "parameters": [
+          {
+            "name": "regiao",
+            "in": "query",
+            "description": "Região do registro",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "competencia_siaps",
+            "in": "query",
+            "description": "Ano e mês da realização do registro (Ex.: 202605)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "municipio",
+            "in": "query",
+            "description": "Código do município IBGE do registro (sem dígito verificador)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "raca_cor",
+            "in": "query",
+            "description": "Raça/cor declarada no cadastro individual pelo indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sexo",
+            "in": "query",
+            "description": "Sexo do indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "escolaridade",
+            "in": "query",
+            "description": "Categorias de escolaridade do indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "nacionalidade",
+            "in": "query",
+            "description": "Nacionalidade do indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/educacao-saude/sig-residencia-medica": {
+      "get": {
+        "tags": [
+          "Educação em Saúde"
+        ],
+        "summary": "Programas de residência médica com bolsas financiadas pelo Ministério da Saúde",
+        "description": "Retorna os dados dos programas de residência médica (PRM) contendo ano de referência, UF, município, instituição, tipo de programa, duração e distribuição de bolsas por sexo e raça/cor.",
+        "parameters": [
+          {
+            "name": "ano_referencia",
+            "in": "query",
+            "description": "Ano de referência dos dados",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_uf",
+            "in": "query",
+            "description": "Código da UF",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código do IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          },
+          {
+            "name": "campos",
+            "in": "query",
+            "description": "Lista de campos específicos a serem retornados (separados por vírgula).",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de programas de residência médica",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/educacao-saude/sig-residencia-area-profissional": {
+      "get": {
+        "tags": [
+          "Educação em Saúde"
+        ],
+        "summary": "Programas de residência em área profissional de saúde com bolsas financiadas pelo Ministério da Saúde",
+        "description": "Retorna os dados dos programas de residência em área profissional de saúde (PRAPS) contendo ano de referência, UF, município, instituição, modalidade, duração e distribuição de bolsas por sexo, raça/cor e categoria profissional.",
+        "parameters": [
+          {
+            "name": "ano_referencia",
+            "in": "query",
+            "description": "Ano de referência dos dados",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_uf",
+            "in": "query",
+            "description": "Código da UF",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "co_ibge",
+            "in": "query",
+            "description": "Código do IBGE do município",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          },
+          {
+            "name": "campos",
+            "in": "query",
+            "description": "Lista de campos específicos a serem retornados (separados por vírgula).",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de programas de residência em área profissional de saúde",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/educacao-saude/pet-saude": {
+      "get": {
+        "tags": [
+          "Educação em Saúde"
+        ],
+        "summary": "Projetos do Programa de Educação pelo Trabalho para a Saúde (PET-Saúde)",
+        "description": "Retorna os dados dos projetos do PET-Saúde contendo edição, código do projeto, bolsas previstas, grupos de atuação e dados das instituições de ensino e secretarias de saúde participantes.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          },
+          {
+            "name": "campos",
+            "in": "query",
+            "description": "Lista de campos específicos a serem retornados (separados por vírgula).",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de projetos PET-Saúde",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vigilancia-e-meio-ambiente/svsa-populacao-residente": {
+      "get": {
+        "tags": [
+          "Vigilância e Meio Ambiente"
+        ],
+        "summary": "Estimativas populacionais residentes por município, sexo e idade",
+        "description": "Retorna os dados de estimativa populacional residente do SVSA contendo ano, código do município, sexo, idade e quantidade populacional para cada agrupamento.",
+        "parameters": [
+          {
+            "name": "ano",
+            "in": "query",
+            "description": "Ano da estimativa populacional (entre 2000 e 2025)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sexo",
+            "in": "query",
+            "description": "Sexo: 1 = Masculino, 2 = Feminino",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "cod_mun",
+            "in": "query",
+            "description": "Código IBGE do município (7 dígitos, sem dígito verificador)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          },
+          {
+            "name": "campos",
+            "in": "query",
+            "description": "Lista de campos específicos a serem retornados (separados por vírgula).",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de estimativas populacionais residentes",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     }
-  }
+  },
+  "definitions": {}
 }
