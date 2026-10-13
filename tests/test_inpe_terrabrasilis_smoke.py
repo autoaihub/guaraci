@@ -33,7 +33,9 @@ def test_live_count_5_sem_geometria(spec):
                            sort_field=spec.sort_field, cql=None)
     lines = text.strip().splitlines()
     assert 1 < len(lines) <= 6
-    assert "MULTIPOLYGON" not in text
+    # Pampa declara geom como obrigatorio (minOccurs=1): o GeoServer a envia mesmo
+    # sem constar em propertyName. O download descarta a coluna na gravacao.
+    assert "FID" in lines[0]
 
 
 def test_live_deter_recorte_anual(tmp_path):

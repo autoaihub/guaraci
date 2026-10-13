@@ -14,6 +14,8 @@ Notas verificadas ao vivo (13/10/2026):
 - Recorte anual: ``view_date`` (DETER, tipo date) ou ``year`` (PRODES, inteiro).
 - O servidor responde ``200`` com ``ExceptionReport`` quando o pool de conexoes
   esgota; isso e tratado como erro transitorio e repetido.
+- Camadas com geom obrigatorio (ex.: PRODES Pampa) enviam a geometria mesmo fora de
+  ``propertyName``; ela e descartada ao gravar (so custa banda).
 - Tudo sai como texto (``infer_schema=False`` nas conversoes).
 """
 
