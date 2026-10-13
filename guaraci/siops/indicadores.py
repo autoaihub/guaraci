@@ -16,6 +16,18 @@ Saída: um CSV UTF-8 com o ano, a chave geográfica (código IBGE de 6 dígitos 
 nome do município; ou código, sigla e nome da UF) e os indicadores com os nomes
 publicados. Valores como no TabNet: decimal com vírgula e ``...`` para dado
 não disponível.
+
+Distrito Federal: nem o ``.dbf`` de municípios nem o de estados traz o DF
+(``indmun`` tem 5.558 municípios sem Brasília e ``induf`` tem 26 UF). O SIOPS
+publica o DF à parte, em ``SIOPS/serhist/estado/indicdf.def`` (``inddf02.dbf``
+a ``inddf25.dbf``, 2002-2025), com os mesmos 31 indicadores e a linha
+``Distrito_Federal``, uma só por ano. Para cada ano o download faz um POST
+adicional nesse ``.def`` e acrescenta a linha ao CSV: nos estados com código 53,
+sigla DF e nome ``Distrito Federal``; nos municípios com código 530010 e nome
+``Brasília``, já que o DF é um único município e o SIOPS o declara de forma
+consolidada. Os anos 2000 e 2001 de municípios ficam sem DF, pois o ``.def`` do
+DF começa em 2002. Falha no POST do DF não derruba o ano: entra em
+``partial_years`` e nos avisos.
 """
 
 from __future__ import annotations
@@ -78,6 +90,10 @@ class SiopsSpec:
     linha: str
     min_year: int
     key_columns: Tuple[str, ...]
+    #: ``.def`` do Distrito Federal, linha dele e chave geográfica fixa da linha.
+    df_def_path: str = "SIOPS/serhist/estado/indicdf.def"
+    df_linha: str = "Distrito_Federal"
+    df_key: Tuple[str, ...] = ()
 
 
 def _split_municipio(label: str) -> List[str]:
@@ -152,6 +168,16 @@ class SiopsIndicadoresDataSource(DataSource):
         if not offered or not incrementos:
             raise ValueError(f"Formulário do SIOPS sem anos ou indicadores em '{url}'.")
 
+        df_url = f"{(base_url or self.DEFAULT_BASE_URL).strip()}?{spec.df_def_path}"
+        df_form: Optional[TabnetForm] = None
+        df_error = ""
+        try:
+            df_form = parse_form(client.text(df_url))
+        except (ApiClientError, TabnetNoTableError) as exc:
+            df_error = str(getattr(exc, "message", exc))
+        df_offered = df_form.years() if df_form is not None else {}
+        df_items = df_form.values("Incremento") if df_form is not None else []
+
         years = list(range(first, last + 1))
         if progress_callback is not None:
             progress_callback(
@@ -204,6 +230,27 @@ class SiopsIndicadoresDataSource(DataSource):
                     ]
                     writer.writerow([str(year), *self._split_key(row[0]), *values])
                     rows_written += 1
+                df_arquivo = df_offered.get(year)
+                if df_arquivo is None:
+                    if year >= 2002:
+                        partial.append(f"{year} sem DF ({df_error or 'ano não oferecido'})")
+                else:
+                    try:
+                        _, df_table, _ = self._fetch_year(
+                            client, df_url, df_form, df_arquivo, df_items, spec.df_linha
+                        )
+                    except (ApiClientError, TabnetNoTableError) as exc:
+                        partial.append(f"{year} sem DF ({getattr(exc, 'message', exc)})")
+                    else:
+                        df_position = {n: i for i, n in enumerate(df_table.header)}
+                        for row in df_table.rows[:1]:
+                            values = [
+                                row[df_position[n]]
+                                if n in df_position and df_position[n] < len(row) else ""
+                                for n in indicators
+                            ]
+                            writer.writerow([str(year), *spec.df_key, *values])
+                            rows_written += 1
                 if progress_callback is not None:
                     progress_callback({
                         "event": "file_progress", "source": self.name,
@@ -260,6 +307,7 @@ class SiopsIndicadoresDataSource(DataSource):
         form: TabnetForm,
         arquivo: str,
         incrementos: Sequence[str],
+        linha: Optional[str] = None,
     ) -> Tuple[str, PrnTable, List[str]]:
         """POST do ano com todos os indicadores; se o .dbf recusar algum, refaz sem eles.
 
@@ -268,7 +316,7 @@ class SiopsIndicadoresDataSource(DataSource):
         Nesse caso cada indicador é testado sozinho com ``Linha=Ano`` (uma
         linha só, resposta pequena) e o POST final leva só os aceitos.
         """
-        linha = self.SPEC.linha
+        linha = linha or self.SPEC.linha
 
         def post(items: Sequence[str], row: str) -> Tuple[str, PrnTable]:
             body = form.build_body(
@@ -306,6 +354,7 @@ class SiopsIndicadoresMunicipiosDataSource(SiopsIndicadoresDataSource):
         linha="Munic-BR",
         min_year=2000,
         key_columns=("cod_ibge", "municipio"),
+        df_key=("530010", "Brasília"),
     )
 
     def _split_key(self, label: str) -> List[str]:
@@ -320,6 +369,7 @@ class SiopsIndicadoresEstadosDataSource(SiopsIndicadoresDataSource):
         linha="UF",
         min_year=2002,
         key_columns=("cod_uf", "uf", "nome_uf"),
+        df_key=("53", "DF", "Distrito Federal"),
     )
 
     def _split_key(self, label: str) -> List[str]:

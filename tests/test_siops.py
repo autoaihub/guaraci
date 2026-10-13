@@ -74,6 +74,17 @@ PRN_UF_2024 = """<PRE>
 </PRE>"""
 
 
+FORM_DF = FORM_MUN.replace("municipio/mIndicadores.def", "estado/indicdf.def").replace(
+    '<OPTION  VALUE="Munic-BR">Munic-BR', '<OPTION  VALUE="Distrito_Federal">Distrito Federal'
+).replace("indmun24.dbf", "inddf24.dbf").replace("indmun23.dbf", "inddf23.dbf")
+
+PRN_DF = """<PRE>
+"Distrito Federal";"Popula&ccedil;&atilde;o";"2.10	SUBFUN&Ccedil;&Otilde;ES ADMINISTRATIVAS";"D.Total Sa&uacute;de"
+"Distrito Federal";2817381;...;5099437748,60
+&
+</PRE>"""
+
+
 class FakeConn:
     def __init__(self, payload: bytes) -> None:
         self.payload = payload
@@ -93,18 +104,22 @@ class FakeConn:
 class FakeTabnet:
     """Responde ao GET do .def com o formulário e ao POST com a página do ano."""
 
-    def __init__(self, form: str, pages: dict) -> None:
+    def __init__(self, form: str, pages: dict, df_pages: dict = None) -> None:
         self.form = form
         self.pages = pages
+        # O DF vem de outro .def (indicdf.def); por padrão responde 2023 e 2024.
+        self.df_pages = {"inddf24.dbf": PRN_DF, "inddf23.dbf": PRN_DF} if df_pages is None else df_pages
         self.posts = []
+        self.df_posts = []
 
     def text(self, url, body=None):
+        is_df = "indicdf.def" in url
         if body is None:
-            return self.form
+            return FORM_DF if is_df else self.form
         fields = parse_qsl(body.decode("ascii"), encoding="latin-1")
-        self.posts.append(fields)
+        (self.df_posts if is_df else self.posts).append(fields)
         arquivo = dict(fields)["Arquivos"]
-        page = self.pages[arquivo]
+        page = (self.df_pages if is_df else self.pages)[arquivo]
         if callable(page):
             page = page(fields)
         if isinstance(page, Exception):
@@ -190,15 +205,19 @@ def test_municipios_download_one_post_per_year(tmp_path):
     source = SiopsIndicadoresMunicipiosDataSource(output_path=str(tmp_path), client=fake)
     payload = source.download(start_year=2023, end_year=2024)
     assert payload["failed_count"] == 0 and payload["downloaded_count"] == 2
-    assert payload["rows"] == 4
-    assert len(fake.posts) == 2
+    assert payload["rows"] == 6
+    assert len(fake.posts) == 2 and len(fake.df_posts) == 2
     rows = _read(payload["exported_files"][0])
     assert rows[0] == [
         "ano", "cod_ibge", "municipio",
         "População", "2.10 SUBFUNÇÕES ADMINISTRATIVAS", "D.Total Saúde",
     ]
     assert rows[1] == ["2023", "110001", "Alta Floresta D'Oeste", "21000", "...", "31753563,38"]
-    assert rows[4] == ["2024", "522230", "Vila Propício", "5815", "...", "10704227,19"]
+    assert rows[5] == ["2024", "522230", "Vila Propício", "5815", "...", "10704227,19"]
+    # O DF entra uma vez por ano, com o código do município de Brasília.
+    assert rows[3] == ["2023", "530010", "Brasília", "2817381", "...", "5099437748,60"]
+    assert rows[6] == ["2024", "530010", "Brasília", "2817381", "...", "5099437748,60"]
+    assert dict(fake.df_posts[0])["Linha"] == "Distrito_Federal"
 
 
 def test_estados_download_maps_uf_code(tmp_path):
@@ -212,6 +231,19 @@ def test_estados_download_maps_uf_code(tmp_path):
     assert frame.columns[:4] == ["ano", "cod_uf", "uf", "nome_uf"]
     assert frame.row(1)[:4] == ("2024", "35", "SP", "São Paulo")
     assert dict(fake.posts[0])["Linha"] == "UF"
+    assert frame.row(2)[:4] == ("2024", "53", "DF", "Distrito Federal")
+    assert frame.height == 3
+
+
+def test_df_failure_keeps_the_year_and_is_reported(tmp_path):
+    fake = FakeTabnet(
+        FORM_UF, {"induf24.dbf": PRN_UF_2024},
+        df_pages={"inddf24.dbf": TabnetClientError("caiu", category="timeout", retryable=True)},
+    )
+    source = SiopsIndicadoresEstadosDataSource(output_path=str(tmp_path), client=fake)
+    payload = source.download(start_year=2024)
+    assert payload["failed_count"] == 0 and payload["rows"] == 2
+    assert payload["partial_years"] == ["2024 sem DF (caiu)"]
 
 
 def test_year_not_offered_and_failed_post_are_counted(tmp_path):
