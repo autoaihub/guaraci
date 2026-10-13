@@ -1,0 +1,81 @@
+{
+  "repo": "cajuice/presto",
+  "days": {
+    "2026-09-29": {
+      "count": 0,
+      "uniques": 0
+    },
+    "2026-09-30": {
+      "count": 0,
+      "uniques": 0
+    },
+    "2026-10-01": {
+      "count": 0,
+      "uniques": 0
+    },
+    "2026-10-02": {
+      "count": 0,
+      "uniques": 0
+    },
+    "2026-10-03": {
+      "count": 0,
+      "uniques": 0
+    },
+    "2026-10-04": {
+      "count": 0,
+      "uniques": 0
+    },
+    "2026-10-05": {
+      "count": 0,
+      "uniques": 0,
+      "ci": 0
+    },
+    "2026-10-06": {
+      "count": 1,
+      "uniques": 1,
+      "ci": 0
+    },
+    "2026-10-07": {
+      "count": 1,
+      "uniques": 1,
+      "ci": 0
+    },
+    "2026-10-08": {
+      "count": 0,
+      "uniques": 0,
+      "ci": 0
+    },
+    "2026-10-09": {
+      "count": 0,
+      "uniques": 0,
+      "ci": 0
+    },
+    "2026-10-10": {
+      "count": 1,
+      "uniques": 1,
+      "ci": 0
+    },
+    "2026-10-11": {
+      "count": 0,
+      "uniques": 0,
+      "ci": 0
+    },
+    "2026-10-12": {
+      "count": 0,
+      "uniques": 0,
+      "ci": 0
+    }
+  },
+  "windows": {
+    "2026-10-13": {
+      "from": "2026-09-29",
+      "to": "2026-10-12",
+      "uniques": 3
+    }
+  },
+  "total_clones": 3,
+  "total_uniques": 3,
+  "uniques_14d": 3,
+  "tracking_since": "2026-09-29",
+  "updated_at": "2026-10-13T12:47:43+00:00"
+}
