@@ -24,6 +24,7 @@ from guaraci.services.sources import (
     opendatasus,
     opendatasus_files,
     siaps,
+    tesouro,
 )
 
 __all__ = ["build_default_sources"]
@@ -50,4 +51,5 @@ def build_default_sources() -> List[DownloadSource]:
         *mma.build_sources(),
         *siaps.build_sources(),
         *arquivos.build_sources(),
+        *tesouro.build_sources(),
     ]
