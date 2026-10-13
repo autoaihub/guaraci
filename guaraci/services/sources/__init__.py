@@ -19,6 +19,7 @@ from guaraci.services.sources import (
     govbr,
     ibge,
     ibge_microdados,
+    inep,
     inmet,
     inpe,
     mma,
@@ -62,4 +63,5 @@ def build_default_sources() -> List[DownloadSource]:
         *inpe_terrabrasilis.build_sources(),
         *prf.build_sources(),
         *siops.build_sources(),
+        *inep.build_sources(),
     ]
