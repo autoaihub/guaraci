@@ -18,6 +18,7 @@ from guaraci.services.sources import (
     fns,
     govbr,
     ibge,
+    ibge_microdados,
     inmet,
     inpe,
     mma,
@@ -54,4 +55,5 @@ def build_default_sources() -> List[DownloadSource]:
         *arquivos.build_sources(),
         *tesouro.build_sources(),
         *fns.build_sources(),
+        *ibge_microdados.build_sources(),
     ]
