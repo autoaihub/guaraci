@@ -23,6 +23,23 @@ from guaraci.opendatasus.utils.swagger_catalog import load_local_get_params_cata
 
 SWAGGER_PATH = project_root / "guaraci" / "opendatasus" / "utils" / "swagger.json"
 
+# Endpoints do swagger que o scaffold nao gera. Cada um tem motivo proprio:
+# - SIAPS: ja sao fonte manual (guaraci/services/sources/siaps.py), com
+#   normalizacao de competencia e fatiamento que o bloco generico nao tem;
+# - cnes-profissionais: traz `no_profissional` (nome de pessoa), dado pessoal (LGPD);
+# - sia/sih-procedimentos: derivados dos arquivos do FTP do DATASUS, volumosos e
+#   com acento corrompido na origem.
+_SCAFFOLD_EXCLUDES = frozenset(
+    {
+        "/atencao-primaria/siaps-atendimento-individual",
+        "/atencao-primaria/siaps-cadastro-individual",
+        "/assistencia-a-saude/cnes-profissionais",
+        "/assistencia-a-saude/sia-procedimentos-ambulatoriais",
+        "/assistencia-a-saude/sih-procedimentos-hospitalares",
+    }
+)
+
+
 def get_phase_and_type(param_name: str) -> tuple[str, str, str]:
     """Returns (param_type, phase, allowed_values_code) for a given parameter."""
     name = param_name.lower()
@@ -160,7 +177,7 @@ def main():
         count = 0
         for endpoint, params in catalog.items():
             # Filter manually excluded
-            if endpoint in manual_excludes:
+            if endpoint in manual_excludes or endpoint in _SCAFFOLD_EXCLUDES:
                 continue
                 
             # Filter yearly endpoints (e.g., -2020 or -2019-2026)
