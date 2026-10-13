@@ -21,6 +21,7 @@ Fontes:
 from __future__ import annotations
 
 import codecs
+import re
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -181,6 +182,9 @@ class HttpFile:
     separator: str = ","
     # Membro do zip a ler; ``None`` aceita só um zip de membro único.
     member: Optional[str] = None
+    # Alternativa a ``member`` quando o nome varia (INEP): regex, sem distinguir caixa,
+    # aplicada ao caminho do membro; deve casar exatamente um.
+    member_pattern: Optional[str] = None
     # ``auto`` decide pelo conteúdo: BOM ou UTF-8 válido, senão cp1252.
     encoding: str = "auto"
     # Parâmetro que escolhe um subconjunto de ``resources`` pelo ``code``.
@@ -311,7 +315,16 @@ def _open_member(raw: Path, spec: HttpFile):
         return open(raw, "rb")
     archive = zipfile.ZipFile(raw)
     names = [n for n in archive.namelist() if not n.endswith("/")]
-    if spec.member is not None:
+    if spec.member_pattern is not None:
+        found = [n for n in names if re.search(spec.member_pattern, n, re.IGNORECASE)]
+        if len(found) != 1:
+            archive.close()
+            raise ValueError(
+                f"Pattern '{spec.member_pattern}' matched {len(found)} members in "
+                f"{raw.name}: {found}"
+            )
+        chosen = found[0]
+    elif spec.member is not None:
         if spec.member not in names:
             archive.close()
             raise ValueError(f"Member '{spec.member}' not found in {raw.name}: {names}")
