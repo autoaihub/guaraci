@@ -16,6 +16,7 @@ from guaraci.services.sources import (
     datasus_curated,
     govbr,
     ibge,
+    ibge_microdados,
     inmet,
     inpe,
     nasa,
@@ -44,4 +45,5 @@ def build_default_sources() -> List[DownloadSource]:
         *ana.build_sources(),
         *cetesb.build_sources(),
         *anvisa.build_sources(),
+        *ibge_microdados.build_sources(),
     ]
