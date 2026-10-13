@@ -43,6 +43,23 @@ _FROZEN_YEAR_RANGES: Dict[str, tuple] = {
     "enani_2019": (2019, 2019),
 }
 
+# Leva de outubro/2026: (Kind, Cadence, piso do backfill). Pisos marcados com
+# "a confirmar" saíram do levantamento e serão corrigidos pelo executor de
+# cada fonte se a origem começar em outro ano.
+_NOVAS_FONTES_2026_10: Dict[str, tuple] = {
+    "mma_monitorar": (Kind.API_WINDOW, Cadence.ANNUAL, 2022),
+    "atencao_primaria_siaps_atendimento_individual": (Kind.API_MONTHLY, Cadence.MONTHLY, 2025),
+    "atencao_primaria_siaps_cadastro_individual": (Kind.API_MONTHLY, Cadence.MONTHLY, 2025),
+    "vigitel": (Kind.SNAPSHOT, Cadence.ANNUAL, None),
+    "ibama_agrotoxicos_comercializacao": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "farmacia_popular_indicadores": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "fns_repasses_fundo_a_fundo": (Kind.API_WINDOW, Cadence.MONTHLY, 2002),
+    "siconfi_dca_despesa_funcao": (Kind.API_WINDOW, Cadence.ANNUAL, 2015),  # a confirmar
+    "inpe_deter_amazonia": (Kind.API_WINDOW, Cadence.MONTHLY, 2016),  # a confirmar
+    "inpe_deter_cerrado": (Kind.API_WINDOW, Cadence.MONTHLY, 2018),  # a confirmar
+    "inpe_prodes": (Kind.API_WINDOW, Cadence.ANNUAL, 2000),
+}
+
 # Edit here to re-tune how often a source is re-checked for new data.
 # SISAGUA bulk-file sources publish (at most) monthly/semestral batches on
 # the portal; the "opendatasus" mode default (WEEKLY) is tuned for the
@@ -141,6 +158,10 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_saneamento_agua": 2022,  # census reference year, single period
             "ibge_saneamento_esgoto": 2022,  # census reference year, single period
             "ibge_saneamento_lixo": 2022,  # census reference year, single period
+            # Microdados de inquérito: só os anos de edição têm arquivo.
+            "ibge_pns": 2013,
+            "ibge_pense": 2009,
+            "ibge_pof": 2017,
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
     elif name.startswith("inmet"):
@@ -148,6 +169,12 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
         # re-checked by Content-Length since INMET republishes it as more
         # months land (see guaraci/inmet/datasource.py).
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, _INMET_MIN_YEAR)
+    elif name in _NOVAS_FONTES_2026_10:
+        # Leva de outubro/2026. Fica antes do ramo ``inpe`` para que as
+        # chaves ``inpe_deter_*``/``inpe_prodes`` não herdem o perfil das
+        # queimadas.
+        kind, cadence, floor = _NOVAS_FONTES_2026_10[name]
+        profile = SourceProfile(name, kind, cadence, floor)
     elif name.startswith("inpe"):
         # INPE Queimadas: annual files (2003+), re-checked monthly since the
         # current year's file is republished as new detections arrive.
