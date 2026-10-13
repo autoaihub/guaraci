@@ -178,6 +178,11 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_pns": 2013,
             "ibge_pense": 2009,
             "ibge_pnadc_visita1": 2012,
+            "ibge_pnadc_visita5": 2016,
+            "ibge_pnadc_trimestre1": 2023,
+            "ibge_pnadc_trimestre2": 2016,
+            "ibge_pnadc_trimestre3": 2019,
+            "ibge_pnadc_trimestre4": 2016,
             # Censo no SIDRA: só os anos de referência têm dado.
             "ibge_censo_cor_raca_idade_sexo": 2010,
             "ibge_censo_indigena": 2010,

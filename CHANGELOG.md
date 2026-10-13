@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added: PNAD Contínua completa e Distrito Federal no SIOPS, de 176 para 181
+- **PNAD Contínua.** `ibge_pnadc_visita5` (rendimento de todas as fontes,
+  cuidados e afazeres, 2016 a 2024) e uma fonte por trimestre temático:
+  `ibge_pnadc_trimestre1` (saúde em 2023, com vacinação e sequelas da
+  covid-19), `ibge_pnadc_trimestre2` (educação e cuidados de crianças),
+  `ibge_pnadc_trimestre3` (turismo e trabalho por plataformas) e
+  `ibge_pnadc_trimestre4` (TIC, segurança alimentar, vitimização e outras
+  formas de trabalho). Usam o mesmo leitor da visita 1.
+- **SIOPS.** O Distrito Federal, publicado num `.def` próprio
+  (`indicdf.def`), entra nas duas séries a partir de 2002: como UF 53 nos
+  estados e como Brasília (530010) nos municípios. Se a consulta do DF
+  falhar num ano, o ano segue e o motivo vai para `partial_years`.
+
 ### Added: 38 fontes na segunda leva, de 138 para 176
 O catálogo do site passa a 22 grupos e 14 instituições, com INEP e PRF.
 
@@ -14,8 +27,7 @@ O catálogo do site passa a 22 grupos e 14 instituições, com INEP e PRF.
   `guaraci/tabnet`, que fala HTTP/1.0 cru porque o servidor do SIOPS põe uma
   linha de HTML dentro dos cabeçalhos e clientes estritos recusam a
   resposta. Nos anos antigos, quando falta algum indicador, cada um é
-  testado sozinho e só a coluna ausente fica vazia. O Distrito Federal não
-  aparece em nenhuma das duas séries. `siconfi_rreo_saude` traz a despesa
+  testado sozinho e só a coluna ausente fica vazia. `siconfi_rreo_saude` traz a despesa
   bimestral na função Saúde desde 2015, pelo Anexo 02 do RREO: o Anexo 12,
   que seria o próprio da saúde, volta vazio em todos os recortes testados.
 - **Rede de atenção.** Sete fontes `mgdi_*` (SAMU, UPA, RAPS, eMulti,

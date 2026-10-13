@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 176 sources cataloged; 143 sampled with real field names.
+- 181 sources cataloged; 143 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -20,7 +20,12 @@ to refresh.
 - `ibama_agrotoxicos_comercializacao` (empty): Fields verified live on 2026-10-13 against the source header (no full collection run yet). 33 wide columns: Classe de uso, Ingrediente ativo, SEMESTRE, ANO, Vendas a clientes (ton. produtos), Vendas a Industrias (ton. produtos) and 27 'Qtd. Vendas - <UF>' columns. pt-BR numbers, negative values present; kept wide and as text.
 - `ibge_censo_deficiencia` (empty): Two files per run: SIDRA 10125 (sexo, grupo_de_idade) and 10132 (cor_ou_raca, existencia_de_deficiencia), both with nivel, localidade_id, localidade_nome, ano, variavel_id, unidade, valor (2022).
 - `ibge_pense` (empty): Editions 2012 (fixed width, 3 tables), 2015 (two samples, 3 tables each), 2019 and 2024 (CSV). 2009 left out: layout only in XLS. Field list depends on the edition.
+- `ibge_pnadc_trimestre1` (empty): PNAD Continua annual, 1st quarter thematic module, 2023 only: health (covid-19 vaccination and sequelae, S15*/SD15*); about 480 variables, replicate weights up to 200 (verified live on 2026-10-13).
+- `ibge_pnadc_trimestre2` (empty): PNAD Continua annual, 2nd quarter thematic module, 2016-2019 and 2022-2025: education (V3034*) and child care (S12*); about 746 variables, replicate weights up to 200 (verified live on 2026-10-13).
+- `ibge_pnadc_trimestre3` (empty): PNAD Continua annual, 3rd quarter thematic module, 2019, 2022, 2024 and 2025: tourism (S08*) and digital platform work (S14*/SD14*); about 654 variables, replicate weights up to 200 (verified live on 2026-10-13).
+- `ibge_pnadc_trimestre4` (empty): PNAD Continua annual, 4th quarter thematic module, 2016-2019 and 2021-2025: ICT (S01*, S07*), security and victimization (SD10*), food security (SD17*, S17*) and other forms of work; about 1229 variables, replicate weights up to 200 (verified live on 2026-10-13).
 - `ibge_pnadc_visita1` (empty): PNAD Continua annual visit 1, 2012-2025 (no 2020/2021 on the FTP); fixed-width read through the IBGE SAS input, 450 to 490 variables depending on the year, with replicate weights V1032001-V1032200.
+- `ibge_pnadc_visita5` (empty): PNAD Continua annual visit 5 (income from all sources), 2016-2024; fixed-width read through the IBGE SAS input, about 558 variables, including V5001A-V5008A2 (income sources), V4117A-V4121B (care and household chores) and SD06001-SD06005 (work at ages 5-17), with replicate weights up to 200 (verified live on 2026-10-13).
 - `ibge_pns` (empty): Fixed-width microdata read through the IBGE SAS input at download time: 1088 variables in 2019, 1000 in 2013 (verified live on 2026-10-13). Field list depends on the edition.
 - `ibge_pof` (empty): POF 2017-2018: 16 fixed-width tables, 550 variables read from the IBGE SAS program (verified live on 2026-10-13). Field list depends on the table.
 - `inep_censo_escolar` (empty): School table of the INEP school census, 2007 onward; 370 columns in 2007, 426 in 2024 and 290 in 2025 (schema changes by year). Includes CO_ENTIDADE, NU_ANO_CENSO, IN_AGUA_REDE_PUBLICA, IN_ESGOTO_REDE_PUBLICA, IN_ALIMENTACAO, IN_INTERNET.
@@ -508,11 +513,41 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `variavel_id`, `unidade`, `valor`
 
+## ibge_pnadc_trimestre1
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** PNAD Continua annual, 1st quarter thematic module, 2023 only: health (covid-19 vaccination and sequelae, S15*/SD15*); about 480 variables, replicate weights up to 200 (verified live on 2026-10-13).
+
+## ibge_pnadc_trimestre2
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** PNAD Continua annual, 2nd quarter thematic module, 2016-2019 and 2022-2025: education (V3034*) and child care (S12*); about 746 variables, replicate weights up to 200 (verified live on 2026-10-13).
+
+## ibge_pnadc_trimestre3
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** PNAD Continua annual, 3rd quarter thematic module, 2019, 2022, 2024 and 2025: tourism (S08*) and digital platform work (S14*/SD14*); about 654 variables, replicate weights up to 200 (verified live on 2026-10-13).
+
+## ibge_pnadc_trimestre4
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** PNAD Continua annual, 4th quarter thematic module, 2016-2019 and 2021-2025: ICT (S01*, S07*), security and victimization (SD10*), food security (SD17*, S17*) and other forms of work; about 1229 variables, replicate weights up to 200 (verified live on 2026-10-13).
+
 ## ibge_pnadc_visita1
 
 - **Status:** empty
 - **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
 - **Note:** PNAD Continua annual visit 1, 2012-2025 (no 2020/2021 on the FTP); fixed-width read through the IBGE SAS input, 450 to 490 variables depending on the year, with replicate weights V1032001-V1032200.
+
+## ibge_pnadc_visita5
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** PNAD Continua annual visit 5 (income from all sources), 2016-2024; fixed-width read through the IBGE SAS input, about 558 variables, including V5001A-V5008A2 (income sources), V4117A-V4121B (care and household chores) and SD06001-SD06005 (work at ages 5-17), with replicate weights up to 200 (verified live on 2026-10-13).
 
 ## ibge_pns
 
