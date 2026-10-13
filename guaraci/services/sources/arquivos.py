@@ -1,8 +1,8 @@
-"""Fontes de arquivos HTTP de URL fixa (Vigitel, IBAMA, Farmácia Popular)."""
+"""Fontes de arquivos HTTP de URL fixa (Vigitel, IBAMA, Farmácia Popular, MGDI)."""
 
 from typing import List
 
-from guaraci.arquivos import FARMACIA_INDICADORES, HTTP_FILES, HttpFileClient, datasource_for
+from guaraci.arquivos import HTTP_FILES, HttpFileClient, datasource_for
 from guaraci.core.contracts import SourceParameterSpec
 from guaraci.services.downloads import (
     EXPORT_FORMAT_VALUES,
@@ -15,6 +15,13 @@ _MODES = {
     "vigitel": "svs files",
     "ibama_agrotoxicos_comercializacao": "ibama files",
     "farmacia_popular_indicadores": "demas s3 files",
+    "mgdi_samu": "demas s3 files",
+    "mgdi_upa": "demas s3 files",
+    "mgdi_raps": "demas s3 files",
+    "mgdi_emulti": "demas s3 files",
+    "mgdi_academia_saude": "demas s3 files",
+    "mgdi_telessaude": "demas s3 files",
+    "mgdi_saude_bucal": "demas s3 files",
 }
 
 
@@ -60,6 +67,7 @@ def _params(key: str) -> List[SourceParameterSpec]:
         ),
     ]
     if HTTP_FILES[key].selector == "indicadores":
+        codes = [r.code for r in HTTP_FILES[key].resources]
         params.insert(
             0,
             SourceParameterSpec(
@@ -68,11 +76,11 @@ def _params(key: str) -> List[SourceParameterSpec]:
                 param_type="string_list",
                 description=(
                     "Códigos dos indicadores (um CSV por indicador). Omita para "
-                    "baixar todos os 14."
+                    f"baixar todos os {len(codes)}."
                 ),
                 required=False,
                 default=None,
-                allowed_values=list(FARMACIA_INDICADORES),
+                allowed_values=codes,
             ),
         )
     return params

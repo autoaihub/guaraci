@@ -11,6 +11,7 @@ from guaraci.services.downloads import (
     SourceDescriptor,
 )
 from guaraci.tesouro import SiconfiDcaDespesaFuncaoDataSource as _Dca
+from guaraci.tesouro.rreo import SiconfiRreoSaudeDataSource as _Rreo
 
 
 def _normalize_siconfi_params(params):
@@ -100,6 +101,79 @@ def build_sources() -> List[DownloadSource]:
                 SourceParameterSpec(
                     name="pause_ms", phase="tecnica", param_type="integer",
                     description="Pausa entre requisições, em milissegundos, para a varredura nacional.",
+                    required=False, default=0, minimum=0,
+                ),
+                SourceParameterSpec(
+                    name="api_base_url", phase="tecnica", param_type="string",
+                    description="Optional SICONFI API base URL override.",
+                    required=False, default=None,
+                ),
+            ],
+            normalize_params=_normalize_siconfi_params,
+        ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source=_Rreo.DATASET,
+                title="SICONFI RREO - Despesa em Saúde (Anexo 02)",
+                mode="siconfi api",
+            ),
+            datasource_cls=_Rreo,
+            params_schema=[
+                SourceParameterSpec(
+                    name="output_dir", phase="tecnica", param_type="string",
+                    description="Output directory for downloaded files.",
+                    required=False, default=None,
+                ),
+                SourceParameterSpec(
+                    name="output_format", phase="exportacao", param_type="string",
+                    description="Export format (padrão csv), tudo como texto.",
+                    required=False, default=None, allowed_values=EXPORT_FORMAT_VALUES,
+                ),
+                SourceParameterSpec(
+                    name="start_year", phase="coleta", param_type="integer",
+                    description=f"Exercício inicial (desde {_Rreo.MIN_YEAR}, confirmado ao vivo).",
+                    required=True, default=None,
+                    minimum=_Rreo.MIN_YEAR, maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="end_year", phase="coleta", param_type="integer",
+                    description="Exercício final (padrão: igual a start_year).",
+                    required=False, default=None,
+                    minimum=_Rreo.MIN_YEAR, maximum=current_year,
+                ),
+                SourceParameterSpec(
+                    name="periodos", phase="coleta", param_type="string_list",
+                    description="Bimestres de 1 a 6 (padrão: todos).",
+                    required=False, default=None,
+                ),
+                SourceParameterSpec(
+                    name="uf", phase="coleta", param_type="string_list",
+                    description="Siglas de UF para filtrar os entes (município e estado).",
+                    required=False, default=None,
+                ),
+                SourceParameterSpec(
+                    name="entes", phase="coleta", param_type="string_list",
+                    description="Códigos IBGE dos entes (ex.: 3550308). Tem precedência sobre uf.",
+                    required=False, default=None,
+                ),
+                SourceParameterSpec(
+                    name="conta", phase="coleta", param_type="string",
+                    description="Função do Anexo 02 mantida (filtro local; padrão Saúde, vazio desliga).",
+                    required=False, default=_Rreo.DEFAULT_CONTA,
+                ),
+                SourceParameterSpec(
+                    name="keep_raw", phase="tecnica", param_type="boolean",
+                    description="Se true, guarda as respostas da API (JSONL, sem filtro).",
+                    required=False, default=False,
+                ),
+                SourceParameterSpec(
+                    name="timeout", phase="tecnica", param_type="integer",
+                    description="HTTP timeout in seconds.",
+                    required=False, default=_Rreo.DEFAULT_TIMEOUT, minimum=1,
+                ),
+                SourceParameterSpec(
+                    name="pause_ms", phase="tecnica", param_type="integer",
+                    description="Pausa entre requisições, em milissegundos.",
                     required=False, default=0, minimum=0,
                 ),
                 SourceParameterSpec(

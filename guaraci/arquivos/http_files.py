@@ -16,6 +16,9 @@ Fontes:
   agrotóxicos do IBAMA (UTF-8 com BOM, ``;``, 33 colunas largas).
 - ``farmacia_popular_indicadores``: 14 indicadores do Programa Farmácia
   Popular (bucket S3 do DEMAS), um zip com um CSV por indicador.
+- ``mgdi_*``: indicadores agregados do MGDI do Ministério da Saúde (SAMU, UPA,
+  RAPS, eMulti, Academia da Saúde, Telessaúde, saúde bucal), mesmo bucket e mesmo
+  esquema da Farmácia Popular. Só indicador agregado, sem dado pessoal.
 """
 
 from __future__ import annotations
@@ -215,6 +218,99 @@ _FARMACIA = (
 )
 FARMACIA_INDICADORES: Tuple[str, ...] = tuple(code for code, _ in _FARMACIA)
 
+_MGDI_BASE = _FARMACIA_BASE
+# Títulos dos conjuntos mgdi-* de dadosabertos.saude.gov.br, raspados em 2026-10-13.
+# Todos os CSV têm o esquema da Farmácia Popular (``co_ano`` ou ``co_anomes``,
+# ``co_ibge``, ``vl_indicador_calculado_*``, ``dt_competencia``...).
+_SAMU = (
+    ('samuaer', 'Número de aeromédicos'),
+    ('samuemb', 'Número de embarcações'),
+    ('samumoto', 'Número de motolâncias'),
+    ('samunaa', 'Número de ambulâncias avançadas'),
+    ('samunaab', 'Número de ambulâncias avançadas e básicas'),
+    ('samunab', 'Número de ambulâncias básicas'),
+    ('samupc', 'População coberta SAMU'),
+    ('samuppc', 'Percentual da população coberta SAMU'),
+    ('samuqc', 'Número de centrais de regulação'),
+    ('samuumst', 'Unidades móveis'),
+    ('samuvrf', 'Recursos financeiros transferidos'),
+)
+
+_UPA = (
+    ('upa', 'Total de UPA em funcionamento'),
+    ('upacrem', 'Total de UPA em funcionamento / Construídas com recursos de estados e municípios'),
+    ('upacrm', 'Total de UPA em funcionamento / Construídas com recursos do MS'),
+    ('upafh', 'Total de UPA em funcionamento habilitada'),
+    ('upafnh', 'Total de UPA em funcionamento não habilitada'),
+    ('upavcm', 'Valor de custeio mensal da UPA'),
+)
+
+_RAPS = (
+    ('rapscapadh', 'Centros de Atenção Psicossocial Álcool e Drogas (CAPS AD) habilitados'),
+    ('rapscapi', 'Centros de Atenção Psicossocial (CAPS) I habilitados'),
+    ('rapscapii', 'Centros de Atenção Psicossocial (CAPS) II habilitados'),
+    ('rapscapiii', 'Centros de Atenção Psicossocial (CAPS) III habilitados'),
+    ('rapscapijh', 'Centros de Atenção Psicossocial Infanto-juvenil (CAPSi) habilitados'),
+    ('rapscapst', 'Quantidade total de Centros de Atenção Psicossocial habilitados'),
+    ('rapslphg', 'Leitos de Psiquiatria em Hospital Geral'),
+    ('rapslphg2', 'Leitos de psiquiatria em Hospital Psiquiátrico'),
+    ('rapsnlee', 'Leitos de saúde mental nas enfermarias especializadas em Hospital Geral'),
+    ('rapsnuaai', 'Unidades de Acolhimento (UA) Adulto habilitadas'),
+    ('rapsnuaij', 'Unidades de Acolhimento (UA) Infanto-juvenil habilitadas'),
+    ('rapsnuch', 'Quantidade de Centros de Atenção Psicossocial Álcool e Drogas (CAPS AD) III habilitados'),
+    ('rapssrti', 'Serviço Residencial Terapêutico (SRT) I habilitados'),
+    ('rapssrtii', 'Serviço Residencial Terapêutico (SRT) II habilitados'),
+)
+
+_EMULTI = (
+    ('emultampin', 'Total de eMulti custeadas na APS na modalidade ampliada intermunicipal'),
+    ('emultampl', 'Total de eMulti custeadas na APS na modalidade ampliada'),
+    ('emultcompl', 'Total de eMulti custeadas na APS na modalidade complementar'),
+    ('emultcust', 'Total de eMulti custeadas na APS'),
+    ('emultestra', 'Total de eMulti custeadas na APS na modalidade estratégica'),
+    ('emulthomol', 'Total de eMulti homologadas na APS'),
+    ('emultvlrff', 'Total de incentivo financeiro federal transferido aos municípios com eMulti ativas na APS'),
+    ('emultvlrmo', 'Repasse financeiro adicional às eMulti com atendimentos remotos mediados por TICS'),
+)
+
+_ACADEMIA = (
+    ('pasnpcr', 'Número de polos do Programa Academia da Saúde credenciados'),
+    ('pasnpcust', 'Número de polos do Programa Academia da Saúde custeados'),
+    ('pasnprofc', 'Número de profissionais que atuam nos polos do Programa Academia da Saúde credenciados'),
+    ('pasvlr', 'Valor de repasse financeiro de custeio por polo do Programa Academia da Saúde'),
+)
+
+_TELESSAUDE = (
+    ('mgdi_ms_2s7', 'Número de teleorientações realizadas na atenção primária'),
+    ('mgdi_ms_3pn', 'Número de teleconsultorias realizadas na atenção primária à saúde'),
+    ('mgdi_ms_66k', 'Número de telemonitoramentos realizados na atenção primária à saúde no âmbito do SUS'),
+    ('mgdi_ms_6vj', 'Número de telediagnósticos emitidos pela Atenção Especializada'),
+    ('mgdi_ms_ai6', 'Número de teleconsultorias realizadas na atenção especializada à saúde'),
+    ('mgdi_ms_bn9', 'Número de teleinterconsultas realizadas na atenção primária à saúde'),
+    ('mgdi_ms_db3', 'Número de teleatendimento realizado na atenção primária'),
+    ('mgdi_ms_dv0', 'Número de municípios com procedimento em telessaúde'),
+    ('mgdi_ms_exj', 'Número de teletriagens realizadas na atenção especializada à saúde'),
+    ('mgdi_ms_fqk', 'Número de teletriagens realizadas na atenção primária à saúde'),
+    ('mgdi_ms_g0y', 'Proporção de municípios com procedimentos em telessaúde'),
+    ('mgdi_ms_hcm', 'Número de teleconsultas realizadas na atenção primária à saúde'),
+    ('mgdi_ms_n15', 'Número de teleorientações realizadas na atenção especializada'),
+    ('mgdi_ms_nfr', 'Total de procedimentos de Telessaúde'),
+    ('mgdi_ms_vft', 'Número de teleatendimento realizado na atenção especializada'),
+    ('mgdi_ms_vmm', 'Número de teleinterconsultas realizadas na Atenção Especializada à Saúde'),
+    ('mgdi_ms_w2w', 'Número de teleconsultas realizadas na atenção especializada à saúde'),
+    ('mgdi_ms_wd8', 'Número de telemonitoramentos realizados na atenção especializada à saúde no âmbito do SUS'),
+    ('mgdi_ms_yf3', 'Número de telediagnósticos emitidos pela atenção primária em saúde'),
+)
+
+_SAUDE_BUCAL = (
+    ('ceoimp', 'Número de Centros de Especialidades Odontológicas implantado e custeado'),
+    ('sbechd', 'Quantidade de equipes de Saúde Bucal com Carga Horária Diferenciada'),
+    ('sbesb', 'Número de Equipes de Saúde Bucal (40h + carga horária diferenciada)'),
+    ('sbesb40h', 'Número de Equipes de Saúde Bucal 40h'),
+    ('sbuomp', 'Número de Unidades Odontológicas Móveis - UOM pagas'),
+)
+
+
 HTTP_FILES: Dict[str, HttpFile] = {
     item.key: item
     for item in (
@@ -256,6 +352,90 @@ HTTP_FILES: Dict[str, HttpFile] = {
             tuple(
                 HttpResource(code, f"{_FARMACIA_BASE}{code}.csv.zip", title)
                 for code, title in _FARMACIA
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_samu",
+            "MGDI SAMU 192 - Indicadores",
+            "Indicadores do Serviço de Atendimento Móvel de Urgência (SAMU 192), um CSV por indicador "
+            "(agregado por município, região de saúde, UF e Brasil).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _SAMU
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_upa",
+            "MGDI UPA 24h - Indicadores",
+            "Indicadores das Unidades de Pronto Atendimento (UPA 24h), um CSV por indicador "
+            "(agregado por município, região de saúde, UF e Brasil).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _UPA
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_raps",
+            "MGDI RAPS - Indicadores",
+            "Indicadores da Rede de Atenção Psicossocial (CAPS, leitos, residências, serviços), um CSV por indicador "
+            "(agregado por município, região de saúde, UF e Brasil).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _RAPS
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_emulti",
+            "MGDI eMulti - Indicadores",
+            "Indicadores das equipes multiprofissionais na atenção primária (eMulti), um CSV por indicador "
+            "(agregado por município, região de saúde, UF e Brasil).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _EMULTI
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_academia_saude",
+            "MGDI Academia da Saúde - Indicadores",
+            "Indicadores do Programa Academia da Saúde, um CSV por indicador "
+            "(agregado por município, região de saúde, UF e Brasil).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _ACADEMIA
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_telessaude",
+            "MGDI Telessaúde - Indicadores",
+            "Indicadores do Telessaúde, um CSV por indicador "
+            "(agregado por município, região de saúde, UF e Brasil).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _TELESSAUDE
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_saude_bucal",
+            "MGDI Saúde bucal - Indicadores",
+            "Indicadores da Rede de Atenção em Saúde Bucal (CEO, equipes, UOM), um CSV por indicador "
+            "(agregado por município, região de saúde, UF e Brasil).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _SAUDE_BUCAL
             ),
             separator=",",
             selector="indicadores",

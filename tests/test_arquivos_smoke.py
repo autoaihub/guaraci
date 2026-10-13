@@ -45,3 +45,12 @@ def test_live_farmacia_popular_pfpbben(tmp_path):
     assert payload["failed_count"] == 0
     frame = pl.read_csv(payload["exported_files"][0], infer_schema=False, n_rows=5)
     assert {"co_anomes", "co_ibge"} <= set(frame.columns)
+
+
+def test_live_mgdi_samu_samuaer(tmp_path):
+    payload = HttpFileDataSource(output_path=str(tmp_path), dataset="mgdi_samu").download(
+        output_dir=str(tmp_path), output_format="csv", indicadores=["samuaer"]
+    )
+    assert payload["failed_count"] == 0
+    frame = pl.read_csv(payload["exported_files"][0], infer_schema=False, n_rows=5)
+    assert {"co_ibge", "vl_indicador_calculado_mun"} <= set(frame.columns)
