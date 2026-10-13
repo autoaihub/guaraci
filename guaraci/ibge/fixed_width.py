@@ -32,6 +32,7 @@ __all__ = [
     "SasColumn",
     "SasBlock",
     "parse_sas_input",
+    "load_frozen_layout",
     "transcode_to_utf8",
     "scan_fixed_width",
 ]
@@ -205,6 +206,33 @@ def parse_sas_input(text: str) -> List[SasBlock]:
                 raise ValueError(f"{block.name}: variável {column.name} declarada duas vezes.")
             seen.add(column.name)
     return [b for b in blocks if b.columns]
+
+
+def load_frozen_layout(path: Path, *, name: str = "congelado") -> SasBlock:
+    """Lê um leiaute congelado em CSV (``nome,inicio,largura,texto,decimais``).
+
+    Serve às edições cujo leiaute o IBGE só publicou em planilha (PeNSE 2009).
+    Linhas que começam por ``#`` são comentário de origem.
+    """
+    block = SasBlock(name=name)
+    lines = [
+        line
+        for line in Path(path).read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
+    header = lines[0].split(",")
+    if header != ["nome", "inicio", "largura", "texto", "decimais"]:
+        raise ValueError(f"{path}: cabeçalho inesperado {header}.")
+    seen = set()
+    for line in lines[1:]:
+        nome, inicio, largura, texto, decimais = line.split(",")
+        if nome in seen:
+            raise ValueError(f"{path}: variável {nome} declarada duas vezes.")
+        seen.add(nome)
+        block.columns.append(
+            SasColumn(nome, int(inicio), int(largura), texto == "1", int(decimais))
+        )
+    return block
 
 
 def transcode_to_utf8(source: BinaryIO, target: Path, encoding: str = "cp1252") -> None:

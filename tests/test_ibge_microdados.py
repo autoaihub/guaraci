@@ -191,3 +191,55 @@ def test_registry_exposes_the_three_surveys():
         assert schema is not None
     text = str(service.get_source_schema("ibge_pense"))
     assert "2024" in text and "tabelas" in text
+
+
+_PNADC_SAS = (
+    "data pnadc_xxxxxx;\n"
+    'infile "...\\Dados\\PNADC_xxxxxx.txt" lrecl=4000 Missover;\n'
+    "input\n"
+    "@0001 Ano   $4.   /* Ano de referência */\n"
+    "@0005 Trimestre   $1.   /* Trimestre de referência */\n"
+    "@0006 V1031   8.   /* Peso */\n"
+    ";\nrun;"
+).encode("cp1252")
+
+
+def test_pnadc_reads_layout_published_as_plain_txt(tmp_path):
+    client = _Client({
+        "PNADC_2025_visita1_20260923.zip": _zip({"PNADC_2025_visita1.txt": b"2025300123.45\r\n20251  99.5 \r\n"}),
+        "input_PNADC_2025_visita1_20260923.txt": _PNADC_SAS,
+    })
+    result = _run(tmp_path, "ibge_pnadc_visita1", client, start_year=2025, output_format="csv")
+    (exported,) = result["exported_files"]
+    assert Path(exported).name == "ibge_pnadc_visita1_2025_microdados.csv"
+    frame = pl.read_csv(exported, infer_schema=False)
+    assert frame.columns == ["Ano", "Trimestre", "V1031"]
+    assert frame.rows() == [("2025", "3", "00123.45"), ("2025", "1", "99.5")]
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["ibge_pnadc_visita1_2025_microdados.csv"]
+
+
+def test_pense_2009_uses_frozen_layout_and_downloads_only_the_data_zip(tmp_path):
+    row = "1111" + "1" + "2" * 306  # 311 posições: ID 4, QUESTIONARIO 1, B00P01 1...
+    client = _Client({
+        "PENSE_2009_microdados.zip": _zip({
+            "Dados/Base_Pense Completa_2009.txt": (row + "\r\n" + row + "\r\n").encode("cp1252"),
+        }),
+    })
+    result = _run(tmp_path, "ibge_pense", client, start_year=2009, output_format="csv")
+    assert result["downloaded_count"] == 1
+    assert client.calls == [
+        "HEAD pense/2009/microdados/PENSE_2009_microdados.zip",
+        "GET pense/2009/microdados/PENSE_2009_microdados.zip",
+    ]
+    (exported,) = result["exported_files"]
+    assert Path(exported).name == "ibge_pense_2009_microdados.csv"
+    frame = pl.read_csv(exported, infer_schema=False)
+    assert frame.width == 187 and frame.height == 2
+    assert frame.columns[:3] == ["ID", "QUESTIONARIO", "B00P01"]
+    assert frame.row(0)[:3] == ("1111", "1", "2")
+
+
+def test_pnadc_visita1_editions_skip_2020_and_2021():
+    assert sorted(PESQUISAS["ibge_pnadc_visita1"].edicoes) == [
+        *range(2012, 2020), 2022, 2023, 2024, 2025,
+    ]
