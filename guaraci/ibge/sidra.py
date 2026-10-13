@@ -42,6 +42,11 @@ class SidraAggregateSource(DataSource):
     VARIABLE: str = ""
     DEFAULT_TIMEOUT = 120
     DEFAULT_LEVEL = "municipio"
+    # Períodos que a tabela publica, quando se sabe (tabelas do Censo: 2010 e
+    # 2022, sem os anos do meio). Vazio: percorre todos os anos pedidos.
+    PERIODS: tuple = ()
+    # Sufixo opcional do nome dos artefatos (fonte que junta mais de uma tabela).
+    _STEM_TAG = ""
     LEVELS: Dict[str, str] = {
         "municipio": "N6",
         "uf": "N3",
@@ -86,10 +91,14 @@ class SidraAggregateSource(DataSource):
         if y0 > y1:
             raise ValueError("Parameter 'start_year' cannot be after 'end_year'.")
         nivel = self._resolve_level(level)
-        localities_list = self._localities(nivel, classificacao)
+        requests = self._requests(
+            nivel, classificacao, n_variaveis=len([v for v in self.VARIABLE.split("|") if v.strip()])
+        )
         client = self._resolve_client(api_base_url=api_base_url, timeout=timeout)
 
-        years = list(range(y0, y1 + 1))
+        years = [
+            year for year in range(y0, y1 + 1) if not self.PERIODS or year in self.PERIODS
+        ]
         total = len(years)
         records: List[Dict[str, object]] = []
         raw_by_year: Dict[str, Any] = {}
@@ -104,14 +113,14 @@ class SidraAggregateSource(DataSource):
         for index, year in enumerate(years, start=1):
             try:
                 payload = []
-                for localities in localities_list:
+                for localities, classif in requests:
                     payload.extend(
                         client.aggregate(
                             table=self.TABLE,
                             variable=self.VARIABLE,
                             period=str(year),
                             localities=localities,
-                            classificacao=classificacao,
+                            classificacao=classif,
                         )
                         or []
                     )
@@ -341,22 +350,35 @@ class SidraAggregateSource(DataSource):
             return self._client
         return IbgeSidraClient(timeout_seconds=timeout_value)
 
-    # A SIDRA responde 500 quando a consulta passa de ~100 mil valores. Nível
-    # município com classificação detalhada estoura: 5.570 municípios x 2
-    # sexos x 21 faixas de idade (tabela 9514, verificado em 2026-09-24).
-    # Nesses casos os municípios são pedidos por UF, com N6[N3[uf]].
-    _SIDRA_MAX_VALUES = 100_000
+    # A SIDRA recusa a consulta que passa de 50.000 valores ("excedeu o
+    # limite: 50000", verificado em 2026-10-13 na tabela 9606, MG, 179.130
+    # valores). Antes se supunha 100 mil, o que deixava passar pedidos que a
+    # API recusa. Nível município com classificação detalhada estoura: 5.570
+    # municípios x 2 sexos x 21 faixas de idade (tabela 9514). Nesses casos os
+    # municípios são pedidos por UF, com N6[N3[uf]], e, quando a UF sozinha
+    # ainda estoura (MG tem 853 municípios, SP 645), a consulta é fatiada
+    # também por categorias de uma classificação.
+    _SIDRA_MAX_VALUES = 50_000
     _MUNICIPIOS = 5570
     _UF_CODES = (
         11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 27, 28, 29,
         31, 32, 33, 35, 41, 42, 43, 50, 51, 52, 53,
     )
+    # Municípios por UF (limite superior seguro para dimensionar a consulta).
+    _MUNICIPIOS_POR_UF = {
+        11: 52, 12: 22, 13: 62, 14: 15, 15: 144, 16: 16, 17: 139, 21: 217,
+        22: 224, 23: 184, 24: 167, 25: 223, 26: 185, 27: 102, 28: 75, 29: 417,
+        31: 853, 32: 78, 33: 92, 35: 645, 41: 399, 42: 295, 43: 497, 50: 79,
+        51: 142, 52: 246, 53: 1,
+    }
 
     @classmethod
-    def _localities(cls, nivel: str, classificacao: Optional[str]) -> List[str]:
+    def _localities(
+        cls, nivel: str, classificacao: Optional[str], n_variaveis: int = 0
+    ) -> List[str]:
         if nivel != "N6" or not classificacao:
             return [f"{nivel}[all]"]
-        valores = cls._MUNICIPIOS
+        valores = cls._MUNICIPIOS * (n_variaveis or cls._n_variaveis())
         for categorias in re.findall(r"\[([^\]]*)\]", classificacao):
             # `all` não diz quantas categorias há; as combinações de `all`
             # que estouram já são recusadas pela validação de cada fonte.
@@ -365,6 +387,84 @@ class SidraAggregateSource(DataSource):
         if valores <= cls._SIDRA_MAX_VALUES:
             return [f"{nivel}[all]"]
         return [f"N6[N3[{uf}]]" for uf in cls._UF_CODES]
+
+    @classmethod
+    def _n_variaveis(cls) -> int:
+        """Variáveis pedidas juntas (``93|350``): o teto conta todas."""
+        return max(1, len([v for v in cls.VARIABLE.split("|") if v.strip()]))
+
+    @classmethod
+    def _requests(
+        cls, nivel: str, classificacao: Optional[str], n_variaveis: int = 0
+    ) -> List[tuple]:
+        """Pares ``(localidades, classificacao)`` que cobrem o pedido inteiro.
+
+        Cada par respeita o teto de valores da API. Sem estouro, devolve o
+        pedido original; com estouro em município, fatia por UF e, se preciso,
+        por categorias da classificação com mais categorias.
+        """
+        locais = cls._localities(nivel, classificacao, n_variaveis)
+        if len(locais) == 1:
+            return [(locais[0], classificacao)]
+        parsed = cls._parse_classificacao(classificacao or "")
+        pares: List[tuple] = []
+        for uf, local in zip(cls._UF_CODES, locais):
+            municipios = cls._MUNICIPIOS_POR_UF.get(uf, 853) * (n_variaveis or cls._n_variaveis())
+            for partes in cls._fatiar(parsed, municipios):
+                pares.append((local, cls._montar_classificacao(partes)))
+        return pares
+
+    @staticmethod
+    def _parse_classificacao(classificacao: str) -> List[tuple]:
+        """``"2[4,5]|287[a,b]"`` vira ``[("2", ["4","5"]), ("287", ["a","b"])]``.
+
+        Categorias ``all`` ficam como ``None``: não há como contá-las nem
+        fatiá-las sem consultar os metadados.
+        """
+        itens: List[tuple] = []
+        for parte in classificacao.split("|"):
+            achado = re.fullmatch(r"\s*(\d+)\[([^\]]*)\]\s*", parte)
+            if not achado:
+                continue
+            bruto = achado.group(2)
+            if bruto.strip().lower() == "all":
+                itens.append((achado.group(1), None))
+            else:
+                itens.append((achado.group(1), [c.strip() for c in bruto.split(",") if c.strip()]))
+        return itens
+
+    @staticmethod
+    def _montar_classificacao(partes: List[tuple]) -> str:
+        return "|".join(
+            f"{cid}[{'all' if cats is None else ','.join(cats)}]" for cid, cats in partes
+        )
+
+    @classmethod
+    def _fatiar(cls, classifs: List[tuple], municipios: int) -> List[List[tuple]]:
+        """Divide as categorias até cada fatia caber no teto da API."""
+
+        def tamanho(cs: List[tuple]) -> int:
+            total = municipios
+            for _, cats in cs:
+                total *= len(cats) if cats is not None else 1
+            return total
+
+        if tamanho(classifs) <= cls._SIDRA_MAX_VALUES:
+            return [classifs]
+        candidatas = [
+            i for i, (_, cats) in enumerate(classifs) if cats is not None and len(cats) > 1
+        ]
+        if not candidatas:
+            return [classifs]
+        i = max(candidatas, key=lambda k: len(classifs[k][1]))
+        cid, cats = classifs[i]
+        outras = tamanho(classifs) // len(cats)
+        passo = max(1, cls._SIDRA_MAX_VALUES // outras)
+        fatias: List[List[tuple]] = []
+        for inicio in range(0, len(cats), passo):
+            sub = classifs[:i] + [(cid, cats[inicio : inicio + passo])] + classifs[i + 1 :]
+            fatias.extend(cls._fatiar(sub, municipios))
+        return fatias
 
     def _resolve_level(self, level: str) -> str:
         key = str(level).strip().lower()
@@ -397,7 +497,7 @@ class SidraAggregateSource(DataSource):
         return cleaned
 
     def _artifact_stem(self, nivel: str, start_year: int, end_year: int) -> str:
-        return f"{self.name}_{nivel}_{start_year}_{end_year}"
+        return f"{self.name}{self._STEM_TAG}_{nivel}_{start_year}_{end_year}"
 
     def _write_raw(self, stem: str, raw_by_year: Dict[str, Any]) -> Path:
         raw_dir = self.output_path / "raw"
