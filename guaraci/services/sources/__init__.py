@@ -18,6 +18,7 @@ from guaraci.services.sources import (
     ibge,
     inmet,
     inpe,
+    inpe_terrabrasilis,
     nasa,
     opendatasus,
     opendatasus_files,
@@ -44,4 +45,5 @@ def build_default_sources() -> List[DownloadSource]:
         *ana.build_sources(),
         *cetesb.build_sources(),
         *anvisa.build_sources(),
+        *inpe_terrabrasilis.build_sources(),
     ]
