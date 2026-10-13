@@ -14,6 +14,7 @@ from guaraci.services.sources import (
     cetesb,
     datasus_ftp,
     datasus_curated,
+    fns,
     govbr,
     ibge,
     inmet,
@@ -44,4 +45,5 @@ def build_default_sources() -> List[DownloadSource]:
         *ana.build_sources(),
         *cetesb.build_sources(),
         *anvisa.build_sources(),
+        *fns.build_sources(),
     ]
