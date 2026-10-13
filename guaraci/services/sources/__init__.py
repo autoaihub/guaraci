@@ -22,6 +22,7 @@ from guaraci.services.sources import (
     inmet,
     inpe,
     mma,
+    inpe_terrabrasilis,
     nasa,
     opendatasus,
     opendatasus_files,
@@ -56,4 +57,5 @@ def build_default_sources() -> List[DownloadSource]:
         *tesouro.build_sources(),
         *fns.build_sources(),
         *ibge_microdados.build_sources(),
+        *inpe_terrabrasilis.build_sources(),
     ]
