@@ -11,6 +11,7 @@ from guaraci.services.downloads import DownloadSource
 from guaraci.services.sources import (
     ana,
     anvisa,
+    arquivos,
     cetesb,
     datasus_ftp,
     datasus_curated,
@@ -44,4 +45,5 @@ def build_default_sources() -> List[DownloadSource]:
         *ana.build_sources(),
         *cetesb.build_sources(),
         *anvisa.build_sources(),
+        *arquivos.build_sources(),
     ]
