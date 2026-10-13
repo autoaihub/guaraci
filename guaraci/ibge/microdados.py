@@ -1,4 +1,4 @@
-"""Microdados de pesquisas amostrais do IBGE: PNS, PeNSE e POF.
+"""Microdados de pesquisas amostrais do IBGE: PNS, PeNSE, POF e PNAD Contínua.
 
 Os arquivos ficam em ``https://ftp.ibge.gov.br/``, um zip por edição (ou por
 amostra), sem API. Cada fonte cobre uma pesquisa, e o ano escolhido é a
@@ -6,16 +6,19 @@ EDIÇÃO: ano sem edição não gera requisição alguma.
 
 Dois formatos convivem:
 
-- largura fixa (PNS 2013 e 2019, POF 2017-2018, PeNSE 2012), lida pelo
-  programa SAS de leitura que o próprio IBGE publica (``fixed_width``);
+- largura fixa (PNS 2013 e 2019, POF 2017-2018, PeNSE 2012, PNAD Contínua),
+  lida pelo programa SAS de leitura que o próprio IBGE publica
+  (``fixed_width``), dentro de um zip ou como ``.txt`` solto (PNAD Contínua);
 - CSV (PeNSE 2015, 2019 e 2024), regravado em UTF-8.
 
 A saída é um arquivo por tabela, tudo como texto, com o nome de coluna do
 leiaute publicado. Pesos e códigos não são convertidos: interpretar é papel
 da camada prata.
 
-Fica de fora a PeNSE 2009: o leiaute dela só existe em planilha XLS, e o
-projeto não tem leitor de Excel como dependência.
+A PeNSE 2009 só tem leiaute em planilha XLS, e o projeto não tem leitor de
+Excel como dependência. O leiaute foi extraído uma vez e congelado em
+``layouts/pense_2009.csv`` (origem citada no topo do arquivo); a tabela
+aponta para ele com o apelido ``_FROZEN``, sem baixar nada.
 
 Verificado ao vivo em 2026-10-13: listagem dos diretórios e dos membros de
 cada zip (diretório central lido por Range), programas SAS da PNS 2013 e 2019
@@ -48,6 +51,7 @@ from guaraci.core.http import (
 from guaraci.datasus.frames import write_sqlite
 from guaraci.ibge.fixed_width import (
     SasBlock,
+    load_frozen_layout,
     parse_sas_input,
     scan_fixed_width,
     transcode_to_utf8,
@@ -64,6 +68,8 @@ __all__ = [
     "datasource_for",
 ]
 
+_FROZEN = "@congelado"
+_LAYOUTS_DIR = Path(__file__).parent / "layouts"
 ProgressCallback = Callable[[Dict[str, object]], None]
 _FORMATS = ("csv", "parquet", "sqlite")
 
@@ -196,7 +202,9 @@ class Tabela:
     ``membro`` é o nome do arquivo dentro do zip ``arquivo``, comparado sem a
     pasta e sem caixa: na POF o INFILE diz ``domicilio.txt`` e o zip traz
     ``DOMICILIO.txt``; na PeNSE 2012 a pasta vem com nome em cp437.
-    ``layout`` é ``(zip, programa SAS)`` para largura fixa; ``None`` é CSV.
+    ``layout`` é ``(apelido, programa SAS)`` para largura fixa; ``None`` é CSV.
+    O apelido aponta para um zip (o programa é um membro dele) ou para um
+    ``.txt`` publicado solto, caso da PNAD Contínua (o programa é ignorado).
     """
 
     nome: str
@@ -263,6 +271,50 @@ def _pense_2015_tabelas() -> Tuple[Tabela, ...]:
 _POF = "Orcamentos_Familiares/Pesquisa_de_Orcamentos_Familiares_2017_2018/Microdados/"
 _PENSE_2012_LEITURA = "dados"
 
+_PNADC = "Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Anual/Microdados/"
+
+
+def _pnadc_visita1() -> Dict[int, Edicao]:
+    """Visita 1 de 2012 a 2025 (sem 2020 e 2021, que não têm visita 1 publicada).
+
+    O nome dos arquivos carrega a data da última atualização, por isso cada
+    ano fixa o seu. 2012 a 2014 compartilham um programa de leitura.
+    """
+    dados = {
+        2012: "20250822", 2013: "20250822", 2014: "20250822", 2015: "20251210",
+        2016: "20250822", 2017: "20250822", 2018: "20250822", 2019: "20250822",
+        2022: "20250822", 2023: "20250822", 2024: "20251119", 2025: "20260923",
+    }
+    leitura = {
+        2012: "2012_a_2014_visita1_20220224", 2013: "2012_a_2014_visita1_20220224",
+        2014: "2012_a_2014_visita1_20220224", 2015: "2015_visita1_20220224",
+        2016: "2016_visita1_20220224", 2017: "2017_visita1_20220224",
+        2018: "2018_visita1_20220224", 2019: "2019_visita1_20230811",
+        2022: "2022_visita1_20231129", 2023: "2023_visita1_20241220",
+        2024: "2024_visita1_20251119", 2025: "2025_visita1_20260923",
+    }
+    edicoes = {}
+    for ano, data in dados.items():
+        programa = f"input_PNADC_{leitura[ano]}.txt"
+        edicoes[ano] = Edicao(
+            ano,
+            str(ano),
+            {
+                "dados": f"{_PNADC}Visita/Visita_1/Dados/PNADC_{ano}_visita1_{data}.zip",
+                "leitura": f"{_PNADC}Visita/Visita_1/Documentacao/{programa}",
+            },
+            (
+                Tabela(
+                    "microdados",
+                    "dados",
+                    f"PNADC_{ano}_visita1.txt",
+                    layout=("leitura", programa),
+                ),
+            ),
+        )
+    return edicoes
+
+
 PESQUISAS: Dict[str, Pesquisa] = {
     item.key: item
     for item in (
@@ -315,6 +367,19 @@ PESQUISAS: Dict[str, Pesquisa] = {
             "Microdados da PeNSE: questionário do estudante e da escola, com "
             "alimentação, atividade física, tabagismo, álcool e violência.",
             {
+                2009: Edicao(
+                    2009,
+                    "2009",
+                    {"dados": "pense/2009/microdados/PENSE_2009_microdados.zip"},
+                    (
+                        Tabela(
+                            "microdados",
+                            "dados",
+                            "Base_Pense Completa_2009.txt",
+                            layout=(_FROZEN, "pense_2009.csv"),
+                        ),
+                    ),
+                ),
                 2012: Edicao(
                     2012,
                     "2012",
@@ -362,6 +427,14 @@ PESQUISAS: Dict[str, Pesquisa] = {
                     (Tabela("microdados", "dados", "PENSE2024_MICRODADOS.csv"),),
                 ),
             },
+        ),
+        Pesquisa(
+            "ibge_pnadc_visita1",
+            "IBGE PNAD Contínua anual, visita 1 (microdados)",
+            "Microdados da PNAD Contínua anual na visita 1 ao domicílio: "
+            "características do domicílio e dos moradores, trabalho, educação "
+            "e rendimentos, com pesos e pesos replicados.",
+            _pnadc_visita1(),
         ),
     )
 }
@@ -527,7 +600,8 @@ class IbgeMicrodadosDataSource(DataSource):
             (edicao, alias)
             for edicao, chosen in plan
             for alias in dict.fromkeys(
-                [t.arquivo for t in chosen] + [t.layout[0] for t in chosen if t.layout]
+                [t.arquivo for t in chosen]
+                + [t.layout[0] for t in chosen if t.layout and t.layout[0] != _FROZEN]
             )
         ]
         total = len(downloads)
@@ -610,10 +684,17 @@ class IbgeMicrodadosDataSource(DataSource):
                         frame = frame.rename(cleaned)
                 else:
                     layout_zip, programa = tabela.layout
-                    with zipfile.ZipFile(raws[(edicao.ano, layout_zip)]) as layout_archive:
-                        text = layout_archive.read(_find_member(layout_archive, programa))
-                    blocks = parse_sas_input(text.decode("cp1252", errors="replace"))
-                    block = _select_block(blocks, tabela, programa)
+                    if layout_zip == _FROZEN:
+                        block = load_frozen_layout(_LAYOUTS_DIR / programa, name=tabela.nome)
+                    else:
+                        layout_raw = raws[(edicao.ano, layout_zip)]
+                        if layout_raw.suffix.lower() == ".zip":
+                            with zipfile.ZipFile(layout_raw) as layout_archive:
+                                text = layout_archive.read(_find_member(layout_archive, programa))
+                        else:
+                            text = layout_raw.read_bytes()
+                        blocks = parse_sas_input(text.decode("cp1252", errors="replace"))
+                        block = _select_block(blocks, tabela, programa)
                     warning = block.layout_warning()
                     with archive.open(info) as source:
                         transcode_to_utf8(source, utf8, "cp1252")
