@@ -35,6 +35,17 @@ FTP_LEGACY_SOURCES = frozenset(
         # janela DEMAS com start_year/end_year, parâmetros que as fontes CETESB
         # não aceitam, então a varredura só produziria um erro falso.
         "cetesb_qualar", "cetesb_estacoes", "cetesb_qualar_horario",
+        # Leva de outubro/2026: mesmo motivo. Transportes próprios (CKAN do
+        # MMA, arquivos HTTP, SICONFI, microdados IBGE, WFS do INPE) ou, no
+        # SIAPS, competências com milhões de linhas que a amostra DEMAS
+        # genérica não recorta. Entradas preenchidas à mão no dicionário.
+        "mma_monitorar",
+        "atencao_primaria_siaps_atendimento_individual",
+        "atencao_primaria_siaps_cadastro_individual",
+        "vigitel", "ibama_agrotoxicos_comercializacao", "farmacia_popular_indicadores",
+        "fns_repasses_fundo_a_fundo", "siconfi_dca_despesa_funcao",
+        "ibge_pns", "ibge_pense", "ibge_pof",
+        "inpe_deter_amazonia", "inpe_deter_cerrado", "inpe_prodes",
     }
 )
 

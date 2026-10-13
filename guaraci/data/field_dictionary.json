@@ -857,6 +857,62 @@
     "rows_sampled": 10,
     "status": "ok"
   },
+  "atencao_primaria_siaps_atendimento_individual": {
+    "fields": [
+      "co_uf_ibge",
+      "regiao",
+      "unidade_federativa",
+      "competencia_siaps",
+      "regiao_de_saude",
+      "municipio",
+      "raca_cor",
+      "sexo",
+      "escolaridade",
+      "faixa_etaria",
+      "capitulo_de_cid_e_ciap2",
+      "categoria_profissional",
+      "nacionalidade",
+      "local_de_atendimento",
+      "tipo_de_atendimento",
+      "tipo_de_estabelecimento",
+      "tipo_de_equipe",
+      "qtd_registros_atendimento",
+      "qtd_pessoas_atendidas"
+    ],
+    "filters": [
+      "start_date",
+      "end_date",
+      "competencia_siaps",
+      "municipio",
+      "co_uf_ibge",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source header (no full collection run yet). Aggregated strata; over 6 million rows per competencia. Values carry code prefixes ('4 - PARDA') and counts come as floats in text.",
+    "status": "ok"
+  },
+  "atencao_primaria_siaps_cadastro_individual": {
+    "fields": [],
+    "filters": [
+      "start_date",
+      "end_date",
+      "competencia_siaps",
+      "municipio",
+      "regiao",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "note": "Live smoke on 2026-10-13 (competencia 202606) returned rows with qtd_pessoas_cadastradas and the person-profile strata (povo ou comunidade tradicional, situacao de rua, deficiencia, mercado de trabalho); full column list still to be sampled.",
+    "status": "empty"
+  },
   "cetesb_estacoes": {
     "fields": [
       "id",
@@ -2944,6 +3000,18 @@
     "rows_sampled": 1000,
     "status": "ok"
   },
+  "farmacia_popular_indicadores": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "14 indicator files, one CSV each, sharing co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil and national/state values. Only pfpbben was opened live on 2026-10-13.",
+    "status": "empty"
+  },
   "febre_amarela": {
     "fields": [
       "mun_lpi",
@@ -2976,6 +3044,53 @@
     ],
     "note": "Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).",
     "status": "ok"
+  },
+  "fns_repasses_fundo_a_fundo": {
+    "fields": [
+      "BLOCO",
+      "GRUPO",
+      "ESTRATÉGIA",
+      "UF",
+      "MUNICIPIO",
+      "CO_MUNICIPIO_IBGE",
+      "QT_POPULACAO",
+      "NU_ANO_REFERENCIA_IBGE",
+      "CNPJ",
+      "ENTIDADE",
+      "BANCO",
+      "AGENCIA",
+      "CONTA",
+      "TP_REPASSE",
+      "TP_REPASSE_ESTADO",
+      "ST_FAF",
+      "ST_HU",
+      "DT_ULTIMA_LIBERACAO",
+      "VL_BRUTO",
+      "VL_LIQUIDO",
+      "VL_SALDO_CONTA",
+      "DT_SALDO_CONTA"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source header (no full collection run yet). 2020, 2022 and 2025 converted end to end. Separator, encoding and date format change by year; 2024 and the XLSX years spell ESTRATEGIA without accent.",
+    "status": "ok"
+  },
+  "ibama_agrotoxicos_comercializacao": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source header (no full collection run yet). 33 wide columns: Classe de uso, Ingrediente ativo, SEMESTRE, ANO, Vendas a clientes (ton. produtos), Vendas a Industrias (ton. produtos) and 27 'Qtd. Vendas - <UF>' columns. pt-BR numbers, negative values present; kept wide and as text.",
+    "status": "empty"
   },
   "ibge_area_territorial": {
     "fields": [
@@ -3118,6 +3233,21 @@
     "rows_sampled": 1,
     "status": "ok"
   },
+  "ibge_pense": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "start_year",
+      "end_year",
+      "tabelas",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Editions 2012 (fixed width, 3 tables), 2015 (two samples, 3 tables each), 2019 and 2024 (CSV). 2009 left out: layout only in XLS. Field list depends on the edition.",
+    "status": "empty"
+  },
   "ibge_pib_municipios": {
     "fields": [
       "nivel",
@@ -3140,6 +3270,36 @@
     ],
     "rows_sampled": 1,
     "status": "ok"
+  },
+  "ibge_pns": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "start_year",
+      "end_year",
+      "tabelas",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Fixed-width microdata read through the IBGE SAS input at download time: 1088 variables in 2019, 1000 in 2013 (verified live on 2026-10-13). Field list depends on the edition.",
+    "status": "empty"
+  },
+  "ibge_pof": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "start_year",
+      "end_year",
+      "tabelas",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "POF 2017-2018: 16 fixed-width tables, 550 variables read from the IBGE SAS program (verified live on 2026-10-13). Field list depends on the table.",
+    "status": "empty"
   },
   "ibge_populacao": {
     "fields": [
@@ -3313,6 +3473,81 @@
     "rows_sampled": 8760,
     "status": "ok"
   },
+  "inpe_deter_amazonia": {
+    "fields": [
+      "gid",
+      "classname",
+      "quadrant",
+      "path_row",
+      "view_date",
+      "sensor",
+      "satellite",
+      "areauckm",
+      "uc",
+      "areamunkm",
+      "municipality",
+      "mun_geocod",
+      "uf",
+      "publish_month"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "page_size"
+    ],
+    "note": "Fields verified live on 2026-10-13 via WFS DescribeFeatureType, geometry excluded (no full collection run yet). gid is text (e.g. 1011_hist). First view_date 2016-08-02.",
+    "status": "ok"
+  },
+  "inpe_deter_cerrado": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "page_size"
+    ],
+    "note": "Same attributes as DETER Amazonia plus created_date and areatotalkm, WITHOUT mun_geocod (municipality name and UF only). First view_date 2018-05-01. Exact column list read from DescribeFeatureType at download time.",
+    "status": "empty"
+  },
+  "inpe_prodes": {
+    "fields": [
+      "fid",
+      "state",
+      "path_row",
+      "main_class",
+      "class_name",
+      "def_cloud",
+      "julian_day",
+      "image_date",
+      "year",
+      "area_km",
+      "scene_id",
+      "source",
+      "satellite",
+      "sensor",
+      "uuid",
+      "publish_year"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "biomas",
+      "keep_raw",
+      "timeout",
+      "page_size"
+    ],
+    "note": "Fields verified live on 2026-10-13 via WFS DescribeFeatureType, geometry excluded (no full collection run yet). One CSV per biome; cerrado, pampa and legal_amz add pub_date, legal_amz adds sub_class. legal_amz/amazon/cerrado start in 2002; a few features have null year and only appear without a year filter.",
+    "status": "ok"
+  },
   "inpe_queimadas": {
     "fields": [
       "id_bdq",
@@ -3371,6 +3606,40 @@
       "api_base_url"
     ],
     "rows_sampled": 10,
+    "status": "ok"
+  },
+  "mma_monitorar": {
+    "fields": [
+      "no_fonte_dados",
+      "dh_medicao",
+      "nu_iqar",
+      "nu_concentracao",
+      "st_situacao",
+      "cd_flag",
+      "ds_flag",
+      "st_situacao_iqar",
+      "no_item_monitorado",
+      "cd_normalizado",
+      "id_estacao",
+      "cod_estacao",
+      "no_estacao",
+      "nu_latitude",
+      "nu_longitude",
+      "st_estacao",
+      "id_municipio",
+      "no_municipio",
+      "sg_uf"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source header (no full collection run yet). Same 19 columns in 2022-2025. cd_normalizado is the item code (e.g. PRESS), not a unit; units are only in the MMA PDF dictionary.",
     "status": "ok"
   },
   "mpox": {
@@ -4418,6 +4687,36 @@
       "states"
     ],
     "rows_sampled": 1180837,
+    "status": "ok"
+  },
+  "siconfi_dca_despesa_funcao": {
+    "fields": [
+      "exercicio",
+      "instituicao",
+      "cod_ibge",
+      "uf",
+      "anexo",
+      "rotulo",
+      "coluna",
+      "cod_conta",
+      "conta",
+      "valor",
+      "populacao"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "uf",
+      "entes",
+      "funcao",
+      "keep_raw",
+      "timeout",
+      "pause_ms",
+      "api_base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source header (no full collection run yet). DCA Anexo I-E filtered to accounts starting with 10 (Saude); first exercise with data is 2014.",
     "status": "ok"
   },
   "sih": {
@@ -6763,6 +7062,17 @@
       "api_base_url"
     ],
     "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.",
+    "status": "empty"
+  },
+  "vigitel": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Single stacked file 2006-2024 (no 2022), 577 MB CSV inside an 87 MB zip, coded values without labels. Header starts with ano, cidade, q6 and ends with yearly rake weights; columns are sparse by year. Not sampled yet because of size.",
     "status": "empty"
   },
   "zikavirus": {

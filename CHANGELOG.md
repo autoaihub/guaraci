@@ -2,6 +2,46 @@
 
 ## [Unreleased]
 
+### Added: 14 fontes novas, de 124 para 138
+Saíram de uma varredura de fontes primárias feita em 13/10/2026, com cada
+contrato conferido ao vivo antes de virar código. O catálogo do site passa a
+20 grupos e 12 instituições.
+
+- **Qualidade do ar fora de SP.** `mma_monitorar` traz o MonitorAr do MMA:
+  concentração horária de poluentes e meteorologia das redes estaduais, com
+  código IBGE do município, de 2022 a 2025. O zip anual de 32 MB guarda um
+  CSV de 1,1 GB, lido em fluxo. A coluna `cd_normalizado` é o código do
+  item, não a unidade, que só existe no PDF do MMA.
+- **Atenção primária.** `atencao_primaria_siaps_atendimento_individual` e
+  `atencao_primaria_siaps_cadastro_individual` vêm da API DEMAS. Uma
+  competência do atendimento passa de 6 milhões de linhas, e o teto de 250
+  páginas do coletor cortava em silêncio; nessas fontes o teto cobre a
+  competência inteira, e há teste que prova isso.
+- **Inquéritos com microdados.** `vigitel` (2006 a 2024, sem 2022, com
+  peso), `ibge_pns` (2013 e 2019), `ibge_pense` (2012 a 2024) e `ibge_pof`
+  (2017-2018). Os três do IBGE usam um leitor novo de largura fixa,
+  `guaraci/ibge/fixed_width.py`, guiado pelo próprio programa SAS de leitura
+  que acompanha os dados, nos três estilos que o IBGE usa. A PeNSE 2009 ficou
+  de fora porque o leiaute dela só existe em XLS.
+- **Financiamento.** `siconfi_dca_despesa_funcao` (despesa por função Saúde
+  declarada por estados e municípios ao Tesouro, desde 2014) e
+  `fns_repasses_fundo_a_fundo` (transferências do FNS, desde 2002). O FNS
+  muda separador, codificação e formato de data de um ano para outro e
+  publica 2025 em diante como XLSX, lido por um leitor só com a biblioteca
+  padrão.
+- **Medicamentos.** `farmacia_popular_indicadores`, 14 indicadores
+  municipais do programa.
+- **Agrotóxicos e desmatamento.** `ibama_agrotoxicos_comercializacao`
+  (vendas por ingrediente ativo e UF), `inpe_deter_amazonia` (desde 2016),
+  `inpe_deter_cerrado` (desde 2018) e `inpe_prodes` (por bioma), estes três
+  pelo WFS do TerraBrasilis, só com atributos e sem geometria.
+
+O Atlas Digital de Desastres do MIDR ficou de fora: o firewall da origem
+recusa qualquer arquivo `.csv` do conjunto, e o caminho é pedir liberação ao
+órgão. Cada fonte nova tem smoke opt-in por variável de ambiente
+(`GUARACI_<FONTE>_SMOKE=1`); o do TerraBrasilis não chegou ao fim por
+lentidão do GeoServer.
+
 ### Fixed: exportação do DATASUS com memória proporcional ao período pedido
 A verificação de volume mediu 6,8 GB de pico para um ano de SIH de SP. A
 causa foi isolada exportando o mesmo mês repetido: 2,5 GB com um arquivo,

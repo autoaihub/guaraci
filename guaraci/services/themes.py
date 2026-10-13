@@ -259,6 +259,19 @@ _EXPLICIT: Mapping[str, Tuple[str, ...]] = {
     "cetesb_qualar": ("qualidade_ar", "ambiente_clima"),
     "cetesb_estacoes": ("qualidade_ar", "ambiente_clima"),
     "cetesb_qualar_horario": ("qualidade_ar", "ambiente_clima"),
+    # Leva de outubro/2026 (o SIAPS cai na regra de prefixo atencao_primaria_)
+    "mma_monitorar": ("qualidade_ar", "ambiente_clima"),
+    "vigitel": ("vigilancia_epidemiologica", "nutricao"),
+    "ibama_agrotoxicos_comercializacao": ("ambiente_clima", "vigilancia_sanitaria"),
+    "farmacia_popular_indicadores": ("medicamentos", "atencao_primaria"),
+    "fns_repasses_fundo_a_fundo": ("economia_saude", "gestao"),
+    "siconfi_dca_despesa_funcao": ("economia_saude", "gestao"),
+    "ibge_pns": ("vigilancia_epidemiologica", "socioeconomico"),
+    "ibge_pense": ("vigilancia_epidemiologica", "nutricao"),
+    "ibge_pof": ("nutricao", "socioeconomico", "economia_saude"),
+    "inpe_deter_amazonia": ("ambiente_clima",),
+    "inpe_deter_cerrado": ("ambiente_clima",),
+    "inpe_prodes": ("ambiente_clima",),
 }
 
 

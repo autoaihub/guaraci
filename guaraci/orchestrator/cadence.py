@@ -54,10 +54,10 @@ _NOVAS_FONTES_2026_10: Dict[str, tuple] = {
     "ibama_agrotoxicos_comercializacao": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
     "farmacia_popular_indicadores": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
     "fns_repasses_fundo_a_fundo": (Kind.API_WINDOW, Cadence.MONTHLY, 2002),
-    "siconfi_dca_despesa_funcao": (Kind.API_WINDOW, Cadence.ANNUAL, 2015),  # a confirmar
+    "siconfi_dca_despesa_funcao": (Kind.API_WINDOW, Cadence.ANNUAL, 2014),
     "inpe_deter_amazonia": (Kind.API_WINDOW, Cadence.MONTHLY, 2016),  # a confirmar
     "inpe_deter_cerrado": (Kind.API_WINDOW, Cadence.MONTHLY, 2018),  # a confirmar
-    "inpe_prodes": (Kind.API_WINDOW, Cadence.ANNUAL, 2000),
+    "inpe_prodes": (Kind.API_WINDOW, Cadence.ANNUAL, 2002),
 }
 
 # Edit here to re-tune how often a source is re-checked for new data.
@@ -160,7 +160,7 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_saneamento_lixo": 2022,  # census reference year, single period
             # Microdados de inquérito: só os anos de edição têm arquivo.
             "ibge_pns": 2013,
-            "ibge_pense": 2009,
+            "ibge_pense": 2012,  # 2009 fora: leiaute só em XLS
             "ibge_pof": 2017,
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
