@@ -63,6 +63,7 @@ G_NASA = "NASA · clima e ambiente"
 G_SAN = "Saneamento · gov.br"
 G_AMB = "Ambiental · clima, água e território"
 G_ANV = "ANVISA · vigilância sanitária"
+G_INQ = "Inquéritos populacionais · microdados"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -224,6 +225,21 @@ CURATED = {
     "cetesb_qualar": ("CETESB QUALAR", "Índice horário de qualidade do ar por estação, últimas 48 horas (não é concentração)", G_AMB, "CETESB — Companhia Ambiental do Estado de São Paulo", "clima"),
     "cetesb_estacoes": ("CETESB · estações de monitoramento", "Cadastro geolocalizado das estações de qualidade do ar, com município e índice corrente", G_AMB, "CETESB — Companhia Ambiental do Estado de São Paulo", "clima"),
     "cetesb_qualar_horario": ("CETESB QUALAR · concentração horária", "Concentração medida de poluentes e variáveis meteorológicas por estação, série histórica (exige conta no QUALAR)", G_AMB, "CETESB — Companhia Ambiental do Estado de São Paulo", "clima"),
+    # Leva de outubro/2026
+    "mma_monitorar": ("MonitorAr", "Concentração horária de poluentes e meteorologia das redes estaduais de qualidade do ar, desde 2022", G_AMB, "MMA, Ministério do Meio Ambiente e Mudança do Clima", "clima"),
+    "atencao_primaria_siaps_atendimento_individual": ("SIAPS · atendimento individual", "Atendimentos da atenção primária por município, CID/CIAP2, sexo, raça/cor e equipe, por competência", G_AP, APS, "saude"),
+    "atencao_primaria_siaps_cadastro_individual": ("SIAPS · cadastro individual", "Pessoas cadastradas na atenção primária por município e perfil, por competência", G_AP, APS, "saude"),
+    "vigitel": ("Vigitel", "Inquérito telefônico de fatores de risco para doenças crônicas nas capitais, microdados com peso, 2006 a 2024", G_INQ, SVS, "saude"),
+    "ibama_agrotoxicos_comercializacao": ("Comercialização de agrotóxicos", "Vendas por ingrediente ativo, classe de uso e UF, por semestre", G_AMB, "IBAMA, Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renováveis", "clima"),
+    "farmacia_popular_indicadores": ("Farmácia Popular · indicadores", "Pessoas atendidas pelo programa por município e modalidade, 14 indicadores", G_ECO, MS, "saude"),
+    "fns_repasses_fundo_a_fundo": ("Repasses fundo a fundo (FNS)", "Transferências federais do SUS por ente, bloco e estratégia, desde 2002", G_ECO, "Ministério da Saúde, Fundo Nacional de Saúde", "saude"),
+    "siconfi_dca_despesa_funcao": ("SICONFI · despesa em saúde", "Despesa por função Saúde e subfunções declarada por estados e municípios, desde 2014", G_ECO, "Tesouro Nacional", "saude"),
+    "ibge_pns": ("PNS", "Pesquisa Nacional de Saúde, microdados de 2013 e 2019", G_INQ, "IBGE", "saude"),
+    "ibge_pense": ("PeNSE", "Pesquisa Nacional de Saúde do Escolar, microdados de 2012 a 2024", G_INQ, "IBGE", "saude"),
+    "ibge_pof": ("POF 2017-2018", "Pesquisa de Orçamentos Familiares, microdados com consumo alimentar e despesas", G_INQ, "IBGE", "pop"),
+    "inpe_deter_amazonia": ("DETER Amazônia", "Alertas de desmatamento e degradação na Amazônia Legal, com município e área, desde 2016", G_AMB, "INPE", "clima"),
+    "inpe_deter_cerrado": ("DETER Cerrado", "Alertas de desmatamento no Cerrado, com município e área, desde 2018", G_AMB, "INPE", "clima"),
+    "inpe_prodes": ("PRODES", "Desmatamento anual mapeado por bioma, com UF, classe e área", G_AMB, "INPE", "clima"),
 }
 
 MODE_LABEL = {
@@ -240,6 +256,15 @@ MODE_LABEL = {
     "cetesb qualar api": "API CETESB QUALAR (ArcGIS)",
     "cetesb qualar auth": "QUALAR CETESB (autenticado)",
     "anvisa files": "Arquivos abertos ANVISA",
+    "mma ckan files": "Dados abertos MMA (CKAN)",
+    "siaps api": "API OpenDataSUS (DEMAS)",
+    "svs files": "Arquivo aberto SVSA",
+    "ibama files": "Dados abertos IBAMA",
+    "demas s3 files": "Arquivos abertos DEMAS",
+    "fns files": "Arquivos do Fundo Nacional de Saúde",
+    "siconfi api": "API SICONFI (Tesouro)",
+    "ibge microdados": "Microdados IBGE",
+    "inpe terrabrasilis wfs": "WFS INPE TerraBrasilis",
 }
 
 CADENCE_PT = {
