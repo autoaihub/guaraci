@@ -64,6 +64,8 @@ G_SAN = "Saneamento · gov.br"
 G_AMB = "Ambiental · clima, água e território"
 G_ANV = "ANVISA · vigilância sanitária"
 G_INQ = "Inquéritos populacionais · microdados"
+G_EDU = "Educação · INEP"
+G_TRA = "Trânsito · PRF"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -240,6 +242,45 @@ CURATED = {
     "inpe_deter_amazonia": ("DETER Amazônia", "Alertas de desmatamento e degradação na Amazônia Legal, com município e área, desde 2016", G_AMB, "INPE", "clima"),
     "inpe_deter_cerrado": ("DETER Cerrado", "Alertas de desmatamento no Cerrado, com município e área, desde 2018", G_AMB, "INPE", "clima"),
     "inpe_prodes": ("PRODES", "Desmatamento anual mapeado por bioma, com UF, classe e área", G_AMB, "INPE", "clima"),
+    # Leva 2 de outubro/2026
+    "ibge_censo_cor_raca_idade_sexo": ("Censo: cor ou raça, sexo e idade", "População por cor ou raça, sexo e grupo de idade até o município, 2010 e 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_alfabetizacao": ("Censo: alfabetização", "Pessoas de 15 anos ou mais alfabetizadas, por sexo, cor ou raça e idade, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_indigena": ("Censo: população indígena", "População indígena por sexo, idade, quesito de declaração e localização do domicílio, 2010 e 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_quilombola": ("Censo: população quilombola", "População quilombola por sexo, idade e localização do domicílio, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_adensamento": ("Censo: adensamento domiciliar", "Domicílios por número de moradores por dormitório, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_paredes": ("Censo: material das paredes", "Domicílios por material das paredes externas, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_deficiencia": ("Censo: pessoas com deficiência", "Pessoas com deficiência por sexo, idade e cor ou raça, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_pnadc_visita1": ("PNAD Contínua · visita 1", "Microdados anuais de domicílios e moradores, 2012 a 2025, com pesos replicados", G_INQ, "IBGE", "pop"),
+    "inep_censo_escolar": ("Censo Escolar · escolas", "Infraestrutura das escolas (água, esgoto, alimentação, internet), por ano desde 2007", G_EDU, "INEP, Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira", "pop"),
+    "prf_acidentes_ocorrencias": ("Acidentes em rodovias federais · ocorrências", "Acidentes registrados pela PRF com causa, tipo, vítimas e localização, desde 2007", G_TRA, "PRF, Polícia Rodoviária Federal", "saude"),
+    "prf_acidentes_pessoas": ("Acidentes em rodovias federais · pessoas", "Envolvidos nos acidentes com idade, sexo, tipo de veículo e estado físico, desde 2007", G_TRA, "PRF, Polícia Rodoviária Federal", "saude"),
+    "siops_indicadores_municipios": ("SIOPS · indicadores municipais", "Indicadores de receita e despesa em saúde dos municípios, incluindo a aplicação mínima da EC 29, desde 2000", G_ECO, MS, "saude"),
+    "siops_indicadores_estados": ("SIOPS · indicadores estaduais", "Indicadores de receita e despesa em saúde dos estados, desde 2002", G_ECO, MS, "saude"),
+    "siconfi_rreo_saude": ("SICONFI · RREO saúde", "Despesa bimestral na função Saúde declarada por estados e municípios, desde 2015", G_ECO, "Tesouro Nacional", "saude"),
+    "mgdi_samu": ("SAMU 192 · indicadores", "Indicadores municipais do SAMU 192", G_AS, MS, "saude"),
+    "mgdi_upa": ("UPA 24h · indicadores", "Indicadores municipais das Unidades de Pronto Atendimento", G_AS, MS, "saude"),
+    "mgdi_raps": ("RAPS · indicadores", "Indicadores municipais da Rede de Atenção Psicossocial", G_AS, MS, "saude"),
+    "mgdi_emulti": ("eMulti · indicadores", "Indicadores municipais das equipes multiprofissionais da atenção primária", G_AP, APS, "saude"),
+    "mgdi_academia_saude": ("Academia da Saúde · indicadores", "Indicadores municipais do programa Academia da Saúde", G_AP, APS, "saude"),
+    "mgdi_saude_bucal": ("Saúde bucal · indicadores", "Indicadores municipais da rede de atenção em saúde bucal", G_AP, APS, "saude"),
+    "mgdi_telessaude": ("Telessaúde · indicadores", "Indicadores do programa Telessaúde", G_AP, MS, "saude"),
+    "atencao_primaria_pmme_instituicoes_formadoras": ("PMME · instituições formadoras", "Instituições e redes formadoras do programa de especialistas", G_AP, APS, "saude"),
+    "educacao_saude_pet_saude": ("PET-Saúde", "Projetos e bolsas do Programa de Educação pelo Trabalho para a Saúde", G_OUT, MS, "saude"),
+    "educacao_saude_sig_residencia_medica": ("Residência médica", "Programas e bolsas de residência médica por instituição", G_OUT, MS, "saude"),
+    "educacao_saude_sig_residencia_area_profissional": ("Residência em área profissional", "Programas e bolsas de residência multiprofissional e em área profissional", G_OUT, MS, "saude"),
+    "vigilancia_e_meio_ambiente_svsa_populacao_residente": ("População residente (SVSA)", "População por município, sexo e idade usada nos indicadores do Ministério da Saúde", G_VMA, SVS, "saude"),
+    "saude_indigena_sesai_acidentes_ofidicos": ("SESAI · acidentes ofídicos", "Registros da saúde indígena sobre acidentes ofídicos, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_arboviroses": ("SESAI · arboviroses", "Registros da saúde indígena sobre arboviroses, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_assistencia_farmaceutica": ("SESAI · assistência farmacêutica", "Registros da saúde indígena sobre assistência farmacêutica, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_cobertura_vacinal": ("SESAI · cobertura vacinal", "Registros da saúde indígena sobre cobertura vacinal, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_covid19": ("SESAI · Covid-19", "Registros da saúde indígena sobre Covid-19, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_demografico": ("SESAI · cadastro demográfico", "Registros da saúde indígena sobre cadastro demográfico, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_doencas_diarreicas_agudas": ("SESAI · doenças diarreicas agudas", "Registros da saúde indígena sobre doenças diarreicas agudas, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_doencas_imunopreveniveis": ("SESAI · doenças imunopreveníveis", "Registros da saúde indígena sobre doenças imunopreveníveis, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_doencas_respiratorias": ("SESAI · doenças respiratórias", "Registros da saúde indígena sobre doenças respiratórias, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_doencas_zoonoticas": ("SESAI · doenças zoonóticas", "Registros da saúde indígena sobre doenças zoonóticas, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_hepatites_virais": ("SESAI · hepatites virais", "Registros da saúde indígena sobre hepatites virais, por DSEI e polo base", G_IND, SESAI, "saude"),
+    "saude_indigena_sesai_obitos": ("SESAI · óbitos", "Registros da saúde indígena sobre óbitos, por DSEI e polo base", G_IND, SESAI, "saude"),
 }
 
 MODE_LABEL = {
@@ -265,6 +306,9 @@ MODE_LABEL = {
     "siconfi api": "API SICONFI (Tesouro)",
     "ibge microdados": "Microdados IBGE",
     "inpe terrabrasilis wfs": "WFS INPE TerraBrasilis",
+    "siops tabnet": "TabNet SIOPS (DATASUS)",
+    "prf drive files": "Arquivos abertos PRF",
+    "inep files": "Microdados INEP",
 }
 
 CADENCE_PT = {
