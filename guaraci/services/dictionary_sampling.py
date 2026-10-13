@@ -46,6 +46,14 @@ FTP_LEGACY_SOURCES = frozenset(
         "fns_repasses_fundo_a_fundo", "siconfi_dca_despesa_funcao",
         "ibge_pns", "ibge_pense", "ibge_pof",
         "inpe_deter_amazonia", "inpe_deter_cerrado", "inpe_prodes",
+        # Leva 2: SIDRA do Censo, microdados, TabNet, arquivos e APIs próprias.
+        "ibge_censo_cor_raca_idade_sexo", "ibge_censo_alfabetizacao", "ibge_censo_indigena",
+        "ibge_censo_quilombola", "ibge_censo_adensamento", "ibge_censo_paredes",
+        "ibge_censo_deficiencia", "ibge_pnadc_visita1", "inep_censo_escolar",
+        "mgdi_samu", "mgdi_upa", "mgdi_raps", "mgdi_emulti", "mgdi_academia_saude",
+        "mgdi_saude_bucal", "mgdi_telessaude",
+        "prf_acidentes_ocorrencias", "prf_acidentes_pessoas",
+        "siconfi_rreo_saude", "siops_indicadores_municipios", "siops_indicadores_estados",
     }
 )
 

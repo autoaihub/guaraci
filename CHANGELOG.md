@@ -2,6 +2,49 @@
 
 ## [Unreleased]
 
+### Added: 38 fontes na segunda leva, de 138 para 176
+O catálogo do site passa a 22 grupos e 14 instituições, com INEP e PRF.
+
+- **Censo 2022 no SIDRA.** Sete fontes `ibge_censo_*`: cor ou raça por
+  sexo e idade (2010 e 2022), alfabetização, população indígena (2010 e
+  2022), quilombola, adensamento, material das paredes e deficiência.
+- **Financiamento.** `siops_indicadores_municipios` (2000 a 2025) e
+  `siops_indicadores_estados` (2002 a 2025), os 31 indicadores do SIOPS,
+  entre eles a aplicação mínima da EC 29. Vêm pelo transporte novo
+  `guaraci/tabnet`, que fala HTTP/1.0 cru porque o servidor do SIOPS põe uma
+  linha de HTML dentro dos cabeçalhos e clientes estritos recusam a
+  resposta. Nos anos antigos, quando falta algum indicador, cada um é
+  testado sozinho e só a coluna ausente fica vazia. O Distrito Federal não
+  aparece em nenhuma das duas séries. `siconfi_rreo_saude` traz a despesa
+  bimestral na função Saúde desde 2015, pelo Anexo 02 do RREO: o Anexo 12,
+  que seria o próprio da saúde, volta vazio em todos os recortes testados.
+- **Rede de atenção.** Sete fontes `mgdi_*` (SAMU, UPA, RAPS, eMulti,
+  Academia da Saúde, saúde bucal e Telessaúde), indicadores municipais no
+  mesmo formato da Farmácia Popular.
+- **Inquéritos.** `ibge_pnadc_visita1` (PNAD Contínua, visita anual de
+  domicílios, 2012 a 2025) usa o mesmo leitor de largura fixa da PNS. A
+  `ibge_pense` ganha a edição de 2009, com o leiaute extraído uma vez do XLS
+  do IBGE e guardado em `guaraci/ibge/layouts/pense_2009.csv`.
+- **Educação e trânsito.** `inep_censo_escolar` (tabela de escolas desde
+  2007, com água, esgoto, alimentação e internet) e
+  `prf_acidentes_ocorrencias`/`prf_acidentes_pessoas` (acidentes em rodovias
+  federais desde 2007, baixados pelo link público do Google Drive que a
+  própria PRF publica).
+- **API DEMAS.** O registro gerado foi refeito com o swagger 1.8.32 e ganhou
+  17 fontes: 12 da SESAI, população residente da SVSA, PET-Saúde, residência
+  médica e em área profissional, e instituições formadoras do PMME. Ficaram
+  de fora, com o motivo no gerador: os profissionais do CNES (nome de
+  pessoa), os demais endpoints do CNES (os mesmos grupos já vêm do FTP, e
+  pela API passam de 10 milhões de linhas sem recorte) e os agregados de
+  SIA e SIH, derivados do FTP.
+
+### Fixed: consultas ao SIDRA acima do limite real da API
+O Guaraci assumia um teto de 100 mil valores por consulta, mas a API do
+SIDRA recusa acima de 50 mil. Uma consulta municipal de Minas Gerais na
+tabela 9606 pedia 179 mil valores e falhava. O teto foi corrigido e, quando
+uma UF ainda estoura, a consulta é fatiada por categoria; Minas Gerais volta
+completa em cinco fatias. Vale também para as fontes SIDRA que já existiam.
+
 ### Added: 14 fontes novas, de 124 para 138
 Saíram de uma varredura de fontes primárias feita em 13/10/2026, com cada
 contrato conferido ao vivo antes de virar código. O catálogo do site passa a

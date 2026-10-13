@@ -7,20 +7,43 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 124 sources cataloged; 114 sampled with real field names.
+- 176 sources cataloged; 143 sampled with real field names.
 
 ## Caveats (honest)
 
 - `ana_hidro` (needs_credential): ANA HidroWebService requires an identifier/password credential obtained by e-mail registration with ANA (per the HidroWebService manual). Set GUARACI_ANA_ID/GUARACI_ANA_SENHA. Operator registration was still pending at integration time, so no live sample was taken.
 - `atencao_primaria_pmmb_relatorio_historico_cadastro_cnes` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `atencao_primaria_siaps_cadastro_individual` (empty): Live smoke on 2026-10-13 (competencia 202606) returned rows with qtd_pessoas_cadastradas and the person-profile strata (povo ou comunidade tradicional, situacao de rua, deficiencia, mercado de trabalho); full column list still to be sampled.
 - `ciencia_tecnologia_plataformabr_pesquisa_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `ciencia_tecnologia_plataformabr_projeto_aprovado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `farmacia_popular_indicadores` (empty): 14 indicator files, one CSV each, sharing co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil and national/state values. Only pfpbben was opened live on 2026-10-13.
+- `ibama_agrotoxicos_comercializacao` (empty): Fields verified live on 2026-10-13 against the source header (no full collection run yet). 33 wide columns: Classe de uso, Ingrediente ativo, SEMESTRE, ANO, Vendas a clientes (ton. produtos), Vendas a Industrias (ton. produtos) and 27 'Qtd. Vendas - <UF>' columns. pt-BR numbers, negative values present; kept wide and as text.
+- `ibge_censo_deficiencia` (empty): Two files per run: SIDRA 10125 (sexo, grupo_de_idade) and 10132 (cor_ou_raca, existencia_de_deficiencia), both with nivel, localidade_id, localidade_nome, ano, variavel_id, unidade, valor (2022).
+- `ibge_pense` (empty): Editions 2012 (fixed width, 3 tables), 2015 (two samples, 3 tables each), 2019 and 2024 (CSV). 2009 left out: layout only in XLS. Field list depends on the edition.
+- `ibge_pnadc_visita1` (empty): PNAD Continua annual visit 1, 2012-2025 (no 2020/2021 on the FTP); fixed-width read through the IBGE SAS input, 450 to 490 variables depending on the year, with replicate weights V1032001-V1032200.
+- `ibge_pns` (empty): Fixed-width microdata read through the IBGE SAS input at download time: 1088 variables in 2019, 1000 in 2013 (verified live on 2026-10-13). Field list depends on the edition.
+- `ibge_pof` (empty): POF 2017-2018: 16 fixed-width tables, 550 variables read from the IBGE SAS program (verified live on 2026-10-13). Field list depends on the table.
+- `inep_censo_escolar` (empty): School table of the INEP school census, 2007 onward; 370 columns in 2007, 426 in 2024 and 290 in 2025 (schema changes by year). Includes CO_ENTIDADE, NU_ANO_CENSO, IN_AGUA_REDE_PUBLICA, IN_ESGOTO_REDE_PUBLICA, IN_ALIMENTACAO, IN_INTERNET.
+- `inpe_deter_cerrado` (empty): Same attributes as DETER Amazonia plus created_date and areatotalkm, WITHOUT mun_geocod (municipality name and UF only). First view_date 2018-05-01. Exact column list read from DescribeFeatureType at download time.
+- `mgdi_academia_saude` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+- `mgdi_emulti` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+- `mgdi_raps` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+- `mgdi_samu` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+- `mgdi_saude_bucal` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+- `mgdi_telessaude` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13. One Telessaude file (mgdi_ms_g0y) has 16 columns without co_ibge.
+- `mgdi_upa` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
 - `nasa_firms` (needs_credential): NASA FIRMS requires a MAP_KEY. Set the environment variable GUARACI_FIRMS_MAP_KEY (free key from https://firms.modaps.eosdis.nasa.gov/api/map_key/).
 - `nasa_gpm` (needs_credential): NASA GPM (GES DISC) requires an Earthdata Login token. Set the environment variable GUARACI_EARTHDATA_TOKEN (generate at https://urs.earthdata.nasa.gov, and authorize the 'NASA GESDISC DATA ARCHIVE' application).
+- `prf_acidentes_pessoas` (empty): One row per person involved (35 columns in 2025): occurrence columns plus pesid, id_veiculo, tipo_veiculo, marca, ano_fabricacao_veiculo, tipo_envolvido, estado_fisico, idade, sexo. No names.
 - `saude_indigena_acompanhamento_obra_infraestrutura_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `saude_indigena_sesai_hepatites_virais` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `saude_indigena_sesai_obitos` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `sinisa` (error): expected name token at '<![:e\x90\x02ª/Ü4æ\x03\x17G\x92ý\x83\x0b¦'
+- `siops_indicadores_estados` (empty): Fields verified live on 2026-10-13 against the source (no full collection run yet). ano, cod_uf, uf, nome_uf and the 31 state indicators, 2002-2025 (624 rows; DF not in this series).
+- `siops_indicadores_municipios` (empty): Fields verified live on 2026-10-13 against the source (no full collection run yet). ano, cod_ibge, municipio and the 31 SIOPS indicators (EC 29/LC 141 shares, spending per capita, D.Total Saude). Full 2000-2025 run: 143,760 rows; 2000-2012 miss some indicators (empty columns). DF is not in this series.
 - `snis` (empty): no documents matched file_kinds=planilhas, module=gestao_municipal
 - `vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `vigitel` (empty): Single stacked file 2006-2024 (no 2022), 577 MB CSV inside an 87 MB zip, coded values without labels. Header starts with ano, cidade, q6 and ends with yearly rake weights; columns are sparse by year. Not sampled yet because of size.
 
 ## Legend
 
@@ -174,6 +197,25 @@ to refresh.
 - **Filters:** `regiao`, `uf`, `ibge`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `regiao`, `uf`, `municipio_dsei`, `ibge`, `prof_crm_brasil_pmmb`, `prof_inter_pmmb`, `prof_cooperados_pmmb`, `prof_provab`, `total_prof_ativos`, `dt_referencia`, `prof_bolsista_vinculados`, `prof_celetista_vinculados`, `prof_tutor_vinculados`
 
+## atencao_primaria_pmme_instituicoes_formadoras
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `no_especialista`, `no_rede_formadora`, `no_instituicao_formadora`
+
+## atencao_primaria_siaps_atendimento_individual
+
+- **Status:** ok
+- **Filters:** `start_date`, `end_date`, `competencia_siaps`, `municipio`, `co_uf_ibge`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `co_uf_ibge`, `regiao`, `unidade_federativa`, `competencia_siaps`, `regiao_de_saude`, `municipio`, `raca_cor`, `sexo`, `escolaridade`, `faixa_etaria`, `capitulo_de_cid_e_ciap2`, `categoria_profissional`, `nacionalidade`, `local_de_atendimento`, `tipo_de_atendimento`, `tipo_de_estabelecimento`, `tipo_de_equipe`, `qtd_registros_atendimento`, `qtd_pessoas_atendidas`
+- **Note:** Fields verified live on 2026-10-13 against the source header (no full collection run yet). Aggregated strata; over 6 million rows per competencia. Values carry code prefixes ('4 - PARDA') and counts come as floats in text.
+
+## atencao_primaria_siaps_cadastro_individual
+
+- **Status:** empty
+- **Filters:** `start_date`, `end_date`, `competencia_siaps`, `municipio`, `regiao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** Live smoke on 2026-10-13 (competencia 202606) returned rows with qtd_pessoas_cadastradas and the person-profile strata (povo ou comunidade tradicional, situacao de rua, deficiencia, mercado de trabalho); full column list still to be sampled.
+
 ## cetesb_estacoes
 
 - **Status:** ok (62 rows sampled)
@@ -319,6 +361,24 @@ to refresh.
 - **Filters:** `co_uf`, `nu_ano`, `nu_mes`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `co_uf`, `nu_ano`, `nu_mes`, `nu_beneficiario`, `vl_total`
 
+## educacao_saude_pet_saude
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `campos`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `no_edicao`, `co_projeto`, `nu_bolsa`, `nu_grupo_atuacao`, `ds_ies`, `ds_seretaria_saude`
+
+## educacao_saude_sig_residencia_area_profissional
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `ano_referencia`, `co_uf`, `co_ibge`, `campos`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `ano_referencia`, `co_uf`, `co_ibge`, `nu_cnpj`, `no_razao_social`, `no_fantasia`, `ds_modalidade_programa`, `programa`, `duracao`, `bolsas_financiadas`, `bolsas_fin_sexo_masc`, `bolsas_fin_sexo_fem`, `bolsas_fin_sexo_sem_inf`, `bolsas_fin_rac_cor_bran`, `bolsas_fin_rac_cor_pre`, `bolsas_fin_rac_cor_amar`, `bolsas_fin_rac_cor_par`, `bolsas_fin_rac_cor_indig`, `bolsas_fin_rac_cor_sem_inf`, `bolsas_fin_biomed`, `bolsas_fin_biolog`, `bolsas_fin_educ_fis`, `bolsas_fin_enferm`, `bolsas_fin_farmac`, `bolsas_fin_fisio`, `bolsas_fin_fono`, `bolsas_fin_med_vet`, `bolsas_fin_nutric`, `bolsas_fin_odonto`, `bolsas_fin_psicol`, `bolsas_fin_serv_soc`, `bolsas_fin_ter_ocp`, `bolsas_fin_saud_colet`, `bolsas_fin_fis_med`, `ingresso`, `egresso`
+
+## educacao_saude_sig_residencia_medica
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `ano_referencia`, `co_uf`, `co_ibge`, `campos`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `ano_referencia`, `co_uf`, `co_ibge`, `nu_cnpj`, `no_razao_social`, `no_fantasia`, `tipo_programa`, `programa`, `duracao`, `bolsas_financiadas`, `bolsas_fin_sexo_masc`, `bolsas_fin_sexo_fem`, `bolsas_fin_sexo_sem_inf`, `bolsas_fin_rac_cor_bran`, `bolsas_fin_rac_cor_pre`, `bolsas_fin_rac_cor_amar`, `bolsas_fin_rac_cor_par`, `bolsas_fin_rac_cor_indig`, `bolsas_fin_rac_cor_sem_inf`, `ingresso`, `egresso`
+
 ## enani_2019
 
 - **Status:** ok (14558 rows sampled)
@@ -332,12 +392,31 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `descricao_tipo_encerramento`, `descricao_estrangeiro`, `descricao_evolucao_caso`, `data_inicio_ea`, `hora_duracao_ea`, `descricao_imuno`, `descricao_relacao_imuno`, `nome_estado_estab_atendimento`, `descricao_tipo_ea`, `descricao_gestante`, `st_comunidade_tradicional`, `nome_estado`, `descricao_diagnostico`, `numero_idade`, `descricao_mulher_amamentando`, `descricao_evento_adverso`, `descricao_encerramento_grave`, `descricao_class_gravidade_ea`, `descricao_minuto_reacao_intervalo_admin_ea`, `descricao_not_mae_filho`, `descricao_hora_inicio_ea`, `descricao_hora_terminome_ea`, `hora_aplica_imuno`, `numero_notificacao`, `descricao_lote_imuno`, `nome_mun_estab_atendimento`, `descricao_dose_imuno`, `descricao_medicamento_uso`, `data_recebimento_notificacao`, `descricao_atendimento_medico`, `numero_mes_gestacao_mae`, `descricao_sexo`, `numero_mes_gestante`, `data_investigacao`, `descricao_dia_duracao_ea`, `data_terminome_ea`, `descricao_mae_amamentando`, `descricao_profissional_saude`, `descricao_doencas_pre_existentes`, `descricao_casualidade`, `data_alta_atendimento`, `nome_mun_notificacao`, `descricao_relacao_medicamento`, `descricao_dia_reacao_intervalo_admin_ea`, `codigo_imuno`, `data_notificacao`, `descricao_medicamento`, `descricao_raca_cor_mae`, `data_desfecho`, `descricao_situacao_notificacao`, `descricao_raca_cor`, `descricao_hora_reacao_intervalo_admin_ea`, `descricao_via_admin_imuno`, `descricao_reacao_ea`, `descricao_crianca_aleitamento`, `descricao_profissional_seguranca`, `nome_mun_mae`, `descricao_minuto_duracao_ea`, `descricao_nome_fabricante`, `descricao_mae_gestante`, `data_admissao_atendimento`, `data_encerramento`, `descricao_estrategia_imuno`, `nome_estado_notificacao`, `descricao_local_aplica_imuno`, `data_aplicacao_imuno`, `codigo_reacao_ea`, `descricao_versao_medra`, `nome_municipio`, `nome_estado_mae`, `descricao_tipo_atendimento`, `descricao_gravidade_ea`, `descricao_conduta`
 
+## farmacia_popular_indicadores
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** 14 indicator files, one CSV each, sharing co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil and national/state values. Only pfpbben was opened live on 2026-10-13.
+
 ## febre_amarela
 
 - **Status:** ok
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `mun_lpi`, `mes_is`, `sexo`, `dt_is`, `cod_mun_lpi`, `idade`, `dt_obito`, `macrorreg_lpi`, `ano_is`, `se_is`, `monitoramento_is`, `uf_lpi`, `obito`, `cod_uf_lpi`
 - **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
+
+## fns_repasses_fundo_a_fundo
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`
+- **Fields:** `BLOCO`, `GRUPO`, `ESTRATÉGIA`, `UF`, `MUNICIPIO`, `CO_MUNICIPIO_IBGE`, `QT_POPULACAO`, `NU_ANO_REFERENCIA_IBGE`, `CNPJ`, `ENTIDADE`, `BANCO`, `AGENCIA`, `CONTA`, `TP_REPASSE`, `TP_REPASSE_ESTADO`, `ST_FAF`, `ST_HU`, `DT_ULTIMA_LIBERACAO`, `VL_BRUTO`, `VL_LIQUIDO`, `VL_SALDO_CONTA`, `DT_SALDO_CONTA`
+- **Note:** Fields verified live on 2026-10-13 against the source header (no full collection run yet). 2020, 2022 and 2025 converted end to end. Separator, encoding and date format change by year; 2024 and the XLSX years spell ESTRATEGIA without accent.
+
+## ibama_agrotoxicos_comercializacao
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** Fields verified live on 2026-10-13 against the source header (no full collection run yet). 33 wide columns: Classe de uso, Ingrediente ativo, SEMESTRE, ANO, Vendas a clientes (ton. produtos), Vendas a Industrias (ton. produtos) and 27 'Qtd. Vendas - <UF>' columns. pt-BR numbers, negative values present; kept wide and as text.
 
 ## ibge_area_territorial
 
@@ -350,6 +429,54 @@ to refresh.
 - **Status:** ok (1 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `mes`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `mes_do_registro`, `estado_civil_do_primeiro_conjuge`, `estado_civil_do_segundo_conjuge`, `grupo_de_idade_do_primeiro_conjuge`, `grupo_de_idade_do_segundo_conjuge`, `variavel_id`, `unidade`, `valor`
+
+## ibge_censo_adensamento
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `numero_de_moradores_por_comodos_utilizados_como_dormitorio`, `condicao_de_ocupacao_do_domicilio`, `tipo_de_domicilio`, `variavel_id`, `unidade`, `valor`
+- **Note:** Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9933 (2022). Some classifications include subtotals among categories.
+
+## ibge_censo_alfabetizacao
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `alfabetizacao`, `sexo`, `cor_ou_raca`, `idade`, `variavel_id`, `unidade`, `valor`
+- **Note:** Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9542 (2022).
+
+## ibge_censo_cor_raca_idade_sexo
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `cor_ou_raca`, `sexo`, `idade`, `variavel_id`, `unidade`, `valor`
+- **Note:** Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9606 (2010, 2022). Municipal requests are split per UF and, above 50k values, per category.
+
+## ibge_censo_deficiencia
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** Two files per run: SIDRA 10125 (sexo, grupo_de_idade) and 10132 (cor_ou_raca, existencia_de_deficiencia), both with nivel, localidade_id, localidade_nome, ano, variavel_id, unidade, valor (2022).
+
+## ibge_censo_indigena
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `sexo`, `idade`, `forma_de_declaracao_da_idade`, `quesito_de_declaracao_indigena`, `localizacao_do_domicilio`, `variavel_id`, `unidade`, `valor`
+- **Note:** Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9845, variables 93 and 350 (2010, 2022).
+
+## ibge_censo_paredes
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `tipo_de_material_das_paredes_externas`, `condicao_de_ocupacao_do_domicilio`, `tipo_de_domicilio`, `variavel_id`, `unidade`, `valor`
+- **Note:** Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9928 (2022).
+
+## ibge_censo_quilombola
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `sexo`, `grupo_de_idade`, `localizacao_do_domicilio`, `situacao_do_domicilio`, `variavel_id`, `unidade`, `valor`
+- **Note:** Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 10089 (2022); variable 4728 is a percentage.
 
 ## ibge_divorcios
 
@@ -369,11 +496,35 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `mes`, `sexo`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `mes_de_ocorrencia`, `sexo`, `local_de_ocorrencia`, `idade_do_a_falecido_a`, `natureza_do_obito`, `variavel_id`, `unidade`, `valor`
 
+## ibge_pense
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** Editions 2012 (fixed width, 3 tables), 2015 (two samples, 3 tables each), 2019 and 2024 (CSV). 2009 left out: layout only in XLS. Field list depends on the edition.
+
 ## ibge_pib_municipios
 
 - **Status:** ok (1 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `variavel_id`, `unidade`, `valor`
+
+## ibge_pnadc_visita1
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** PNAD Continua annual visit 1, 2012-2025 (no 2020/2021 on the FTP); fixed-width read through the IBGE SAS input, 450 to 490 variables depending on the year, with replicate weights V1032001-V1032200.
+
+## ibge_pns
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** Fixed-width microdata read through the IBGE SAS input at download time: 1088 variables in 2019, 1000 in 2013 (verified live on 2026-10-13). Field list depends on the edition.
+
+## ibge_pof
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** POF 2017-2018: 16 fixed-width tables, 550 variables read from the IBGE SAS program (verified live on 2026-10-13). Field list depends on the table.
 
 ## ibge_populacao
 
@@ -405,11 +556,37 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `destino_do_lixo`, `variavel_id`, `unidade`, `valor`
 
+## inep_censo_escolar
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** School table of the INEP school census, 2007 onward; 370 columns in 2007, 426 in 2024 and 290 in 2025 (schema changes by year). Includes CO_ENTIDADE, NU_ANO_CENSO, IN_AGUA_REDE_PUBLICA, IN_ESGOTO_REDE_PUBLICA, IN_ALIMENTACAO, IN_INTERNET.
+
 ## inmet_estacoes
 
 - **Status:** ok (8760 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `ufs`, `variables`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `year`, `uf`, `region`, `station_name`, `station_code`, `latitude`, `longitude`, `altitude`, `founded_date`, `date`, `hour_utc`, `timestamp`, `precipitacao_total_horario_mm`, `pressao_atmosferica_ao_nivel_da_estacao_horaria_mb`, `pressao_atmosferica_max_na_hora_ant_aut_mb`, `pressao_atmosferica_min_na_hora_ant_aut_mb`, `radiacao_global_kj_m`, `temperatura_do_ar_bulbo_seco_horaria_c`, `temperatura_do_ponto_de_orvalho_c`, `temperatura_maxima_na_hora_ant_aut_c`, `temperatura_minima_na_hora_ant_aut_c`, `temperatura_orvalho_max_na_hora_ant_aut_c`, `temperatura_orvalho_min_na_hora_ant_aut_c`, `umidade_rel_max_na_hora_ant_aut`, `umidade_rel_min_na_hora_ant_aut`, `umidade_relativa_do_ar_horaria`, `vento_direcao_horaria_gr_gr`, `vento_rajada_maxima_m_s`, `vento_velocidade_horaria_m_s`
+
+## inpe_deter_amazonia
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`, `page_size`
+- **Fields:** `gid`, `classname`, `quadrant`, `path_row`, `view_date`, `sensor`, `satellite`, `areauckm`, `uc`, `areamunkm`, `municipality`, `mun_geocod`, `uf`, `publish_month`
+- **Note:** Fields verified live on 2026-10-13 via WFS DescribeFeatureType, geometry excluded (no full collection run yet). gid is text (e.g. 1011_hist). First view_date 2016-08-02.
+
+## inpe_deter_cerrado
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`, `page_size`
+- **Note:** Same attributes as DETER Amazonia plus created_date and areatotalkm, WITHOUT mun_geocod (municipality name and UF only). First view_date 2018-05-01. Exact column list read from DescribeFeatureType at download time.
+
+## inpe_prodes
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `biomas`, `keep_raw`, `timeout`, `page_size`
+- **Fields:** `fid`, `state`, `path_row`, `main_class`, `class_name`, `def_cloud`, `julian_day`, `image_date`, `year`, `area_km`, `scene_id`, `source`, `satellite`, `sensor`, `uuid`, `publish_year`
+- **Note:** Fields verified live on 2026-10-13 via WFS DescribeFeatureType, geometry excluded (no full collection run yet). One CSV per biome; cerrado, pampa and legal_amz add pub_date, legal_amz adds sub_class. legal_amz/amazon/cerrado start in 2002; a few features have null year and only appear without a year filter.
 
 ## inpe_queimadas
 
@@ -422,6 +599,55 @@ to refresh.
 - **Status:** ok (10 rows sampled)
 - **Filters:** `codigo_municipio`, `municipio`, `sigla_uf`, `codigo_regiao_saude`, `regiao_saude`, `codigo_macrorregiao_de_saude`, `macrorregiao_saude`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `codigo_regiao_pais`, `regiao_pais`, `codigo_uf`, `uf`, `codigo_macrorregiao_saude`, `macrorregiao_saude`, `codigo_regiao_saude`, `regiao_saude`, `codigo_municipio`, `municipio`, `populacao_estimada_ibge_2022`
+
+## mgdi_academia_saude
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+
+## mgdi_emulti
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+
+## mgdi_raps
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+
+## mgdi_samu
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+
+## mgdi_saude_bucal
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+
+## mgdi_telessaude
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13. One Telessaude file (mgdi_ms_g0y) has 16 columns without co_ibge.
+
+## mgdi_upa
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+
+## mma_monitorar
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`, `api_base_url`
+- **Fields:** `no_fonte_dados`, `dh_medicao`, `nu_iqar`, `nu_concentracao`, `st_situacao`, `cd_flag`, `ds_flag`, `st_situacao_iqar`, `no_item_monitorado`, `cd_normalizado`, `id_estacao`, `cod_estacao`, `no_estacao`, `nu_latitude`, `nu_longitude`, `st_estacao`, `id_municipio`, `no_municipio`, `sg_uf`
+- **Note:** Fields verified live on 2026-10-13 against the source header (no full collection run yet). Same 19 columns in 2022-2025. cd_normalizado is the item code (e.g. PRESS), not a unit; units are only in the MMA PDF dictionary.
 
 ## mpox
 
@@ -493,6 +719,19 @@ to refresh.
 - **Fields:** `quantidade`, `unidade`, `material`, `numero_do_pedido`, `data_de_saida`, `status`, `requisitante_destino`
 - **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
+## prf_acidentes_ocorrencias
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`
+- **Fields:** `id`, `data_inversa`, `dia_semana`, `horario`, `uf`, `br`, `km`, `municipio`, `causa_acidente`, `tipo_acidente`, `classificacao_acidente`, `fase_dia`, `sentido_via`, `condicao_metereologica`, `tipo_pista`, `tracado_via`, `uso_solo`, `pessoas`, `mortos`, `feridos_leves`, `feridos_graves`, `ilesos`, `ignorados`, `feridos`, `veiculos`, `latitude`, `longitude`, `regional`, `delegacia`, `uop`
+- **Note:** Fields verified live on 2026-10-13 against the source (no full collection run yet). Header of 2026; older years may differ. Federal highways only.
+
+## prf_acidentes_pessoas
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`
+- **Note:** One row per person involved (35 columns in 2025): occurrence columns plus pesid, id_veiculo, tipo_veiculo, marca, ano_fabricacao_veiculo, tipo_envolvido, estado_fisico, idade, sexo. No names.
+
 ## resp
 
 - **Status:** ok (48 rows sampled)
@@ -535,11 +774,83 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `exist_estrut_perc_ald_sem_estrutura`, `est_conserv_estrut_perc_ald_estrut_exist_regular`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_filtro_sumidouro`, `est_conserv_estrut_perc_ald_estrut_exist_requer_interd_subst`, `tipo_trat_esgoto_perc_ald_destinacao_nos_corpos_hidricos`, `tipo_trat_esgoto_perc_ald_sem_informacao`, `exist_estrut_perc_ald_melhorias_sanits_domic_mds_indiv_coletiv`, `exist_estrut_perc_ald_coleta_pela_rede_publica`, `est_conserv_estrut_perc_ald_onde_nao_existe_estrut_tratamento`, `est_conserv_estrut_perc_ald_estrut_exist_satisfatoria`, `exist_estrut_perc_ald_coleta_pela_rede_sesai`, `exist_estrut_perc_ald_sem_informacao`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_seca`, `est_conserv_estrut_perc_ald_sem_informacao_sobre_a_estrutura`, `est_conserv_estrut_perc_ald_estrut_exist_insatisfatoria`, `est_conserv_estrut_perc_ald_estrut_exist_requer_manutencao`, `distrito_sanitario_especial_indigena`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_rudimentar`, `tipo_trat_esgoto_perc_ald_tratamento_por_fossa_sumidouro`, `tipo_trat_esgoto_perc_ald_sem_tratamento`, `tipo_trat_esgoto_perc_ald_atendidas_por_concessionaria`, `exist_estrut_perc_ald_casinha_latrina`, `exist_estrut_perc_ald_banheiro_particular`
 
+## saude_indigena_sesai_acidentes_ofidicos
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `sg_uf`, `co_municipio_ibge`, `tp_sexo`, `ano_mes_atendimento`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei_gestao`, `ds_polo_base`, `co_municipio_ibge`, `no_municipio`, `sg_uf`, `tp_sexo`, `idade`, `faixa_etaria`, `co_cid10`, `no_categoria_subcategoria`, `dt_atendimento`
+
+## saude_indigena_sesai_arboviroses
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `sg_uf`, `co_municipio_ibge`, `ano_mes_atendimento`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei_gestao`, `ds_polo_base`, `co_municipio_ibge`, `no_municipio`, `sg_uf`, `tp_sexo`, `idade`, `faixa_etaria`, `co_cid10`, `no_categoria_subcategoria`, `dt_atendimento`
+
+## saude_indigena_sesai_assistencia_farmaceutica
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei`, `material`, `unidade_de_medida`, `qtd_entregue`
+
 ## saude_indigena_sesai_atendimentos
 
 - **Status:** ok (10 rows sampled)
 - **Filters:** `sg_uf`, `nu_mes`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `ds_dsei`, `ds_polo_base`, `no_aldeia`, `nu_mes`, `no_municipio`, `sg_uf`, `no_terra_indigena`, `ds_cbo_familia`, `ds_cbo_ocupacao`, `categoria_siconv`, `qt_faixa_etaria_0_4`, `qt_faixa_etaria_5_9`, `qt_faixa_etaria_10_19`, `qt_faixa_etaria_20_29`, `qt_faixa_etaria_30_59`, `qt_faixa_etaria_60_mais`, `qt_faixa_etaria_ignorado`, `todos`, `ds_tipo_aldeia`
+
+## saude_indigena_sesai_cobertura_vacinal
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `uf`, `ano`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `ano`, `uf`, `dsei`, `polo`, `polio`, `pnm_10v`, `pnm_23v`, `penta`, `bcg`, `vhb`, `fa`, `vorh`, `dt`, `menigo_c`, `meningo_acwy`, `hpv`, `varicela`, `vha`, `influ`, `trip_viral`, `homogeneidade_do_polo`
+
+## saude_indigena_sesai_covid19
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `tp_sexo`, `ano_mes_sintomas`, `ano_mes_notificacao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `co_dsei`, `ds_dsei`, `co_polo_base`, `ds_polo_base`, `co_seq_covid`, `tp_sexo`, `st_gestante`, `faixa_etaria`, `st_assintomatico`, `dt_sintomas`, `dt_notificacao`, `st_sg`, `st_srag`, `st_hospitalizado`, `st_classificao`, `st_doenca_cardiovascular`, `st_diabetes`, `st_doenca_hepatica`, `st_doenca_neurologica`, `st_renal`, `st_pulmonar`, `st_neoplasia`, `st_obesidade`
+
+## saude_indigena_sesai_demografico
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `sg_uf`, `co_municipio_ibge`, `tp_sexo`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei_gestao`, `co_dsei_gestao`, `co_seq_dsei`, `co_seq_polo_base`, `ds_polo_base`, `co_municipio_ibge`, `no_municipio`, `sg_uf`, `st_indigena`, `dt_nascimento`, `co_seq_terra_indigena`, `no_terra_indigena`, `tp_sexo`, `nu_residencia`, `nu_familia`, `st_indio`, `idade`, `faixa_etaria`
+
+## saude_indigena_sesai_doencas_diarreicas_agudas
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `sg_uf`, `co_municipio_ibge`, `tp_sexo`, `ano_mes_atendimento`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei_gestao`, `ds_polo_base`, `co_municipio_ibge`, `no_municipio`, `sg_uf`, `tp_sexo`, `co_cid10`, `no_categoria_subcategoria`, `dt_atendimento`, `idade`, `faixa_etaria`
+
+## saude_indigena_sesai_doencas_imunopreveniveis
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `sg_uf`, `co_municipio_ibge`, `tp_sexo`, `ano_mes_atendimento`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei_gestao`, `ds_polo_base`, `co_municipio_ibge`, `no_municipio`, `sg_uf`, `tp_sexo`, `idade`, `faixa_etaria`, `co_cid10`, `no_categoria_subcategoria`, `dt_atendimento`
+
+## saude_indigena_sesai_doencas_respiratorias
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `co_municipio_ibge`, `sg_uf`, `tp_sexo`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei_gestao`, `cod_dsei`, `ds_polo_base`, `co_municipio_ibge`, `no_municipio`, `sg_uf`, `tp_sexo`, `co_cid10`, `no_categoria_subcategoria`, `dt_atendimento`, `dt_primeiro_sintoma`, `tp_criterio_confirmacao`, `faixa_etaria`
+
+## saude_indigena_sesai_doencas_zoonoticas
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `sg_uf`, `co_municipio_ibge`, `tp_sexo`, `ano_mes_atendimento`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `dsei_gestao`, `ds_polo_base`, `co_municipio_ibge`, `no_municipio`, `sg_uf`, `tp_sexo`, `idade`, `faixa_etaria`, `co_cid10`, `no_categoria_subcategoria`, `dt_atendimento`
+
+## saude_indigena_sesai_hepatites_virais
+
+- **Status:** empty
+- **Filters:** `sg_uf`, `co_municipio_ibge`, `tp_sexo`, `ano_mes_atendimento`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+
+## saude_indigena_sesai_obitos
+
+- **Status:** empty
+- **Filters:** `sg_uf`, `co_municipio_ibge`, `tp_sexo`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 
 ## saude_indigena_sesai_recursos_humanos
 
@@ -596,6 +907,20 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `groups`, `states`
 - **Fields:** `PA_CODUNI`, `PA_GESTAO`, `PA_CONDIC`, `PA_UFMUN`, `PA_REGCT`, `PA_INCOUT`, `PA_INCURG`, `PA_TPUPS`, `PA_TIPPRE`, `PA_MN_IND`, `PA_CNPJCPF`, `PA_CNPJMNT`, `PA_CNPJ_CC`, `PA_MVM`, `PA_CMP`, `PA_PROC_ID`, `PA_TPFIN`, `PA_SUBFIN`, `PA_NIVCPL`, `PA_DOCORIG`, `PA_AUTORIZ`, `PA_CNSMED`, `PA_CBOCOD`, `PA_MOTSAI`, `PA_OBITO`, `PA_ENCERR`, `PA_PERMAN`, `PA_ALTA`, `PA_TRANSF`, `PA_CIDPRI`, `PA_CIDSEC`, `PA_CIDCAS`, `PA_CATEND`, `PA_IDADE`, `IDADEMIN`, `IDADEMAX`, `PA_FLIDADE`, `PA_SEXO`, `PA_RACACOR`, `PA_MUNPCN`, `PA_QTDPRO`, `PA_QTDAPR`, `PA_VALPRO`, `PA_VALAPR`, `PA_UFDIF`, `PA_MNDIF`, `PA_DIF_VAL`, `NU_VPA_TOT`, `NU_PA_TOT`, `PA_INDICA`, `PA_CODOCO`, `PA_FLQT`, `PA_FLER`, `PA_ETNIA`, `PA_VL_CF`, `PA_VL_CL`, `PA_VL_INC`, `PA_SRV_C`, `PA_INE`, `PA_NAT_JUR`
 
+## siconfi_dca_despesa_funcao
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `uf`, `entes`, `funcao`, `keep_raw`, `timeout`, `pause_ms`, `api_base_url`
+- **Fields:** `exercicio`, `instituicao`, `cod_ibge`, `uf`, `anexo`, `rotulo`, `coluna`, `cod_conta`, `conta`, `valor`, `populacao`
+- **Note:** Fields verified live on 2026-10-13 against the source header (no full collection run yet). DCA Anexo I-E filtered to accounts starting with 10 (Saude); first exercise with data is 2014.
+
+## siconfi_rreo_saude
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `periodos`, `uf`, `entes`, `conta`, `keep_raw`, `timeout`, `pause_ms`, `api_base_url`
+- **Fields:** `exercicio`, `demonstrativo`, `periodo`, `periodicidade`, `instituicao`, `cod_ibge`, `uf`, `populacao`, `anexo`, `esfera`, `rotulo`, `coluna`, `cod_conta`, `conta`, `valor`
+- **Note:** Output columns fixed by the connector (guaraci/tesouro/rreo.py). RREO Anexo 02 (expense by function) filtered to Saude; Anexo 12 returns empty in every slice tested. Data from 2015.
+
 ## sih
 
 - **Status:** ok (4315 rows sampled)
@@ -631,6 +956,18 @@ to refresh.
 - **Status:** error
 - **Filters:** `output_dir`, `results_url`, `file_kinds`, `modules`, `extract_archives`, `overwrite`, `timeout`
 - **Note:** expected name token at '<![:e\x90\x02ª/Ü4æ\x03\x17G\x92ý\x83\x0b¦'
+
+## siops_indicadores_estados
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`, `base_url`
+- **Note:** Fields verified live on 2026-10-13 against the source (no full collection run yet). ano, cod_uf, uf, nome_uf and the 31 state indicators, 2002-2025 (624 rows; DF not in this series).
+
+## siops_indicadores_municipios
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`, `base_url`
+- **Note:** Fields verified live on 2026-10-13 against the source (no full collection run yet). ano, cod_ibge, municipio and the 31 SIOPS indicators (EC 29/LC 141 shares, spending per capita, D.Total Saude). Full 2000-2025 run: 143,760 rows; 2000-2012 miss some indicators (empty columns). DF is not in this series.
 
 ## sisagua_cadastro_carro_pipa_populacao
 
@@ -803,6 +1140,18 @@ to refresh.
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Note:** No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+
+## vigilancia_e_meio_ambiente_svsa_populacao_residente
+
+- **Status:** ok (10 rows sampled)
+- **Filters:** `ano`, `sexo`, `cod_mun`, `campos`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
+- **Fields:** `pop`, `sexo`, `cod_mun`, `ano`, `idade`
+
+## vigitel
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** Single stacked file 2006-2024 (no 2022), 577 MB CSV inside an 87 MB zip, coded values without labels. Header starts with ano, cidade, q6 and ends with yearly rake weights; columns are sparse by year. Not sampled yet because of size.
 
 ## zikavirus
 

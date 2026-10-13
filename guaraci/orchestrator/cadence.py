@@ -58,6 +58,22 @@ _NOVAS_FONTES_2026_10: Dict[str, tuple] = {
     "inpe_deter_amazonia": (Kind.API_WINDOW, Cadence.MONTHLY, 2016),  # a confirmar
     "inpe_deter_cerrado": (Kind.API_WINDOW, Cadence.MONTHLY, 2018),  # a confirmar
     "inpe_prodes": (Kind.API_WINDOW, Cadence.ANNUAL, 2002),
+    # Leva 2
+    "prf_acidentes_ocorrencias": (Kind.API_WINDOW, Cadence.MONTHLY, 2007),
+    "prf_acidentes_pessoas": (Kind.API_WINDOW, Cadence.MONTHLY, 2007),
+    # RREO é bimestral; MONTHLY garante que cada bimestre novo seja visto.
+    "siconfi_rreo_saude": (Kind.API_WINDOW, Cadence.MONTHLY, 2015),
+    "siops_indicadores_municipios": (Kind.API_WINDOW, Cadence.ANNUAL, 2000),
+    "siops_indicadores_estados": (Kind.API_WINDOW, Cadence.ANNUAL, 2002),
+    # Ano novo sai entre julho e agosto; MONTHLY pega a publicação sem esperar um ano.
+    "inep_censo_escolar": (Kind.API_WINDOW, Cadence.MONTHLY, 2007),
+    "mgdi_samu": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_upa": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_raps": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_emulti": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_academia_saude": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_telessaude": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_saude_bucal": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
 }
 
 # Edit here to re-tune how often a source is re-checked for new data.
@@ -160,7 +176,16 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_saneamento_lixo": 2022,  # census reference year, single period
             # Microdados de inquérito: só os anos de edição têm arquivo.
             "ibge_pns": 2013,
-            "ibge_pense": 2012,  # 2009 fora: leiaute só em XLS
+            "ibge_pense": 2009,
+            "ibge_pnadc_visita1": 2012,
+            # Censo no SIDRA: só os anos de referência têm dado.
+            "ibge_censo_cor_raca_idade_sexo": 2010,
+            "ibge_censo_indigena": 2010,
+            "ibge_censo_alfabetizacao": 2022,
+            "ibge_censo_quilombola": 2022,
+            "ibge_censo_adensamento": 2022,
+            "ibge_censo_paredes": 2022,
+            "ibge_censo_deficiencia": 2022,
             "ibge_pof": 2017,
         }.get(name, 2001)
         profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)

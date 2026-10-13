@@ -857,6 +857,23 @@
     "rows_sampled": 10,
     "status": "ok"
   },
+  "atencao_primaria_pmme_instituicoes_formadoras": {
+    "fields": [
+      "no_especialista",
+      "no_rede_formadora",
+      "no_instituicao_formadora"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
   "atencao_primaria_siaps_atendimento_individual": {
     "fields": [
       "co_uf_ibge",
@@ -2150,6 +2167,120 @@
     "rows_sampled": 10,
     "status": "ok"
   },
+  "educacao_saude_pet_saude": {
+    "fields": [
+      "no_edicao",
+      "co_projeto",
+      "nu_bolsa",
+      "nu_grupo_atuacao",
+      "ds_ies",
+      "ds_seretaria_saude"
+    ],
+    "filters": [
+      "campos",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "educacao_saude_sig_residencia_area_profissional": {
+    "fields": [
+      "ano_referencia",
+      "co_uf",
+      "co_ibge",
+      "nu_cnpj",
+      "no_razao_social",
+      "no_fantasia",
+      "ds_modalidade_programa",
+      "programa",
+      "duracao",
+      "bolsas_financiadas",
+      "bolsas_fin_sexo_masc",
+      "bolsas_fin_sexo_fem",
+      "bolsas_fin_sexo_sem_inf",
+      "bolsas_fin_rac_cor_bran",
+      "bolsas_fin_rac_cor_pre",
+      "bolsas_fin_rac_cor_amar",
+      "bolsas_fin_rac_cor_par",
+      "bolsas_fin_rac_cor_indig",
+      "bolsas_fin_rac_cor_sem_inf",
+      "bolsas_fin_biomed",
+      "bolsas_fin_biolog",
+      "bolsas_fin_educ_fis",
+      "bolsas_fin_enferm",
+      "bolsas_fin_farmac",
+      "bolsas_fin_fisio",
+      "bolsas_fin_fono",
+      "bolsas_fin_med_vet",
+      "bolsas_fin_nutric",
+      "bolsas_fin_odonto",
+      "bolsas_fin_psicol",
+      "bolsas_fin_serv_soc",
+      "bolsas_fin_ter_ocp",
+      "bolsas_fin_saud_colet",
+      "bolsas_fin_fis_med",
+      "ingresso",
+      "egresso"
+    ],
+    "filters": [
+      "ano_referencia",
+      "co_uf",
+      "co_ibge",
+      "campos",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "educacao_saude_sig_residencia_medica": {
+    "fields": [
+      "ano_referencia",
+      "co_uf",
+      "co_ibge",
+      "nu_cnpj",
+      "no_razao_social",
+      "no_fantasia",
+      "tipo_programa",
+      "programa",
+      "duracao",
+      "bolsas_financiadas",
+      "bolsas_fin_sexo_masc",
+      "bolsas_fin_sexo_fem",
+      "bolsas_fin_sexo_sem_inf",
+      "bolsas_fin_rac_cor_bran",
+      "bolsas_fin_rac_cor_pre",
+      "bolsas_fin_rac_cor_amar",
+      "bolsas_fin_rac_cor_par",
+      "bolsas_fin_rac_cor_indig",
+      "bolsas_fin_rac_cor_sem_inf",
+      "ingresso",
+      "egresso"
+    ],
+    "filters": [
+      "ano_referencia",
+      "co_uf",
+      "co_ibge",
+      "campos",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
   "enani_2019": {
     "fields": [
       "id_anon",
@@ -3144,6 +3275,188 @@
     "rows_sampled": 1,
     "status": "ok"
   },
+  "ibge_censo_adensamento": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "numero_de_moradores_por_comodos_utilizados_como_dormitorio",
+      "condicao_de_ocupacao_do_domicilio",
+      "tipo_de_domicilio",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9933 (2022). Some classifications include subtotals among categories.",
+    "status": "ok"
+  },
+  "ibge_censo_alfabetizacao": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "alfabetizacao",
+      "sexo",
+      "cor_ou_raca",
+      "idade",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9542 (2022).",
+    "status": "ok"
+  },
+  "ibge_censo_cor_raca_idade_sexo": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "cor_ou_raca",
+      "sexo",
+      "idade",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9606 (2010, 2022). Municipal requests are split per UF and, above 50k values, per category.",
+    "status": "ok"
+  },
+  "ibge_censo_deficiencia": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Two files per run: SIDRA 10125 (sexo, grupo_de_idade) and 10132 (cor_ou_raca, existencia_de_deficiencia), both with nivel, localidade_id, localidade_nome, ano, variavel_id, unidade, valor (2022).",
+    "status": "empty"
+  },
+  "ibge_censo_indigena": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "sexo",
+      "idade",
+      "forma_de_declaracao_da_idade",
+      "quesito_de_declaracao_indigena",
+      "localizacao_do_domicilio",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9845, variables 93 and 350 (2010, 2022).",
+    "status": "ok"
+  },
+  "ibge_censo_paredes": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipo_de_material_das_paredes_externas",
+      "condicao_de_ocupacao_do_domicilio",
+      "tipo_de_domicilio",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9928 (2022).",
+    "status": "ok"
+  },
+  "ibge_censo_quilombola": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "sexo",
+      "grupo_de_idade",
+      "localizacao_do_domicilio",
+      "situacao_do_domicilio",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 10089 (2022); variable 4728 is a percentage.",
+    "status": "ok"
+  },
   "ibge_divorcios": {
     "fields": [
       "nivel",
@@ -3270,6 +3583,21 @@
     ],
     "rows_sampled": 1,
     "status": "ok"
+  },
+  "ibge_pnadc_visita1": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "start_year",
+      "end_year",
+      "tabelas",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "PNAD Continua annual visit 1, 2012-2025 (no 2020/2021 on the FTP); fixed-width read through the IBGE SAS input, 450 to 490 variables depending on the year, with replicate weights V1032001-V1032200.",
+    "status": "empty"
   },
   "ibge_pns": {
     "fields": [],
@@ -3426,6 +3754,19 @@
     ],
     "rows_sampled": 1,
     "status": "ok"
+  },
+  "inep_censo_escolar": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "School table of the INEP school census, 2007 onward; 370 columns in 2007, 426 in 2024 and 290 in 2025 (schema changes by year). Includes CO_ENTIDADE, NU_ANO_CENSO, IN_AGUA_REDE_PUBLICA, IN_ESGOTO_REDE_PUBLICA, IN_ALIMENTACAO, IN_INTERNET.",
+    "status": "empty"
   },
   "inmet_estacoes": {
     "fields": [
@@ -3607,6 +3948,90 @@
     ],
     "rows_sampled": 10,
     "status": "ok"
+  },
+  "mgdi_academia_saude": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
+    "status": "empty"
+  },
+  "mgdi_emulti": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
+    "status": "empty"
+  },
+  "mgdi_raps": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
+    "status": "empty"
+  },
+  "mgdi_samu": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
+    "status": "empty"
+  },
+  "mgdi_saude_bucal": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
+    "status": "empty"
+  },
+  "mgdi_telessaude": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13. One Telessaude file (mgdi_ms_g0y) has 16 columns without co_ibge.",
+    "status": "empty"
+  },
+  "mgdi_upa": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
+    "status": "empty"
   },
   "mma_monitorar": {
     "fields": [
@@ -4017,6 +4442,63 @@
     "note": "Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).",
     "status": "ok"
   },
+  "prf_acidentes_ocorrencias": {
+    "fields": [
+      "id",
+      "data_inversa",
+      "dia_semana",
+      "horario",
+      "uf",
+      "br",
+      "km",
+      "municipio",
+      "causa_acidente",
+      "tipo_acidente",
+      "classificacao_acidente",
+      "fase_dia",
+      "sentido_via",
+      "condicao_metereologica",
+      "tipo_pista",
+      "tracado_via",
+      "uso_solo",
+      "pessoas",
+      "mortos",
+      "feridos_leves",
+      "feridos_graves",
+      "ilesos",
+      "ignorados",
+      "feridos",
+      "veiculos",
+      "latitude",
+      "longitude",
+      "regional",
+      "delegacia",
+      "uop"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). Header of 2026; older years may differ. Federal highways only.",
+    "status": "ok"
+  },
+  "prf_acidentes_pessoas": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One row per person involved (35 columns in 2025): occurrence columns plus pesid, id_veiculo, tipo_veiculo, marca, ano_fabricacao_veiculo, tipo_envolvido, estado_fisico, idade, sexo. No names.",
+    "status": "empty"
+  },
   "resp": {
     "fields": [
       "CO_SEQ",
@@ -4272,6 +4754,81 @@
     "rows_sampled": 10,
     "status": "ok"
   },
+  "saude_indigena_sesai_acidentes_ofidicos": {
+    "fields": [
+      "dsei_gestao",
+      "ds_polo_base",
+      "co_municipio_ibge",
+      "no_municipio",
+      "sg_uf",
+      "tp_sexo",
+      "idade",
+      "faixa_etaria",
+      "co_cid10",
+      "no_categoria_subcategoria",
+      "dt_atendimento"
+    ],
+    "filters": [
+      "sg_uf",
+      "co_municipio_ibge",
+      "tp_sexo",
+      "ano_mes_atendimento",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "saude_indigena_sesai_arboviroses": {
+    "fields": [
+      "dsei_gestao",
+      "ds_polo_base",
+      "co_municipio_ibge",
+      "no_municipio",
+      "sg_uf",
+      "tp_sexo",
+      "idade",
+      "faixa_etaria",
+      "co_cid10",
+      "no_categoria_subcategoria",
+      "dt_atendimento"
+    ],
+    "filters": [
+      "sg_uf",
+      "co_municipio_ibge",
+      "ano_mes_atendimento",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "saude_indigena_sesai_assistencia_farmaceutica": {
+    "fields": [
+      "dsei",
+      "material",
+      "unidade_de_medida",
+      "qtd_entregue"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
   "saude_indigena_sesai_atendimentos": {
     "fields": [
       "ds_dsei",
@@ -4306,6 +4863,266 @@
     ],
     "rows_sampled": 10,
     "status": "ok"
+  },
+  "saude_indigena_sesai_cobertura_vacinal": {
+    "fields": [
+      "ano",
+      "uf",
+      "dsei",
+      "polo",
+      "polio",
+      "pnm_10v",
+      "pnm_23v",
+      "penta",
+      "bcg",
+      "vhb",
+      "fa",
+      "vorh",
+      "dt",
+      "menigo_c",
+      "meningo_acwy",
+      "hpv",
+      "varicela",
+      "vha",
+      "influ",
+      "trip_viral",
+      "homogeneidade_do_polo"
+    ],
+    "filters": [
+      "uf",
+      "ano",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "saude_indigena_sesai_covid19": {
+    "fields": [
+      "co_dsei",
+      "ds_dsei",
+      "co_polo_base",
+      "ds_polo_base",
+      "co_seq_covid",
+      "tp_sexo",
+      "st_gestante",
+      "faixa_etaria",
+      "st_assintomatico",
+      "dt_sintomas",
+      "dt_notificacao",
+      "st_sg",
+      "st_srag",
+      "st_hospitalizado",
+      "st_classificao",
+      "st_doenca_cardiovascular",
+      "st_diabetes",
+      "st_doenca_hepatica",
+      "st_doenca_neurologica",
+      "st_renal",
+      "st_pulmonar",
+      "st_neoplasia",
+      "st_obesidade"
+    ],
+    "filters": [
+      "tp_sexo",
+      "ano_mes_sintomas",
+      "ano_mes_notificacao",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "saude_indigena_sesai_demografico": {
+    "fields": [
+      "dsei_gestao",
+      "co_dsei_gestao",
+      "co_seq_dsei",
+      "co_seq_polo_base",
+      "ds_polo_base",
+      "co_municipio_ibge",
+      "no_municipio",
+      "sg_uf",
+      "st_indigena",
+      "dt_nascimento",
+      "co_seq_terra_indigena",
+      "no_terra_indigena",
+      "tp_sexo",
+      "nu_residencia",
+      "nu_familia",
+      "st_indio",
+      "idade",
+      "faixa_etaria"
+    ],
+    "filters": [
+      "sg_uf",
+      "co_municipio_ibge",
+      "tp_sexo",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "saude_indigena_sesai_doencas_diarreicas_agudas": {
+    "fields": [
+      "dsei_gestao",
+      "ds_polo_base",
+      "co_municipio_ibge",
+      "no_municipio",
+      "sg_uf",
+      "tp_sexo",
+      "co_cid10",
+      "no_categoria_subcategoria",
+      "dt_atendimento",
+      "idade",
+      "faixa_etaria"
+    ],
+    "filters": [
+      "sg_uf",
+      "co_municipio_ibge",
+      "tp_sexo",
+      "ano_mes_atendimento",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "saude_indigena_sesai_doencas_imunopreveniveis": {
+    "fields": [
+      "dsei_gestao",
+      "ds_polo_base",
+      "co_municipio_ibge",
+      "no_municipio",
+      "sg_uf",
+      "tp_sexo",
+      "idade",
+      "faixa_etaria",
+      "co_cid10",
+      "no_categoria_subcategoria",
+      "dt_atendimento"
+    ],
+    "filters": [
+      "sg_uf",
+      "co_municipio_ibge",
+      "tp_sexo",
+      "ano_mes_atendimento",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "saude_indigena_sesai_doencas_respiratorias": {
+    "fields": [
+      "dsei_gestao",
+      "cod_dsei",
+      "ds_polo_base",
+      "co_municipio_ibge",
+      "no_municipio",
+      "sg_uf",
+      "tp_sexo",
+      "co_cid10",
+      "no_categoria_subcategoria",
+      "dt_atendimento",
+      "dt_primeiro_sintoma",
+      "tp_criterio_confirmacao",
+      "faixa_etaria"
+    ],
+    "filters": [
+      "co_municipio_ibge",
+      "sg_uf",
+      "tp_sexo",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "saude_indigena_sesai_doencas_zoonoticas": {
+    "fields": [
+      "dsei_gestao",
+      "ds_polo_base",
+      "co_municipio_ibge",
+      "no_municipio",
+      "sg_uf",
+      "tp_sexo",
+      "idade",
+      "faixa_etaria",
+      "co_cid10",
+      "no_categoria_subcategoria",
+      "dt_atendimento"
+    ],
+    "filters": [
+      "sg_uf",
+      "co_municipio_ibge",
+      "tp_sexo",
+      "ano_mes_atendimento",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
+  },
+  "saude_indigena_sesai_hepatites_virais": {
+    "filters": [
+      "sg_uf",
+      "co_municipio_ibge",
+      "tp_sexo",
+      "ano_mes_atendimento",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.",
+    "status": "empty"
+  },
+  "saude_indigena_sesai_obitos": {
+    "filters": [
+      "sg_uf",
+      "co_municipio_ibge",
+      "tp_sexo",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.",
+    "status": "empty"
   },
   "saude_indigena_sesai_recursos_humanos": {
     "fields": [
@@ -4717,6 +5534,41 @@
       "api_base_url"
     ],
     "note": "Fields verified live on 2026-10-13 against the source header (no full collection run yet). DCA Anexo I-E filtered to accounts starting with 10 (Saude); first exercise with data is 2014.",
+    "status": "ok"
+  },
+  "siconfi_rreo_saude": {
+    "fields": [
+      "exercicio",
+      "demonstrativo",
+      "periodo",
+      "periodicidade",
+      "instituicao",
+      "cod_ibge",
+      "uf",
+      "populacao",
+      "anexo",
+      "esfera",
+      "rotulo",
+      "coluna",
+      "cod_conta",
+      "conta",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "periodos",
+      "uf",
+      "entes",
+      "conta",
+      "keep_raw",
+      "timeout",
+      "pause_ms",
+      "api_base_url"
+    ],
+    "note": "Output columns fixed by the connector (guaraci/tesouro/rreo.py). RREO Anexo 02 (expense by function) filtered to Saude; Anexo 12 returns empty in every slice tested. Data from 2015.",
     "status": "ok"
   },
   "sih": {
@@ -5264,6 +6116,34 @@
     ],
     "note": "expected name token at '<![:e\\x90\\x02ª/Ü4æ\\x03\\x17G\\x92ý\\x83\\x0b¦'",
     "status": "error"
+  },
+  "siops_indicadores_estados": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). ano, cod_uf, uf, nome_uf and the 31 state indicators, 2002-2025 (624 rows; DF not in this series).",
+    "status": "empty"
+  },
+  "siops_indicadores_municipios": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). ano, cod_ibge, municipio and the 31 SIOPS indicators (EC 29/LC 141 shares, spending per capita, D.Total Saude). Full 2000-2025 run: 143,760 rows; 2000-2012 miss some indicators (empty columns). DF is not in this series.",
+    "status": "empty"
   },
   "sisagua_cadastro_carro_pipa_populacao": {
     "fields": [
@@ -7063,6 +7943,29 @@
     ],
     "note": "No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.",
     "status": "empty"
+  },
+  "vigilancia_e_meio_ambiente_svsa_populacao_residente": {
+    "fields": [
+      "pop",
+      "sexo",
+      "cod_mun",
+      "ano",
+      "idade"
+    ],
+    "filters": [
+      "ano",
+      "sexo",
+      "cod_mun",
+      "campos",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "batch_size",
+      "max_pages",
+      "api_base_url"
+    ],
+    "rows_sampled": 10,
+    "status": "ok"
   },
   "vigitel": {
     "fields": [],
