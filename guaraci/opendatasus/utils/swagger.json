@@ -63,6 +63,192 @@
     "https"
   ],
   "paths": {
+    "/atencao-primaria/siaps-atendimento-individual": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "SIAPS - Modelo de Informação de Atendimento Individual (MIAI)",
+        "description": "Dados do Modelo de Informação de Atendimento Individual (MIAI) do Sistema de Informação para a Atenção Primária à Saúde (SIAPS), contendo informações sobre atendimentos individuais realizados na atenção primária, incluindo competência, localização, perfil do indivíduo, classificação CID/CIAP-2, categoria profissional, quantidades de registros e pessoas atendidas.",
+        "parameters": [
+          {
+            "name": "competencia_siaps",
+            "in": "query",
+            "description": "Ano e mês da realização do registro (Ex.: 202605)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "municipio",
+            "in": "query",
+            "description": "Código do município IBGE do registro (sem dígito verificador)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "raca_cor",
+            "in": "query",
+            "description": "Raça/cor declarada no cadastro individual pelo indivíduo, considerando o cadastro mais recente antes do atendimento",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sexo",
+            "in": "query",
+            "description": "Sexo do indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "escolaridade",
+            "in": "query",
+            "description": "Categorias de escolaridade do indivíduo (ficha mais recente antes do atendimento)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "co_uf_ibge",
+            "in": "query",
+            "description": "Código IBGE da Unidade da Federação",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "nacionalidade",
+            "in": "query",
+            "description": "Nacionalidade do indivíduo (ficha mais recente antes do atendimento)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atencao-primaria/siaps-cadastro-individual": {
+      "get": {
+        "tags": [
+          "Atenção Primária"
+        ],
+        "summary": "SIAPS - Modelo de Informação de Cadastro Individual (MICI)",
+        "description": "Dados do Modelo de Informação de Cadastro Individual (MICI) do Sistema de Informação para a Atenção Primária à Saúde (SIAPS), contendo informações sobre cadastros individuais realizados na atenção primária, incluindo competência, localização, perfil do indivíduo, membro de comunidade tradicional, situação de rua, deficiência, situação no mercado de trabalho, tipo de estabelecimento, tipo de equipe e quantidade de pessoas cadastradas.",
+        "parameters": [
+          {
+            "name": "regiao",
+            "in": "query",
+            "description": "Região do registro",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "competencia_siaps",
+            "in": "query",
+            "description": "Ano e mês da realização do registro (Ex.: 202605)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "municipio",
+            "in": "query",
+            "description": "Código do município IBGE do registro (sem dígito verificador)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "raca_cor",
+            "in": "query",
+            "description": "Raça/cor declarada no cadastro individual pelo indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sexo",
+            "in": "query",
+            "description": "Sexo do indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "escolaridade",
+            "in": "query",
+            "description": "Categorias de escolaridade do indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "nacionalidade",
+            "in": "query",
+            "description": "Nacionalidade do indivíduo",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens retornados por página. Deve ser menor ou igual 1000.",
+            "required": false,
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Número da página de itens que deve ser retornada. Observação: As páginas iniciam a contagem a partir de 0 (zero), por exemplo: offset=0",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "produces": [
+          "application/json",
+          "text/csv"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {},
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/cnes/tipounidades": {
       "get": {
         "tags": [
