@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List
 
 from guaraci.core.contracts import SourceParameterSpec
+from guaraci.ibge.censo import CENSO_SOURCES
 from guaraci.services import downloads as _downloads
 from guaraci.services.downloads import (
     EXPORT_FORMAT_VALUES,
@@ -12,6 +13,125 @@ from guaraci.services.downloads import (
     SourceDescriptor,
 )
 from guaraci.services.normalizers import _normalize_ibge_params
+
+
+_CENSO_TITULOS = {
+    "ibge_censo_cor_raca_idade_sexo": "IBGE Censo: População por Cor ou Raça, Sexo e Idade",
+    "ibge_censo_alfabetizacao": "IBGE Censo 2022: Alfabetização (15 anos ou mais)",
+    "ibge_censo_indigena": "IBGE Censo: População Indígena",
+    "ibge_censo_quilombola": "IBGE Censo 2022: População Quilombola",
+    "ibge_censo_adensamento": "IBGE Censo 2022: Adensamento Domiciliar",
+    "ibge_censo_paredes": "IBGE Censo 2022: Material das Paredes dos Domicílios",
+    "ibge_censo_deficiencia": "IBGE Censo 2022: Pessoas com Deficiência",
+}
+
+
+def _censo_sources() -> List[DownloadSource]:
+    """Fontes do Censo no SIDRA (guaraci/ibge/censo.py), com o mesmo molde."""
+    current_year = datetime.now().year
+    fontes: List[DownloadSource] = []
+    for cls in CENSO_SOURCES:
+        periodos = cls.periodos()
+        referencia = ", ".join(str(p) for p in periodos)
+        fontes.append(
+            ApiDownloadSource(
+                descriptor=SourceDescriptor(
+                    source=cls.SOURCE_NAME,
+                    title=_CENSO_TITULOS[cls.SOURCE_NAME],
+                    mode="ibge api",
+                ),
+                datasource_cls=cls,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for the census table.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description=(
+                            f"Ano inicial (Censo, IBGE SIDRA; períodos publicados: {referencia})."
+                        ),
+                        required=False,
+                        default=max(periodos),
+                        minimum=min(periodos),
+                        maximum=min(current_year, max(periodos)),
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final.",
+                        required=False,
+                        default=max(periodos),
+                        minimum=min(periodos),
+                        maximum=min(current_year, max(periodos)),
+                    ),
+                    SourceParameterSpec(
+                        name="level",
+                        phase="coleta",
+                        param_type="string",
+                        description="Nível territorial: uf, municipio, regiao ou brasil.",
+                        required=False,
+                        default="uf",
+                        allowed_values=["municipio", "uf", "regiao", "brasil"],
+                    ),
+                    SourceParameterSpec(
+                        name="detalhe",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Recorte: completo (padrão, cada classificação expandida "
+                            "em suas categorias) ou total (só a categoria Total)."
+                        ),
+                        required=False,
+                        default="completo",
+                        allowed_values=["completo", "total"],
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva o JSON bruto da resposta.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="timeout",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="HTTP timeout in seconds.",
+                        required=False,
+                        default=cls.DEFAULT_TIMEOUT,
+                        minimum=1,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Optional IBGE API base URL override.",
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                normalize_params=_normalize_ibge_params,
+            )
+        )
+    return fontes
 
 
 def build_sources() -> List[DownloadSource]:
@@ -1122,4 +1242,4 @@ def build_sources() -> List[DownloadSource]:
             ],
             normalize_params=_normalize_ibge_params,
         ),
-    ]
+    ] + _censo_sources()
