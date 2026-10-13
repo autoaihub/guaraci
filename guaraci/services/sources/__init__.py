@@ -27,6 +27,7 @@ from guaraci.services.sources import (
     opendatasus,
     opendatasus_files,
     siaps,
+    siops,
     tesouro,
 )
 
@@ -58,4 +59,5 @@ def build_default_sources() -> List[DownloadSource]:
         *fns.build_sources(),
         *ibge_microdados.build_sources(),
         *inpe_terrabrasilis.build_sources(),
+        *siops.build_sources(),
     ]
