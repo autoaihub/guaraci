@@ -39,8 +39,9 @@ contrato conferido ao vivo antes de virar código. O catálogo do site passa a
 O Atlas Digital de Desastres do MIDR ficou de fora: o firewall da origem
 recusa qualquer arquivo `.csv` do conjunto, e o caminho é pedir liberação ao
 órgão. Cada fonte nova tem smoke opt-in por variável de ambiente
-(`GUARACI_<FONTE>_SMOKE=1`); o do TerraBrasilis não chegou ao fim por
-lentidão do GeoServer.
+(`GUARACI_<FONTE>_SMOKE=1`). No TerraBrasilis, a camada do Pampa declara a
+geometria como obrigatória e o GeoServer a envia mesmo sem pedido; o CSV
+final sai sem ela, só a transferência fica maior.
 
 ### Fixed: exportação do DATASUS com memória proporcional ao período pedido
 A verificação de volume mediu 6,8 GB de pico para um ano de SIH de SP. A
