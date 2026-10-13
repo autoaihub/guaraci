@@ -191,3 +191,40 @@ def test_registro_expoe_as_tres_chaves_e_modos() -> None:
     service.validate_source_params("farmacia_popular_indicadores", {"indicadores": ["pfpbben"]})
     with pytest.raises(ValueError):
         service.validate_source_params("farmacia_popular_indicadores", {"indicadores": ["xx"]})
+
+
+MGDI_KEYS = {
+    "mgdi_samu": 11,
+    "mgdi_upa": 6,
+    "mgdi_raps": 14,
+    "mgdi_emulti": 8,
+    "mgdi_academia_saude": 4,
+    "mgdi_telessaude": 19,
+    "mgdi_saude_bucal": 5,
+}
+
+
+@pytest.mark.parametrize("key,total", sorted(MGDI_KEYS.items()))
+def test_mgdi_registra_um_csv_por_indicador_no_bucket_demas(key: str, total: int) -> None:
+    resources = HTTP_FILES[key].resources
+    assert len(resources) == total
+    assert len({r.code for r in resources}) == total
+    assert all(r.url.startswith("https://demas-dados-abertos.s3.amazonaws.com/csv/") for r in resources)
+    assert all(r.url.endswith(f"{r.code}.csv.zip") for r in resources)
+    schema = DownloadService().get_source_schema(key)
+    names = {p["name"]: p for p in schema["params"]}
+    assert set(names["indicadores"]["allowed_values"]) == {r.code for r in resources}
+
+
+def test_mgdi_samu_exporta_um_csv_por_indicador(tmp_path: Path) -> None:
+    key = "mgdi_samu"
+    payloads = {
+        res.url: _zip({f"{res.code}.csv": b"co_ano,co_ibge,vl_indicador_calculado_mun\n2024,1100015,3\n"})
+        for res in HTTP_FILES[key].resources
+    }
+    payload = _source(tmp_path, key, _Client(payloads)).download(
+        output_dir=str(tmp_path), output_format="csv"
+    )
+    assert len(payload["exported_files"]) == 11
+    assert payload["failed_count"] == 0
+    assert Path(payload["exported_files"][0]).name == "mgdi_samu_samuaer.csv"
