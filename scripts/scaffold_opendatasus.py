@@ -28,7 +28,11 @@ SWAGGER_PATH = project_root / "guaraci" / "opendatasus" / "utils" / "swagger.jso
 #   normalizacao de competencia e fatiamento que o bloco generico nao tem;
 # - cnes-profissionais: traz `no_profissional` (nome de pessoa), dado pessoal (LGPD);
 # - sia/sih-procedimentos: derivados dos arquivos do FTP do DATASUS, volumosos e
-#   com acento corrompido na origem.
+#   com acento corrompido na origem;
+# - cnes-equipamentos/estabelecimentos/leitos/servicos-especializados: os mesmos
+#   grupos ja vem do FTP do CNES (EQ, ST, LT, SR); pela API passam de 10 milhoes
+#   de linhas sem recorte e truncariam no teto de paginas, e estabelecimentos
+#   traz nome de pessoa fisica em consultorio individual.
 _SCAFFOLD_EXCLUDES = frozenset(
     {
         "/atencao-primaria/siaps-atendimento-individual",
@@ -36,6 +40,10 @@ _SCAFFOLD_EXCLUDES = frozenset(
         "/assistencia-a-saude/cnes-profissionais",
         "/assistencia-a-saude/sia-procedimentos-ambulatoriais",
         "/assistencia-a-saude/sih-procedimentos-hospitalares",
+        "/assistencia-a-saude/cnes-equipamentos",
+        "/assistencia-a-saude/cnes-estabelecimentos",
+        "/assistencia-a-saude/cnes-leitos",
+        "/assistencia-a-saude/cnes-servicos-especializados",
     }
 )
 
