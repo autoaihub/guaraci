@@ -21,6 +21,7 @@ from guaraci.services.sources import (
     nasa,
     opendatasus,
     opendatasus_files,
+    siaps,
 )
 
 __all__ = ["build_default_sources"]
@@ -44,4 +45,5 @@ def build_default_sources() -> List[DownloadSource]:
         *ana.build_sources(),
         *cetesb.build_sources(),
         *anvisa.build_sources(),
+        *siaps.build_sources(),
     ]
