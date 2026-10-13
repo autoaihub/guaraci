@@ -315,6 +315,76 @@ def _pnadc_visita1() -> Dict[int, Edicao]:
     return edicoes
 
 
+def _pnadc_edicoes(
+    dados_dir: str,
+    docs_dir: str,
+    arquivos: Dict[int, Tuple[str, str]],
+    membro: str,
+) -> Dict[int, Edicao]:
+    """Monta as edições de uma série da PNAD Contínua anual.
+
+    ``arquivos`` leva, por ano, o nome do zip de dados e o do programa de
+    leitura SAS (``.txt`` solto na pasta de documentação). O nome carrega a
+    data da última atualização, por isso cada ano fixa o seu. ``membro`` é o
+    modelo do arquivo dentro do zip, com ``{ano}``.
+    """
+    edicoes = {}
+    for ano, (zip_dados, programa) in sorted(arquivos.items()):
+        edicoes[ano] = Edicao(
+            ano,
+            str(ano),
+            {
+                "dados": f"{_PNADC}{dados_dir}/{zip_dados}",
+                "leitura": f"{_PNADC}{docs_dir}/{programa}",
+            },
+            (
+                Tabela(
+                    "microdados",
+                    "dados",
+                    membro.format(ano=ano),
+                    layout=("leitura", programa),
+                ),
+            ),
+        )
+    return edicoes
+
+
+def _pnadc_visita5() -> Dict[int, Edicao]:
+    """Visita 5 de 2016 a 2024 (rendimento de todas as fontes), 2020 e 2021 incluídos."""
+    dados = {
+        2016: "_20260520", 2017: "_20260520", 2018: "_20250822", 2019: "_20250822",
+        2020: "_20250822", 2021: "_20250822", 2022: "_20250822", 2023: "_20250822",
+        2024: "",
+    }
+    leitura = {
+        2016: "_20231222", 2017: "_20231222", 2018: "_20231222", 2019: "_20231222",
+        2020: "_20220224", 2021: "", 2022: "_20231222", 2023: "_20250424", 2024: "",
+    }
+    return _pnadc_edicoes(
+        "Visita/Visita_5/Dados",
+        "Visita/Visita_5/Documentacao",
+        {
+            ano: (f"PNADC_{ano}_visita5{dados[ano]}.zip", f"input_PNADC_{ano}_visita5{leitura[ano]}.txt")
+            for ano in dados
+        },
+        "PNADC_{ano}_visita5.txt",
+    )
+
+
+def _pnadc_trimestre(numero: int, anos: Dict[int, str], leitura: str) -> Dict[int, Edicao]:
+    """Trimestre temático ``numero``; um único programa de leitura serve a todos os anos."""
+    base = f"Trimestre/Trimestre_{numero}"
+    return _pnadc_edicoes(
+        f"{base}/Dados",
+        f"{base}/Documentacao",
+        {
+            ano: (f"PNADC_{ano}_trimestre{numero}{data}.zip", f"input_PNADC_trimestre{numero}{leitura}.txt")
+            for ano, data in anos.items()
+        },
+        "PNADC_{ano}_trimestre" + str(numero) + ".txt",
+    )
+
+
 PESQUISAS: Dict[str, Pesquisa] = {
     item.key: item
     for item in (
@@ -435,6 +505,57 @@ PESQUISAS: Dict[str, Pesquisa] = {
             "características do domicílio e dos moradores, trabalho, educação "
             "e rendimentos, com pesos e pesos replicados.",
             _pnadc_visita1(),
+        ),
+        Pesquisa(
+            "ibge_pnadc_visita5",
+            "IBGE PNAD Contínua anual, visita 5 (microdados)",
+            "Microdados da PNAD Contínua anual na visita 5 ao domicílio: "
+            "rendimento de todas as fontes, trabalho, educação e cuidados de "
+            "pessoas e afazeres, com pesos e pesos replicados.",
+            _pnadc_visita5(),
+        ),
+        Pesquisa(
+            "ibge_pnadc_trimestre1",
+            "IBGE PNAD Contínua anual, 1º trimestre temático (microdados)",
+            "Microdados da PNAD Contínua do 1º trimestre com o módulo "
+            "suplementar de saúde (vacinação e sequelas da covid-19), além de "
+            "domicílio, trabalho, educação e rendimentos.",
+            _pnadc_trimestre(1, {2023: ""}, ""),
+        ),
+        Pesquisa(
+            "ibge_pnadc_trimestre2",
+            "IBGE PNAD Contínua anual, 2º trimestre temático (microdados)",
+            "Microdados da PNAD Contínua do 2º trimestre com os módulos "
+            "suplementares de educação e de cuidados de crianças, além de "
+            "domicílio, trabalho e rendimentos.",
+            _pnadc_trimestre(
+                2, {a: "_20260619" for a in (*range(2016, 2020), *range(2022, 2026))}, "_20260619"
+            ),
+        ),
+        Pesquisa(
+            "ibge_pnadc_trimestre3",
+            "IBGE PNAD Contínua anual, 3º trimestre temático (microdados)",
+            "Microdados da PNAD Contínua do 3º trimestre com os módulos "
+            "suplementares de turismo e de trabalho em plataformas digitais, "
+            "além de domicílio, trabalho e rendimentos.",
+            _pnadc_trimestre(3, {a: "_20260904" for a in (2019, 2022, 2024, 2025)}, "_20260904"),
+        ),
+        Pesquisa(
+            "ibge_pnadc_trimestre4",
+            "IBGE PNAD Contínua anual, 4º trimestre temático (microdados)",
+            "Microdados da PNAD Contínua do 4º trimestre com os módulos "
+            "suplementares de TIC (internet, telefone e equipamentos), "
+            "segurança (vitimização), segurança alimentar e outras formas de "
+            "trabalho, além de domicílio, trabalho e rendimentos.",
+            _pnadc_trimestre(
+                4,
+                {
+                    **{a: "_20251010" for a in (2016, 2017, 2018, 2019, 2021, 2022, 2023)},
+                    2024: "_20251014",
+                    2025: "_20260702",
+                },
+                "_20251010",
+            ),
         ),
     )
 }
