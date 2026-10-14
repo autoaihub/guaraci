@@ -312,6 +312,8 @@ def test_incomplete_read_no_download_e_retentado(tmp_path, monkeypatch):
     from guaraci.fns.repasses import FnsClient
 
     class Resp:
+        headers: dict = {}
+
         def __init__(self, broken: bool) -> None:
             self.broken = broken
             self.sent = False
@@ -339,3 +341,48 @@ def test_incomplete_read_no_download_e_retentado(tmp_path, monkeypatch):
     monkeypatch.setattr("guaraci.fns.repasses.urlopen", fake)
     assert FnsClient(max_attempts=2).download("https://x/a.csv", tmp_path / "a.csv") == 4
     assert len(calls) == 2
+
+
+class _FakeResponse:
+    def __init__(self, body: bytes, length: int) -> None:
+        self.headers = {"Content-Length": str(length)}
+        self._body = body
+
+    def read(self, size=-1):
+        body, self._body = self._body, b""
+        return body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def test_download_truncado_contra_content_length_e_erro_retentavel_sem_part(tmp_path, monkeypatch):
+    from guaraci.fns.repasses import FnsClient, FnsClientError
+
+    monkeypatch.setattr(
+        "guaraci.fns.repasses.urlopen", lambda *_a, **_k: _FakeResponse(b"a,b\n", 100)
+    )
+    destination = tmp_path / "a.csv"
+    with pytest.raises(FnsClientError, match="truncated: 4 of 100") as info:
+        FnsClient(max_attempts=1).download("https://x/a.csv", destination)
+    assert info.value.retryable is True
+    assert not destination.exists()
+    assert list(tmp_path.glob("*.part")) == []
+
+
+def test_byte_invalido_na_conversao_vira_aviso_com_a_contagem(tmp_path):
+    files = _service_files(tmp_path)
+    key = BASE + "wp-content/uploads/2023/01/REPASSE-FAF-COM-POPULACAO-v4-2022.csv"
+    final, payload = files[key]
+    files[key] = (final, payload.replace(b"LONDRINA", b"LOND\x81RINA"))  # 0x81 não existe em cp1252
+    out = tmp_path / "out"
+    result = FnsRepassesDataSource(output_path=str(out), client=_Client(files)).download(
+        start_year=2022, output_format="csv"
+    )
+    assert len(result["exported_files"]) == 1
+    assert "1 caracteres" in result["export_warning"]
+    assert "U+FFFD" in result["export_warning"]
+    assert "_2022_original.csv" in result["export_warning"]

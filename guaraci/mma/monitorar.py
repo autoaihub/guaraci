@@ -27,6 +27,7 @@ Tudo sai como texto, com os nomes de coluna como publicados.
 from __future__ import annotations
 
 import codecs
+import http.client
 import json
 import re
 import zipfile
@@ -40,6 +41,7 @@ from urllib.request import Request, urlopen
 import polars as pl
 
 from guaraci import __version__
+from guaraci.arquivos.http_files import _replacement_warning, _sink_atomic, transport_error
 from guaraci.core.datasource import DataSource
 from guaraci.core.http import (
     ApiClientError,
@@ -47,7 +49,6 @@ from guaraci.core.http import (
     is_timeout_reason,
     request_with_retry,
 )
-from guaraci.datasus.frames import write_sqlite
 
 __all__ = [
     "MIN_YEAR",
@@ -173,11 +174,14 @@ class MonitorArClient:
 
         def send() -> int:
             written = 0
+            expected: Optional[int] = None
             request = Request(url, headers={"User-Agent": self.USER_AGENT})
             try:
                 with urlopen(request, timeout=self.timeout_seconds) as response, open(
                     partial, "wb"
                 ) as sink:
+                    length = response.headers.get("Content-Length")
+                    expected = int(length) if length and length.isdigit() else None
                     for block in iter(lambda: response.read(chunk_size), b""):
                         sink.write(block)
                         written += len(block)
@@ -189,6 +193,26 @@ class MonitorArClient:
                 raise self._url_error(exc, url) from exc
             except TimeoutError as exc:
                 raise self._timeout(url) from exc
+            except (OSError, http.client.HTTPException) as exc:
+                error = transport_error(exc, url, self.timeout_seconds, MonitorArClientError)
+                if error is None:
+                    raise
+                raise error from exc
+            if expected is not None and written < expected:
+                raise MonitorArClientError(
+                    f"Download of '{url}' was truncated: {written} of {expected} bytes.",
+                    category="incomplete",
+                    retryable=True,
+                    hint="O servidor encerrou a conexão antes do fim; tente de novo.",
+                )
+            if not zipfile.is_zipfile(partial):
+                raise MonitorArClientError(
+                    f"'{url}' should be a zip but the {written} bytes received are not a valid "
+                    "zip archive (truncated or not a zip).",
+                    category="incomplete",
+                    retryable=True,
+                    hint="Baixe de novo; se persistir, confira o recurso em dados.mma.gov.br.",
+                )
             return written
 
         try:
@@ -426,29 +450,17 @@ class MonitorArDataSource(DataSource):
             zip_to_utf8(raw_path, utf8, stats=stats)
             if stats.get("replaced") and warnings is not None:
                 warnings.append(
-                    f"{raw_path.name}: {stats['replaced']} caracteres inválidos viraram "
-                    f"U+FFFD na conversão para UTF-8 (codificação {stats['encoding']}); "
-                    "a detecção olha só o primeiro bloco do arquivo."
+                    _replacement_warning(raw_path.name, stats["replaced"], stats["encoding"])
+                    + " A detecção olha só o primeiro bloco do arquivo."
                 )
             frame = pl.scan_csv(utf8, infer_schema=False, quote_char='"')
             names = frame.collect_schema().names()
             clean = {n: n.strip() for n in names if n != n.strip()}
             if clean:
                 frame = frame.rename(clean)
-            stem = f"{self.name}_{year}"
-            if fmt == "csv":
-                dest = base_dir / f"{stem}.csv"
-                frame.sink_csv(dest)
-            elif fmt == "parquet":
-                dest = base_dir / f"{stem}.parquet"
-                frame.sink_parquet(dest)
-            else:
-                written = write_sqlite(
-                    frame, db_path=base_dir / f"{stem}.sqlite", table=self.name
-                )
-                if written is None:
-                    raise ValueError(f"MonitorAr {year} has no rows to export to sqlite.")
-                dest = written
-            return dest
+            suffix = {"csv": ".csv", "parquet": ".parquet"}.get(fmt, ".sqlite")
+            return _sink_atomic(
+                frame, base_dir / f"{self.name}_{year}{suffix}", fmt, self.name, f"MonitorAr {year}"
+            )
         finally:
             utf8.unlink(missing_ok=True)

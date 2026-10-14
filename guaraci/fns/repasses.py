@@ -39,7 +39,7 @@ from urllib.request import Request, urlopen
 import polars as pl
 
 from guaraci import __version__
-from guaraci.arquivos.http_files import _sink_atomic, transport_error
+from guaraci.arquivos.http_files import _replacement_warning, _sink_atomic, transport_error
 from guaraci.core.datasource import DataSource
 from guaraci.core.http import (
     ApiClientError,
@@ -141,9 +141,12 @@ class FnsClient:
 
         def send() -> int:
             written = 0
+            expected: Optional[int] = None
             request = Request(url, headers={"User-Agent": self.USER_AGENT})
             try:
                 with urlopen(request, timeout=self.timeout_seconds) as response, open(partial, "wb") as sink:
+                    length = response.headers.get("Content-Length")
+                    expected = int(length) if length and length.isdigit() else None
                     for block in iter(lambda: response.read(chunk_size), b""):
                         sink.write(block)
                         written += len(block)
@@ -164,6 +167,12 @@ class FnsClient:
                 if error is None:
                     raise
                 raise error from exc
+            if expected is not None and written < expected:
+                raise FnsClientError(
+                    f"Download of '{url}' was truncated: {written} of {expected} bytes.",
+                    category="incomplete", retryable=True,
+                    hint="O servidor encerrou a conexão antes do fim; tente de novo.",
+                )
             return written
 
         try:
@@ -234,10 +243,15 @@ def _detect_encoding(raw: Path) -> str:
     return "utf-8-sig"
 
 
-def _csv_to_utf8(raw: Path, target: Path) -> int:
-    """Regrava o CSV do FNS como CSV UTF-8 com vírgula. Devolve as linhas de dados."""
+def _csv_to_utf8(raw: Path, target: Path, stats: Optional[Dict[str, object]] = None) -> int:
+    """Regrava o CSV do FNS como CSV UTF-8 com vírgula. Devolve as linhas de dados.
+
+    Se ``stats`` for dado, ``stats["replaced"]`` recebe quantos U+FFFD a leitura
+    produziu e ``stats["encoding"]`` a codificação usada.
+    """
     encoding = _detect_encoding(raw)
     count = 0
+    replaced = 0
     with open(raw, "r", encoding=encoding, errors="replace", newline="") as source, \
             open(target, "w", encoding="utf-8", newline="") as sink:
         first = source.readline()
@@ -258,7 +272,11 @@ def _csv_to_utf8(raw: Path, target: Path) -> int:
                         f"{raw.name}: line {reader.line_num} has {len(row)} fields, header has {width}."
                     )
                 count += 1
+            replaced += sum(cell.count("�") for cell in row)
             writer.writerow(row)
+    if stats is not None:
+        stats["replaced"] = replaced
+        stats["encoding"] = encoding
     return count
 
 
@@ -338,7 +356,7 @@ class FnsRepassesDataSource(DataSource):
                     "documents_total": total, "document_index": index, "file_path": str(raw_path),
                 })
             if requested:
-                exported.append(str(self._export(raw_path, base_dir, year, requested)))
+                exported.append(str(self._export(raw_path, base_dir, year, requested, warnings)))
                 if not keep_raw:
                     raw_path.unlink(missing_ok=True)
         if not requested and not keep_raw:
@@ -361,7 +379,8 @@ class FnsRepassesDataSource(DataSource):
             "export_warning": " ".join(warnings) or None,
         }
 
-    def _export(self, raw_path: Path, base_dir: Path, year: int, fmt: str) -> Path:
+    def _export(self, raw_path: Path, base_dir: Path, year: int, fmt: str,
+                warnings: Optional[List[str]] = None) -> Path:
         stem = f"{self.name}_{year}"
         csv_path = base_dir / f"{stem}.csv"
         # O CSV final nasce em ``.part`` e só troca de nome no fim (``os.replace``).
@@ -374,7 +393,12 @@ class FnsRepassesDataSource(DataSource):
             if raw_path.suffix.lower() == ".xlsx":
                 xlsx_to_csv(raw_path, staging)
             else:
-                _csv_to_utf8(raw_path, staging)
+                stats: Dict[str, object] = {}
+                _csv_to_utf8(raw_path, staging, stats)
+                if stats.get("replaced") and warnings is not None:
+                    warnings.append(
+                        _replacement_warning(raw_path.name, int(stats["replaced"]), str(stats["encoding"]))
+                    )
             if fmt == "csv":
                 os.replace(staging, csv_path)
                 return csv_path
