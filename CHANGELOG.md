@@ -2,6 +2,44 @@
 
 ## [Unreleased]
 
+### Fixed: revisão das três levas de fontes novas
+Uma revisão de código das fontes de outubro e uma coleta ao vivo de cada
+fonte do catálogo (171 de 181 ok na primeira passada) acharam os defeitos
+abaixo. Todos têm teste.
+- **Rede.** Corpo truncado, conexão derrubada sem resposta e reset durante a
+  leitura passam a ser tentados de novo em vez de derrubar o job: no cliente
+  HTTP comum (SIDRA, TerraBrasilis), no FTP de microdados do IBGE, no SICONFI
+  e nos transportes de arquivo (INEP, Vigitel, IBAMA, Farmácia Popular,
+  MGDI, PRF, FNS, MonitorAr). Download menor que o `Content-Length` ou zip
+  inválido falha com mensagem clara, em vez de virar um CSV de lixo.
+- **Exportação.** Os arquivos são gravados em `.part` e renomeados no fim,
+  para que uma falha no meio não deixe arquivo truncado com nome de entrega.
+  Camada do TerraBrasilis e consulta do SICONFI sem linhas não gravam mais
+  um CSV só com cabeçalho.
+- **Codificação.** Nos arquivos de codificação automática (Vigitel, IBAMA,
+  Farmácia Popular, MGDI, MonitorAr) a escolha entre UTF-8 e cp1252 passa a
+  ser feita linha a linha. O Vigitel 2006-2024 é cp1252 com 26 linhas em
+  UTF-8, e os primeiros 71 MB são ASCII: a detecção pelo começo do arquivo
+  escolhia UTF-8 e perdia o acento de 1.555 linhas ("AERONÁUTICA",
+  "MESTIÇO"). Byte que o cp1252 não define gera aviso com a contagem, e
+  U+FFFD que já vem escrito na origem (21.868 no MonitorAr 2023) é avisado
+  como da origem.
+- **SICONFI.** O filtro por UF passa a incluir o governo estadual e o DF,
+  que a API lista com `uf="BR"`. O filtro de função respeita a fronteira do
+  código (`1` não casa mais com `10 - Saúde`). No RREO, ente que falha é
+  tentado de novo no fim, e só falha o ano se passar de 1% dos entes.
+- **SIOPS.** Falha do Distrito Federal vai para o aviso do job, e o ano
+  ainda não publicado deixa de contar como falha.
+- **IBGE.** Fatia do SIDRA com erro conta o ano como falho, em vez de
+  terminar ok sem o ano. Intervalo entre dois censos é recusado com a lista
+  dos anos publicados. Com `keep_raw=false`, os microdados só apagam o que
+  a própria execução baixou.
+- **TerraBrasilis.** Qualquer erro HTTP derrubava o job por um erro interno
+  de desempacotamento. A paginação ganhou chaves de desempate e confere o
+  total gravado contra o `numberMatched`.
+- **INEP.** `end_year` sozinho era ignorado, e o padrão pedia o ano
+  corrente, que o INEP só publica no ano seguinte.
+
 ### Added: INCA Integrador RHC, de 181 para 182
 - **Câncer.** `inca_rhc` traz os Registros Hospitalares de Câncer do INCA,
   um caso por linha, com topografia, morfologia, estadiamento e primeiro
