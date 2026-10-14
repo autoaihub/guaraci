@@ -74,6 +74,7 @@ from guaraci.services.normalizers import (  # noqa: F401  (reexports)
 
 from guaraci.services.publication_years import apply_latest_published_year
 from guaraci.services.presets import PRESETS, get_preset
+from guaraci.services.same_as import same_as_for
 from guaraci.services.themes import THEMES, sources_by_theme, themes_for
 
 EXPORT_FORMAT_VALUES = ["csv", "parquet", "sqlite"]
@@ -97,6 +98,8 @@ class SourceDescriptor:
     title: str
     mode: str
     themes: tuple[str, ...] = ()
+    # Fonte da qual esta é outro caminho (ver guaraci/services/same_as.py).
+    same_as: Optional[str] = None
 
 
 class DownloadSource(Protocol):
@@ -1025,7 +1028,11 @@ class DownloadService:
         retorna nada é pior que um erro.
         """
         items = [
-            replace(item.descriptor, themes=themes_for(item.descriptor.source))
+            replace(
+                item.descriptor,
+                themes=themes_for(item.descriptor.source),
+                same_as=same_as_for(item.descriptor.source),
+            )
             for item in self._sources.values()
         ]
         if theme is not None:

@@ -34,6 +34,7 @@ class SourceResponse(BaseModel):
     mode: str
     themes: List[str] = Field(default_factory=list)
     supports_discovery: bool = False
+    same_as: Optional[str] = None
 
 
 class ThemeResponse(BaseModel):
@@ -212,6 +213,7 @@ def list_sources(
             mode=item.mode,
             themes=list(item.themes),
             supports_discovery=download_service.supports_discovery(item.source),
+            same_as=item.same_as,
         )
         for item in items
     ]

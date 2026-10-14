@@ -402,6 +402,9 @@ body.drawer-open .drawer-scrim { opacity: 1; pointer-events: auto; }
   border-radius: 999px; padding: 1px 8px; white-space: nowrap;
 }
 
+/* Fonte que repete outra base por outro caminho: aviso discreto, em texto. */
+.src-card .same-as { font-size: 11px; color: var(--muted); font-style: italic; }
+
 .catalog-empty { text-align: center; color: var(--muted); padding: 40px 0; }
 
 .form-card {

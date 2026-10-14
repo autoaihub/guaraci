@@ -35,7 +35,7 @@ def _params() -> List[SourceParameterSpec]:
                 f"Ano inicial do diagnóstico (desde {MIN_YEAR}; último ano "
                 f"publicado conferido: {MAX_YEAR_FALLBACK})."
             ),
-            required=True, default=None, minimum=MIN_YEAR, maximum=current_year,
+            required=True, default=MAX_YEAR_FALLBACK, minimum=MIN_YEAR, maximum=current_year,
         ),
         SourceParameterSpec(
             name="end_year", phase="coleta", param_type="integer",

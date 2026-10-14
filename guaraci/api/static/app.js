@@ -62,6 +62,7 @@ const I18N = {
     step_filters: "Filtros e revisão",
     sources_hint: "Clique numa fonte para iniciar uma coleta com ela.",
     catalog_empty: "Nenhuma fonte encontrada com esse termo.",
+    same_as: "Outro caminho para {name}",
     fam_datasus: "DATASUS — FTP oficial",
     fam_opendatasus: "OpenDataSUS — catálogo aberto",
     fam_ibge: "IBGE",
@@ -178,6 +179,7 @@ const I18N = {
     step_filters: "Filters & review",
     sources_hint: "Click a source to start a download with it.",
     catalog_empty: "No source matches that term.",
+    same_as: "Another path to {name}",
     fam_datasus: "DATASUS — official FTP",
     fam_opendatasus: "OpenDataSUS — open catalog",
     fam_ibge: "IBGE",
@@ -619,6 +621,7 @@ function renderCatalogInto(el, query, clickable) {
         "<span class='mode'>" + escapeHtml(item.mode) + "</span>" +
         "<strong>" + escapeHtml(item.title) + "</strong>" +
         "<p>" + escapeHtml(item.source) + "</p>" +
+        sameAsNote(item) +
         (themeChips ? "<span class='theme-chips'>" + themeChips + "</span>" : "");
       card.addEventListener("click", () => selectSource(item.source));
       grid.appendChild(card);
@@ -626,6 +629,14 @@ function renderCatalogInto(el, query, clickable) {
     group.appendChild(grid);
     el.appendChild(group);
   });
+}
+
+// Fonte que é a mesma base de outra, por outro caminho (API x FTP x arquivo).
+function sameAsNote(item) {
+  if (!item.same_as) return "";
+  const canon = sourcesBySource[item.same_as];
+  const name = canon ? canon.title : item.same_as;
+  return "<span class='same-as'>" + escapeHtml(tf("same_as", { name: name })) + "</span>";
 }
 
 function renderCatalogs() {
