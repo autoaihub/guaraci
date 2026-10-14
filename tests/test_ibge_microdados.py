@@ -97,6 +97,79 @@ def test_existing_zip_with_same_size_is_not_downloaded_again(tmp_path):
     assert sum(call.startswith("GET") for call in client.calls) == 2
 
 
+def test_keep_raw_false_only_removes_zips_downloaded_in_this_run(tmp_path):
+    client = _pns_client()
+    # O zip do programa SAS já está no disco, com o tamanho certo: é pulado.
+    preexistente = tmp_path / "ibge_pns_2019_Dicionario_e_input_20220530.zip"
+    preexistente.write_bytes(client._payload("Dicionario_e_input_20220530.zip"))
+
+    result = _run(tmp_path, "ibge_pns", client, start_year=2019, output_format="csv")
+
+    assert result["skipped_count"] == 1 and result["downloaded_count"] == 1
+    assert preexistente.exists()
+    assert not (tmp_path / "ibge_pns_2019_PNS_2019_20220525.zip").exists()
+
+
+def test_microdados_download_retries_truncated_body(tmp_path, monkeypatch):
+    import http.client
+
+    from guaraci.ibge import microdados as modulo
+
+    corpo = b"zip-bytes" * 10
+    tentativas = {"n": 0}
+
+    class _Resposta:
+        def __init__(self, truncar: bool) -> None:
+            self._pedacos = [corpo[:20], None if truncar else corpo[20:], b""]
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def read(self, _tamanho=None):
+            pedaco = self._pedacos.pop(0)
+            if pedaco is None:
+                raise http.client.IncompleteRead(corpo[:20], len(corpo) - 20)
+            return pedaco
+
+    def fake_urlopen(request, timeout=None):
+        tentativas["n"] += 1
+        return _Resposta(truncar=tentativas["n"] == 1)
+
+    monkeypatch.setattr(modulo, "urlopen", fake_urlopen)
+    monkeypatch.setattr("guaraci.core.http.time.sleep", lambda s: None)
+    destino = tmp_path / "pns.zip"
+    escrito = modulo.IbgeFtpClient().download("a/pns.zip", destino)
+
+    assert tentativas["n"] == 2
+    assert escrito == len(corpo)
+    assert destino.read_bytes() == corpo
+    assert not (tmp_path / "pns.zip.part").exists()
+
+
+def test_microdados_download_truncated_body_exhausts_as_retryable_error(tmp_path, monkeypatch):
+    from guaraci.ibge import microdados as modulo
+
+    class _Truncada:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def read(self, _tamanho=None):
+            raise ConnectionResetError("reset")
+
+    monkeypatch.setattr(modulo, "urlopen", lambda request, timeout=None: _Truncada())
+    monkeypatch.setattr("guaraci.core.http.time.sleep", lambda s: None)
+    with pytest.raises(modulo.IbgeFtpError) as exc:
+        modulo.IbgeFtpClient().download("a/pns.zip", tmp_path / "pns.zip")
+    assert exc.value.retryable is True
+    assert not (tmp_path / "pns.zip.part").exists()
+
+
 def test_year_without_edition_is_empty_and_touches_no_network(tmp_path):
     client = _Client({})
     result = _run(tmp_path, "ibge_pns", client, start_year=2015, end_year=2018, output_format="csv")

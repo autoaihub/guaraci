@@ -305,3 +305,62 @@ def test_retryable_failure_is_not_reported_as_no_data(tmp_path):
     with pytest.raises(IbgeClientError):  # todos os anos falharam: erro, não vazio
         IbgePopulacaoDataSource(output_path=str(tmp_path), client=TimeoutClient()).download(
             start_year=2020, end_year=2020)
+
+
+def test_non_retryable_slice_failure_drops_the_year_and_counts_it_as_failed(tmp_path):
+    class SliceClient(FakeClient):
+        def aggregate(self, *, period, localities, **kwargs):
+            if period == "2020" and localities == "N6[N3[12]]":
+                raise IbgeClientError("excedeu o limite: 50000", category="configuration")
+            return super().aggregate(period=period, localities=localities, **kwargs)
+
+    class TwoSlices(IbgePopulacaoDataSource):
+        @classmethod
+        def _requests(cls, nivel, classificacao, n_variaveis=0):
+            return [("N6[N3[11]]", None), ("N6[N3[12]]", None)]
+
+    ds = TwoSlices(output_path=str(tmp_path), client=SliceClient())
+    payload = ds.download(start_year=2019, end_year=2020, level="municipio")
+    # 2019 inteiro (2 fatias); 2020 descartado por inteiro, nao pela metade.
+    assert payload["failed_count"] == 1
+    assert payload["documents_found"] == 2
+    assert {r["ano"] for r in ds.load_dataframe().to_dicts()} == {2019}
+    assert "2020 skipped" in payload["export_warning"]
+    assert "excedeu o limite" in payload["export_warning"]
+
+
+class _TruncatedResp(_FakeResp):
+    def read(self):
+        import http.client
+
+        raise http.client.IncompleteRead(b"x" * 10, 90)
+
+
+def test_client_retries_incomplete_read_and_succeeds(monkeypatch):
+    calls = {"n": 0}
+
+    def fake_urlopen(request, timeout=None):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _TruncatedResp(b"")
+        return _FakeResp(b'[{"id":"9324","resultados":[]}]')
+
+    monkeypatch.setattr("guaraci.ibge.client.urlopen", fake_urlopen)
+    monkeypatch.setattr("guaraci.core.http.time.sleep", lambda s: None)
+    out = IbgeSidraClient().aggregate(
+        table="6579", variable="9324", period="2021", localities="N6[all]"
+    )
+    assert out == [{"id": "9324", "resultados": []}]
+    assert calls["n"] == 2
+
+
+def test_client_incomplete_read_exhausted_is_retryable_client_error(monkeypatch):
+    monkeypatch.setattr(
+        "guaraci.ibge.client.urlopen", lambda req, timeout=None: _TruncatedResp(b"")
+    )
+    monkeypatch.setattr("guaraci.core.http.time.sleep", lambda s: None)
+    with pytest.raises(IbgeClientError) as exc:
+        IbgeSidraClient().aggregate(
+            table="6579", variable="9324", period="2021", localities="N6[all]"
+        )
+    assert exc.value.retryable is True

@@ -43,6 +43,7 @@ import polars as pl
 from guaraci import __version__
 from guaraci.core.datasource import DataSource
 from guaraci.core.http import (
+    READ_ERRORS,
     ApiClientError,
     classify_http_status,
     is_timeout_reason,
@@ -162,6 +163,16 @@ class IbgeFtpClient:
                     category="timeout",
                     retryable=True,
                     hint="Os zips de microdados passam de 100 MB; aumente o timeout.",
+                ) from exc
+            except READ_ERRORS as exc:
+                # Corpo truncado ou conexão derrubada no meio do zip: o .part é
+                # refeito do zero na nova tentativa.
+                raise IbgeFtpError(
+                    f"Connection failed while downloading '{url}' "
+                    f"({type(exc).__name__}: {exc}).",
+                    category="connectivity",
+                    retryable=True,
+                    hint="Os zips de microdados são grandes; a conexão é refeita.",
                 ) from exc
             return written
 
@@ -727,6 +738,7 @@ class IbgeMicrodadosDataSource(DataSource):
         ]
         total = len(downloads)
         raws: Dict[Tuple[int, str], Path] = {}
+        baixados: List[Path] = []  # só o que esta execução baixou
         warnings: List[str] = []
         if progress_callback is not None:
             progress_callback({"event": "download_start", "source": self.name, "documents_total": total})
@@ -752,6 +764,7 @@ class IbgeMicrodadosDataSource(DataSource):
                         })
 
                 client.download(path, raw_path, progress_callback=on_bytes)
+                baixados.append(raw_path)
             payload["skipped_count" if skipped else "downloaded_count"] += 1
             if progress_callback is not None:
                 progress_callback({
@@ -770,7 +783,9 @@ class IbgeMicrodadosDataSource(DataSource):
                     if warning:
                         warnings.append(warning)
             if not keep_raw:
-                for raw_path in raws.values():
+                # Zip que já estava no disco (pulado por ter o tamanho certo)
+                # não é desta execução e fica onde estava.
+                for raw_path in baixados:
                     raw_path.unlink(missing_ok=True)
         else:
             warnings.append(

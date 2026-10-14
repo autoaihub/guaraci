@@ -134,6 +134,15 @@ class IbgeSidraClient:
                 hint="Retry later or narrow the request if the service is slow.",
             )
 
+        def on_read_error(exc: Exception) -> IbgeClientError:
+            return IbgeClientError(
+                f"IBGE connection failed while reading the response "
+                f"({type(exc).__name__}: {exc}).",
+                category="connectivity",
+                retryable=True,
+                hint="Resposta truncada ou conexão derrubada; a consulta é repetida.",
+            )
+
         def send() -> Any:
             raw, headers = open_response(
                 lambda req, timeout: urlopen(req, timeout=timeout),
@@ -142,6 +151,7 @@ class IbgeSidraClient:
                 on_http_error=on_http_error,
                 on_url_error=on_url_error,
                 on_timeout=on_timeout,
+                on_read_error=on_read_error,
             )
             encoding = ""
             if headers is not None:

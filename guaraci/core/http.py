@@ -23,6 +23,7 @@ Design notes:
 
 from __future__ import annotations
 
+import http.client
 import json
 import socket
 import time
@@ -34,6 +35,13 @@ DEFAULT_BACKOFF_SECONDS = 0.25
 DEFAULT_BACKOFF_CAP_SECONDS = 30.0
 
 _T = TypeVar("_T")
+
+# Falhas de transporte que surgem DURANTE ``response.read()``, depois que o
+# servidor já respondeu: corpo truncado (``IncompleteRead``), servidor que
+# derruba a conexão (``RemoteDisconnected``, ``ConnectionResetError``) e
+# afins. Não passam por ``URLError``, e por isso precisam de tratamento
+# próprio para entrar no ciclo de nova tentativa.
+READ_ERRORS: Tuple[Type[BaseException], ...] = (http.client.HTTPException, ConnectionError)
 
 
 class ApiClientError(RuntimeError):
@@ -178,12 +186,17 @@ def open_response(
     on_http_error: Callable[[HTTPError], ApiClientError],
     on_url_error: Callable[[URLError], ApiClientError],
     on_timeout: Callable[[Exception], ApiClientError],
+    on_read_error: Callable[[Exception], ApiClientError] | None = None,
 ) -> Tuple[bytes, Any]:
     """Perform ONE request attempt and return ``(body_bytes, headers)``.
 
     urllib errors are translated through the client-supplied callbacks so
     each client controls messages, hints, and redaction. Retryable HTTP
     errors get ``retry_after`` attached from the ``Retry-After`` header.
+
+    Corpo truncado e conexão derrubada na leitura (:data:`READ_ERRORS`) viram
+    erro retentável via ``on_read_error``; sem ele, passam por ``on_url_error``
+    embrulhados em ``URLError``.
     """
     try:
         with open_fn(request, timeout=timeout) as response:
@@ -199,6 +212,10 @@ def open_response(
         raise on_url_error(exc) from exc
     except (TimeoutError, socket.timeout) as exc:
         raise on_timeout(exc) from exc
+    except READ_ERRORS as exc:
+        if on_read_error is not None:
+            raise on_read_error(exc) from exc
+        raise on_url_error(URLError(f"{type(exc).__name__}: {exc}")) from exc
 
 
 def decode_text(raw_bytes: bytes) -> str:
