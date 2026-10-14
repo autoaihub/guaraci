@@ -49,12 +49,14 @@ def parse_prn(page: str) -> PrnTable:
     lines = [line for line in lines if line.strip() != "&"]
     if not lines:
         raise TabnetNoTableError("Bloco <PRE> vazio.")
-    reader = csv.reader([html.unescape(line) for line in lines], delimiter=";", quotechar='"')
-    parsed = list(reader)
+    # O csv.reader lê o texto cru: `&quot;` e `&#59;` não podem virar aspas ou
+    # separador antes da divisão em campos. O unescape vale por célula.
+    parsed = list(csv.reader(lines, delimiter=";", quotechar='"'))
     header = [clean_header(name) for name in parsed[0]]
     rows = []
     for row in parsed[1:]:
-        if row and row[0].strip() == "Total":
+        cells = [html.unescape(value).strip() for value in row]
+        if cells and cells[0] == "Total":
             continue
-        rows.append([value.strip() for value in row])
+        rows.append(cells)
     return PrnTable(header=header, rows=rows)
