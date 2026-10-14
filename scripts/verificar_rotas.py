@@ -72,11 +72,23 @@ _OVERRIDES: Dict[str, Dict[str, Any]] = {
     "nasa_firms": {"start_date": "2024-09-01", "end_date": "2024-09-02"},
     "nasa_gpm": {"latitude": "-23.55", "longitude": "-46.63",
                  "start_date": "2024-01-01", "end_date": "2024-01-07"},
-    "cetesb_qualar_horario": {"stations": ["Americana"], "parameters": ["O3"],
+    "cetesb_qualar_horario": {"stations": ["Ibirapuera"], "parameters": ["O3"],
                               "start_date": "2024-01-01", "end_date": "2024-01-03"},
     "cnes_estabelecimentos_por_codigo_cnes": {"codigo_cnes": "2077485"},
     "cnes_tipounidades_por_codigo_tipo_unidade": {"codigo_tipo_unidade": "5"},
     "economia_da_saude_bps": {"codigoCatmat": "BR0267614"},  # prova a normalização
+    # Microdados de inquérito: o ano padrão (2023) não tem edição nessas duas,
+    # e a fonte responde com aviso e sem arquivo, que é o comportamento certo.
+    "ibge_pense": {"start_year": 2009, "end_year": 2009},
+    "ibge_pnadc_trimestre3": {"start_year": 2024, "end_year": 2024},
+    # Sem UF, o SICONFI consulta os 5,6 mil entes um a um.
+    "siconfi_dca_despesa_funcao": {"uf": ["AC"]},
+    "siconfi_rreo_saude": {"uf": ["AC"]},
+    # No WFS o page_size é o tamanho da página, não um teto: com 50 o DETER
+    # Amazônia de um ano passava de mil páginas e estourava o tempo.
+    "inpe_deter_amazonia": {"page_size": 50000},
+    "inpe_deter_cerrado": {"page_size": 50000},
+    "inpe_prodes": {"page_size": 50000},
 }
 
 # Endpoints do DEMAS que respondem 200 com lista vazia sem filtro algum
@@ -87,6 +99,9 @@ _ORIGEM_VAZIA = {
     "atencao_primaria_pmmb_relatorio_historico_cadastro_cnes",
     "saude_indigena_acompanhamento_obra_infraestrutura_saude",
     "vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos",
+    # Conferido com curl em 2026-10-13: a API devolve a lista vazia.
+    "saude_indigena_sesai_hepatites_virais",
+    "saude_indigena_sesai_obitos",
 }
 
 # Recusa por credencial ausente é o comportamento certo sem a chave; a
