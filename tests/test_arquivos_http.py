@@ -7,6 +7,7 @@ corrompido, membro errado do zip e arquivo inalterado baixado de novo.
 
 from __future__ import annotations
 
+import http.client
 import io
 import zipfile
 from pathlib import Path
@@ -228,3 +229,185 @@ def test_mgdi_samu_exporta_um_csv_por_indicador(tmp_path: Path) -> None:
     assert len(payload["exported_files"]) == 11
     assert payload["failed_count"] == 0
     assert Path(payload["exported_files"][0]).name == "mgdi_samu_samuaer.csv"
+
+
+# --- transporte: truncamento, zip esperado, erros de socket, .part, encoding ---------------
+
+
+class _Resp:
+    """Resposta de urlopen: bytes em fluxo e cabeçalho Content-Length opcional."""
+
+    def __init__(self, data: bytes, length=None) -> None:
+        self._buf = io.BytesIO(data)
+        self.headers = {} if length is None else {"Content-Length": str(length)}
+
+    def read(self, size: int = -1) -> bytes:
+        return self._buf.read(size)
+
+    def __enter__(self) -> "_Resp":
+        return self
+
+    def __exit__(self, *exc: object) -> bool:
+        return False
+
+
+def _patch_urlopen(monkeypatch, fn) -> None:
+    monkeypatch.setattr("guaraci.arquivos.http_files.urlopen", fn)
+
+
+def test_download_truncado_pelo_content_length_e_erro_retentavel(tmp_path, monkeypatch):
+    from guaraci.arquivos.http_files import HttpFileClient
+
+    payload = _zip({"a.csv": b"x,y\n1,2\n"})
+    _patch_urlopen(monkeypatch, lambda *_a, **_k: _Resp(payload[:-5], length=len(payload)))
+    destination = tmp_path / "x.csv.zip"
+    with pytest.raises(HttpFileClientError) as info:
+        HttpFileClient(max_attempts=1).download("https://x/x.csv.zip", destination)
+    assert info.value.retryable is True
+    assert "truncated" in str(info.value)
+    assert not destination.exists()
+    assert not (tmp_path / "x.csv.zip.part").exists()
+
+
+def test_download_truncado_e_tentado_de_novo(tmp_path, monkeypatch):
+    from guaraci.arquivos.http_files import HttpFileClient
+
+    payload = _zip({"a.csv": b"x,y\n1,2\n"})
+    calls = []
+
+    def fake(*_a, **_k):
+        calls.append(1)
+        if len(calls) == 1:
+            return _Resp(payload[:-5], length=len(payload))
+        return _Resp(payload, length=len(payload))
+
+    _patch_urlopen(monkeypatch, fake)
+    destination = tmp_path / "x.csv.zip"
+    written = HttpFileClient(max_attempts=2).download("https://x/x.csv.zip", destination)
+    assert written == len(payload) and len(calls) == 2
+    assert zipfile.is_zipfile(destination)
+
+
+def test_url_zip_sem_content_length_exige_zip_valido(tmp_path, monkeypatch):
+    from guaraci.arquivos.http_files import HttpFileClient
+
+    payload = _zip({"a.csv": b"x,y\n1,2\n"})
+    _patch_urlopen(monkeypatch, lambda *_a, **_k: _Resp(payload[:20]))
+    with pytest.raises(HttpFileClientError, match="not a valid zip"):
+        HttpFileClient(max_attempts=1).download("https://x/a.csv.zip?v=1", tmp_path / "a.csv.zip")
+    assert not (tmp_path / "a.csv.zip").exists()
+
+
+def test_url_csv_nao_exige_zip(tmp_path, monkeypatch):
+    from guaraci.arquivos.http_files import HttpFileClient
+
+    _patch_urlopen(monkeypatch, lambda *_a, **_k: _Resp(b"a;b\n1;2\n", length=8))
+    assert HttpFileClient(max_attempts=1).download("https://x/a.csv", tmp_path / "a.csv") == 8
+
+
+def test_zip_esperado_que_nao_e_zip_falha_em_vez_de_virar_csv(tmp_path):
+    code = "pfpbben"
+    url = _url("farmacia_popular_indicadores", FARMACIA_INDICADORES.index(code))
+    client = _Client({url: b"PK\x03\x04 truncado, nao fecha o diretorio central"})
+    with pytest.raises(ValueError, match="should be a zip"):
+        _source(tmp_path, "farmacia_popular_indicadores", client).download(
+            output_dir=str(tmp_path), output_format="csv", indicadores=[code]
+        )
+    assert list(tmp_path.glob("*.csv")) == []
+
+
+def test_zip_esperado_que_nao_e_zip_entre_varios_vira_aviso(tmp_path):
+    key = "farmacia_popular_indicadores"
+    resources = HTTP_FILES[key].resources
+    payloads = {res.url: _zip({"a.csv": b"co_anomes\n202401\n"}) for res in resources}
+    payloads[resources[1].url] = b"lixo que nao e zip"
+    payload = _source(tmp_path, key, _Client(payloads)).download(
+        output_dir=str(tmp_path),
+        output_format="csv",
+        indicadores=[resources[0].code, resources[1].code],
+    )
+    assert payload["failed_count"] == 1
+    assert resources[1].code in payload["export_warning"]
+    assert "should be a zip" in payload["export_warning"]
+
+
+def test_falha_de_um_recurso_pedido_relanca_a_causa_real(tmp_path):
+    key = "farmacia_popular_indicadores"
+    payloads = {res.url: _zip({"a.csv": b"co_anomes\n202401\n"}) for res in HTTP_FILES[key].resources}
+    client = _Client(payloads, fail=("pfpbdm.csv.zip",))
+    with pytest.raises(HttpFileClientError, match="boom"):
+        _source(tmp_path, key, client).download(
+            output_dir=str(tmp_path), output_format="csv", indicadores=["pfpbdm"]
+        )
+
+
+def test_conversao_com_bytes_invalidos_avisa_com_a_contagem(tmp_path):
+    key = "ibama_agrotoxicos_comercializacao"
+    head = "Classe;Nome\r\n"
+    filler = "Herbicida;abcdefghij\r\n" * 60000  # passa de 1 MB de ASCII, a amostra da detecção
+    raw = (head + filler).encode("utf-8") + b"Herbicida;pir\xf3tr\xf3ide\r\n"
+    assert len(head + filler) > (1 << 20)
+    client = _Client({_url(key): raw})
+    payload = _source(tmp_path, key, client).download(output_dir=str(tmp_path), output_format="csv")
+    assert payload["failed_count"] == 0
+    warning = payload["export_warning"]
+    assert "2 caracteres" in warning and "U+FFFD" in warning
+    assert "relatorios_comercializacao_agrotoxicos.csv" in warning
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        TimeoutError("timed out"),
+        ConnectionResetError(10054, "reset"),
+        http.client.IncompleteRead(b"abc", 10),
+        OSError(104, "socket error"),
+    ],
+)
+def test_erros_de_socket_viram_erro_retentavel_no_head_e_no_download(tmp_path, monkeypatch, error):
+    from guaraci.arquivos.http_files import HttpFileClient
+
+    def boom(*_a, **_k):
+        raise error
+
+    _patch_urlopen(monkeypatch, boom)
+    client = HttpFileClient(max_attempts=1)
+    with pytest.raises(HttpFileClientError) as head:
+        client.head("https://x/a.csv")
+    with pytest.raises(HttpFileClientError) as download:
+        client.download("https://x/a.csv", tmp_path / "a.csv")
+    assert head.value.retryable is True and download.value.retryable is True
+
+
+def test_erro_no_meio_da_leitura_e_retentado(tmp_path, monkeypatch):
+    from guaraci.arquivos.http_files import HttpFileClient
+
+    class Broken(_Resp):
+        def read(self, size: int = -1) -> bytes:
+            raise ConnectionResetError(10054, "reset")
+
+    calls = []
+
+    def fake(*_a, **_k):
+        calls.append(1)
+        return Broken(b"") if len(calls) == 1 else _Resp(b"a,b\n", length=4)
+
+    _patch_urlopen(monkeypatch, fake)
+    assert HttpFileClient(max_attempts=2).download("https://x/a.csv", tmp_path / "a.csv") == 4
+    assert len(calls) == 2
+
+
+def test_exportacao_que_falha_nao_deixa_arquivo_final_nem_part(tmp_path, monkeypatch):
+    key = "ibama_agrotoxicos_comercializacao"
+
+    def broken_sink(self, path, *args, **kwargs):
+        Path(path).write_text("parcial")
+        raise RuntimeError("disco cheio")
+
+    monkeypatch.setattr(pl.LazyFrame, "sink_csv", broken_sink)
+    client = _Client({_url(key): _IBAMA})
+    with pytest.raises(RuntimeError, match="disco cheio"):
+        _source(tmp_path, key, client).download(output_dir=str(tmp_path), output_format="csv")
+    assert not (tmp_path / f"{key}.csv").exists()
+    assert list(tmp_path.glob("*.part")) == []
+    assert list(tmp_path.glob("*.tmp.csv")) == []

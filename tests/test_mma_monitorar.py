@@ -94,3 +94,65 @@ def test_fonte_registrada_com_schema():
     schema = DownloadService().get_source_schema("mma_monitorar")
     assert schema is not None
     assert "start_year" in str(schema) and "output_format" in str(schema)
+
+
+def test_lista_recursos_por_format_zip_ou_url_com_query(monkeypatch):
+    import json
+
+    from guaraci.mma import MonitorArClient
+
+    items = [
+        {"name": "Dados - 2022", "url": "https://x/a/download", "format": "ZIP"},
+        {"name": "Dados - 2023", "url": "https://x/b.ZIP?token=1", "format": ""},
+        {"name": "Dados - 2024", "url": "https://x/c.zip", "format": "zip"},
+        {"name": "Dicionário - 2024", "url": "https://x/d.pdf", "format": "PDF"},
+        {"name": "Dados - 2025", "url": "https://x/e.csv", "format": "CSV"},
+    ]
+    body = json.dumps({"result": {"resources": items}}).encode()
+
+    class Resp:
+        def read(self):
+            return body
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    monkeypatch.setattr("guaraci.mma.monitorar.urlopen", lambda *_a, **_k: Resp())
+    years = [r.year for r in MonitorArClient(max_attempts=1).list_resources()]
+    assert years == [2022, 2023, 2024]
+
+
+def test_anos_pedidos_sem_recurso_viram_aviso(tmp_path):
+    source = MonitorArDataSource(output_path=str(tmp_path), client=_Client(tmp_path))
+    payload = source.download(start_year=2022, end_year=2025, output_format="csv")
+    assert payload["years"] == [2022, 2024, 2025]
+    assert "2023" in payload["export_warning"]
+
+
+def test_sem_anos_pedidos_nao_ha_aviso_de_ano_faltando(tmp_path):
+    source = MonitorArDataSource(output_path=str(tmp_path), client=_Client(tmp_path))
+    payload = source.download(output_format="csv")
+    assert payload["export_warning"] is None
+
+
+def test_bytes_invalidos_alem_do_primeiro_bloco_avisam_com_a_contagem(tmp_path):
+    # Primeiro bloco (1 MB) é UTF-8 válido; um byte cp1252 solto depois vira U+FFFD.
+    filler = ("a" * 99 + "\n") * 11000
+    body = ("col\n" + filler).encode("utf-8") + b"Esta\xe7\xe3o\n"
+    assert len(body) > (1 << 20)
+
+    class BadClient(_Client):
+        def download(self, resource, destination: Path, **_kwargs) -> int:
+            with zipfile.ZipFile(destination, "w") as archive:
+                archive.writestr("dados.csv", body)
+            return destination.stat().st_size
+
+    source = MonitorArDataSource(output_path=str(tmp_path), client=BadClient(tmp_path))
+    payload = source.download(start_year=2025, output_format="csv")
+    assert payload["failed_count"] == 0 and len(payload["exported_files"]) == 1
+    assert "2 caracteres" in payload["export_warning"]
+    assert "U+FFFD" in payload["export_warning"]
+    assert "dados_monitorar_2025.zip" in payload["export_warning"]

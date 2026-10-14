@@ -94,3 +94,40 @@ def test_schema_registrado():
     schema = DownloadService().get_source_schema("inep_censo_escolar")
     names = {p["name"] for p in schema["params"]}
     assert {"start_year", "end_year", "output_format"} <= names
+
+
+def test_end_year_sem_start_year_parte_do_ano_minimo(tmp_path):
+    source = InepCensoEscolarDataSource(output_path=str(tmp_path), client=_Client({}))
+    payload = source.download(output_dir=str(tmp_path), end_year=2009)
+    # Nenhum zip no cliente falso: as três falhas isolam, mas a faixa 2007-2009 foi pedida.
+    assert payload["documents_found"] == 3
+    assert payload["failed_count"] == 3
+    for ano in ("2007", "2008", "2009"):
+        assert ano in payload["export_warning"]
+
+
+def test_end_year_menor_que_o_piso_e_recusado(tmp_path):
+    source = InepCensoEscolarDataSource(output_path=str(tmp_path), client=_Client({}))
+    with pytest.raises(ValueError):
+        source.download(output_dir=str(tmp_path), end_year=2003)
+
+
+def test_sem_anos_o_padrao_para_no_censo_ja_publicado():
+    from datetime import datetime
+
+    from guaraci.arquivos.inep_censo_escolar import MIN_YEAR, latest_year
+
+    assert latest_year() == datetime.now().year - 1
+    source = InepCensoEscolarDataSource(output_path=".", client=_Client({}))
+    codes = [r.code for r in source._select(None)]
+    assert codes[0] == str(MIN_YEAR)
+    assert codes[-1] == str(datetime.now().year - 1)
+    assert str(datetime.now().year) not in codes
+
+
+def test_schema_limita_os_anos_ao_ultimo_censo_publicado():
+    from guaraci.arquivos.inep_censo_escolar import latest_year
+
+    params = {p["name"]: p for p in DownloadService().get_source_schema("inep_censo_escolar")["params"]}
+    assert params["start_year"]["maximum"] == latest_year()
+    assert params["end_year"]["maximum"] == latest_year()

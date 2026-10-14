@@ -253,3 +253,89 @@ def test_source_is_registered_with_year_params():
     assert schema["mode"] == "fns files"
     names = {p["name"] for p in schema["params"]}
     assert {"start_year", "end_year", "output_format", "keep_raw", "timeout"} <= names
+
+
+def test_xlsx_pula_linhas_com_todas_as_celulas_vazias(tmp_path):
+    path = tmp_path / "v.xlsx"
+    _xlsx(path, [
+        ["A", "B"],
+        ["1", "2"],
+        ["", ""],
+        [None, None],
+        ["  ", ""],
+        ["3", ""],
+    ])
+    assert list(iter_xlsx_rows(path)) == [["A", "B"], ["1", "2"], ["3", ""]]
+    target = tmp_path / "v.csv"
+    assert xlsx_to_csv(path, target) == 2
+    assert target.read_text(encoding="utf-8") == "A,B\n1,2\n3,\n"
+
+
+def test_csv_com_erro_de_conversao_nao_deixa_csv_final_nem_part(tmp_path):
+    files = _service_files(tmp_path)
+    key = BASE + "wp-content/uploads/2023/01/REPASSE-FAF-COM-POPULACAO-v4-2022.csv"
+    final, payload = files[key]
+    files[key] = (final, payload + b"so;tres;campos\r\n")
+    out = tmp_path / "out"
+    ds = FnsRepassesDataSource(output_path=str(out), client=_Client(files))
+    with pytest.raises(ValueError, match="has 3 fields"):
+        ds.download(start_year=2022, output_format="csv")
+    assert not (out / "fns_repasses_fundo_a_fundo_2022.csv").exists()
+    assert list(out.glob("*.part")) == []
+
+
+@pytest.mark.parametrize(
+    "error",
+    [TimeoutError("t"), ConnectionResetError(10054, "reset"), OSError(104, "socket")],
+)
+def test_erros_de_socket_viram_erro_retentavel(tmp_path, monkeypatch, error):
+    from guaraci.fns.repasses import FnsClient, FnsClientError
+
+    def boom(*_a, **_k):
+        raise error
+
+    monkeypatch.setattr("guaraci.fns.repasses.urlopen", boom)
+    client = FnsClient(max_attempts=1)
+    for call in (
+        lambda: client.head("https://x/a.csv"),
+        lambda: client.listing_html(),
+        lambda: client.download("https://x/a.csv", tmp_path / "a.csv"),
+    ):
+        with pytest.raises(FnsClientError) as info:
+            call()
+        assert info.value.retryable is True
+
+
+def test_incomplete_read_no_download_e_retentado(tmp_path, monkeypatch):
+    import http.client
+
+    from guaraci.fns.repasses import FnsClient
+
+    class Resp:
+        def __init__(self, broken: bool) -> None:
+            self.broken = broken
+            self.sent = False
+
+        def read(self, size=-1):
+            if self.broken:
+                raise http.client.IncompleteRead(b"ab", 10)
+            if self.sent:
+                return b""
+            self.sent = True
+            return b"a,b\n"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    calls = []
+
+    def fake(*_a, **_k):
+        calls.append(1)
+        return Resp(broken=len(calls) == 1)
+
+    monkeypatch.setattr("guaraci.fns.repasses.urlopen", fake)
+    assert FnsClient(max_attempts=2).download("https://x/a.csv", tmp_path / "a.csv") == 4
+    assert len(calls) == 2

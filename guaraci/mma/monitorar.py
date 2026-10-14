@@ -34,7 +34,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 import polars as pl
@@ -130,7 +130,9 @@ class MonitorArClient:
             link = str(item.get("url") or "").strip()
             fmt = str(item.get("format") or "").lower()
             match = _YEAR_RE.search(name)
-            if not match or not link or "pdf" in fmt or not link.lower().endswith(".zip"):
+            # Zip por ``format`` do recurso CKAN ou por URL com ``.zip`` antes da query string.
+            is_zip = fmt.strip() == "zip" or urlsplit(link).path.lower().endswith(".zip")
+            if not match or not link or "pdf" in fmt or not is_zip:
                 continue
             size = item.get("size")
             year = int(match.group(1))
@@ -249,15 +251,24 @@ def _sniff_encoding(block: bytes) -> str:
     return ENCODING
 
 
-def zip_to_utf8(zip_path: Path, target: Path, encoding: Optional[str] = None) -> int:
+def zip_to_utf8(
+    zip_path: Path,
+    target: Path,
+    encoding: Optional[str] = None,
+    stats: Optional[Dict[str, int]] = None,
+) -> int:
     """Copia o CSV de dentro do zip para ``target`` em UTF-8, em blocos.
 
     Sem ``encoding``, a codificação é detectada no primeiro bloco. Byte que a
     codificação não define vira o caractere de substituição em vez de abortar.
-    Devolve os bytes lidos do CSV descompactado.
+    Devolve os bytes lidos do CSV descompactado. Se ``stats`` for dado,
+    ``stats["replaced"]`` recebe quantos U+FFFD a conversão produziu e
+    ``stats["encoding"]`` a codificação usada.
     """
     decoder = None
     total = 0
+    replaced = 0
+    chosen = encoding or ""
     with zipfile.ZipFile(zip_path) as archive:
         members = [i for i in archive.infolist() if i.filename.lower().endswith(".csv")]
         if not members:
@@ -272,9 +283,16 @@ def zip_to_utf8(zip_path: Path, target: Path, encoding: Optional[str] = None) ->
                     block = block.removeprefix(codecs.BOM_UTF8)
                     chosen = encoding or _sniff_encoding(block)
                     decoder = codecs.getincrementaldecoder(chosen)(errors="replace")
-                sink.write(decoder.decode(block))
+                text = decoder.decode(block)
+                replaced += text.count("�")
+                sink.write(text)
             if decoder is not None:
-                sink.write(decoder.decode(b"", final=True))
+                text = decoder.decode(b"", final=True)
+                replaced += text.count("�")
+                sink.write(text)
+    if stats is not None:
+        stats["replaced"] = replaced
+        stats["encoding"] = chosen
     return total
 
 
@@ -325,6 +343,12 @@ class MonitorArDataSource(DataSource):
         resources = [r for r in client.list_resources() if low <= r.year <= high]
         if not resources:
             raise ValueError(f"No MonitorAr resource between {low} and {high}.")
+        warnings: List[str] = []
+        if (start_year is not None or end_year is not None) and high != 9999:
+            published = {r.year for r in resources}
+            missing = [y for y in range(low, high + 1) if y not in published]
+            if missing:
+                warnings.append(f"Anos sem recurso no MonitorAr: {missing}.")
         total = len(resources)
         if progress_callback is not None:
             progress_callback(
@@ -333,7 +357,6 @@ class MonitorArDataSource(DataSource):
 
         exported: List[str] = []
         downloaded = skipped = 0
-        warnings: List[str] = []
         for index, resource in enumerate(resources, start=1):
             raw_path = base_dir / f"dados_monitorar_{resource.year}.zip"
             size = resource.size
@@ -364,7 +387,9 @@ class MonitorArDataSource(DataSource):
                     "document_index": index, "file_path": str(raw_path),
                 })
             if requested:
-                exported.append(str(self._export(raw_path, base_dir, resource.year, requested)))
+                exported.append(
+                    str(self._export(raw_path, base_dir, resource.year, requested, warnings))
+                )
                 if not keep_raw:
                     raw_path.unlink(missing_ok=True)
         if not requested and not keep_raw:
@@ -387,10 +412,24 @@ class MonitorArDataSource(DataSource):
             "export_warning": " ".join(warnings) or None,
         }
 
-    def _export(self, raw_path: Path, base_dir: Path, year: int, fmt: str) -> Path:
+    def _export(
+        self,
+        raw_path: Path,
+        base_dir: Path,
+        year: int,
+        fmt: str,
+        warnings: Optional[List[str]] = None,
+    ) -> Path:
         utf8 = base_dir / f"mma_monitorar_{year}.utf8.tmp.csv"
         try:
-            zip_to_utf8(raw_path, utf8)
+            stats: Dict[str, int] = {}
+            zip_to_utf8(raw_path, utf8, stats=stats)
+            if stats.get("replaced") and warnings is not None:
+                warnings.append(
+                    f"{raw_path.name}: {stats['replaced']} caracteres inválidos viraram "
+                    f"U+FFFD na conversão para UTF-8 (codificação {stats['encoding']}); "
+                    "a detecção olha só o primeiro bloco do arquivo."
+                )
             frame = pl.scan_csv(utf8, infer_schema=False, quote_char='"')
             names = frame.collect_schema().names()
             clean = {n: n.strip() for n in names if n != n.strip()}

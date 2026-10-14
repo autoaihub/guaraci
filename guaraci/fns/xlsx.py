@@ -189,7 +189,8 @@ def iter_xlsx_rows(path: Path, sheet: Optional[str] = None) -> Iterator[List[str
                     column = _column_index(ref) if ref else position
                     cells[column] = _cell_text(cell, strings, dates)
                 row.clear()
-                if not cells:
+                # Linha sem célula, ou só de células vazias, não é dado (como no caminho CSV).
+                if not any(value.strip() for value in cells.values()):
                     continue
                 width = max(width, max(cells) + 1)
                 yield [cells.get(i, "") for i in range(width)]
