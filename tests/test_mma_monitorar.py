@@ -156,3 +156,71 @@ def test_bytes_invalidos_alem_do_primeiro_bloco_avisam_com_a_contagem(tmp_path):
     assert "2 caracteres" in payload["export_warning"]
     assert "U+FFFD" in payload["export_warning"]
     assert "dados_monitorar_2025.zip" in payload["export_warning"]
+
+
+class _FakeResponse:
+    def __init__(self, body: bytes, length: int) -> None:
+        self.headers = {"Content-Length": str(length)}
+        self._body = body
+
+    def read(self, size=-1):
+        body, self._body = self._body, b""
+        return body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def _resource() -> MonitorArResource:
+    return MonitorArResource(2025, "Dados - 2025", "https://x/2025.zip", None)
+
+
+def test_download_truncado_contra_content_length_e_erro_retentavel_sem_part(tmp_path, monkeypatch):
+    import pytest
+
+    from guaraci.mma import MonitorArClient, MonitorArClientError
+
+    monkeypatch.setattr(
+        "guaraci.mma.monitorar.urlopen", lambda *_a, **_k: _FakeResponse(b"PK\x03\x04", 100)
+    )
+    destination = tmp_path / "a.zip"
+    with pytest.raises(MonitorArClientError, match="truncated: 4 of 100") as info:
+        MonitorArClient(max_attempts=1).download(_resource(), destination)
+    assert info.value.retryable is True
+    assert not destination.exists()
+    assert list(tmp_path.glob("*.part")) == []
+
+
+def test_download_que_nao_e_zip_valido_falha_mesmo_com_tamanho_completo(tmp_path, monkeypatch):
+    import pytest
+
+    from guaraci.mma import MonitorArClient, MonitorArClientError
+
+    body = b"<html>pagina de erro</html>"
+    monkeypatch.setattr(
+        "guaraci.mma.monitorar.urlopen", lambda *_a, **_k: _FakeResponse(body, len(body))
+    )
+    destination = tmp_path / "a.zip"
+    with pytest.raises(MonitorArClientError, match="not a valid zip") as info:
+        MonitorArClient(max_attempts=1).download(_resource(), destination)
+    assert info.value.retryable is True
+    assert not destination.exists()
+    assert list(tmp_path.glob("*.part")) == []
+
+
+def test_exportacao_com_falha_nao_deixa_arquivo_final_nem_part(tmp_path, monkeypatch):
+    import pytest
+
+    def boom(self, dest, *_a, **_k):
+        Path(dest).write_text("parcial")  # o sink já começou a gravar quando quebra
+        raise RuntimeError("disco cheio")
+
+    monkeypatch.setattr(pl.LazyFrame, "sink_csv", boom)
+    source = MonitorArDataSource(output_path=str(tmp_path), client=_Client(tmp_path))
+    with pytest.raises(RuntimeError, match="disco cheio"):
+        source.download(start_year=2025, output_format="csv")
+    assert not (tmp_path / "mma_monitorar_2025.csv").exists()
+    assert list(tmp_path.glob("*.part")) == []
