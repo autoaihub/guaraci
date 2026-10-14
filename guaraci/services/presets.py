@@ -131,6 +131,15 @@ _ONCOLOGIA = Preset(
             params={},
         ),
         PresetStep(
+            source="inca_rhc",
+            rationale=(
+                "Registros Hospitalares de Câncer do INCA: um caso por linha, "
+                "com topografia, morfologia, estadiamento e primeiro "
+                "tratamento, nos hospitais que reportam ao Integrador RHC."
+            ),
+            params={},
+        ),
+        PresetStep(
             source="sih",
             rationale=(
                 "Internações hospitalares, para chegar à morbidade oncológica "
@@ -163,6 +172,9 @@ _ONCOLOGIA = Preset(
         "entre as fontes.",
         "O Painel de Oncologia é consolidado nacional anual, sem recorte por "
         "UF na coleta, diferente das demais fontes do preset.",
+        "O RHC é de base hospitalar, não populacional: traz só os hospitais "
+        "que reportaram no ano (16 UFs em 2023) e não substitui a incidência. "
+        "O INCA não publica o ano de 1987.",
     ),
 )
 

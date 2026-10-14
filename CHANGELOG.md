@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added: INCA Integrador RHC, de 181 para 182
+- **Câncer.** `inca_rhc` traz os Registros Hospitalares de Câncer do INCA,
+  um caso por linha, com topografia, morfologia, estadiamento e primeiro
+  tratamento, de 1985 a 2023 (o INCA não publica 1987). O Integrador não
+  tem URL estática: o pacote novo `guaraci/inca` abre a sessão, fixa a base,
+  pede a geração do arquivo, espera ficar pronto e baixa o zip com o cookie
+  `downloadToken` igual ao do pedido. A base é hospitalar e só traz os
+  hospitais que reportaram (16 UFs em 2023). A fonte entra no preset de
+  oncologia, e o site passa a 15 instituições e 23 grupos.
+
 ### Added: PNAD Contínua completa e Distrito Federal no SIOPS, de 176 para 181
 - **PNAD Contínua.** `ibge_pnadc_visita5` (rendimento de todas as fontes,
   cuidados e afazeres, 2016 a 2024) e uma fonte por trimestre temático:

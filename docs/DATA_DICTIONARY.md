@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 181 sources cataloged; 143 sampled with real field names.
+- 182 sources cataloged; 144 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -590,6 +590,13 @@ to refresh.
 - **Status:** ok (1 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `destino_do_lixo`, `variavel_id`, `unidade`, `valor`
+
+## inca_rhc
+
+- **Status:** ok (125625 rows sampled)
+- **Filters:** `output_dir`, `start_year`, `end_year`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `TPCASO`, `SEXO`, `IDADE`, `LOCALNAS`, `RACACOR`, `INSTRUC`, `CLIATEN`, `CLITRAT`, `HISTFAMC`, `ALCOOLIS`, `TABAGISM`, `ESTADRES`, `PROCEDEN`, `ANOPRIDI`, `ORIENC`, `EXDIAG`, `ESTCONJ`, `ANTRI`, `DTPRICON`, `DIAGANT`, `BASMAIMP`, `LOCTUDET`, `LOCTUPRI`, `TIPOHIST`, `LATERALI`, `LOCTUPRO`, `MAISUMTU`, `TNM`, `ESTADIAM`, `OUTROESTA`, `PTNM`, `RZNTR`, `DTINITRT`, `PRITRATH`, `ESTDFIMT`, `CNES`, `UFUH`, `MUUH`, `OCUPACAO`, `DTDIAGNO`, `DTTRIAGE`, `DATAPRICON`, `DATAINITRT`, `DATAOBITO`, `VALOR_TOT`, `BASDIAGSP`
+- **Note:** INCA hospital cancer registry (Integrador RHC), one row per case, all states in one DBF per year (1985, 1986, 1988-2023; 1987 is not published). Fields read from the 2023 DBF on 2026-10-13: 125,625 rows, 46 columns, all text, dates as DD/MM/YYYY. Only hospitals that reported appear (16 UFs in UFUH for 2023). Official dictionary: https://irhc.inca.gov.br/RHCNet/documentosTabWin.action?doc=dicionario.dados
 
 ## inep_censo_escolar
 

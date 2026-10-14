@@ -60,6 +60,8 @@ _NOVAS_FONTES_2026_10: Dict[str, tuple] = {
     "inpe_prodes": (Kind.API_WINDOW, Cadence.ANNUAL, 2002),
     # Leva 2
     "prf_acidentes_ocorrencias": (Kind.API_WINDOW, Cadence.MONTHLY, 2007),
+    # Leva 3: o INCA libera um ano novo do RHC de uma vez, sem data fixa.
+    "inca_rhc": (Kind.API_WINDOW, Cadence.ANNUAL, 1985),
     "prf_acidentes_pessoas": (Kind.API_WINDOW, Cadence.MONTHLY, 2007),
     # RREO é bimestral; MONTHLY garante que cada bimestre novo seja visto.
     "siconfi_rreo_saude": (Kind.API_WINDOW, Cadence.MONTHLY, 2015),

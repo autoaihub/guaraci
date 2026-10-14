@@ -54,7 +54,7 @@ FTP_LEGACY_SOURCES = frozenset(
         "ibge_pnadc_trimestre3", "ibge_pnadc_trimestre4",
         "mgdi_samu", "mgdi_upa", "mgdi_raps", "mgdi_emulti", "mgdi_academia_saude",
         "mgdi_saude_bucal", "mgdi_telessaude",
-        "prf_acidentes_ocorrencias", "prf_acidentes_pessoas",
+        "prf_acidentes_ocorrencias", "prf_acidentes_pessoas", "inca_rhc",
         "siconfi_rreo_saude", "siops_indicadores_municipios", "siops_indicadores_estados",
     }
 )

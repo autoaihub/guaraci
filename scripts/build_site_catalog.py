@@ -66,6 +66,7 @@ G_ANV = "ANVISA · vigilância sanitária"
 G_INQ = "Inquéritos populacionais · microdados"
 G_EDU = "Educação · INEP"
 G_TRA = "Trânsito · PRF"
+G_ONC = "Câncer · INCA"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -258,6 +259,7 @@ CURATED = {
     "ibge_pnadc_trimestre4": ("PNAD Contínua · 4º trimestre", "Módulos de TIC, segurança alimentar, vitimização e outras formas de trabalho, 2016 a 2025", G_INQ, "IBGE", "pop"),
     "inep_censo_escolar": ("Censo Escolar · escolas", "Infraestrutura das escolas (água, esgoto, alimentação, internet), por ano desde 2007", G_EDU, "INEP, Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira", "pop"),
     "prf_acidentes_ocorrencias": ("Acidentes em rodovias federais · ocorrências", "Acidentes registrados pela PRF com causa, tipo, vítimas e localização, desde 2007", G_TRA, "PRF, Polícia Rodoviária Federal", "saude"),
+    "inca_rhc": ("Registros Hospitalares de Câncer", "Casos de câncer atendidos nos hospitais com RHC, com topografia, morfologia, estadiamento e tratamento, desde 1985", G_ONC, "INCA, Instituto Nacional de Câncer", "saude"),
     "prf_acidentes_pessoas": ("Acidentes em rodovias federais · pessoas", "Envolvidos nos acidentes com idade, sexo, tipo de veículo e estado físico, desde 2007", G_TRA, "PRF, Polícia Rodoviária Federal", "saude"),
     "siops_indicadores_municipios": ("SIOPS · indicadores municipais", "Indicadores de receita e despesa em saúde dos municípios, incluindo a aplicação mínima da EC 29, desde 2000", G_ECO, MS, "saude"),
     "siops_indicadores_estados": ("SIOPS · indicadores estaduais", "Indicadores de receita e despesa em saúde dos estados, desde 2002", G_ECO, MS, "saude"),
@@ -313,6 +315,7 @@ MODE_LABEL = {
     "inpe terrabrasilis wfs": "WFS INPE TerraBrasilis",
     "siops tabnet": "TabNet SIOPS (DATASUS)",
     "prf drive files": "Arquivos abertos PRF",
+    "inca rhc zip": "Integrador RHC (INCA)",
     "inep files": "Microdados INEP",
 }
 

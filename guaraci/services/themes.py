@@ -193,6 +193,7 @@ _EXPLICIT: Mapping[str, Tuple[str, ...]] = {
     "resp": ("vigilancia_epidemiologica", "materno_infantil"),
     "pce": ("vigilancia_epidemiologica",),
     "painel_oncologia": ("oncologia", "assistencia_ambulatorial"),
+    "inca_rhc": ("oncologia", "assistencia_hospitalar"),
     # OpenDataSUS DEMAS, curadas
     "dengue": ("vigilancia_epidemiologica",),
     "chikungunya": ("vigilancia_epidemiologica",),
