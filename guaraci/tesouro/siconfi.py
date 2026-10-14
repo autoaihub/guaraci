@@ -39,6 +39,7 @@ from guaraci.core.http import (
     request_with_retry,
 )
 from guaraci.datasus.frames import write_sqlite
+from guaraci.utils.mapping import UF_TO_CODE
 
 __all__ = ["SiconfiClient", "SiconfiClientError", "SiconfiDcaDespesaFuncaoDataSource"]
 
@@ -154,6 +155,50 @@ def _text(value: object) -> str:
     return "" if value is None else str(value)
 
 
+def select_entes(
+    client: "SiconfiClient", ufs: Sequence[str], entes: Sequence[str]
+) -> List[str]:
+    """Códigos IBGE dos entes a consultar.
+
+    Com ``entes`` explícitos, vale a lista. Com ``ufs``, entram os municípios cujo
+    campo ``uf`` de ``/entes`` casa e também o próprio estado: o SICONFI publica
+    os estados (esfera ``E``) e o Distrito Federal (esfera ``D``) com ``uf="BR"``,
+    de modo que só o ``cod_ibge`` (igual ao código IBGE da UF) os identifica.
+    """
+    if entes:
+        return list(dict.fromkeys(entes))
+    wanted = {uf.upper() for uf in ufs}
+    state_codes = {str(UF_TO_CODE[uf]) for uf in wanted if uf in UF_TO_CODE}
+    found: Dict[str, None] = {}
+    for item in client.list_entes():
+        code = item.get("cod_ibge")
+        if code is None:
+            continue
+        if wanted:
+            in_uf = str(item.get("uf", "")).strip().upper() in wanted
+            is_state = (
+                str(item.get("esfera", "")).strip().upper() in {"E", "D"}
+                and str(code).strip() in state_codes
+            )
+            if not (in_uf or is_state):
+                continue
+        found[str(code)] = None
+    return list(found)
+
+
+def _function_matches(conta: str, prefix: str) -> bool:
+    """``conta`` é a função ``prefix`` ou uma subfunção dela, com fronteira.
+
+    ``"1"`` casa ``"1 - Legislativa"`` e ``"1.031"``, mas não ``"10 - Saúde"``.
+    """
+    conta = conta.strip()
+    return (
+        conta == prefix
+        or conta.startswith(prefix + " ")
+        or conta.startswith(prefix + ".")
+    )
+
+
 class SiconfiDcaDespesaFuncaoDataSource(DataSource):
     """DCA Anexo I-E (despesa por função), com filtro local pela função."""
 
@@ -180,16 +225,7 @@ class SiconfiDcaDespesaFuncaoDataSource(DataSource):
     def _select_entes(
         self, client: SiconfiClient, ufs: Sequence[str], entes: Sequence[str]
     ) -> List[str]:
-        if entes:
-            return list(dict.fromkeys(entes))
-        wanted = {uf.upper() for uf in ufs}
-        found: Dict[str, None] = {}
-        for item in client.list_entes():
-            if wanted and str(item.get("uf", "")).upper() not in wanted:
-                continue
-            if item.get("cod_ibge") is not None:
-                found[str(item["cod_ibge"])] = None
-        return list(found)
+        return select_entes(client, ufs, entes)
 
     def download(
         self,
@@ -251,7 +287,7 @@ class SiconfiDcaDespesaFuncaoDataSource(DataSource):
                         for item in items:
                             if raw_sink is not None:
                                 raw_sink.write(json.dumps(item, ensure_ascii=False) + "\n")
-                            if prefix and not _text(item.get("conta")).strip().startswith(prefix):
+                            if prefix and not _function_matches(_text(item.get("conta")), prefix):
                                 continue
                             writer.writerow([_text(item.get(col)).strip() for col in COLUMNS])
                             rows_written += 1
@@ -268,7 +304,10 @@ class SiconfiDcaDespesaFuncaoDataSource(DataSource):
                     raw_sink.close()
 
         exported = [str(csv_path)]
-        if fmt != "csv":
+        if rows_written == 0:
+            csv_path.unlink(missing_ok=True)
+            exported = []
+        elif fmt != "csv":
             frame = pl.scan_csv(csv_path, infer_schema=False)
             if fmt == "parquet":
                 dest = base_dir / f"{self.name}.parquet"

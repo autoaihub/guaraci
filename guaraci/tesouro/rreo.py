@@ -9,6 +9,14 @@ empenhada, liquidada, saldos, restos a pagar). O tipo de demonstrativo é sempre
 ``RREO`` (``RREO Simplificado`` volta vazio, inclusive para município pequeno).
 Periodicidade bimestral (``nr_periodo`` 1 a 6); exercícios desde 2015 (2013 e 2014
 voltam vazios). Valor numérico com ponto decimal, como a API publica.
+
+Falhas por ente: sem ``uf``/``entes`` uma unidade anual faz cerca de 33 mil
+requisições, então uma falha isolada não pode reprovar o ano inteiro. As
+consultas que falharem são retentadas uma vez no fim da passada. As que falharem
+de novo vão para ``export_warning`` com a lista de ``cod_ibge`` dos entes (até
+50 códigos) e só entram em ``failed_count`` quando os entes distintos com falha
+passam de 1% dos entes consultados; abaixo disso ``failed_count`` fica em zero e
+o aviso basta.
 """
 
 from __future__ import annotations
@@ -17,14 +25,20 @@ import csv
 import json
 import time
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Sequence
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 import polars as pl
 
 from guaraci.core.datasource import DataSource
 from guaraci.core.http import ApiClientError
 from guaraci.datasus.frames import write_sqlite
-from guaraci.tesouro.siconfi import SiconfiClient, _as_list, _normalize_format, _text
+from guaraci.tesouro.siconfi import (
+    SiconfiClient,
+    _as_list,
+    _normalize_format,
+    _text,
+    select_entes,
+)
 
 COLUMNS = [
     "exercicio", "demonstrativo", "periodo", "periodicidade", "instituicao",
@@ -42,6 +56,10 @@ class SiconfiRreoSaudeDataSource(DataSource):
     MIN_YEAR = 2015
     DEFAULT_TIMEOUT = SiconfiClient.DEFAULT_TIMEOUT
     DEFAULT_CONTA = "Saúde"
+    #: Fração de entes com falha (após a nova tentativa) acima da qual a unidade falha.
+    FAILURE_TOLERANCE = 0.01
+    #: Máximo de códigos IBGE listados no aviso.
+    MAX_LISTED_ENTES = 50
 
     def __init__(
         self,
@@ -58,16 +76,7 @@ class SiconfiRreoSaudeDataSource(DataSource):
         raise NotImplementedError("Use download(); the export is read with polars.scan_*.")
 
     def _select_entes(self, client, ufs: Sequence[str], entes: Sequence[str]) -> List[str]:
-        if entes:
-            return list(dict.fromkeys(entes))
-        wanted = {uf.upper() for uf in ufs}
-        found: Dict[str, None] = {}
-        for item in client.list_entes():
-            if wanted and str(item.get("uf", "")).upper() not in wanted:
-                continue
-            if item.get("cod_ibge") is not None:
-                found[str(item["cod_ibge"])] = None
-        return list(found)
+        return select_entes(client, ufs, entes)
 
     def download(
         self,
@@ -107,47 +116,68 @@ class SiconfiRreoSaudeDataSource(DataSource):
             )
         csv_path = base_dir / f"{self.name}.csv"
         raw_path = base_dir / f"{self.name}.raw.jsonl"
-        downloaded = failed = rows_written = 0
-        failures: List[str] = []
+        downloaded = rows_written = 0
+        failed_units: Dict[Tuple[int, int, str], str] = {}
         with open(csv_path, "w", encoding="utf-8", newline="") as sink:
             writer = csv.writer(sink, lineterminator="\n")
             writer.writerow(COLUMNS)
             raw_sink = open(raw_path, "w", encoding="utf-8") if keep_raw else None
+
+            def fetch(unit: Tuple[int, int, str]) -> bool:
+                nonlocal downloaded, rows_written
+                year, period, ente = unit
+                try:
+                    items = list(client.paginate("rreo", {
+                        "an_exercicio": year, "nr_periodo": period,
+                        "co_tipo_demonstrativo": self.TIPO,
+                        "no_anexo": self.ANEXO, "id_ente": ente,
+                    }))
+                except ApiClientError as exc:
+                    failed_units[unit] = f"{year}/{period}/{ente}: {exc.message}"
+                    return False
+                failed_units.pop(unit, None)
+                downloaded += 1
+                for item in items:
+                    if raw_sink is not None:
+                        raw_sink.write(json.dumps(item, ensure_ascii=False) + "\n")
+                    if wanted and _text(item.get("conta")).strip() != wanted:
+                        continue
+                    writer.writerow([_text(item.get(col)).strip() for col in COLUMNS])
+                    rows_written += 1
+                return True
+
             try:
-                for done, (year, period, ente) in enumerate(units, start=1):
-                    try:
-                        items = list(client.paginate("rreo", {
-                            "an_exercicio": year, "nr_periodo": period,
-                            "co_tipo_demonstrativo": self.TIPO,
-                            "no_anexo": self.ANEXO, "id_ente": ente,
-                        }))
-                    except ApiClientError as exc:
-                        failed += 1
-                        failures.append(f"{year}/{period}/{ente}: {exc.message}")
-                        items = []
-                    else:
-                        downloaded += 1
-                    for item in items:
-                        if raw_sink is not None:
-                            raw_sink.write(json.dumps(item, ensure_ascii=False) + "\n")
-                        if wanted and _text(item.get("conta")).strip() != wanted:
-                            continue
-                        writer.writerow([_text(item.get(col)).strip() for col in COLUMNS])
-                        rows_written += 1
+                for done, unit in enumerate(units, start=1):
+                    fetch(unit)
                     if progress_callback is not None:
                         progress_callback({
                             "event": "file_progress", "source": self.name,
                             "documents_total": len(units), "files_completed": done,
-                            "file_path": f"{year}/{period}/{ente}",
+                            "file_path": "/".join(str(part) for part in unit),
                         })
+                    if pause_ms and int(pause_ms) > 0:
+                        self._sleep(int(pause_ms) / 1000)
+                # Nova tentativa única das unidades que falharam.
+                for unit in list(failed_units):
+                    fetch(unit)
                     if pause_ms and int(pause_ms) > 0:
                         self._sleep(int(pause_ms) / 1000)
             finally:
                 if raw_sink is not None:
                     raw_sink.close()
 
+        failed_entes = list(dict.fromkeys(unit[2] for unit in failed_units))
+        over_tolerance = bool(targets) and (
+            len(failed_entes) / len(targets) > self.FAILURE_TOLERANCE
+        )
+        failed = len(failed_units) if over_tolerance else 0
+        failures = list(failed_units.values())
+
         exported = [str(csv_path)]
-        if fmt != "csv":
+        if rows_written == 0:
+            csv_path.unlink(missing_ok=True)
+            exported = []
+        elif fmt != "csv":
             frame = pl.scan_csv(csv_path, infer_schema=False)
             if fmt == "parquet":
                 dest = base_dir / f"{self.name}.parquet"
@@ -163,10 +193,16 @@ class SiconfiRreoSaudeDataSource(DataSource):
             exported = [str(dest)]
         warnings: List[str] = []
         if failures:
+            listed = ", ".join(failed_entes[: self.MAX_LISTED_ENTES])
+            extra = len(failed_entes) - self.MAX_LISTED_ENTES
+            if extra > 0:
+                listed += f" e mais {extra}"
             warnings.append(
-                f"{failed} consulta(s) falharam (primeiras: {'; '.join(failures[:3])})."
+                f"{len(failures)} consulta(s) falharam após nova tentativa, em "
+                f"{len(failed_entes)} ente(s) (cod_ibge: {listed}; "
+                f"primeiras: {'; '.join(failures[:3])})."
             )
-        if rows_written == 0 and not failed:
+        if rows_written == 0 and not failures:
             warnings.append("Nenhuma linha encontrada para os filtros informados.")
         return {
             "documents_found": len(units),

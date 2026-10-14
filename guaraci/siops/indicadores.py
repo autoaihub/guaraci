@@ -27,7 +27,10 @@ sigla DF e nome ``Distrito Federal``; nos municípios com código 530010 e nome
 ``Brasília``, já que o DF é um único município e o SIOPS o declara de forma
 consolidada. Os anos 2000 e 2001 de municípios ficam sem DF, pois o ``.def`` do
 DF começa em 2002. Falha no POST do DF não derruba o ano: entra em
-``partial_years`` e nos avisos.
+``partial_years`` e em ``export_warning``, assim como os indicadores que o ``.dbf``
+do DF recusa. Ano posterior ao último que o ``.def`` oferece (por exemplo o ano
+corrente, ainda não publicado) não conta como falha: sai só um aviso
+informativo.
 """
 
 from __future__ import annotations
@@ -173,7 +176,7 @@ class SiopsIndicadoresDataSource(DataSource):
         df_error = ""
         try:
             df_form = parse_form(client.text(df_url))
-        except (ApiClientError, TabnetNoTableError) as exc:
+        except (ApiClientError, TabnetNoTableError, ValueError) as exc:
             df_error = str(getattr(exc, "message", exc))
         df_offered = df_form.years() if df_form is not None else {}
         df_items = df_form.values("Incremento") if df_form is not None else []
@@ -192,12 +195,16 @@ class SiopsIndicadoresDataSource(DataSource):
         downloaded = failed = rows_written = 0
         failures: List[str] = []
         partial: List[str] = []
+        not_published: List[int] = []
         raw_files: List[str] = []
         with open(csv_path, "w", encoding="utf-8", newline="") as sink:
             writer = csv.writer(sink, lineterminator="\n")
             writer.writerow(["ano", *spec.key_columns, *indicators])
             for done, year in enumerate(years, start=1):
                 arquivo = offered.get(year)
+                if arquivo is None and year > max(offered):
+                    not_published.append(year)
+                    continue
                 if arquivo is None:
                     failed += 1
                     failures.append(f"{year}: ano não oferecido pelo formulário")
@@ -232,16 +239,18 @@ class SiopsIndicadoresDataSource(DataSource):
                     rows_written += 1
                 df_arquivo = df_offered.get(year)
                 if df_arquivo is None:
-                    if year >= 2002:
+                    if year >= 2002 and not (df_form is not None and year > max(df_offered, default=0)):
                         partial.append(f"{year} sem DF ({df_error or 'ano não oferecido'})")
                 else:
                     try:
-                        _, df_table, _ = self._fetch_year(
+                        _, df_table, df_missing = self._fetch_year(
                             client, df_url, df_form, df_arquivo, df_items, spec.df_linha
                         )
-                    except (ApiClientError, TabnetNoTableError) as exc:
+                    except (ApiClientError, TabnetNoTableError, ValueError) as exc:
                         partial.append(f"{year} sem DF ({getattr(exc, 'message', exc)})")
                     else:
+                        if df_missing:
+                            partial.append(f"{year} DF sem {len(df_missing)}")
                         df_position = {n: i for i, n in enumerate(df_table.header)}
                         for row in df_table.rows[:1]:
                             values = [
@@ -282,7 +291,14 @@ class SiopsIndicadoresDataSource(DataSource):
             warnings.append(
                 f"{failed} ano(s) falharam (primeiros: {'; '.join(failures[:3])})."
             )
-        if rows_written == 0 and not failed:
+        if partial:
+            warnings.append(f"Anos parciais: {'; '.join(partial)}.")
+        if not_published:
+            warnings.append(
+                f"Ano(s) {', '.join(str(y) for y in not_published)} ainda não publicado(s): "
+                f"o último oferecido é {max(offered)}."
+            )
+        if rows_written == 0 and not failed and not not_published:
             warnings.append("Nenhuma linha encontrada para os anos informados.")
         return {
             "documents_found": len(years),

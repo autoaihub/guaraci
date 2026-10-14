@@ -192,6 +192,15 @@ def test_prn_drops_total_and_ampersand_and_unescapes():
     ]
 
 
+def test_prn_unescapes_per_cell_not_per_line():
+    page = (
+        '<PRE>\n"Munic-BR";"Valor"\n'
+        '"Rua &quot;A&quot; &#59; B";"1,5"\n"Total";"1,5"\n&\n</PRE>'
+    )
+    table = parse_prn(page)
+    assert table.rows == [['Rua "A" ; B', "1,5"]]
+
+
 def _read(path):
     with open(path, encoding="utf-8", newline="") as handle:
         return list(csv.reader(handle))
@@ -246,6 +255,38 @@ def test_df_failure_keeps_the_year_and_is_reported(tmp_path):
     assert payload["partial_years"] == ["2024 sem DF (caiu)"]
 
 
+def test_df_failure_goes_to_the_warnings(tmp_path):
+    fake = FakeTabnet(
+        FORM_UF, {"induf24.dbf": PRN_UF_2024},
+        df_pages={"inddf24.dbf": TabnetClientError("caiu", category="timeout", retryable=True)},
+    )
+    source = SiopsIndicadoresEstadosDataSource(output_path=str(tmp_path), client=fake)
+    payload = source.download(start_year=2024)
+    assert "2024 sem DF (caiu)" in payload["export_warning"]
+
+
+def test_df_value_error_becomes_a_warning_not_a_crash(tmp_path):
+    fake = FakeTabnet(
+        FORM_UF, {"induf24.dbf": PRN_UF_2024},
+        df_pages={"inddf24.dbf": ValueError("Incremento(s) fora do formulário")},
+    )
+    source = SiopsIndicadoresEstadosDataSource(output_path=str(tmp_path), client=fake)
+    payload = source.download(start_year=2024)
+    assert payload["failed_count"] == 0 and payload["rows"] == 2
+    assert "fora do formulário" in payload["export_warning"]
+
+
+def test_year_after_the_last_offered_is_not_a_failure(tmp_path):
+    fake = FakeTabnet(FORM_UF, {"induf24.dbf": PRN_UF_2024})
+    source = SiopsIndicadoresEstadosDataSource(output_path=str(tmp_path), client=fake)
+    payload = source.download(start_year=2024, end_year=2026)
+    assert payload["failed_count"] == 0 and payload["downloaded_count"] == 1
+    assert payload["partial_years"] == []
+    assert "2025, 2026 ainda não publicado(s)" in payload["export_warning"]
+    only_future = source.download(start_year=2026)
+    assert only_future["failed_count"] == 0 and only_future["exported_files"] == []
+
+
 def test_year_not_offered_and_failed_post_are_counted(tmp_path):
     fake = FakeTabnet(FORM_MUN, {
         "indmun24.dbf": TabnetClientError("caiu", category="timeout", retryable=True),
@@ -290,6 +331,30 @@ def test_old_year_without_some_field_keeps_the_others(tmp_path):
     assert rows[2][4] == "..."
     # 1 POST completo + 3 testes isolados + 1 POST final para 2023, 1 para 2024.
     assert len(fake.posts) == 6
+
+
+PRN_DF_SEM_SUBFUNCAO = """<PRE>
+"Distrito Federal";"Popula&ccedil;&atilde;o";"D.Total Sa&uacute;de"
+"Distrito Federal";2817381;100,00
+&
+</PRE>"""
+
+
+def test_df_refused_indicators_are_reported(tmp_path):
+    def answer(fields):
+        asked = [v for k, v in fields if k == "Incremento"]
+        if any(item.startswith("2.10") for item in asked):
+            return MISSING_PAGE
+        if dict(fields)["Linha"] == "Ano":
+            return '<PRE>\n"Ano";"x"\n"2024";1\n&\n</PRE>'
+        return PRN_DF_SEM_SUBFUNCAO
+
+    fake = FakeTabnet(FORM_UF, {"induf24.dbf": PRN_UF_2024}, df_pages={"inddf24.dbf": answer})
+    source = SiopsIndicadoresEstadosDataSource(output_path=str(tmp_path), client=fake)
+    payload = source.download(start_year=2024)
+    assert payload["failed_count"] == 0
+    assert payload["partial_years"] == ["2024 DF sem 1"]
+    assert "2024 DF sem 1" in payload["export_warning"]
 
 
 def test_registry_exposes_both_keys():

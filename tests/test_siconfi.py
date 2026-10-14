@@ -8,10 +8,14 @@ import pytest
 from guaraci.core.http import ApiClientError
 from guaraci.services.downloads import DownloadService
 from guaraci.tesouro import SiconfiClient, SiconfiDcaDespesaFuncaoDataSource
+from guaraci.tesouro.siconfi import _function_matches
 
 ENTES = [
     {"cod_ibge": 3550308, "ente": "São Paulo", "uf": "SP", "esfera": "M"},
-    {"cod_ibge": 35, "ente": "Estado de São Paulo", "uf": "SP", "esfera": "E"},
+    # Estados e DF vêm com uf="BR" em /entes (verificado ao vivo em 2026-10-13).
+    {"cod_ibge": 35, "ente": "Estado de São Paulo", "uf": "BR", "esfera": "E"},
+    {"cod_ibge": 53, "ente": "Distrito Federal", "uf": "BR", "esfera": "D"},
+    {"cod_ibge": 1, "ente": "União", "uf": "BR", "esfera": "U"},
     {"cod_ibge": 4106902, "ente": "Curitiba", "uf": "PR", "esfera": "M"},
 ]
 
@@ -82,6 +86,34 @@ def test_uf_selects_entes_from_listing(tmp_path):
     assert result["documents_found"] == 4  # 2 entes x 2 anos
     queried = {params["id_ente"] for path, params in client.calls if path == "dca"}
     assert queried == {"3550308", "35"}
+
+
+def test_uf_includes_the_state_and_the_federal_district(tmp_path):
+    client = FakeClient()
+    result = _run(tmp_path, client, start_year=2023, uf=["DF"])
+    queried = {params["id_ente"] for path, params in client.calls if path == "dca"}
+    assert queried == {"53"} and result["documents_found"] == 1
+    client = FakeClient()
+    _run(tmp_path, client, start_year=2023, uf=["PR"])
+    # PR tem só o município no fixture; a União nunca entra.
+    assert {p["id_ente"] for path, p in client.calls if path == "dca"} == {"4106902"}
+
+
+def test_no_rows_removes_the_csv_and_exports_nothing(tmp_path):
+    result = _run(tmp_path, FakeClient(), start_year=2023, entes=["35"], funcao="99")
+    assert result["rows"] == 0 and result["exported_files"] == []
+    assert not (tmp_path / "siconfi_dca_despesa_funcao.csv").exists()
+    assert "Nenhuma linha" in result["export_warning"]
+
+
+def test_function_filter_respects_the_boundary(tmp_path):
+    assert _function_matches("1 - Legislativa", "1")
+    assert _function_matches("1.031 - Ação Legislativa", "1")
+    assert _function_matches("1", "1")
+    assert not _function_matches("10 - Saúde", "1")
+    assert not _function_matches("10.301 - Atenção Básica", "1")
+    result = _run(tmp_path, FakeClient(), start_year=2023, entes=["35"], funcao="1")
+    assert result["rows"] == 0  # "10 - Saúde" não casa com "1"
 
 
 def test_failed_ente_does_not_abort_batch(tmp_path):
