@@ -523,6 +523,8 @@ kbd { font-family: var(--font-mono); font-size: .8em; background: rgba(255,255,2
 .src-badge.year-badge { background: rgba(247, 164, 29, .08); border-color: rgba(247, 164, 29, .25); color: var(--sun-2); }
 .src-desc { color: var(--txt-2); margin: 10px 0 12px; }
 .src-desc em { color: var(--sun-2); font-style: normal; }
+.same-as { font-size: .8rem; color: var(--txt-2); margin: -4px 0 10px; }
+.same-as i { color: var(--teal); margin-right: 4px; }
 .src-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: .87rem; color: var(--txt-2); }
 .copy-btn { background: none; border: 1px solid var(--line); color: var(--txt-2); font-size: .76rem; border-radius: 8px; padding: 4px 10px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; transition: .2s; font-family: var(--font-body); }
 .copy-btn:hover { color: var(--sun-2); border-color: rgba(247, 164, 29, .4); }

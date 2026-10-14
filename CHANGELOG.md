@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed: o catálogo separa conjuntos de bases distintas
+Dos 182 conjuntos, oito são a mesma base de outro por um caminho diferente:
+`srag_demas` (bancos anuais do SRAG), `dengue` e `chikungunya` (SINAN pelo
+FTP), SIM e SINASC pela API, `sisagua_tratamento_de_agua` (o arquivo do
+mesmo cadastro) e as duas consultas por código do CNES. A comparação foi
+feita campo a campo no dicionário. As entradas continuam no catálogo, porque
+o caminho alternativo filtra por UF ou data sem baixar o arquivo inteiro,
+mas `SAME_AS` em `scripts/build_site_catalog.py` as marca, o cartão e a
+documentação mostram "outro caminho para", e o site passa a dizer 174 bases
+distintas.
+
 ### Fixed: revisão das três levas de fontes novas
 Uma revisão de código das fontes de outubro e uma coleta ao vivo de cada
 fonte do catálogo (171 de 181 ok na primeira passada) acharam os defeitos

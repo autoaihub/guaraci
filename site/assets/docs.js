@@ -113,6 +113,10 @@
       '<span class="src-badge year-badge"><i class="bi bi-calendar3"></i> ' + esc(minYearStr) + "</span>" +
       '<span class="src-chevron"><i class="bi bi-chevron-down"></i></span></div></header>' +
       '<p class="src-desc">' + esc(src.d) + " · <em>" + esc(src.m) + "</em></p>" +
+      (src.sameAs && GUARACI_CATALOG[src.sameAs]
+        ? '<p class="same-as"><i class="bi bi-signpost-split"></i> Mesma base que <a href="#' + slug(src.sameAs) + '">' +
+          esc(GUARACI_CATALOG[src.sameAs].n) + "</a>, por outro caminho. " + esc(src.sameAsNote) + "</p>"
+        : "") +
       '<div class="src-body">' +
       '<div class="src-meta-panel">' +
       '<div class="meta-item"><span class="meta-lbl">Identificador CLI / API:</span> <code>' + esc(src.key) + '</code> <button class="copy-btn" type="button" data-copy="' + esc(src.key) + '"><i class="bi bi-clipboard"></i> copiar</button></div>' +

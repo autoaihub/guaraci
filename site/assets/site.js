@@ -180,10 +180,17 @@
       return norm(b.n + " " + b.d + " " + b.g + " " + b.m).includes(query);
     }
 
+    // Entrada que é a mesma base de outra, por outro caminho (API x FTP).
+    function sameAsLine(b) {
+      const canon = b.sameAs && GUARACI_CATALOG[b.sameAs];
+      if (!canon) return "";
+      return '<p class="same-as"><i class="bi bi-signpost-split"></i> Outro caminho para <b>' + canon.n + "</b></p>";
+    }
+
     function card(b) {
       return '<article class="base-card" data-key="' + (b.key || "") + '" tabindex="0" role="button" aria-label="Detalhes de ' + b.n + '"><h4>' + b.n +
         ' <i class="bi bi-box-arrow-up-right card-hint" aria-hidden="true"></i></h4><p>' + b.d +
-        '</p><div class="tags"><span class="base-tag">' + b.g +
+        "</p>" + sameAsLine(b) + '<div class="tags"><span class="base-tag">' + b.g +
         '</span><span class="base-tag org">' + b.m + "</span></div>" +
         '<span class="card-cta"><i class="bi bi-list-columns-reverse"></i> Consultar campos e parâmetros</span></article>';
     }
@@ -225,6 +232,10 @@
         '<span class="kicker" style="font-size:.7rem;">' + esc(s.g) + "</span>" +
         '<h3 id="modal-title">' + esc(s.n) + "</h3>" +
         '<p class="src-desc">' + esc(s.d) + " · <em>" + esc(s.m) + "</em></p>" +
+        (s.sameAs && GUARACI_CATALOG[s.sameAs]
+          ? '<p class="same-as"><i class="bi bi-signpost-split"></i> Mesma base que <b>' + esc(GUARACI_CATALOG[s.sameAs].n) +
+            "</b> (<code>" + esc(s.sameAs) + "</code>), por outro caminho. " + esc(s.sameAsNote) + "</p>"
+          : "") +
         '<div class="src-badges" style="margin-bottom:14px;"><span class="src-badge mode">' + esc(s.modeLabel) + "</span>" +
         '<span class="src-badge"><i class="bi bi-arrow-repeat"></i> atualização ' + esc(s.cadence) + "</span>" +
         (s.minYear ? '<span class="src-badge"><i class="bi bi-clock-history"></i> desde ' + s.minYear + "</span>" : "") + "</div>" +
