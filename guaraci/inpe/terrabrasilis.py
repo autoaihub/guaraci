@@ -9,7 +9,10 @@ geometria nunca trafega e os nomes de coluna sao os publicados pelo INPE.
 
 Notas verificadas ao vivo (13/10/2026):
 
-- ``gid`` do DETER e texto (``1011_hist``), nao inteiro; a paginacao ordena por ele.
+- ``gid`` do DETER e texto (``1011_hist``), nao inteiro, e NAO e unico no
+  DETER Cerrado; a paginacao ordena por ele mais ``view_date``, ``classname``
+  e ``path_row`` (presentes nas duas camadas DETER) como desempate, e o total
+  gravado e conferido contra ``numberMatched`` (``resultType=hits``).
 - O CSV do GeoServer traz uma coluna ``FID`` sintetica, descartada aqui.
 - Recorte anual: ``view_date`` (DETER, tipo date) ou ``year`` (PRODES, inteiro).
 - O servidor responde ``200`` com ``ExceptionReport`` quando o pool de conexoes
@@ -58,6 +61,7 @@ BIOMAS = (
     "pampa",
     "pantanal",
 )
+_MATCHED_RE = re.compile(r'numberMatched="(\d+)"')
 _ELEMENT_RE = re.compile(r"<xsd:element\b[^>]*>")
 _ATTR_RE = re.compile(r'\b(name|type)="([^"]*)"')
 
@@ -79,12 +83,16 @@ class LayerSpec:
     sort_field: str
 
 
+# Chave de ordenacao do DETER: ``gid`` repete no Cerrado, entao entram atributos
+# que existem nas duas camadas (DescribeFeatureType de 13/10/2026) como desempate.
+_DETER_SORT = "gid,view_date,classname,path_row"
+
 DETER_LAYERS: Dict[str, LayerSpec] = {
     "inpe_deter_amazonia": LayerSpec(
-        "inpe_deter_amazonia", "deter-amz:deter_amz", "view_date", "date", "gid"
+        "inpe_deter_amazonia", "deter-amz:deter_amz", "view_date", "date", _DETER_SORT
     ),
     "inpe_deter_cerrado": LayerSpec(
-        "inpe_deter_cerrado", "deter-cerrado-nb:deter_cerrado", "view_date", "date", "gid"
+        "inpe_deter_cerrado", "deter-cerrado-nb:deter_cerrado", "view_date", "date", _DETER_SORT
     ),
 }
 
@@ -154,10 +162,10 @@ class TerraBrasilisClient:
         req = Request(url, headers={"User-Agent": f"guaraci/{__version__}"})
 
         def on_http(exc: HTTPError) -> TerraBrasilisError:
-            category, retryable, hint = classify_http_status(exc.code)
+            category, retryable = classify_http_status(exc.code)
             return TerraBrasilisError(
                 f"TerraBrasilis WFS falhou ({exc.code}).",
-                category=category, retryable=retryable, hint=hint,
+                category=category, retryable=retryable,
             )
 
         def on_url(exc: URLError) -> TerraBrasilisError:
@@ -174,10 +182,18 @@ class TerraBrasilisClient:
                 hint="Reduza page_size ou o intervalo de anos.",
             )
 
+        def on_read(exc: Exception) -> TerraBrasilisError:
+            return TerraBrasilisError(
+                f"Conexao com o TerraBrasilis caiu durante a leitura: "
+                f"{type(exc).__name__}: {exc}",
+                category="network", retryable=True,
+            )
+
         def send() -> str:
             raw, _ = open_response(
                 self._opener, req, timeout=self.timeout_seconds,
                 on_http_error=on_http, on_url_error=on_url, on_timeout=on_timeout,
+                on_read_error=on_read,
             )
             text = decode_text(raw)
             if "ExceptionReport" in text[:600]:
@@ -200,6 +216,24 @@ class TerraBrasilisClient:
                 f"DescribeFeatureType sem atributos para {typename}.", category="bad_response"
             )
         return names
+
+    def count_matched(self, typename: str, cql: Optional[str]) -> Optional[int]:
+        """Total que o servidor diz casar com o filtro (``numberMatched``).
+
+        Serve so para conferir o que foi gravado; qualquer falha devolve
+        ``None`` e a conferencia e pulada.
+        """
+        params: Dict[str, object] = {
+            "request": "GetFeature", "typeNames": typename, "resultType": "hits",
+        }
+        if cql:
+            params["CQL_FILTER"] = cql
+        try:
+            text = self.request(params)
+        except ApiClientError:
+            return None
+        found = _MATCHED_RE.search(text[:2000])
+        return int(found.group(1)) if found else None
 
     def get_page(self, typename: str, properties: Sequence[str], *, count: int,
                  start_index: int, sort_field: str, cql: Optional[str]) -> str:
@@ -274,14 +308,36 @@ class TerraBrasilisDataSource(DataSource):
         for index, spec in enumerate(layers, start=1):
             csv_path = base_dir / f"{spec.key}.csv"
             try:
-                rows = self._fetch_layer(client, spec, csv_path, start_year, end_year, page)
+                rows, matched = self._fetch_layer(
+                    client, spec, csv_path, start_year, end_year, page
+                )
             except ApiClientError as exc:
                 failed += 1
                 warnings.append(f"{spec.key}: {exc}")
                 csv_path.unlink(missing_ok=True)
                 continue
+            if matched is not None and matched != rows:
+                warnings.append(
+                    f"{spec.key}: gravadas {rows} linhas, mas o servidor anunciou "
+                    f"{matched} (numberMatched); a paginacao pode ter perdido ou "
+                    "repetido feicoes."
+                )
+            if rows == 0:
+                # So cabecalho: nao e um artefato util e nao conta como exportado.
+                csv_path.unlink(missing_ok=True)
+                warnings.append(
+                    f"{spec.key}: nenhuma linha para o recorte pedido; arquivo nao gerado."
+                )
+                continue
             total_rows += rows
-            dest = self._convert(csv_path, base_dir, spec.key, fmt, keep_raw)
+            try:
+                dest = self._convert(csv_path, base_dir, spec.key, fmt, keep_raw)
+            except (ValueError, OSError, pl.exceptions.PolarsError) as exc:
+                failed += 1
+                warnings.append(f"{spec.key}: falha ao converter para {fmt}: {exc}")
+                if not keep_raw:
+                    csv_path.unlink(missing_ok=True)
+                continue
             exported.append(str(dest))
             if progress_callback is not None:
                 progress_callback({"event": "file_completed", "source": self.name,
@@ -303,7 +359,9 @@ class TerraBrasilisDataSource(DataSource):
 
     @staticmethod
     def _fetch_layer(client: TerraBrasilisClient, spec: LayerSpec, dest: Path,
-                     start_year: Optional[int], end_year: Optional[int], page: int) -> int:
+                     start_year: Optional[int], end_year: Optional[int],
+                     page: int) -> "tuple[int, Optional[int]]":
+        """Grava a camada em CSV e devolve ``(linhas gravadas, numberMatched)``."""
         properties = client.describe(spec.typename)
         cql = build_cql(spec, start_year, end_year)
         written = 0
@@ -333,7 +391,7 @@ class TerraBrasilisDataSource(DataSource):
                 if got < page:
                     break
                 start += got
-        return written
+        return written, client.count_matched(spec.typename, cql)
 
     @staticmethod
     def _convert(csv_path: Path, base_dir: Path, key: str, fmt: str, keep_raw: bool) -> Path:

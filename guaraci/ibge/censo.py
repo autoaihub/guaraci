@@ -122,6 +122,13 @@ class _CensoSidraSource(SidraAggregateSource):
                     f"{', '.join(str(p) for p in validos)} (verified live). "
                     f"Got {ano}."
                 )
+        if y0 > y1:
+            raise ValueError("Parameter 'start_year' cannot be after 'end_year'.")
+        if not any(y0 <= p <= y1 for p in validos):
+            raise ValueError(
+                f"SIDRA table {self.ESPEC.tabela}: nenhum período publicado entre "
+                f"{y0} e {y1}; publicados: {', '.join(str(p) for p in validos)}."
+            )
         detalhe_norm = str(detalhe).strip().lower()
         if detalhe_norm not in DETALHES:
             raise ValueError(f"Unsupported detalhe '{detalhe}'. Allowed: {', '.join(DETALHES)}")
@@ -370,7 +377,13 @@ class IbgeCensoDeficienciaDataSource(_CensoSidraSource):
         except (OSError, ValueError):
             return
         manifesto["exported_files"] = list(resultado["exported_files"])
+        # O manifesto da segunda passada traz só as linhas dela; o total das
+        # duas passadas entra tanto no campo legado quanto em ``stats``.
         manifesto["documents_found"] = resultado["documents_found"]
+        estatisticas = manifesto.get("stats")
+        if isinstance(estatisticas, dict):
+            estatisticas["documents_found"] = resultado["documents_found"]
+            estatisticas["failed_count"] = resultado["failed_count"]
         filtros = manifesto.setdefault("filters", {})
         filtros["table"] = resultado["table"]
         caminho.write_text(json.dumps(manifesto, ensure_ascii=False, indent=2), encoding="utf-8")

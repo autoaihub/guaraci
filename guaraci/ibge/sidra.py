@@ -10,10 +10,11 @@ classifications) builds the SIDRA ``classificacao`` filter.
 Output is one row per (locality, year[, classification categories]):
 ``nivel, localidade_id, localidade_nome, ano, [<classif> ...], variavel_id,
 unidade, valor``. Missing markers ("-", "..") become null; a year with no data
-is skipped with a warning, not a failure (SIDRA answers some of those, such as
-a census year with no estimate, with a non-retryable error). A year whose
-request fails in a retryable way (timeout, connection, 5xx) is different: it
-counts in ``failed_count``, and when every year failed the error is raised, so
+is skipped with a warning (SIDRA answers some of those, such as a census year
+with no estimate, with a non-retryable error), but it still counts in
+``failed_count``: a year dropped by an error, in any slice of the request, never
+ends as a clean job with the year missing. A retryable failure (timeout,
+connection, 5xx) goes further: when every year failed, the error is raised, so
 nothing downstream mistakes it for "no data".
 """
 from __future__ import annotations
@@ -125,15 +126,19 @@ class SidraAggregateSource(DataSource):
                         or []
                     )
             except IbgeClientError as exc:
-                # Erro recuperável (timeout, conexão) é falha de verdade e não
-                # pode passar por "sem dados"; o não recuperável é a SIDRA
-                # dizendo que o ano não existe (censo sem estimativa).
+                # Qualquer erro numa fatia descarta o ano inteiro (um ano com
+                # fatias faltando seria um resultado incompleto sem aviso), e o
+                # ano conta em ``failed_years`` para o job não terminar ok com
+                # ele ausente. Só o erro recuperável (timeout, conexão) vira
+                # exceção quando todos os anos falham; o não recuperável fica
+                # como aviso com a causa (a SIDRA diz que o ano não existe,
+                # caso do censo sem estimativa).
+                failed_years.append(year)
                 if getattr(exc, "retryable", False):
                     warnings.append(f"IBGE year {year} failed: {exc}")
-                    failed_years.append(year)
                     last_error = exc
                 else:
-                    warnings.append(f"IBGE year {year} skipped: {exc}")
+                    warnings.append(f"IBGE year {year} skipped (counted as failed): {exc}")
                 payload = None
             if payload:
                 records.extend(self._parse(payload, nivel))

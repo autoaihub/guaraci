@@ -181,3 +181,24 @@ def test_as_sete_chaves_estao_registradas_com_detalhe():
     for chave in chaves:
         nomes = {p["name"] for p in DownloadService().get_source_schema(chave)["params"]}
         assert {"start_year", "end_year", "level", "detalhe"} <= nomes, chave
+
+
+def test_deficiencia_manifesto_soma_as_duas_passadas(tmp_path):
+    ds = censo.IbgeCensoDeficienciaDataSource(output_path=str(tmp_path), client=_Cliente())
+    out = ds.download(start_year=2022, end_year=2022, level="uf", output_format="csv")
+
+    # Cada passada devolve uma linha; o manifesto final guarda as duas.
+    assert out["documents_found"] == 2
+    manifesto = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert manifesto["documents_found"] == 2
+    assert manifesto["stats"]["documents_found"] == 2
+    assert manifesto["filters"]["table"] == "10125+10132"
+
+
+def test_intervalo_entre_censos_e_rejeitado_com_mensagem_clara(tmp_path):
+    ds = censo.IbgeCensoCorRacaIdadeSexoDataSource(output_path=str(tmp_path), client=_Cliente())
+    with pytest.raises(ValueError) as exc:
+        ds.download(start_year=2011, end_year=2021, level="uf")
+    msg = str(exc.value)
+    assert "nenhum período publicado entre 2011 e 2021" in msg
+    assert "2010" in msg and "2022" in msg

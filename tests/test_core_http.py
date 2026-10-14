@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import http.client
 import io
 from urllib.error import HTTPError, URLError
 
@@ -183,6 +184,65 @@ def test_url_error_maps_to_connectivity() -> None:
         _open_once(open_fn)
     assert excinfo.value.category == "connectivity"
     assert excinfo.value.retryable is True
+
+
+class _BrokenResponse(_FakeResponse):
+    """Resposta cujo ``read()`` falha no meio do corpo."""
+
+    def __init__(self, error: BaseException) -> None:
+        super().__init__(b"")
+        self._error = error
+
+    def read(self) -> bytes:
+        raise self._error
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        http.client.IncompleteRead(b"x" * 10, 90),
+        http.client.RemoteDisconnected("closed"),
+        ConnectionResetError("reset"),
+        ConnectionAbortedError("aborted"),
+    ],
+)
+def test_read_failure_becomes_retryable_error(error: BaseException) -> None:
+    def open_fn(request, timeout):  # noqa: ANN001, ARG001
+        return _BrokenResponse(error)
+
+    with pytest.raises(ApiClientError) as excinfo:
+        _open_once(open_fn)
+    assert excinfo.value.retryable is True
+    assert excinfo.value.__cause__ is error
+
+
+def test_read_failure_uses_on_read_error_callback_and_is_retried() -> None:
+    calls = {"n": 0}
+
+    def open_fn(request, timeout):  # noqa: ANN001, ARG001
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _BrokenResponse(http.client.IncompleteRead(b"abc", 7))
+        return _FakeResponse(b"ok")
+
+    def send() -> bytes:
+        raw, _ = open_response(
+            open_fn,
+            object(),
+            timeout=5,
+            on_http_error=_translate,
+            on_url_error=lambda exc: ApiClientError("conn", retryable=True),
+            on_timeout=lambda exc: ApiClientError("slow", retryable=True),
+            on_read_error=lambda exc: ApiClientError(
+                "truncated", category="connectivity", retryable=True
+            ),
+        )
+        return raw
+
+    sleeps: list[float] = []
+    assert request_with_retry(send, max_attempts=3, sleep=sleeps.append) == b"ok"
+    assert calls["n"] == 2
+    assert len(sleeps) == 1
 
 
 # ---------------------------------------------------------------- retry-after
