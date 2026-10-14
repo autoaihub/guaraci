@@ -1,12 +1,12 @@
 """Fonte INEP: Censo Escolar (tabela de escolas, um zip por ano)."""
 
-from datetime import datetime
 from typing import List
 
 from guaraci.arquivos.inep_censo_escolar import (
     INEP_CENSO_ESCOLAR,
     MIN_YEAR,
     InepCensoEscolarDataSource,
+    latest_year,
 )
 from guaraci.core.contracts import SourceParameterSpec
 from guaraci.services.downloads import (
@@ -19,7 +19,7 @@ from guaraci.services.downloads import (
 
 def build_sources() -> List[DownloadSource]:
     """Retorna as fontes INEP."""
-    current_year = datetime.now().year
+    last_published = latest_year()
     return [
         ApiDownloadSource(
             descriptor=SourceDescriptor(
@@ -78,17 +78,20 @@ def build_sources() -> List[DownloadSource]:
                     required=False,
                     default=None,
                     minimum=MIN_YEAR,
-                    maximum=current_year + 1,
+                    maximum=last_published,
                 ),
                 SourceParameterSpec(
                     name="end_year",
                     phase="coleta",
                     param_type="integer",
-                    description="Ano final (padrão: igual a start_year).",
+                    description=(
+                        "Ano final (padrão: igual a start_year; sem start_year, "
+                        f"a faixa parte de {MIN_YEAR})."
+                    ),
                     required=False,
                     default=None,
                     minimum=MIN_YEAR,
-                    maximum=current_year + 1,
+                    maximum=last_published,
                 ),
             ],
         )

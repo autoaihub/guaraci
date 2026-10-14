@@ -21,13 +21,24 @@ from typing import Dict, Optional, Sequence
 from guaraci.arquivos.http_files import HttpFile, HttpFileClient, HttpFileDataSource, HttpResource
 from guaraci.core.datasource import DataSource
 
-__all__ = ["INEP_CENSO_ESCOLAR", "InepCensoEscolarDataSource", "MIN_YEAR", "year_url"]
+__all__ = [
+    "INEP_CENSO_ESCOLAR",
+    "InepCensoEscolarDataSource",
+    "MIN_YEAR",
+    "latest_year",
+    "year_url",
+]
 
 INEP_CENSO_ESCOLAR = "inep_censo_escolar"
 MIN_YEAR = 2007
 _BASE = "https://download.inep.gov.br/dados_abertos/microdados_censo_escolar_"
 # Primeiro ano com sublinhado final no nome do zip.
 _UNDERSCORE_FROM = 2025
+
+
+def latest_year() -> int:
+    """Último censo publicado: o do ano Y sai no ano Y+1, então o corrente ainda dá 404."""
+    return datetime.now().year - 1
 
 
 def year_url(year: int) -> str:
@@ -69,7 +80,7 @@ class InepCensoEscolarDataSource(HttpFileDataSource):
 
     def _select(self, anos: Optional[Sequence[str]]):
         if not anos:
-            return list(_resources(MIN_YEAR, datetime.now().year))
+            return list(_resources(MIN_YEAR, latest_year()))
         years = [int(a) for a in anos]
         low = [y for y in years if y < MIN_YEAR]
         if low:
@@ -83,11 +94,13 @@ class InepCensoEscolarDataSource(HttpFileDataSource):
         end_year: Optional[int] = None,
         **kwargs,
     ) -> Dict[str, object]:
-        if start_year is not None:
-            last = end_year if end_year is not None else start_year
-            if last < start_year:
+        if start_year is not None or end_year is not None:
+            # ``end_year`` sozinho vale de MIN_YEAR até ele; ``start_year`` sozinho, só o ano dele.
+            first = int(start_year) if start_year is not None else MIN_YEAR
+            last = int(end_year) if end_year is not None else first
+            if last < first:
                 raise ValueError("end_year must be >= start_year.")
-            kwargs["indicadores"] = [str(y) for y in range(int(start_year), int(last) + 1)]
+            kwargs["indicadores"] = [str(y) for y in range(first, last + 1)]
         return super().download(**kwargs)
 
 

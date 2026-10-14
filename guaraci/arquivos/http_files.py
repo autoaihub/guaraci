@@ -24,12 +24,16 @@ Fontes:
 from __future__ import annotations
 
 import codecs
+import http.client
+import os
 import re
+import socket
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
 import polars as pl
@@ -65,6 +69,42 @@ class HttpFileClientError(ApiClientError):
     """Falha ao consultar ou baixar um arquivo de URL fixa."""
 
 
+def transport_error(
+    exc: BaseException,
+    what: str,
+    timeout_seconds: int,
+    error_cls: type = HttpFileClientError,
+) -> Optional[ApiClientError]:
+    """Converte falha de socket em erro retentável; ``None`` se não for de rede.
+
+    Cobre ``TimeoutError``, ``http.client.IncompleteRead`` (e as demais
+    ``HTTPException``), ``ConnectionResetError`` e ``OSError`` de socket em
+    geral. ``OSError`` com ``filename`` vem do disco local (``open``), não da
+    rede, e por isso fica de fora.
+    """
+    if isinstance(exc, (TimeoutError, socket.timeout)):
+        return error_cls(
+            f"Timed out reaching '{what}' after {timeout_seconds} seconds.",
+            category="timeout",
+            retryable=True,
+            hint="Arquivos grandes pedem timeout maior.",
+        )
+    if isinstance(exc, http.client.HTTPException) or (
+        isinstance(exc, OSError) and getattr(exc, "filename", None) is None
+    ):
+        return error_cls(
+            f"Connection to '{what}' was interrupted: {exc!r}",
+            category="connectivity",
+            retryable=True,
+            hint="Verifique acesso à internet, DNS e regras de proxy.",
+        )
+    return None
+
+
+def _url_is_zip(url: str) -> bool:
+    return urlsplit(url).path.lower().endswith(".zip")
+
+
 @dataclass(frozen=True)
 class RemoteFile:
     url: str
@@ -97,6 +137,11 @@ class HttpFileClient:
                 raise self._http_error(exc, url) from exc
             except URLError as exc:
                 raise self._url_error(exc, url) from exc
+            except (OSError, http.client.HTTPException) as exc:
+                error = transport_error(exc, url, self.timeout_seconds)
+                if error is None:
+                    raise
+                raise error from exc
 
         return request_with_retry(send, max_attempts=self.max_attempts)
 
@@ -114,11 +159,14 @@ class HttpFileClient:
 
         def send() -> int:
             written = 0
+            expected: Optional[int] = None
             request = Request(url, headers={"User-Agent": self.USER_AGENT})
             try:
                 with urlopen(request, timeout=self.timeout_seconds) as response, open(
                     partial, "wb"
                 ) as sink:
+                    length = response.headers.get("Content-Length")
+                    expected = int(length) if length and length.isdigit() else None
                     for block in iter(lambda: response.read(chunk_size), b""):
                         sink.write(block)
                         written += len(block)
@@ -135,6 +183,26 @@ class HttpFileClient:
                     retryable=True,
                     hint="Arquivos grandes (o zip do Vigitel tem 87 MB); aumente o timeout.",
                 ) from exc
+            except (OSError, http.client.HTTPException) as exc:
+                error = transport_error(exc, url, self.timeout_seconds)
+                if error is None:
+                    raise
+                raise error from exc
+            if expected is not None and written < expected:
+                raise HttpFileClientError(
+                    f"Download of '{url}' was truncated: {written} of {expected} bytes.",
+                    category="incomplete",
+                    retryable=True,
+                    hint="O servidor encerrou a conexão antes do fim; tente de novo.",
+                )
+            if _url_is_zip(url) and not zipfile.is_zipfile(partial):
+                raise HttpFileClientError(
+                    f"'{url}' should be a zip but the {written} bytes received are not a valid "
+                    "zip archive (truncated or not a zip).",
+                    category="incomplete",
+                    retryable=True,
+                    hint="Baixe de novo; se persistir, confira a URL no portal de origem.",
+                )
             return written
 
         try:
@@ -490,8 +558,18 @@ class _ZipMember:
 
 
 def _open_member(raw: Path, spec: HttpFile):
-    """Abre os bytes do dado: o arquivo em si ou o membro do zip."""
+    """Abre os bytes do dado: o arquivo em si ou o membro do zip.
+
+    Quando o recurso é esperado como zip (nome ``.zip`` ou spec com ``member`` ou
+    ``member_pattern``), um arquivo que não é zip válido falha aqui, em vez de
+    seguir como CSV cru (um zip truncado viraria lixo).
+    """
     if not zipfile.is_zipfile(raw):
+        if raw.name.lower().endswith(".zip") or spec.member or spec.member_pattern:
+            raise ValueError(
+                f"{raw.name} should be a zip archive but is not a valid one "
+                "(truncated download?); delete it and download again."
+            )
         return open(raw, "rb")
     archive = zipfile.ZipFile(raw)
     names = [n for n in archive.namelist() if not n.endswith("/")]
@@ -517,18 +595,59 @@ def _open_member(raw: Path, spec: HttpFile):
     return _ZipMember(archive, chosen)
 
 
-def _to_utf8(raw: Path, spec: HttpFile, target: Path) -> str:
-    """Grava ``raw`` (ou seu membro do zip) em UTF-8, em blocos, sem BOM."""
+def _to_utf8(
+    raw: Path, spec: HttpFile, target: Path, stats: Optional[Dict[str, int]] = None
+) -> str:
+    """Grava ``raw`` (ou seu membro do zip) em UTF-8, em blocos, sem BOM.
+
+    Se ``stats`` for dado, ``stats["replaced"]`` recebe quantos caracteres
+    U+FFFD a conversão produziu (bytes que a codificação não define).
+    """
+    replaced = 0
     with _open_member(raw, spec) as source, open(target, "w", encoding="utf-8", newline="") as sink:
         first = source.read(_SNIFF_BYTES)
         encoding = _detect_encoding(first, spec.encoding)
         decoder = codecs.getincrementaldecoder(encoding)(errors="replace")
         block = first
         while block:
-            sink.write(decoder.decode(block))
+            text = decoder.decode(block)
+            replaced += text.count("�")
+            sink.write(text)
             block = source.read(1 << 20)
-        sink.write(decoder.decode(b"", final=True))
+        text = decoder.decode(b"", final=True)
+        replaced += text.count("�")
+        sink.write(text)
+    if stats is not None:
+        stats["replaced"] = replaced
     return encoding
+
+
+def _replacement_warning(label: str, replaced: int, encoding: str) -> str:
+    return (
+        f"{label}: {replaced} caracteres inválidos viraram U+FFFD na conversão para UTF-8 "
+        f"(codificação {encoding}); confira a codificação do arquivo de origem."
+    )
+
+
+def _sink_atomic(frame, dest: Path, fmt: str, table: str, label: str) -> Path:
+    """Grava o frame em ``<dest>.part`` e só então troca para ``dest`` (``os.replace``).
+
+    Falha no meio apaga o ``.part``; ``dest`` nunca fica parcial.
+    """
+    partial = dest.with_name(dest.name + ".part")
+    try:
+        if fmt == "csv":
+            frame.sink_csv(partial)
+        elif fmt == "parquet":
+            frame.sink_parquet(partial)
+        else:
+            if write_sqlite(frame, db_path=partial, table=table) is None:
+                raise ValueError(f"{label} has no rows to export to sqlite.")
+        os.replace(partial, dest)
+    except BaseException:
+        partial.unlink(missing_ok=True)
+        raise
+    return dest
 
 
 class HttpFileDataSource(DataSource):
@@ -579,8 +698,11 @@ class HttpFileDataSource(DataSource):
         base_dir.mkdir(parents=True, exist_ok=True)
         client = self._client or HttpFileClient(timeout_seconds=timeout)
         resources = self._select(indicadores)
+        # ``multi`` nomeia os arquivos (a fonte tem vários recursos); ``isolate`` decide se
+        # a falha de um recurso vira aviso: com um só recurso pedido, a causa real sobe.
         multi = len(self.spec.resources) > 1
         total = len(resources)
+        isolate = total > 1
 
         def emit(event: Dict[str, object]) -> None:
             if progress_callback is not None:
@@ -620,12 +742,12 @@ class HttpFileDataSource(DataSource):
                 skipped_count += 1 if skipped else 0
                 downloaded += 0 if skipped else 1
                 if requested:
-                    dest = self._export(raw_path, base_dir, requested, resource, multi)
+                    dest = self._export(raw_path, base_dir, requested, resource, multi, warnings)
                     exported.append(str(dest))
                     if not keep_raw:
                         raw_path.unlink(missing_ok=True)
             except (ApiClientError, ValueError, zipfile.BadZipFile) as exc:
-                if not multi:
+                if not isolate:
                     raise
                 failed += 1
                 warnings.append(f"{resource.code}: {exc}")
@@ -653,12 +775,23 @@ class HttpFileDataSource(DataSource):
         }
 
     def _export(
-        self, raw_path: Path, base_dir: Path, fmt: str, resource: HttpResource, multi: bool
+        self,
+        raw_path: Path,
+        base_dir: Path,
+        fmt: str,
+        resource: HttpResource,
+        multi: bool,
+        warnings: Optional[List[str]] = None,
     ) -> Path:
         name = f"{self.name}_{resource.code}" if multi else self.name
         utf8 = base_dir / f"{name}.utf8.tmp.csv"
         try:
-            _to_utf8(raw_path, self.spec, utf8)
+            stats: Dict[str, int] = {}
+            encoding = _to_utf8(raw_path, self.spec, utf8, stats)
+            if stats.get("replaced") and warnings is not None:
+                warnings.append(
+                    _replacement_warning(raw_path.name, stats["replaced"], encoding)
+                )
             frame = pl.scan_csv(
                 utf8, separator=self.spec.separator, infer_schema=False, quote_char='"'
             )
@@ -666,18 +799,8 @@ class HttpFileDataSource(DataSource):
             stripped = {n: n.strip() for n in names if n != n.strip()}
             if stripped:
                 frame = frame.rename(stripped)
-            if fmt == "csv":
-                dest = base_dir / f"{name}.csv"
-                frame.sink_csv(dest)
-            elif fmt == "parquet":
-                dest = base_dir / f"{name}.parquet"
-                frame.sink_parquet(dest)
-            else:
-                written = write_sqlite(frame, db_path=base_dir / f"{name}.sqlite", table=name)
-                if written is None:
-                    raise ValueError(f"{raw_path.name} has no rows to export to sqlite.")
-                dest = written
-            return dest
+            suffix = {"csv": ".csv", "parquet": ".parquet"}.get(fmt, ".sqlite")
+            return _sink_atomic(frame, base_dir / f"{name}{suffix}", fmt, name, raw_path.name)
         finally:
             utf8.unlink(missing_ok=True)
 

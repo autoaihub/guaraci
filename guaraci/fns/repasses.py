@@ -26,6 +26,8 @@ from __future__ import annotations
 import codecs
 import csv
 import html
+import http.client
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,6 +39,7 @@ from urllib.request import Request, urlopen
 import polars as pl
 
 from guaraci import __version__
+from guaraci.arquivos.http_files import _sink_atomic, transport_error
 from guaraci.core.datasource import DataSource
 from guaraci.core.http import (
     ApiClientError,
@@ -98,6 +101,11 @@ class FnsClient:
                 raise self._http_error(exc, self.listing_url) from exc
             except URLError as exc:
                 raise self._url_error(exc, self.listing_url) from exc
+            except (OSError, http.client.HTTPException) as exc:
+                error = transport_error(exc, self.listing_url, self.timeout_seconds, FnsClientError)
+                if error is None:
+                    raise
+                raise error from exc
 
         return request_with_retry(send, max_attempts=self.max_attempts)
 
@@ -116,6 +124,11 @@ class FnsClient:
                 raise self._http_error(exc, url) from exc
             except URLError as exc:
                 raise self._url_error(exc, url) from exc
+            except (OSError, http.client.HTTPException) as exc:
+                error = transport_error(exc, url, self.timeout_seconds, FnsClientError)
+                if error is None:
+                    raise
+                raise error from exc
 
         return request_with_retry(send, max_attempts=self.max_attempts)
 
@@ -146,6 +159,11 @@ class FnsClient:
                     category="timeout", retryable=True,
                     hint="O arquivo de 2025 passa de 16 MB; aumente o timeout.",
                 ) from exc
+            except (OSError, http.client.HTTPException) as exc:
+                error = transport_error(exc, url, self.timeout_seconds, FnsClientError)
+                if error is None:
+                    raise
+                raise error from exc
             return written
 
         try:
@@ -346,23 +364,22 @@ class FnsRepassesDataSource(DataSource):
     def _export(self, raw_path: Path, base_dir: Path, year: int, fmt: str) -> Path:
         stem = f"{self.name}_{year}"
         csv_path = base_dir / f"{stem}.csv"
-        staging = csv_path if fmt == "csv" else base_dir / f"{stem}.utf8.tmp.csv"
+        # O CSV final nasce em ``.part`` e só troca de nome no fim (``os.replace``).
+        staging = (
+            csv_path.with_name(csv_path.name + ".part")
+            if fmt == "csv"
+            else base_dir / f"{stem}.utf8.tmp.csv"
+        )
         try:
             if raw_path.suffix.lower() == ".xlsx":
                 xlsx_to_csv(raw_path, staging)
             else:
                 _csv_to_utf8(raw_path, staging)
             if fmt == "csv":
+                os.replace(staging, csv_path)
                 return csv_path
             frame = pl.scan_csv(staging, infer_schema=False)
-            if fmt == "parquet":
-                dest = base_dir / f"{stem}.parquet"
-                frame.sink_parquet(dest)
-                return dest
-            written = write_sqlite(frame, db_path=base_dir / f"{stem}.sqlite", table=self.name)
-            if written is None:
-                raise ValueError(f"{raw_path.name} has no rows to export to sqlite.")
-            return written
+            suffix = ".parquet" if fmt == "parquet" else ".sqlite"
+            return _sink_atomic(frame, base_dir / f"{stem}{suffix}", fmt, self.name, raw_path.name)
         finally:
-            if fmt != "csv":
-                staging.unlink(missing_ok=True)
+            staging.unlink(missing_ok=True)

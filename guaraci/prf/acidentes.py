@@ -18,6 +18,7 @@ do agrupamento por pessoa.
 from __future__ import annotations
 
 import html
+import http.client
 import re
 import zipfile
 from dataclasses import dataclass
@@ -30,7 +31,14 @@ from urllib.request import Request, urlopen
 import polars as pl
 
 from guaraci import __version__
-from guaraci.arquivos.http_files import HttpFile, _normalize_format, _to_utf8
+from guaraci.arquivos.http_files import (
+    HttpFile,
+    _normalize_format,
+    _replacement_warning,
+    _sink_atomic,
+    _to_utf8,
+    transport_error,
+)
 from guaraci.core.datasource import DataSource
 from guaraci.core.http import (
     ApiClientError,
@@ -140,6 +148,11 @@ class PrfClient:
                 raise self._http_error(exc, PAGE_URL) from exc
             except URLError as exc:
                 raise self._url_error(exc, PAGE_URL) from exc
+            except (OSError, http.client.HTTPException) as exc:
+                error = transport_error(exc, PAGE_URL, self.timeout_seconds, PrfClientError)
+                if error is None:
+                    raise
+                raise error from exc
 
         found = parse_page(request_with_retry(send, max_attempts=self.max_attempts))
         if not found:
@@ -171,6 +184,7 @@ class PrfClient:
 
         def send() -> int:
             written = 0
+            expected: Optional[int] = None
             try:
                 response = fetch(DRIVE_URL + file_id)
                 if is_html(response):
@@ -187,6 +201,8 @@ class PrfClient:
                             retryable=False,
                             hint="Confirme na página da PRF se o arquivo segue público.",
                         )
+                    length = response.headers.get("Content-Length")
+                    expected = int(length) if length and length.isdigit() else None
                     for block in iter(lambda: response.read(chunk_size), b""):
                         sink.write(block)
                         written += len(block)
@@ -196,6 +212,26 @@ class PrfClient:
                 raise self._http_error(exc, file_id) from exc
             except URLError as exc:
                 raise self._url_error(exc, file_id) from exc
+            except (OSError, http.client.HTTPException) as exc:
+                error = transport_error(exc, file_id, self.timeout_seconds, PrfClientError)
+                if error is None:
+                    raise
+                raise error from exc
+            if expected is not None and written < expected:
+                raise PrfClientError(
+                    f"Download of '{file_id}' was truncated: {written} of {expected} bytes.",
+                    category="incomplete",
+                    retryable=True,
+                    hint="O Drive encerrou a conexão antes do fim; tente de novo.",
+                )
+            if not zipfile.is_zipfile(partial):
+                raise PrfClientError(
+                    f"O arquivo '{file_id}' deveria ser um zip, mas os {written} bytes recebidos "
+                    "não formam um zip válido (truncado ou resposta que não é o arquivo).",
+                    category="incomplete",
+                    retryable=True,
+                    hint="Baixe de novo; se persistir, confira o link na página da PRF.",
+                )
             return written
 
         try:
@@ -321,7 +357,9 @@ class PrfAcidentesDataSource(DataSource):
                 downloaded += 1
                 emit({"event": "file_completed", "document_index": index, "file_path": str(raw_path)})
                 if requested:
-                    exported.append(str(self._export(raw_path, base_dir, requested, year)))
+                    exported.append(
+                        str(self._export(raw_path, base_dir, requested, year, warnings))
+                    )
                     if not keep_raw:
                         raw_path.unlink(missing_ok=True)
             except (ApiClientError, ValueError, zipfile.BadZipFile) as exc:
@@ -347,28 +385,30 @@ class PrfAcidentesDataSource(DataSource):
             "export_warning": " ".join(warnings) or None,
         }
 
-    def _export(self, raw_path: Path, base_dir: Path, fmt: str, year: int) -> Path:
+    def _export(
+        self,
+        raw_path: Path,
+        base_dir: Path,
+        fmt: str,
+        year: int,
+        warnings: Optional[List[str]] = None,
+    ) -> Path:
         name = f"{self.name}_{year}"
         utf8 = base_dir / f"{name}.utf8.tmp.csv"
         try:
-            _to_utf8(raw_path, self.spec.file_spec, utf8)
+            stats: Dict[str, int] = {}
+            encoding = _to_utf8(raw_path, self.spec.file_spec, utf8, stats)
+            if stats.get("replaced") and warnings is not None:
+                warnings.append(
+                    _replacement_warning(raw_path.name, stats["replaced"], encoding)
+                )
             frame = pl.scan_csv(utf8, separator=";", infer_schema=False, quote_char='"')
             names = frame.collect_schema().names()
             stripped = {n: n.strip() for n in names if n != n.strip()}
             if stripped:
                 frame = frame.rename(stripped)
-            if fmt == "csv":
-                dest = base_dir / f"{name}.csv"
-                frame.sink_csv(dest)
-            elif fmt == "parquet":
-                dest = base_dir / f"{name}.parquet"
-                frame.sink_parquet(dest)
-            else:
-                written = write_sqlite(frame, db_path=base_dir / f"{name}.sqlite", table=name)
-                if written is None:
-                    raise ValueError(f"{raw_path.name} has no rows to export to sqlite.")
-                dest = written
-            return dest
+            suffix = {"csv": ".csv", "parquet": ".parquet"}.get(fmt, ".sqlite")
+            return _sink_atomic(frame, base_dir / f"{name}{suffix}", fmt, name, raw_path.name)
         finally:
             utf8.unlink(missing_ok=True)
 
