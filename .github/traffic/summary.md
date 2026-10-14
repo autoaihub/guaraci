@@ -1,25 +1,26 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-10-13T12:48:09+00:00. 2104 clonagens (777 únicas) em 47 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-10-14T10:21:20+00:00. 2295 clonagens (843 únicas) em 49 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 1394 | 456 | 104 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 397 | 161 | 53 | 2026-08-20 |
-| LuisVogelDS/IntraAct | 76 | 11 | 1 | 2026-08-21 |
-| cajuice/shop-list | 62 | 7 | 2 | 2026-09-20 |
+| autoaihub/guaraci | 1546 | 507 | 143 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 425 | 164 | 54 | 2026-08-20 |
+| LuisVogelDS/IntraAct | 76 | 12 | 1 | 2026-08-21 |
+| cajuice/shop-list | 63 | 8 | 3 | 2026-09-20 |
 | LuisVogelDS/MemoriaRam | 24 | 7 | 1 | 2026-08-21 |
-| LuisVogelDS/LuisVogelDS | 22 | 22 | 4 | 2026-08-20 |
-| LuisVogelDS/vitrine | 21 | 14 | 2 | 2026-08-20 |
-| LuisVogelDS/retail-pulse | 20 | 20 | 5 | 2026-08-20 |
-| LuisVogelDS/loadbay | 18 | 18 | 4 | 2026-08-20 |
-| LuisVogelDS/churnlab | 17 | 17 | 4 | 2026-08-20 |
+| LuisVogelDS/LuisVogelDS | 23 | 23 | 4 | 2026-08-20 |
+| LuisVogelDS/retail-pulse | 21 | 21 | 5 | 2026-08-20 |
+| LuisVogelDS/vitrine | 21 | 15 | 2 | 2026-08-20 |
+| LuisVogelDS/loadbay | 19 | 19 | 4 | 2026-08-20 |
+| LuisVogelDS/churnlab | 18 | 18 | 5 | 2026-08-20 |
 | LuisVogelDS/Alquimia | 8 | 2 | 1 | 2026-08-21 |
 | LuisVogelDS/HarpyNest | 8 | 8 | 3 | 2026-09-19 |
 | LuisVogelDS/GolDePlaca | 5 | 4 | 1 | 2026-09-13 |
 | cajuice/cajuzinho | 4 | 3 | 2 | 2026-09-22 |
 | LuisVogelDS/Volvo | 3 | 3 | 0 | 2026-08-20 |
 | cajuice/clinica | 3 | 3 | 3 | 2026-09-23 |
+| cajuice/game-duct-tape | 3 | 2 | 1 | 2026-09-24 |
 | cajuice/presto | 3 | 3 | 3 | 2026-09-29 |
 | LuisVogelDS/Cajuice | 2 | 2 | 2 | 2026-09-19 |
 | LuisVogelDS/GobbleGoblin | 2 | 1 | 1 | 2026-08-21 |
@@ -32,7 +33,10 @@ Atualizado em 2026-10-13T12:48:09+00:00. 2104 clonagens (777 únicas) em 47 repo
 | LuisVogelDS/Prospero | 1 | 1 | 0 | 2026-08-21 |
 | LuisVogelDS/hub-2ms | 1 | 1 | 1 | 2026-09-22 |
 | LuisVogelDS/hub-pessoal | 1 | 1 | 1 | 2026-09-22 |
-| cajuice/game-duct-tape | 1 | 1 | 1 | 2026-09-24 |
+| cajuice/FangYouVeryMuch | 1 | 1 | 1 | 2026-09-30 |
+| cajuice/acervo | 1 | 1 | 1 | 2026-09-30 |
+| cajuice/bus-tracker | 1 | 1 | 1 | 2026-09-27 |
+| cajuice/music-channels | 1 | 1 | 1 | 2026-09-26 |
 | LuisVogelDS/Bem-te-vi | 0 | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/Cantin-do-Fogueu | 0 | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/Controle-de-Campo | 0 | 0 | 0 | 2026-08-21 |
@@ -48,6 +52,4 @@ Atualizado em 2026-10-13T12:48:09+00:00. 2104 clonagens (777 únicas) em 47 repo
 | LuisVogelDS/baldor-scraper | 0 | 0 | 0 | 2026-08-20 |
 | LuisVogelDS/prospero-dados | 0 | 0 | 0 | 2026-09-22 |
 | autoaihub/guaraci-docs | 0 | 0 | 0 | 2026-08-21 |
-| cajuice/bus-tracker | 0 | 0 | 0 | 2026-09-27 |
-| cajuice/music-channels | 0 | 0 | 0 | 2026-09-26 |
 | cajuice/prospero | 0 | 0 | 0 | 2026-09-22 |

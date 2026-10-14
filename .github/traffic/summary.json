@@ -1,35 +1,35 @@
 {
-  "updated_at": "2026-10-13T12:48:09+00:00",
-  "repo_count": 47,
-  "total_clones": 2104,
-  "total_uniques": 777,
+  "updated_at": "2026-10-14T10:21:20+00:00",
+  "repo_count": 49,
+  "total_clones": 2295,
+  "total_uniques": 843,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1394,
-      "total_uniques": 456,
-      "uniques_14d": 104,
+      "total_clones": 1546,
+      "total_uniques": 507,
+      "uniques_14d": 143,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 397,
-      "total_uniques": 161,
-      "uniques_14d": 53,
+      "total_clones": 425,
+      "total_uniques": 164,
+      "uniques_14d": 54,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 11,
+      "total_uniques": 12,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
     {
       "repo": "cajuice/shop-list",
-      "total_clones": 62,
-      "total_uniques": 7,
-      "uniques_14d": 2,
+      "total_clones": 63,
+      "total_uniques": 8,
+      "uniques_14d": 3,
       "tracking_since": "2026-09-20"
     },
     {
@@ -41,37 +41,37 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 22,
-      "total_uniques": 22,
+      "total_clones": 23,
+      "total_uniques": 23,
       "uniques_14d": 4,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/retail-pulse",
+      "total_clones": 21,
+      "total_uniques": 21,
+      "uniques_14d": 5,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/vitrine",
       "total_clones": 21,
-      "total_uniques": 14,
+      "total_uniques": 15,
       "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 20,
-      "total_uniques": 20,
-      "uniques_14d": 5,
-      "tracking_since": "2026-08-20"
-    },
-    {
       "repo": "LuisVogelDS/loadbay",
-      "total_clones": 18,
-      "total_uniques": 18,
+      "total_clones": 19,
+      "total_uniques": 19,
       "uniques_14d": 4,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/churnlab",
-      "total_clones": 17,
-      "total_uniques": 17,
-      "uniques_14d": 4,
+      "total_clones": 18,
+      "total_uniques": 18,
+      "uniques_14d": 5,
       "tracking_since": "2026-08-20"
     },
     {
@@ -115,6 +115,13 @@
       "total_uniques": 3,
       "uniques_14d": 3,
       "tracking_since": "2026-09-23"
+    },
+    {
+      "repo": "cajuice/game-duct-tape",
+      "total_clones": 3,
+      "total_uniques": 2,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-24"
     },
     {
       "repo": "cajuice/presto",
@@ -201,11 +208,32 @@
       "tracking_since": "2026-09-22"
     },
     {
-      "repo": "cajuice/game-duct-tape",
+      "repo": "cajuice/FangYouVeryMuch",
       "total_clones": 1,
       "total_uniques": 1,
       "uniques_14d": 1,
-      "tracking_since": "2026-09-24"
+      "tracking_since": "2026-09-30"
+    },
+    {
+      "repo": "cajuice/acervo",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-30"
+    },
+    {
+      "repo": "cajuice/bus-tracker",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-27"
+    },
+    {
+      "repo": "cajuice/music-channels",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-26"
     },
     {
       "repo": "LuisVogelDS/Bem-te-vi",
@@ -311,20 +339,6 @@
       "total_uniques": 0,
       "uniques_14d": 0,
       "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "cajuice/bus-tracker",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "uniques_14d": 0,
-      "tracking_since": "2026-09-27"
-    },
-    {
-      "repo": "cajuice/music-channels",
-      "total_clones": 0,
-      "total_uniques": 0,
-      "uniques_14d": 0,
-      "tracking_since": "2026-09-26"
     },
     {
       "repo": "cajuice/prospero",
