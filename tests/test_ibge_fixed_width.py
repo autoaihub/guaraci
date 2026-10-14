@@ -99,9 +99,14 @@ def test_pense_2012_style_without_pointer_is_sequential():
     assert block.layout_warning() is None
 
 
-def test_lrecl_that_does_not_match_the_layout_is_reported():
+def test_lrecl_shorter_than_the_layout_is_reported():
+    (block,) = parse_sas_input(_PNS.replace("LRECL=14", "LRECL=10"))
+    assert "10" in block.layout_warning()
+
+
+def test_lrecl_with_slack_is_not_reported():
     (block,) = parse_sas_input(_PNS.replace("LRECL=14", "LRECL=20"))
-    assert "20" in block.layout_warning()
+    assert block.layout_warning() is None
 
 
 def test_duplicated_variable_is_an_error():

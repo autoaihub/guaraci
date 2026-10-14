@@ -66,8 +66,12 @@ class SasBlock:
         return max((c.end for c in self.columns), default=0)
 
     def layout_warning(self) -> Optional[str]:
-        """Aviso quando o LRECL declarado não bate com o fim da última variável."""
-        if self.lrecl is not None and self.lrecl != self.record_length:
+        """Aviso quando as variáveis passam do LRECL declarado.
+
+        LRECL maior que o fim da última variável é folga normal nos programas
+        do IBGE (a PNAD Contínua declara 4000 e usa cerca de 3700) e não avisa.
+        """
+        if self.lrecl is not None and self.record_length > self.lrecl:
             return (
                 f"{self.name}: LRECL declarado {self.lrecl}, variáveis cobrem "
                 f"{self.record_length} posições."
