@@ -41,7 +41,12 @@ from urllib.request import Request, urlopen
 import polars as pl
 
 from guaraci import __version__
-from guaraci.arquivos.http_files import _replacement_warning, _sink_atomic, transport_error
+from guaraci.arquivos.http_files import (
+    _sink_atomic,
+    encoding_warnings,
+    transcode_lines,
+    transport_error,
+)
 from guaraci.core.datasource import DataSource
 from guaraci.core.http import (
     ApiClientError,
@@ -261,20 +266,6 @@ def _normalize_format(value: Optional[str]) -> Optional[str]:
     return normalized
 
 
-def _sniff_encoding(block: bytes) -> str:
-    """UTF-8 se o primeiro bloco decodifica como tal, senão cp1252.
-
-    Um bloco cortado no meio de um caractere de vários bytes ainda conta como
-    UTF-8: só o fim incompleto é tolerado.
-    """
-    decoder = codecs.getincrementaldecoder("utf-8")(errors="strict")
-    try:
-        decoder.decode(block, final=False)
-    except UnicodeDecodeError:
-        return FALLBACK_ENCODING
-    return ENCODING
-
-
 def zip_to_utf8(
     zip_path: Path,
     target: Path,
@@ -283,16 +274,12 @@ def zip_to_utf8(
 ) -> int:
     """Copia o CSV de dentro do zip para ``target`` em UTF-8, em blocos.
 
-    Sem ``encoding``, a codificação é detectada no primeiro bloco. Byte que a
-    codificação não define vira o caractere de substituição em vez de abortar.
-    Devolve os bytes lidos do CSV descompactado. Se ``stats`` for dado,
-    ``stats["replaced"]`` recebe quantos U+FFFD a conversão produziu e
-    ``stats["encoding"]`` a codificação usada.
+    Sem ``encoding``, a codificação é decidida linha a linha (UTF-8, senão
+    cp1252), como em :func:`guaraci.arquivos.http_files.transcode_lines`.
+    Devolve os bytes lidos do CSV descompactado. Em ``stats`` ficam as
+    contagens da conversão e ``stats["encoding"]`` com a codificação usada.
     """
-    decoder = None
-    total = 0
-    replaced = 0
-    chosen = encoding or ""
+    stats = stats if stats is not None else {}
     with zipfile.ZipFile(zip_path) as archive:
         members = [i for i in archive.infolist() if i.filename.lower().endswith(".csv")]
         if not members:
@@ -301,23 +288,20 @@ def zip_to_utf8(
         with archive.open(member) as source, open(
             target, "w", encoding="utf-8", newline=""
         ) as sink:
-            for block in iter(lambda: source.read(1 << 20), b""):
-                total += len(block)
-                if decoder is None:
-                    block = block.removeprefix(codecs.BOM_UTF8)
-                    chosen = encoding or _sniff_encoding(block)
-                    decoder = codecs.getincrementaldecoder(chosen)(errors="replace")
-                text = decoder.decode(block)
-                replaced += text.count("�")
-                sink.write(text)
-            if decoder is not None:
+            if encoding is None:
+                stats["encoding"] = transcode_lines(source, sink, stats)
+            else:
+                replaced = 0
+                decoder = codecs.getincrementaldecoder(encoding)(errors="replace")
+                for block in iter(lambda: source.read(1 << 20), b""):
+                    text = decoder.decode(block)
+                    replaced += text.count("�")
+                    sink.write(text)
                 text = decoder.decode(b"", final=True)
                 replaced += text.count("�")
                 sink.write(text)
-    if stats is not None:
-        stats["replaced"] = replaced
-        stats["encoding"] = chosen
-    return total
+                stats.update(replaced=replaced, encoding=encoding)
+    return member.file_size
 
 
 class MonitorArDataSource(DataSource):
@@ -448,11 +432,8 @@ class MonitorArDataSource(DataSource):
         try:
             stats: Dict[str, int] = {}
             zip_to_utf8(raw_path, utf8, stats=stats)
-            if stats.get("replaced") and warnings is not None:
-                warnings.append(
-                    _replacement_warning(raw_path.name, stats["replaced"], stats["encoding"])
-                    + " A detecção olha só o primeiro bloco do arquivo."
-                )
+            if warnings is not None:
+                warnings.extend(encoding_warnings(raw_path.name, stats, stats["encoding"]))
             frame = pl.scan_csv(utf8, infer_schema=False, quote_char='"')
             names = frame.collect_schema().names()
             clean = {n: n.strip() for n in names if n != n.strip()}

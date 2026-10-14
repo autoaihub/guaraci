@@ -62,7 +62,6 @@ __all__ = [
 
 ProgressCallback = Callable[[Dict[str, object]], None]
 _FORMATS = ("csv", "parquet", "sqlite")
-_SNIFF_BYTES = 1 << 20
 
 
 class HttpFileClientError(ApiClientError):
@@ -525,20 +524,6 @@ def _normalize_format(value: Optional[str]) -> Optional[str]:
     return normalized
 
 
-def _detect_encoding(sample: bytes, declared: str) -> str:
-    if declared != "auto":
-        return declared
-    if sample.startswith(codecs.BOM_UTF8):
-        return "utf-8-sig"
-    decoder = codecs.getincrementaldecoder("utf-8")(errors="strict")
-    try:
-        # final=False tolera o caractere partido no corte da amostra.
-        decoder.decode(sample, final=False)
-    except UnicodeDecodeError:
-        return "cp1252"
-    return "utf-8-sig"
-
-
 class _ZipMember:
     """Membro de zip que fecha o arquivo junto."""
 
@@ -595,31 +580,84 @@ def _open_member(raw: Path, spec: HttpFile):
     return _ZipMember(archive, chosen)
 
 
+def transcode_lines(source, sink, stats: Optional[Dict[str, int]] = None) -> str:
+    """Copia ``source`` (bytes) para ``sink`` (texto) decidindo a codificação linha a linha.
+
+    Cada linha é lida como UTF-8 e, se não for UTF-8 válido, como cp1252.
+    Arquivos do governo misturam as duas: o Vigitel 2006-2024 é cp1252 com
+    algumas linhas em UTF-8, e o primeiro trecho ASCII (71 MB) não deixa
+    detectar pelo começo do arquivo. Linha a linha nenhuma das duas partes se
+    perde.
+
+    Em ``stats``: ``replaced`` conta os bytes que o cp1252 não define (viram
+    U+FFFD), ``origin_fffd`` os U+FFFD que já vinham escritos na origem, e
+    ``cp1252_lines``/``utf8_lines`` quantas linhas não ASCII caíram em cada
+    codificação. Devolve o rótulo da codificação usada.
+    """
+    replaced = origin = cp_lines = utf_lines = 0
+    pending = b""
+    first = True
+
+    def emit(line: bytes) -> None:
+        nonlocal replaced, origin, cp_lines, utf_lines
+        if line.isascii():
+            sink.write(line.decode("ascii"))
+            return
+        try:
+            text = line.decode("utf-8")
+            utf_lines += 1
+            origin += text.count("�")
+        except UnicodeDecodeError:
+            text = line.decode("cp1252", errors="replace")
+            cp_lines += 1
+            replaced += text.count("�")
+        sink.write(text)
+
+    for block in iter(lambda: source.read(1 << 20), b""):
+        if first:
+            block = block.removeprefix(codecs.BOM_UTF8)
+            first = False
+        block = pending + block
+        cut = block.rfind(b"\n") + 1
+        pending = block[cut:]
+        if cut:
+            for line in block[:cut].splitlines(keepends=True):
+                emit(line)
+    if pending:
+        emit(pending)
+    if stats is not None:
+        stats.update(
+            replaced=replaced, origin_fffd=origin, cp1252_lines=cp_lines, utf8_lines=utf_lines
+        )
+    if cp_lines and utf_lines:
+        return f"utf-8 e cp1252 por linha ({utf_lines} e {cp_lines} linhas)"
+    return "cp1252" if cp_lines else "utf-8"
+
+
 def _to_utf8(
     raw: Path, spec: HttpFile, target: Path, stats: Optional[Dict[str, int]] = None
 ) -> str:
     """Grava ``raw`` (ou seu membro do zip) em UTF-8, em blocos, sem BOM.
 
-    Se ``stats`` for dado, ``stats["replaced"]`` recebe quantos caracteres
-    U+FFFD a conversão produziu (bytes que a codificação não define).
+    Com ``encoding="auto"`` a codificação é decidida linha a linha
+    (:func:`transcode_lines`). Com codificação declarada, ``stats["replaced"]``
+    recebe quantos U+FFFD a conversão produziu (bytes que ela não define).
     """
-    replaced = 0
     with _open_member(raw, spec) as source, open(target, "w", encoding="utf-8", newline="") as sink:
-        first = source.read(_SNIFF_BYTES)
-        encoding = _detect_encoding(first, spec.encoding)
-        decoder = codecs.getincrementaldecoder(encoding)(errors="replace")
-        block = first
-        while block:
+        if spec.encoding == "auto":
+            return transcode_lines(source, sink, stats)
+        replaced = 0
+        decoder = codecs.getincrementaldecoder(spec.encoding)(errors="replace")
+        for block in iter(lambda: source.read(1 << 20), b""):
             text = decoder.decode(block)
             replaced += text.count("�")
             sink.write(text)
-            block = source.read(1 << 20)
         text = decoder.decode(b"", final=True)
         replaced += text.count("�")
         sink.write(text)
     if stats is not None:
         stats["replaced"] = replaced
-    return encoding
+    return spec.encoding
 
 
 def _replacement_warning(label: str, replaced: int, encoding: str) -> str:
@@ -627,6 +665,19 @@ def _replacement_warning(label: str, replaced: int, encoding: str) -> str:
         f"{label}: {replaced} caracteres inválidos viraram U+FFFD na conversão para UTF-8 "
         f"(codificação {encoding}); confira a codificação do arquivo de origem."
     )
+
+
+def encoding_warnings(label: str, stats: Dict[str, int], encoding: str) -> List[str]:
+    """Avisos da conversão: bytes perdidos por nós e U+FFFD que já vinham da origem."""
+    found = []
+    if stats.get("replaced"):
+        found.append(_replacement_warning(label, stats["replaced"], encoding))
+    if stats.get("origin_fffd"):
+        found.append(
+            f"{label}: o arquivo de origem já traz {stats['origin_fffd']} caracteres "
+            "U+FFFD (acentuação perdida na publicação, não na conversão)."
+        )
+    return found
 
 
 def _sink_atomic(frame, dest: Path, fmt: str, table: str, label: str) -> Path:
@@ -788,10 +839,8 @@ class HttpFileDataSource(DataSource):
         try:
             stats: Dict[str, int] = {}
             encoding = _to_utf8(raw_path, self.spec, utf8, stats)
-            if stats.get("replaced") and warnings is not None:
-                warnings.append(
-                    _replacement_warning(raw_path.name, stats["replaced"], encoding)
-                )
+            if warnings is not None:
+                warnings.extend(encoding_warnings(raw_path.name, stats, encoding))
             frame = pl.scan_csv(
                 utf8, separator=self.spec.separator, infer_schema=False, quote_char='"'
             )

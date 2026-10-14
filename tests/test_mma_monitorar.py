@@ -138,24 +138,38 @@ def test_sem_anos_pedidos_nao_ha_aviso_de_ano_faltando(tmp_path):
     assert payload["export_warning"] is None
 
 
-def test_bytes_invalidos_alem_do_primeiro_bloco_avisam_com_a_contagem(tmp_path):
-    # Primeiro bloco (1 MB) é UTF-8 válido; um byte cp1252 solto depois vira U+FFFD.
+def test_linha_cp1252_depois_do_primeiro_bloco_sai_com_acento(tmp_path):
+    # Primeiro MB em ASCII e uma linha cp1252 adiante: a decisão é por linha.
     filler = ("a" * 99 + "\n") * 11000
     body = ("col\n" + filler).encode("utf-8") + b"Esta\xe7\xe3o\n"
     assert len(body) > (1 << 20)
 
-    class BadClient(_Client):
+    class Cp1252Client(_Client):
         def download(self, resource, destination: Path, **_kwargs) -> int:
             with zipfile.ZipFile(destination, "w") as archive:
                 archive.writestr("dados.csv", body)
             return destination.stat().st_size
 
-    source = MonitorArDataSource(output_path=str(tmp_path), client=BadClient(tmp_path))
+    source = MonitorArDataSource(output_path=str(tmp_path), client=Cp1252Client(tmp_path))
     payload = source.download(start_year=2025, output_format="csv")
     assert payload["failed_count"] == 0 and len(payload["exported_files"]) == 1
-    assert "2 caracteres" in payload["export_warning"]
-    assert "U+FFFD" in payload["export_warning"]
-    assert "dados_monitorar_2025.zip" in payload["export_warning"]
+    assert not payload["export_warning"]
+    assert "Estação" in Path(payload["exported_files"][0]).read_text(encoding="utf-8")
+
+
+def test_u_fffd_que_ja_vem_da_origem_e_avisado_como_da_origem(tmp_path):
+    body = "col\nEsta��o\n".encode("utf-8")
+
+    class OriginClient(_Client):
+        def download(self, resource, destination: Path, **_kwargs) -> int:
+            with zipfile.ZipFile(destination, "w") as archive:
+                archive.writestr("dados.csv", body)
+            return destination.stat().st_size
+
+    source = MonitorArDataSource(output_path=str(tmp_path), client=OriginClient(tmp_path))
+    payload = source.download(start_year=2025, output_format="csv")
+    assert "já traz 2 caracteres" in payload["export_warning"]
+    assert "na conversão para UTF-8" not in payload["export_warning"]
 
 
 class _FakeResponse:

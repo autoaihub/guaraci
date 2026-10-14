@@ -341,18 +341,26 @@ def test_falha_de_um_recurso_pedido_relanca_a_causa_real(tmp_path):
         )
 
 
-def test_conversao_com_bytes_invalidos_avisa_com_a_contagem(tmp_path):
+def test_codificacao_decidida_por_linha_alem_do_primeiro_mb(tmp_path):
+    # Vigitel real: 71 MB em ASCII e depois linhas cp1252 misturadas a UTF-8.
     key = "ibama_agrotoxicos_comercializacao"
     head = "Classe;Nome\r\n"
-    filler = "Herbicida;abcdefghij\r\n" * 60000  # passa de 1 MB de ASCII, a amostra da detecção
-    raw = (head + filler).encode("utf-8") + b"Herbicida;pir\xf3tr\xf3ide\r\n"
+    filler = "Herbicida;abcdefghij\r\n" * 60000
+    raw = (
+        (head + filler).encode("utf-8")
+        + b"Herbicida;pir\xf3tr\xf3ide\r\n"
+        + "Herbicida;glifosato sódico\r\n".encode("utf-8")
+        + b"Herbicida;controle\x81\r\n"
+    )
     assert len(head + filler) > (1 << 20)
     client = _Client({_url(key): raw})
     payload = _source(tmp_path, key, client).download(output_dir=str(tmp_path), output_format="csv")
     assert payload["failed_count"] == 0
+    text = Path(payload["exported_files"][0]).read_text(encoding="utf-8")
+    assert "pirótróide" in text and "glifosato sódico" in text
+    # 0x81 não existe no cp1252: só esse byte vira U+FFFD, com aviso.
     warning = payload["export_warning"]
-    assert "2 caracteres" in warning and "U+FFFD" in warning
-    assert "relatorios_comercializacao_agrotoxicos.csv" in warning
+    assert "1 caracteres" in warning and "relatorios_comercializacao_agrotoxicos.csv" in warning
 
 
 @pytest.mark.parametrize(

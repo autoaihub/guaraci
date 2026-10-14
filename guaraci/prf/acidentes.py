@@ -34,7 +34,7 @@ from guaraci import __version__
 from guaraci.arquivos.http_files import (
     HttpFile,
     _normalize_format,
-    _replacement_warning,
+    encoding_warnings,
     _sink_atomic,
     _to_utf8,
     transport_error,
@@ -398,10 +398,8 @@ class PrfAcidentesDataSource(DataSource):
         try:
             stats: Dict[str, int] = {}
             encoding = _to_utf8(raw_path, self.spec.file_spec, utf8, stats)
-            if stats.get("replaced") and warnings is not None:
-                warnings.append(
-                    _replacement_warning(raw_path.name, stats["replaced"], encoding)
-                )
+            if warnings is not None:
+                warnings.extend(encoding_warnings(raw_path.name, stats, encoding))
             frame = pl.scan_csv(utf8, separator=";", infer_schema=False, quote_char='"')
             names = frame.collect_schema().names()
             stripped = {n: n.strip() for n in names if n != n.strip()}
