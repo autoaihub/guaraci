@@ -33,6 +33,7 @@ import polars as pl
 from guaraci import __version__
 from guaraci.core.datasource import DataSource
 from guaraci.core.http import (
+    READ_ERRORS,
     ApiClientError,
     classify_http_status,
     is_timeout_reason,
@@ -101,6 +102,15 @@ class SiconfiClient:
                 raise SiconfiClientError(
                     f"Timed out on '{url}' after {self.timeout_seconds} seconds.",
                     category="timeout",
+                    retryable=True,
+                ) from exc
+            except READ_ERRORS as exc:
+                # Conexão derrubada sem resposta (RemoteDisconnected) ou corpo
+                # truncado: o SICONFI faz isso sob carga e responde na tentativa
+                # seguinte.
+                raise SiconfiClientError(
+                    f"Connection dropped on '{url}': {exc}",
+                    category="connectivity",
                     retryable=True,
                 ) from exc
             except ValueError as exc:

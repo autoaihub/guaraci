@@ -141,3 +141,33 @@ def test_registered_with_schema():
     assert schema["mode"] == "siconfi api"
     names = {spec["name"] for spec in schema["params"]}
     assert {"start_year", "end_year", "uf", "entes", "funcao"} <= names
+
+
+def test_dropped_connection_is_retried(monkeypatch):
+    import http.client
+
+    from guaraci.tesouro import siconfi
+
+    calls = []
+
+    class _Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def read(self):
+            return b'{"items": [], "hasMore": false}'
+
+    def fake_urlopen(request, timeout=None):
+        calls.append(request)
+        if len(calls) == 1:
+            raise http.client.RemoteDisconnected("Remote end closed connection without response")
+        return _Resp()
+
+    monkeypatch.setattr(siconfi, "urlopen", fake_urlopen)
+    monkeypatch.setattr("guaraci.core.http.time.sleep", lambda *_: None, raising=False)
+    client = siconfi.SiconfiClient(base_url="http://x")
+    assert client.get_json("dca", {"an_exercicio": 2023}) == {"items": [], "hasMore": False}
+    assert len(calls) == 2
