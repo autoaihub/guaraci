@@ -198,8 +198,9 @@
     function render() {
       const list = GUARACI_BASES.filter(matches);
       grid.innerHTML = list.slice(0, shown).map(card).join("");
-      countEl.innerHTML = "Mostrando <b>" + Math.min(shown, list.length) + "</b> de <b>" + list.length + "</b> conjuntos" +
-        (list.length !== GUARACI_BASES.length ? " (de " + GUARACI_BASES.length + " no total)" : "");
+      countEl.innerHTML = "Mostrando <b>" + Math.min(shown, list.length) + "</b> de <b>" + list.length + "</b> entradas" +
+        (list.length !== GUARACI_BASES.length ? " (de " + GUARACI_BASES.length + " no total)"
+          : " · " + GUARACI_DISTINCT + " bases distintas");
       empty.style.display = list.length ? "none" : "block";
       moreWrap.style.display = list.length > shown ? "block" : "none";
     }

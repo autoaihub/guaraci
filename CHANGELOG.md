@@ -9,9 +9,12 @@ FTP), SIM e SINASC pela API, `sisagua_tratamento_de_agua` (o arquivo do
 mesmo cadastro) e as duas consultas por código do CNES. A comparação foi
 feita campo a campo no dicionário. As entradas continuam no catálogo, porque
 o caminho alternativo filtra por UF ou data sem baixar o arquivo inteiro,
-mas `SAME_AS` em `scripts/build_site_catalog.py` as marca, o cartão e a
-documentação mostram "outro caminho para", e o site passa a dizer 174 bases
-distintas.
+mas ficam marcadas: o cartão e a documentação mostram "outro caminho para". O número de destaque do site
+passa a ser 174 bases, e 182 só aparece como total de entradas da lista.
+O mapa mora em `guaraci/services/same_as.py`, é exposto em `same_as` no
+`GET /sources` e no descritor, e a interface do aplicativo mostra a mesma
+marca no cartão da fonte. `inca_rhc` ganha 2023 como ano padrão, o que
+também conserta o passo do preset de oncologia, que era recusado sem ano.
 
 ### Fixed: revisão das três levas de fontes novas
 Uma revisão de código das fontes de outubro e uma coleta ao vivo de cada
