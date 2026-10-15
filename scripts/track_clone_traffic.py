@@ -24,10 +24,7 @@ desconto que se possa medir.
 
 Pessoas distintas: a soma dos únicos diários conta de novo quem clona em dias
 diferentes. A API também informa os únicos da janela de 14 dias sem essa
-repetição; cada execução guarda esse valor em `windows`. A API não identifica
-quem clona, então os únicos de todo o período não têm valor exato, só uma
-faixa (`uniques_min`, `uniques_max`; ver `unique_range`). Os repetidos são as
-clonagens menos os únicos e herdam a faixa (`repeats_min`, `repeats_max`).
+repetição; cada execução guarda esse valor em `windows`.
 
 Autenticação: os endpoints de tráfego exigem permissão de *push*, e o
 `GITHUB_TOKEN` padrão das Actions **não** basta. Defina o secret `TRAFFIC_TOKEN`
@@ -228,32 +225,6 @@ def net(day: str, value: dict) -> tuple[int, int]:
     return max(value["count"] - value.get("ci", 0), 0), value["uniques"]
 
 
-def unique_range(history: dict) -> tuple[int, int]:
-    """Faixa de pessoas distintas em todo o período.
-
-    O mínimo é o maior conjunto já medido sem repetição: a maior janela de 14
-    dias ou o maior dia. O máximo cobre todos os dias com partes disjuntas
-    (janelas que não se sobrepõem e, nos dias fora delas, os únicos diários) e
-    soma os únicos de cada parte; quem aparece em mais de uma parte é contado
-    mais de uma vez, então a soma nunca fica abaixo do real.
-    """
-    days = history["days"]
-    windows = sorted(history.get("windows", {}).values(), key=lambda w: w["from"])
-    low = max(
-        [w["uniques"] for w in windows] + [v["uniques"] for v in days.values()] + [0]
-    )
-
-    chosen: list[dict] = []
-    for window in windows:
-        if not chosen or window["from"] > chosen[-1]["to"]:
-            chosen.append(window)
-    covered = lambda day: any(w["from"] <= day <= w["to"] for w in chosen)
-    high = sum(w["uniques"] for w in chosen) + sum(
-        v["uniques"] for day, v in days.items() if not covered(day)
-    )
-    return low, max(high, low)
-
-
 def merge(history: dict, payload: dict, ci: dict[str, int] | None = None) -> dict:
     """Funde a janela de 14 dias no histórico.
 
@@ -290,10 +261,6 @@ def merge(history: dict, payload: dict, ci: dict[str, int] | None = None) -> dic
     history["total_uniques"] = sum(uniques for _, uniques in totals)
     latest = list(history.get("windows", {}).values())[-1:] or [None]
     history["uniques_14d"] = latest[0]["uniques"] if latest[0] else None
-    low, high = unique_range(history)
-    history["uniques_min"], history["uniques_max"] = low, high
-    history["repeats_min"] = max(history["total_clones"] - high, 0)
-    history["repeats_max"] = max(history["total_clones"] - low, 0)
     history["tracking_since"] = next(iter(history["days"]), None)
     history["updated_at"] = _now()
     return history
@@ -317,11 +284,6 @@ def _or_nd(value) -> str:
     return "n/d" if value is None else str(value)
 
 
-def _range(data: dict, key: str) -> str:
-    low, high = data[f"{key}_min"], data[f"{key}_max"]
-    return str(low) if low == high else f"{low}-{high}"
-
-
 def write_summary(entries: list[dict], failures: list[dict]) -> dict:
     entries = sorted(entries, key=lambda e: (-e["total_clones"], e["repo"]))
     summary = {
@@ -329,35 +291,26 @@ def write_summary(entries: list[dict], failures: list[dict]) -> dict:
         "repo_count": len(entries),
         "total_clones": sum(e["total_clones"] for e in entries),
         "total_uniques": sum(e["total_uniques"] for e in entries),
-        # Na conta inteira, a mesma pessoa pode clonar vários repositórios: o
-        # mínimo é o do repositório mais clonado por gente distinta, e o máximo
-        # soma os máximos.
-        "uniques_min": max(e["uniques_min"] for e in entries),
-        "uniques_max": sum(e["uniques_max"] for e in entries),
         "repos": entries,
         "unreachable": failures,
     }
-    summary["repeats_min"] = max(summary["total_clones"] - summary["uniques_max"], 0)
-    summary["repeats_max"] = max(summary["total_clones"] - summary["uniques_min"], 0)
     write_json(SUMMARY_JSON, summary)
 
     lines = [
         "# Clonagens acumuladas",
         "",
         f"Atualizado em {summary['updated_at']}. "
-        f"{summary['total_clones']} clonagens em {summary['repo_count']} repositórios, "
-        f"de {_range(summary, 'uniques')} pessoas distintas, com "
-        f"{_range(summary, 'repeats')} repetidas. O GitHub não identifica quem "
-        f"clona, então pessoas distintas e repetidas saem como faixa (mínimo-máximo).",
+        f"{summary['total_clones']} clonagens ({summary['total_uniques']} únicas) "
+        f"em {summary['repo_count']} repositórios. Únicas (14 dias) são as pessoas "
+        f"distintas da última quinzena, sem repetição entre dias.",
         "",
-        "| Repositório | Clonagens | Pessoas distintas | Repetidas | Únicas (14 dias) | Desde |",
-        "| --- | --: | --: | --: | --: | --- |",
+        "| Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |",
+        "| --- | --: | --: | --: | --- |",
     ]
     for entry in entries:
         lines.append(
             f"| {entry['repo']} | {entry['total_clones']} | "
-            f"{_range(entry, 'uniques')} | {_range(entry, 'repeats')} | "
-            f"{_or_nd(entry['uniques_14d'])} | "
+            f"{entry['total_uniques']} | {_or_nd(entry['uniques_14d'])} | "
             f"{entry['tracking_since'] or 'n/d'} |"
         )
     if failures:
@@ -407,16 +360,12 @@ def main() -> int:
                 "total_clones": history["total_clones"],
                 "total_uniques": history["total_uniques"],
                 "uniques_14d": history["uniques_14d"],
-                "uniques_min": history["uniques_min"],
-                "uniques_max": history["uniques_max"],
-                "repeats_min": history["repeats_min"],
-                "repeats_max": history["repeats_max"],
                 "tracking_since": history["tracking_since"],
             }
         )
         print(
             f"{repo}: {history['total_clones']} clonagens acumuladas "
-            f"({_range(history, 'uniques')} pessoas, {_range(history, 'repeats')} repetidas) "
+            f"({history['total_uniques']} únicas, {_or_nd(history['uniques_14d'])} na quinzena) "
             f"desde {history['tracking_since']}"
         )
 
@@ -432,15 +381,14 @@ def main() -> int:
             {
                 "schemaVersion": 1,
                 "label": "clones",
-                "message": f"{_range(home, 'uniques')} únicos · {_range(home, 'repeats')} repetidos",
+                "message": f"{home['total_clones']} total ({home['total_uniques']} únicos)",
                 "color": BADGE_COLOR,
             },
         )
 
     print(
         f"total: {summary['total_clones']} clonagens "
-        f"({_range(summary, 'uniques')} pessoas, {_range(summary, 'repeats')} repetidas) "
-        f"em {summary['repo_count']} repositórios"
+        f"({summary['total_uniques']} únicas) em {summary['repo_count']} repositórios"
     )
     return 0
 
