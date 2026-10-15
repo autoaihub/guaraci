@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-10-14T10:21:20+00:00",
+  "updated_at": "2026-10-15T10:04:56+00:00",
   "repo_count": 49,
-  "total_clones": 2295,
-  "total_uniques": 843,
+  "total_clones": 2429,
+  "total_uniques": 901,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1546,
-      "total_uniques": 507,
-      "uniques_14d": 143,
+      "total_clones": 1634,
+      "total_uniques": 547,
+      "uniques_14d": 171,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 425,
-      "total_uniques": 164,
-      "uniques_14d": 54,
+      "total_clones": 469,
+      "total_uniques": 174,
+      "uniques_14d": 63,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 12,
+      "total_uniques": 13,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
@@ -33,18 +33,18 @@
       "tracking_since": "2026-09-20"
     },
     {
-      "repo": "LuisVogelDS/MemoriaRam",
+      "repo": "LuisVogelDS/LuisVogelDS",
       "total_clones": 24,
-      "total_uniques": 7,
-      "uniques_14d": 1,
-      "tracking_since": "2026-08-21"
+      "total_uniques": 24,
+      "uniques_14d": 5,
+      "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 23,
-      "total_uniques": 23,
-      "uniques_14d": 4,
-      "tracking_since": "2026-08-20"
+      "repo": "LuisVogelDS/MemoriaRam",
+      "total_clones": 24,
+      "total_uniques": 8,
+      "uniques_14d": 1,
+      "tracking_since": "2026-08-21"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
@@ -56,7 +56,7 @@
     {
       "repo": "LuisVogelDS/vitrine",
       "total_clones": 21,
-      "total_uniques": 15,
+      "total_uniques": 16,
       "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
@@ -91,14 +91,14 @@
     {
       "repo": "LuisVogelDS/GolDePlaca",
       "total_clones": 5,
-      "total_uniques": 4,
+      "total_uniques": 5,
       "uniques_14d": 1,
       "tracking_since": "2026-09-13"
     },
     {
       "repo": "cajuice/cajuzinho",
-      "total_clones": 4,
-      "total_uniques": 3,
+      "total_clones": 5,
+      "total_uniques": 4,
       "uniques_14d": 2,
       "tracking_since": "2026-09-22"
     },
@@ -112,8 +112,8 @@
     {
       "repo": "cajuice/clinica",
       "total_clones": 3,
-      "total_uniques": 3,
-      "uniques_14d": 3,
+      "total_uniques": 4,
+      "uniques_14d": 4,
       "tracking_since": "2026-09-23"
     },
     {
@@ -126,8 +126,8 @@
     {
       "repo": "cajuice/presto",
       "total_clones": 3,
-      "total_uniques": 3,
-      "uniques_14d": 3,
+      "total_uniques": 4,
+      "uniques_14d": 4,
       "tracking_since": "2026-09-29"
     },
     {
