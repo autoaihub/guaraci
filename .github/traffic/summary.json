@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-10-15T10:04:56+00:00",
+  "updated_at": "2026-10-16T09:57:06+00:00",
   "repo_count": 49,
-  "total_clones": 2429,
-  "total_uniques": 901,
+  "total_clones": 2501,
+  "total_uniques": 935,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1634,
-      "total_uniques": 547,
-      "uniques_14d": 171,
+      "total_clones": 1701,
+      "total_uniques": 575,
+      "uniques_14d": 191,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 469,
-      "total_uniques": 174,
-      "uniques_14d": 63,
+      "total_clones": 471,
+      "total_uniques": 175,
+      "uniques_14d": 56,
       "tracking_since": "2026-08-20"
     },
     {
@@ -28,8 +28,8 @@
     {
       "repo": "cajuice/shop-list",
       "total_clones": 63,
-      "total_uniques": 8,
-      "uniques_14d": 3,
+      "total_uniques": 9,
+      "uniques_14d": 2,
       "tracking_since": "2026-09-20"
     },
     {
@@ -48,9 +48,9 @@
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 21,
-      "total_uniques": 21,
-      "uniques_14d": 5,
+      "total_clones": 22,
+      "total_uniques": 22,
+      "uniques_14d": 6,
       "tracking_since": "2026-08-20"
     },
     {
@@ -62,16 +62,16 @@
     },
     {
       "repo": "LuisVogelDS/loadbay",
-      "total_clones": 19,
-      "total_uniques": 19,
-      "uniques_14d": 4,
+      "total_clones": 20,
+      "total_uniques": 20,
+      "uniques_14d": 5,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/churnlab",
-      "total_clones": 18,
-      "total_uniques": 18,
-      "uniques_14d": 5,
+      "total_clones": 19,
+      "total_uniques": 19,
+      "uniques_14d": 6,
       "tracking_since": "2026-08-20"
     },
     {
@@ -224,8 +224,8 @@
     {
       "repo": "cajuice/bus-tracker",
       "total_clones": 1,
-      "total_uniques": 1,
-      "uniques_14d": 1,
+      "total_uniques": 2,
+      "uniques_14d": 2,
       "tracking_since": "2026-09-27"
     },
     {
