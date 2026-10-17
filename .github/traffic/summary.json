@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-10-16T09:57:06+00:00",
+  "updated_at": "2026-10-17T09:30:45+00:00",
   "repo_count": 49,
-  "total_clones": 2501,
-  "total_uniques": 935,
+  "total_clones": 2537,
+  "total_uniques": 961,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1701,
-      "total_uniques": 575,
-      "uniques_14d": 191,
+      "total_clones": 1732,
+      "total_uniques": 593,
+      "uniques_14d": 201,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 471,
-      "total_uniques": 175,
+      "total_clones": 472,
+      "total_uniques": 176,
       "uniques_14d": 56,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 13,
+      "total_uniques": 14,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
@@ -34,9 +34,9 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 24,
-      "total_uniques": 24,
-      "uniques_14d": 5,
+      "total_clones": 25,
+      "total_uniques": 25,
+      "uniques_14d": 6,
       "tracking_since": "2026-08-20"
     },
     {
@@ -48,8 +48,15 @@
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 22,
-      "total_uniques": 22,
+      "total_clones": 23,
+      "total_uniques": 23,
+      "uniques_14d": 7,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/loadbay",
+      "total_clones": 21,
+      "total_uniques": 21,
       "uniques_14d": 6,
       "tracking_since": "2026-08-20"
     },
@@ -61,17 +68,10 @@
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "LuisVogelDS/loadbay",
+      "repo": "LuisVogelDS/churnlab",
       "total_clones": 20,
       "total_uniques": 20,
-      "uniques_14d": 5,
-      "tracking_since": "2026-08-20"
-    },
-    {
-      "repo": "LuisVogelDS/churnlab",
-      "total_clones": 19,
-      "total_uniques": 19,
-      "uniques_14d": 6,
+      "uniques_14d": 7,
       "tracking_since": "2026-08-20"
     },
     {
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 8,
+      "total_uniques": 9,
       "uniques_14d": 3,
       "tracking_since": "2026-09-19"
     },
@@ -224,7 +224,7 @@
     {
       "repo": "cajuice/bus-tracker",
       "total_clones": 1,
-      "total_uniques": 2,
+      "total_uniques": 3,
       "uniques_14d": 2,
       "tracking_since": "2026-09-27"
     },
