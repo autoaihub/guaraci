@@ -1,19 +1,19 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-10-17T09:30:45+00:00. 2537 clonagens (961 únicas) em 49 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-10-18T09:44:59+00:00. 2556 clonagens (976 únicas) em 55 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 1732 | 593 | 201 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 472 | 176 | 56 | 2026-08-20 |
+| autoaihub/guaraci | 1748 | 605 | 205 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 474 | 178 | 56 | 2026-08-20 |
 | LuisVogelDS/IntraAct | 76 | 14 | 1 | 2026-08-21 |
 | cajuice/shop-list | 63 | 9 | 2 | 2026-09-20 |
 | LuisVogelDS/LuisVogelDS | 25 | 25 | 6 | 2026-08-20 |
 | LuisVogelDS/MemoriaRam | 24 | 8 | 1 | 2026-08-21 |
 | LuisVogelDS/retail-pulse | 23 | 23 | 7 | 2026-08-20 |
+| LuisVogelDS/churnlab | 21 | 21 | 8 | 2026-08-20 |
 | LuisVogelDS/loadbay | 21 | 21 | 6 | 2026-08-20 |
 | LuisVogelDS/vitrine | 21 | 16 | 2 | 2026-08-20 |
-| LuisVogelDS/churnlab | 20 | 20 | 7 | 2026-08-20 |
 | LuisVogelDS/Alquimia | 8 | 2 | 1 | 2026-08-21 |
 | LuisVogelDS/HarpyNest | 8 | 9 | 3 | 2026-09-19 |
 | LuisVogelDS/GolDePlaca | 5 | 5 | 1 | 2026-09-13 |
@@ -52,4 +52,10 @@ Atualizado em 2026-10-17T09:30:45+00:00. 2537 clonagens (961 únicas) em 49 repo
 | LuisVogelDS/baldor-scraper | 0 | 0 | 0 | 2026-08-20 |
 | LuisVogelDS/prospero-dados | 0 | 0 | 0 | 2026-09-22 |
 | autoaihub/guaraci-docs | 0 | 0 | 0 | 2026-08-21 |
+| cajuice/game-baluarte | 0 | 0 | 0 | 2026-10-05 |
+| cajuice/game-fractal | 0 | 0 | 0 | 2026-10-05 |
+| cajuice/game-lados | 0 | 0 | 0 | 2026-10-05 |
+| cajuice/game-orbita | 0 | 0 | 0 | 2026-10-05 |
+| cajuice/game-pinta | 0 | 0 | 0 | 2026-10-05 |
+| cajuice/game-vetor | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/prospero | 0 | 0 | 0 | 2026-09-22 |

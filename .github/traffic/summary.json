@@ -1,20 +1,20 @@
 {
-  "updated_at": "2026-10-17T09:30:45+00:00",
-  "repo_count": 49,
-  "total_clones": 2537,
-  "total_uniques": 961,
+  "updated_at": "2026-10-18T09:44:59+00:00",
+  "repo_count": 55,
+  "total_clones": 2556,
+  "total_uniques": 976,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1732,
-      "total_uniques": 593,
-      "uniques_14d": 201,
+      "total_clones": 1748,
+      "total_uniques": 605,
+      "uniques_14d": 205,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 472,
-      "total_uniques": 176,
+      "total_clones": 474,
+      "total_uniques": 178,
       "uniques_14d": 56,
       "tracking_since": "2026-08-20"
     },
@@ -54,6 +54,13 @@
       "tracking_since": "2026-08-20"
     },
     {
+      "repo": "LuisVogelDS/churnlab",
+      "total_clones": 21,
+      "total_uniques": 21,
+      "uniques_14d": 8,
+      "tracking_since": "2026-08-20"
+    },
+    {
       "repo": "LuisVogelDS/loadbay",
       "total_clones": 21,
       "total_uniques": 21,
@@ -65,13 +72,6 @@
       "total_clones": 21,
       "total_uniques": 16,
       "uniques_14d": 2,
-      "tracking_since": "2026-08-20"
-    },
-    {
-      "repo": "LuisVogelDS/churnlab",
-      "total_clones": 20,
-      "total_uniques": 20,
-      "uniques_14d": 7,
       "tracking_since": "2026-08-20"
     },
     {
@@ -339,6 +339,48 @@
       "total_uniques": 0,
       "uniques_14d": 0,
       "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "cajuice/game-baluarte",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-05"
+    },
+    {
+      "repo": "cajuice/game-fractal",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-05"
+    },
+    {
+      "repo": "cajuice/game-lados",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-05"
+    },
+    {
+      "repo": "cajuice/game-orbita",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-05"
+    },
+    {
+      "repo": "cajuice/game-pinta",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-05"
+    },
+    {
+      "repo": "cajuice/game-vetor",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-05"
     },
     {
       "repo": "cajuice/prospero",
