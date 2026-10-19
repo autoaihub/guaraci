@@ -42,7 +42,10 @@ O catálogo passa a 185 entradas e 173 bases distintas.
   JSON em 12/10, e foi isso que reprovou a verificação semanal nessas
   semanas. A resposta que não é JSON agora é repetida como as demais falhas
   passageiras, a espera entre tentativas passa de 0,25 s e 0,5 s para 2 s e
-  4 s, e a mensagem traz o tipo e o começo do corpo recebido.
+  4 s, e a mensagem traz o tipo e o começo do corpo recebido. No caso "jobs
+  simultâneos" da camada de resiliência, o job que falha por erro passageiro
+  da origem é repetido sozinho uma vez, um minuto depois, antes de reprovar:
+  o caso mede concorrência, não a estabilidade do SIDRA.
 - A API DEMAS quebra (502 ou timeout) por volta de 1 milhão de linhas de
   offset. Com `max_pages` alto, uma coleta grande que chegava lá caía inteira,
   sem arquivo, depois de horas. Agora, se já há linhas coletadas, o endpoint

@@ -126,13 +126,26 @@ def main() -> int:
         }
         ids = {s: cria(cli, s, dict(p, output_dir=str(out / f"sim_{s}"))) for s, p in pedidos.items()}
         finais = {s: espera(cli, j, 900, lambda job: job["status"] in TERMINAIS) for s, j in ids.items()}
+        # Falha passageira da origem (o SIDRA visto do runner recusou conexão
+        # em 28/09 e esgotou o tempo em 05/10) não é defeito de concorrência:
+        # o job é repetido sozinho uma vez, um minuto depois. O que falha de
+        # novo, ou falha com erro que não é passageiro, reprova o caso.
+        repetidos = []
+        for s, j in list(finais.items()):
+            if j["status"] == "failed" and j.get("error_retryable"):
+                time.sleep(60)
+                novo = cria(cli, s, dict(pedidos[s], output_dir=str(out / f"sim_{s}_2")))
+                ids[s + " (2a)"] = novo
+                finais[s] = espera(cli, novo, 900, lambda job: job["status"] in TERMINAIS)
+                repetidos.append(s)
         ruins = {s: (j["status"], (j.get("error") or "")[:120]) for s, j in finais.items() if j["status"] != "completed"}
         assert not ruins, f"não concluíram: {ruins}"
         estado = json.loads((base / "jobs" / "download_jobs.json").read_text(encoding="utf-8"))
         assert all(j in {x["job_id"] for x in estado} for j in ids.values()), "estado sem algum job"
         listados = {x["job_id"] for x in cli.get("/jobs?limit=40").json()}
         assert set(ids.values()) <= listados, "GET /jobs não lista todos"
-        return f"{len(ids)} jobs concluídos; estado íntegro"
+        nota = f"; repetidos por falha passageira da origem: {', '.join(repetidos)}" if repetidos else ""
+        return f"{len(pedidos)} jobs concluídos; estado íntegro{nota}"
 
     caso("jobs simultâneos", simultaneos)
 
