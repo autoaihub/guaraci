@@ -155,7 +155,7 @@ def confere_fonte(service: DownloadService, s: str, pasta: Path) -> Dict[str, An
         base = _coleta(service, s, base_params)
     except Exception as exc:  # noqa: BLE001
         texto = f"{type(exc).__name__}: {exc}"
-        if any(c in texto for c in vr._CREDENCIAIS) or "is required" in texto:
+        if any(c in texto for c in vr._CREDENCIAIS) or "is required" in texto or "é obrigatório" in texto:
             return {"pulada": texto[:160]}
         return {"problemas": [f"linha de base falhou: {texto[:250]}"], "avisos": [], "filtros": {}}
     assinatura_base = _assinatura(base)

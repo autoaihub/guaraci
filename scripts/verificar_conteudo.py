@@ -208,7 +208,7 @@ def confere_fonte(service: DownloadService, s: str, base: Path, dicionario: Dict
             resultado = service.run(s, **params).to_dict()
         except Exception as exc:  # noqa: BLE001
             texto = f"{type(exc).__name__}: {exc}"
-            if any(c in texto for c in vr._CREDENCIAIS) or "is required" in texto:
+            if any(c in texto for c in vr._CREDENCIAIS) or "is required" in texto or "é obrigatório" in texto:
                 return {"pulada": texto[:200]}
             problemas.append(f"{formato}: coleta falhou: {texto[:300]}")
             continue

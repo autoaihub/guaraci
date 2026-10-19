@@ -38,7 +38,7 @@ def test_year_below_the_floor_is_rejected() -> None:
 
 
 def test_year_that_is_not_a_number_is_rejected() -> None:
-    with pytest.raises(ValueError, match="must be a year"):
+    with pytest.raises(ValueError, match="deve ser um ano"):
         validate_param_relationships({"start_year": "ontem"})
 
 
