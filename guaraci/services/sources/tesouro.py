@@ -13,6 +13,11 @@ from guaraci.services.downloads import (
 from guaraci.tesouro import SiconfiDcaDespesaFuncaoDataSource as _Dca
 from guaraci.tesouro.rreo import SiconfiRreoSaudeDataSource as _Rreo
 
+#: Último ano completo publicado, conferido ao vivo em 2026-10-19 (DCA com 625 linhas de SP em 2025 e nenhuma em 2026; RREO de 2026 ainda sem o 6o bimestre).
+#: Padrão de ``start_year``: a coleta sem ano fica leve. Microdados pesados
+#: (PNAD, PNS, POF, PeNSE) ficam sem padrão de propósito.
+ANO_PADRAO = 2025
+
 
 def _normalize_siconfi_params(params):
     normalized = dict(params)
@@ -56,8 +61,8 @@ def build_sources() -> List[DownloadSource]:
                 ),
                 SourceParameterSpec(
                     name="start_year", phase="coleta", param_type="integer",
-                    description=f"Exercício inicial (desde {_Dca.MIN_YEAR}, confirmado ao vivo).",
-                    required=True, default=None,
+                    description=f"Exercício inicial (desde {_Dca.MIN_YEAR}, confirmado ao vivo; padrão {ANO_PADRAO}).",
+                    required=True, default=ANO_PADRAO,
                     minimum=_Dca.MIN_YEAR, maximum=current_year,
                 ),
                 SourceParameterSpec(
@@ -131,8 +136,8 @@ def build_sources() -> List[DownloadSource]:
                 ),
                 SourceParameterSpec(
                     name="start_year", phase="coleta", param_type="integer",
-                    description=f"Exercício inicial (desde {_Rreo.MIN_YEAR}, confirmado ao vivo).",
-                    required=True, default=None,
+                    description=f"Exercício inicial (desde {_Rreo.MIN_YEAR}, confirmado ao vivo; padrão {ANO_PADRAO}).",
+                    required=True, default=ANO_PADRAO,
                     minimum=_Rreo.MIN_YEAR, maximum=current_year,
                 ),
                 SourceParameterSpec(

@@ -12,6 +12,11 @@ from guaraci.services.downloads import (
     SourceDescriptor,
 )
 
+#: Último ano completo publicado, conferido ao vivo em 2026-10-19 (o portal lista 2002 a 2026, e 2026 é parcial).
+#: Padrão de ``start_year``: a coleta sem ano fica leve. Microdados pesados
+#: (PNAD, PNS, POF, PeNSE) ficam sem padrão de propósito.
+ANO_PADRAO = 2025
+
 
 def build_sources() -> List[DownloadSource]:
     """Retorna a fonte FNS de repasses fundo a fundo."""
@@ -49,9 +54,9 @@ def build_sources() -> List[DownloadSource]:
                     name="start_year",
                     phase="coleta",
                     param_type="integer",
-                    description=f"Ano inicial (desde {FnsRepassesDataSource.MIN_YEAR}).",
+                    description=f"Ano inicial (desde {FnsRepassesDataSource.MIN_YEAR}; padrão {ANO_PADRAO}).",
                     required=True,
-                    default=None,
+                    default=ANO_PADRAO,
                     minimum=FnsRepassesDataSource.MIN_YEAR,
                     maximum=current_year + 1,
                 ),
