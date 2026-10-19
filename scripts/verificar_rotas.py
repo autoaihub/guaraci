@@ -104,6 +104,49 @@ _ORIGEM_VAZIA = {
     "saude_indigena_sesai_obitos",
 }
 
+# Fontes sem recorte pequeno: o menor arquivo do PNI tem 0,8 GB e o do SISVAN
+# 1 GB comprimidos (medido em 2026-10-19), mais de 8 GB em CSV, e o pedido
+# padrão traz o ano inteiro. A coleta não cabe no runner; a verificação confere
+# na origem que os arquivos do pedido padrão existem e são zip, sem baixá-los.
+_SO_CABECALHO = {"pni_doses_aplicadas_arquivos", "sisvan_estado_nutricional_arquivos"}
+
+
+def confere_cabecalho(s: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    """Arquivos do pedido existem na origem e começam como zip (HEAD + 4 bytes)."""
+    from urllib.request import Request, urlopen
+
+    from guaraci.arquivos.http_files import HttpFileClient, HttpFileClientError, HttpFileDataSource
+
+    fonte = HttpFileDataSource(dataset=s)
+    recursos = fonte._select(params.get("indicadores"), params.get("anos"), params.get("meses"))
+    cliente = HttpFileClient(timeout_seconds=60)
+    publicados: Dict[str, int] = {}
+    ausentes: List[str] = []
+    for recurso in recursos:
+        try:
+            remoto = cliente.head(recurso.url)
+        except HttpFileClientError as exc:
+            # Mês ainda não publicado: o S3 responde 403 (o bucket não deixa
+            # listar). A fonte transforma isso em aviso, e aqui também não é
+            # falha enquanto houver algum publicado.
+            if exc.status not in (403, 404):
+                raise
+            ausentes.append(recurso.code)
+            continue
+        req = Request(recurso.url, headers={"Range": "bytes=0-3", "User-Agent": HttpFileClient.USER_AGENT})
+        with urlopen(req, timeout=60) as resp:
+            assinatura = resp.read(4)
+        assert assinatura == b"PK\x03\x04", f"{recurso.code} não começa como zip: {assinatura!r}"
+        publicados[recurso.code] = remoto.size or 0
+    assert publicados, f"nenhum arquivo publicado para {params.get('anos')}: ausentes {ausentes}"
+    return {
+        "so_cabecalho": True,
+        "publicados": len(publicados),
+        "gb": round(sum(publicados.values()) / 1e9, 2),
+        "ainda_nao_publicados": ausentes,
+    }
+
+
 # Recusa por credencial ausente é o comportamento certo sem a chave; a
 # verificação então só exige que a mensagem diga qual variável definir.
 _CREDENCIAIS = ("GUARACI_FIRMS_MAP_KEY", "GUARACI_EARTHDATA_TOKEN",
@@ -355,6 +398,10 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
         s = fonte["source"]
         schema = api.get(f"/sources/{s}/schema").json()
         params = params_pequenos(schema, s, base / s)
+        if s in _SO_CABECALHO:
+            rel.roda(s, "POST /jobs (só cabeçalho: arquivos de vários GB)",
+                     lambda: confere_cabecalho(s, params))
+            return
 
         def roda() -> Dict[str, Any]:
             resp = api.post("/jobs", json={"source": s, "params": params})

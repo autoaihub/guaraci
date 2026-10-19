@@ -56,6 +56,14 @@ O catálogo passa a 185 entradas e 173 bases distintas.
   `scripts/scaffold_opendatasus.py`, e não editadas à mão no registro, que a
   regeneração reescreve por inteiro. O gerador também grava com fim de linha
   LF no Windows.
+- Vacinação e SISVAN por arquivo: o S3 do Ministério responde 403, e não 404,
+  ao mês que ainda não saiu. Pedir 2026 inteiro dava sucesso parcial com três
+  falhas e o conselho de conferir se a URL existe; agora outubro a dezembro
+  saem como "ainda não publicados", sem contar como falha, e o pedido só falha
+  se nenhum período pedido estiver publicado.
+- A verificação semanal não baixa mais essas duas fontes: o menor zip tem
+  0,8 GB (PNI) e 1 GB (SISVAN), e o ano padrão passa de 20 GB. Ela confere na
+  origem que os arquivos do pedido padrão existem e começam como zip.
 
 ### Changed: o catálogo separa conjuntos de bases distintas
 Dos 182 conjuntos, oito são a mesma base de outro por um caminho diferente:

@@ -13,6 +13,7 @@ import pytest
 
 from guaraci.arquivos import HTTP_FILES, HttpFileDataSource
 from guaraci.services.downloads import DownloadService
+from guaraci.arquivos.http_files import HttpFileClientError
 from tests.test_arquivos_http import _Client, _source, _zip
 
 PNI = "pni_doses_aplicadas_arquivos"
@@ -112,6 +113,29 @@ def test_mes_ainda_nao_publicado_vira_aviso(tmp_path: Path) -> None:
     assert payload["failed_count"] == 1
     assert len(payload["exported_files"]) == 1
     assert "2026_12" in payload["export_warning"]
+
+
+class _ClientSemOutubro(_Client):
+    """O S3 responde 403 ao mês que ainda não existe (verificado em 2026-10-19)."""
+
+    def head(self, url: str):
+        if url.endswith("vacinacao_out_2026_csv.zip"):
+            error = HttpFileClientError(f"Request failed (403) for '{url}'.", category="configuration")
+            error.status = 403
+            raise error
+        return super().head(url)
+
+
+def test_mes_que_responde_403_e_nao_publicado_e_nao_falha(tmp_path: Path) -> None:
+    client = _ClientSemOutubro(_payloads(PNI, _PNI_CSV))
+    fonte = HttpFileDataSource(output_path=str(tmp_path), dataset=PNI, client=client)
+    payload = fonte.download(output_dir=str(tmp_path), output_format="csv", anos=[2026], meses=["9", "10"])
+    assert payload["failed_count"] == 0
+    assert len(payload["exported_files"]) == 1
+    assert "Ainda não publicados na origem: 2026_10" in payload["export_warning"]
+
+    with pytest.raises(ValueError, match="ainda não foi publicado"):
+        fonte.download(output_dir=str(tmp_path), output_format="csv", anos=[2026], meses=["10"])
 
 
 def test_registro_expoe_anos_e_meses_com_valores_permitidos() -> None:

@@ -74,6 +74,9 @@ _FORMATS = ("csv", "parquet", "sqlite")
 class HttpFileClientError(ApiClientError):
     """Falha ao consultar ou baixar um arquivo de URL fixa."""
 
+    # Código HTTP da resposta, quando a falha foi uma resposta de erro.
+    status: Optional[int] = None
+
 
 def transport_error(
     exc: BaseException,
@@ -223,12 +226,14 @@ class HttpFileClient:
     @staticmethod
     def _http_error(exc: HTTPError, url: str) -> HttpFileClientError:
         category, retryable = classify_http_status(exc.code)
-        return HttpFileClientError(
+        error = HttpFileClientError(
             f"Request failed ({exc.code}) for '{url}'.",
             category=category,
             retryable=retryable,
             hint="Confira se a URL do arquivo ainda existe no portal de origem.",
         )
+        error.status = exc.code
+        return error
 
     @staticmethod
     def _url_error(exc: URLError, url: str) -> HttpFileClientError:
@@ -394,7 +399,8 @@ _CKAN_S3 = "https://s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/"
 _MESES_PNI = ("jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez")
 PNI_ANOS: Tuple[int, ...] = tuple(range(2020, 2027))
 # O ano corrente entra com os 12 meses: o Ministério publica um mês depois do outro (em
-# 2026-10-19 havia jan-set) e um mês ainda não publicado vira aviso (HEAD 404), não erro.
+# 2026-10-19 havia jan-set). O bucket não deixa listar, então o S3 responde 403, e não
+# 404, ao mês que ainda não existe; a fonte trata isso como "não publicado", não erro.
 PNI_RECURSOS: Tuple[HttpResource, ...] = tuple(
     HttpResource(
         f"{ano}_{numero:02d}",
@@ -860,12 +866,25 @@ class HttpFileDataSource(DataSource):
         warnings: List[str] = []
         downloaded = skipped_count = failed = 0
         remotes: List[RemoteFile] = []
+        # Períodos que a origem ainda não publicou (HEAD 403 ou 404).
+        unpublished: List[str] = []
 
         for index, resource in enumerate(resources, start=1):
             suffix = Path(resource.url).name
             raw_path = base_dir / (f"{self.name}__{suffix}" if multi else suffix)
             try:
-                remote = client.head(resource.url)
+                try:
+                    remote = client.head(resource.url)
+                except HttpFileClientError as exc:
+                    if self.spec.selector != "periodo" or exc.status not in (403, 404):
+                        raise
+                    if not isolate:
+                        raise ValueError(
+                            f"'{resource.code}' ainda não foi publicado na origem "
+                            f"(HTTP {exc.status} em {resource.url})."
+                        ) from exc
+                    unpublished.append(resource.code)
+                    continue
                 remotes.append(remote)
                 skipped = (
                     raw_path.exists()
@@ -899,6 +918,15 @@ class HttpFileDataSource(DataSource):
                 failed += 1
                 warnings.append(f"{resource.code}: {exc}")
 
+        if unpublished:
+            if len(unpublished) == total:
+                raise ValueError(
+                    f"Nenhum dos períodos pedidos foi publicado na origem: {', '.join(unpublished)}."
+                )
+            warnings.append(
+                f"Ainda não publicados na origem: {', '.join(unpublished)}. O Ministério "
+                "publica um período depois do outro, e o S3 responde 403 ao que ainda não existe."
+            )
         if not requested and not keep_raw:
             warnings.append(
                 "Raw file kept as published; set output_format to also export UTF-8 "
