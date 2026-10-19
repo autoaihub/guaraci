@@ -760,7 +760,7 @@ class OpenDataSUSDownloadSource:
             value = prepared.get(name)
             if value is None or (isinstance(value, str) and not value.strip()):
                 raise ValueError(
-                    f"Parameter '{name}' is required for OpenDataSUS source "
+                    f"O parâmetro '{name}' é obrigatório na fonte OpenDataSUS "
                     f"'{self.descriptor.source}'."
                 )
         # Alguns endpoints exigem ao menos um de dois filtros, condição que o

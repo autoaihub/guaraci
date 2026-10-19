@@ -52,15 +52,15 @@ def validate_source_params(
         unknown = sorted(key for key in params if key not in by_name)
         if unknown:
             raise ValueError(
-                f"Unsupported parameter(s): {', '.join(unknown)}. "
-                f"Allowed: {', '.join(sorted(by_name))}"
+                f"Parâmetro(s) não aceito(s): {', '.join(unknown)}. "
+                f"Aceitos: {', '.join(sorted(by_name))}"
             )
 
     for spec in specs:
         value = params.get(spec.name)
         if value is None:
             if spec.required and spec.default is None:
-                raise ValueError(f"Parameter '{spec.name}' is required.")
+                raise ValueError(f"O parâmetro '{spec.name}' é obrigatório.")
             continue
         _validate_param_value(spec, value)
 
@@ -94,16 +94,16 @@ def _validate_year_range(params: Mapping[str, object]) -> None:
         try:
             anos[name] = int(value)  # type: ignore[arg-type]
         except (TypeError, ValueError):
-            raise ValueError(f"Parameter '{name}' must be a year.") from None
+            raise ValueError(f"O parâmetro '{name}' deve ser um ano.") from None
         if anos[name] < MINIMUM_YEAR:
             raise ValueError(
-                f"Parameter '{name}' must be >= {MINIMUM_YEAR}; got {anos[name]}."
+                f"O parâmetro '{name}' deve ser >= {MINIMUM_YEAR}; recebido {anos[name]}."
             )
 
     start, end = anos.get("start_year"), anos.get("end_year")
     if start is not None and end is not None and start > end:
         raise ValueError(
-            f"start_year ({start}) cannot be greater than end_year ({end})."
+            f"start_year ({start}) não pode ser maior que end_year ({end})."
         )
 
 
@@ -113,7 +113,7 @@ def _parse_iso_date(name: str, value: object) -> datetime:
         return datetime.strptime(text, "%Y-%m-%d")
     except ValueError:
         raise ValueError(
-            f"Parameter '{name}' must be a date in YYYY-MM-DD format; got '{text}'."
+            f"O parâmetro '{name}' deve ser uma data no formato YYYY-MM-DD; recebido '{text}'."
         ) from None
 
 
@@ -128,7 +128,7 @@ def _validate_date_range(params: Mapping[str, object]) -> None:
     start, end = datas.get("start_date"), datas.get("end_date")
     if start is not None and end is not None and start > end:
         raise ValueError(
-            f"start_date ({start.date()}) cannot be later than end_date ({end.date()})."
+            f"start_date ({start.date()}) não pode ser posterior a end_date ({end.date()})."
         )
 
 
@@ -136,27 +136,27 @@ def _validate_param_value(spec: SourceParameterSpec, value: object) -> None:
     name = spec.name
     if spec.param_type == "string":
         if not isinstance(value, str):
-            raise ValueError(f"Parameter '{name}' must be a string.")
+            raise ValueError(f"O parâmetro '{name}' deve ser um texto.")
         _validate_allowed(spec, [value])
         return
 
     if spec.param_type == "integer":
         if isinstance(value, bool) or not isinstance(value, int):
-            raise ValueError(f"Parameter '{name}' must be an integer.")
+            raise ValueError(f"O parâmetro '{name}' deve ser um número inteiro.")
         if spec.minimum is not None and value < spec.minimum:
-            raise ValueError(f"Parameter '{name}' must be >= {spec.minimum}.")
+            raise ValueError(f"O parâmetro '{name}' deve ser >= {spec.minimum}.")
         if spec.maximum is not None and value > spec.maximum:
-            raise ValueError(f"Parameter '{name}' must be <= {spec.maximum}.")
+            raise ValueError(f"O parâmetro '{name}' deve ser <= {spec.maximum}.")
         return
 
     if spec.param_type == "boolean":
         if not isinstance(value, bool):
-            raise ValueError(f"Parameter '{name}' must be a boolean.")
+            raise ValueError(f"O parâmetro '{name}' deve ser verdadeiro ou falso.")
         return
 
     if spec.param_type == "string_list":
         if isinstance(value, str) or not isinstance(value, Sequence):
-            raise ValueError(f"Parameter '{name}' must be a list of strings.")
+            raise ValueError(f"O parâmetro '{name}' deve ser uma lista de textos.")
         # Inteiros são aceitos e coagidos para string na checagem de
         # allowed_values: a validação roda sobre params já normalizados e
         # normalizadores convertem itens numéricos (ex.: months) para int.
@@ -164,11 +164,11 @@ def _validate_param_value(spec: SourceParameterSpec, value: object) -> None:
             isinstance(item, bool) or not isinstance(item, (str, int))
             for item in value
         ):
-            raise ValueError(f"Parameter '{name}' must contain only strings.")
+            raise ValueError(f"O parâmetro '{name}' deve conter apenas textos.")
         _validate_allowed(spec, [str(item) for item in value])
         return
 
-    raise ValueError(f"Unsupported parameter type '{spec.param_type}' for '{name}'.")
+    raise ValueError(f"Tipo de parâmetro '{spec.param_type}' não suportado em '{name}'.")
 
 
 def _validate_allowed(spec: SourceParameterSpec, values: Sequence[str]) -> None:
@@ -178,8 +178,8 @@ def _validate_allowed(spec: SourceParameterSpec, values: Sequence[str]) -> None:
     invalid = sorted(item for item in values if item not in allowed)
     if invalid:
         raise ValueError(
-            f"Invalid value(s) for '{spec.name}': {', '.join(invalid)}. "
-            f"Allowed: {', '.join(sorted(allowed))}"
+            f"Valor(es) inválido(s) para '{spec.name}': {', '.join(invalid)}. "
+            f"Aceitos: {', '.join(sorted(allowed))}"
         )
 
 

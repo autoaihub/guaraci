@@ -375,7 +375,7 @@ def test_create_job_endpoint_rejects_invalid_params(client: TestClient) -> None:
     )
 
     assert response.status_code == 400
-    assert "unsupported parameter" in response.json()["detail"].lower()
+    assert "não aceito" in response.json()["detail"].lower()
 
 
 def test_get_job_endpoint_not_found(client: TestClient, monkeypatch) -> None:

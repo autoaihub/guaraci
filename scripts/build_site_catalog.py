@@ -31,6 +31,7 @@ if str(ROOT) not in sys.path:
 OUT = ROOT / "site" / "assets" / "catalog-data.js"
 DICT = ROOT / "guaraci" / "data" / "field_dictionary.json"
 STATS = ROOT / "reports" / "discover_stats.json"
+VOLUME = ROOT / "guaraci" / "data" / "volume_estimates.json"
 
 # ─── Conteúdo editorial (área: saude | pop | clima | san) ───
 MS = "Ministério da Saúde"
@@ -325,6 +326,26 @@ CADENCE_PT = {
 }
 
 
+def volume_label(est: dict | None) -> str | None:
+    """Texto do selo de volume; None quando a fonte não tem medição."""
+    if not est:
+        return None
+    if est.get("method") == "sob demanda":
+        return "volume: sob demanda"
+    size = est.get("csv_bytes")
+    if not size:
+        return None
+    for unit, div in (("TB", 1e12), ("GB", 1e9), ("MB", 1e6)):
+        if size >= div:
+            break
+    else:
+        unit, div = "KB", 1e3
+    num = size / div
+    txt = f"{num:.0f}" if num >= 10 else f"{num:.1f}".replace(".", ",")
+    prefix = "≥" if est.get("method") == "pelo menos" else "≈"
+    return f"histórico completo {prefix} {txt} {unit} em CSV"
+
+
 def cli_example(key: str, params: list) -> str:
     names = {p["name"] for p in params}
     parts = [f"guaraci fetch run {key}"]
@@ -369,6 +390,7 @@ def main() -> None:
     service = DownloadService()
     fields_by_source = json.loads(DICT.read_text(encoding="utf-8"))
     stats = json.loads(STATS.read_text(encoding="utf-8")) if STATS.exists() else {}
+    volumes = json.loads(VOLUME.read_text(encoding="utf-8"))
 
     if live:
         stats = run_live_discover(service, stats, refresh)
@@ -406,6 +428,9 @@ def main() -> None:
             "cli": cli_example(key, params),
             "discover": stats.get(key),
         }
+        label = volume_label(volumes.get(key))
+        if label:
+            catalog[key]["volume"] = label
         if key in SAME_AS:
             canon, note = SAME_AS[key]
             catalog[key]["sameAs"] = canon
@@ -433,7 +458,8 @@ def main() -> None:
     n_fields = sum(1 for c in catalog.values() if c["fields"])
     n_disc = sum(1 for c in catalog.values() if c["discover"])
     print(f"ok: {len(catalog)} fontes ({len(catalog) - len(SAME_AS)} distintas) -> {OUT}")
-    print(f"    {n_fields} com campos amostrados, {n_disc} com discover ao vivo")
+    n_vol = sum(1 for c in catalog.values() if c.get("volume"))
+    print(f"    {n_fields} com campos amostrados, {n_disc} com discover ao vivo, {n_vol} com selo de volume")
 
 
 # Anos candidatos por fonte (fontes legadas não têm dados recentes). O default

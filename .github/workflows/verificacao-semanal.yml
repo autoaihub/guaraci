@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        camada: [rotas, conteudo, filtros, resiliencia, volume]
+        camada: [rotas, conteudo, filtros, resiliencia, volume, interface]
     steps:
       - uses: actions/checkout@v7
 
@@ -49,6 +49,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[datasus,api,dev]"
+
+      # A interface é percorrida num navegador real. O script abre o Chrome
+      # (channel="chrome"), por isso o runner instala esse canal, com as
+      # dependências de sistema, e não só o Chromium do Playwright.
+      - name: Instalar Playwright e Chrome
+        if: matrix.camada == 'interface'
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chrome
 
       - name: Verificar
         env:
@@ -74,11 +83,25 @@ jobs:
             resiliencia) roda scripts/verificar_resiliencia.py ;;
             # Pico de memória acima de 4 GB é falha. Ficam de fora os dois
             # casos de mais de 45 minutos (dengue_250_paginas e sih_sp_ano).
+            # Sobe a API com dados temporários, espera responder e percorre a
+            # interface; depois valida, no mesmo Python, os corpos que ela
+            # montou. As recusas listadas (19 em 2026-10-19) são as fontes sem
+            # padrão de propósito, com o formulário intocado; entram no resumo.
+            interface)
+              export GUARACI_DATA_ROOT="$(mktemp -d)"
+              python -m uvicorn guaraci.api.main:app --port 8766 > uvicorn.log 2>&1 &
+              for _ in $(seq 1 60); do
+                curl -fs http://127.0.0.1:8766/sources > /dev/null && break
+                sleep 2
+              done
+              curl -fs http://127.0.0.1:8766/sources > /dev/null || { echo "FALHA a API não respondeu em 120 s"; cat uvicorn.log; status=1; }
+              roda scripts/verificar_interface.py --url http://127.0.0.1:8766
+              roda scripts/verificar_interface.py --validar ;;
             volume)      roda scripts/verificar_volume.py --casos srag_2024_csv,srag_2024_sqlite,sisagua_tratamento_parquet,sisagua_mensal_basicos_parquet,sisagua_mensal_basicos_sqlite,enani_sqlite,vigimed_reacoes_sqlite,sih_sp_mes ;;
           esac
           {
             echo "### ${{ matrix.camada }}"
-            grep -E "^([0-9]+ (fontes|casos)|FALHA|PROBLEMA)" saida.log | sed 's/^/    /' || true
+            grep -E "^([0-9]+ (fontes|casos|corpos)|FALHA|PROBLEMA|RECUSA)" saida.log | sed 's/^/    /' || true
           } > resumo.md
           cat resumo.md >> "$GITHUB_STEP_SUMMARY"
           exit $status
@@ -90,7 +113,9 @@ jobs:
           name: verificacao-${{ matrix.camada }}
           path: |
             reports/verificacao_*.json
+            reports/verificacao_interface/
             saida.log
+            uvicorn.log
             resumo.md
           retention-days: 90
 

@@ -13,6 +13,11 @@ from guaraci.services.downloads import (
     SourceDescriptor,
 )
 
+#: Último ano completo publicado, conferido ao vivo em 2026-10-19 (a PRF lista 2007 a 2026, e 2026 é parcial).
+#: Padrão de ``start_year``: a coleta sem ano fica leve. Microdados pesados
+#: (PNAD, PNS, POF, PeNSE) ficam sem padrão de propósito.
+ANO_PADRAO = 2025
+
 
 def _params() -> List[SourceParameterSpec]:
     current_year = datetime.now().year
@@ -32,8 +37,8 @@ def _params() -> List[SourceParameterSpec]:
         ),
         SourceParameterSpec(
             name="start_year", phase="coleta", param_type="integer",
-            description=f"Ano inicial (desde {MIN_YEAR}, confirmado ao vivo).",
-            required=True, default=None, minimum=MIN_YEAR, maximum=current_year + 1,
+            description=f"Ano inicial (desde {MIN_YEAR}, confirmado ao vivo; padrão {ANO_PADRAO}).",
+            required=True, default=ANO_PADRAO, minimum=MIN_YEAR, maximum=current_year + 1,
         ),
         SourceParameterSpec(
             name="end_year", phase="coleta", param_type="integer",

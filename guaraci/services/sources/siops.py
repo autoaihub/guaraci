@@ -15,6 +15,11 @@ from guaraci.siops import (
     SiopsIndicadoresMunicipiosDataSource as _Mun,
 )
 
+#: Último ano com dado completo publicado, conferido ao vivo em 2026-10-19
+#: (2025 com 5.570 municípios e 27 UFs; 2026 volta vazio). Vira o padrão de ``start_year`` para que a coleta sem ano seja
+#: leve; microdados pesados ficam sem padrão de propósito.
+ANO_PADRAO = 2025
+
 
 def _normalize_siops_params(params):
     normalized = dict(params)
@@ -47,8 +52,11 @@ def _params(cls, unidade: str) -> List[SourceParameterSpec]:
         ),
         SourceParameterSpec(
             name="start_year", phase="coleta", param_type="integer",
-            description=f"Ano inicial (desde {first}, confirmado ao vivo). Uma consulta por ano, {unidade}.",
-            required=True, default=None, minimum=first, maximum=current_year,
+            description=(
+                f"Ano inicial (desde {first}, confirmado ao vivo; padrão {ANO_PADRAO}, "
+                f"último ano publicado). Uma consulta por ano, {unidade}."
+            ),
+            required=True, default=ANO_PADRAO, minimum=first, maximum=current_year,
         ),
         SourceParameterSpec(
             name="end_year", phase="coleta", param_type="integer",

@@ -355,7 +355,7 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
 
         def roda() -> Dict[str, Any]:
             resp = api.post("/jobs", json={"source": s, "params": params})
-            if resp.status_code == 400 and "is required" in resp.text:
+            if resp.status_code == 400 and ("is required" in resp.text or "é obrigatório" in resp.text):
                 # Campo que só o usuário preenche (estação da ANA): a recusa
                 # nomeando o campo é o comportamento certo, já conferido na
                 # camada offline.
