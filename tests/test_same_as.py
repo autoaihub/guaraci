@@ -18,8 +18,9 @@ def test_list_sources_carries_the_canonical_source():
     by_key = {d.source: d for d in DownloadService().list_sources()}
     assert by_key["srag_demas"].same_as == "srag_arquivos"
     assert by_key["srag_arquivos"].same_as is None
-    # Zika não tem caminho pelo FTP do SINAN: é base própria no catálogo.
-    assert by_key["zikavirus"].same_as is None
+    # Desde 2026-10-19 o SINAN pelo FTP traz zika (ZIKA).
+    assert by_key["zikavirus"].same_as == "sinan"
+    assert by_key["doses_aplicadas_pni"].same_as == "pni_doses_aplicadas_arquivos"
 
 
 def test_distinct_count_discounts_only_the_alternative_paths():

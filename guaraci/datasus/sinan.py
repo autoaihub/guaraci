@@ -63,7 +63,7 @@ class SinanDataSource(DataSource):
         'IEXO': 'Intoxicação exógena',
         'LEIV': 'Leishmaniose Visceral',
         'LEPT': 'Leptospirose',
-        'LER': 'LER (arquivo avulso de 2019)',
+        'LER': 'LER/DORT 2019, arquivo paralelo (o mesmo ano está em LERD)',
         'LERD': 'LER/DORT',
         'LTAN': 'Leishmaniose Tegumentar',
         'MALA': 'Malária',

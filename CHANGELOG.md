@@ -2,6 +2,42 @@
 
 ## [Unreleased]
 
+### Added: SINAN completo, óbitos fetais e vacinação e SISVAN por arquivo
+O catálogo passa a 185 entradas e 173 bases distintas.
+- **SINAN.** A fonte `sinan` libera os 58 agravos que o FTP publica, e não
+  só os 9 de antes: tuberculose, sífilis (adquirida, em gestante e
+  congênita), HIV/AIDS (adulto, criança, gestante e criança exposta),
+  hepatites, violência interpessoal e autoprovocada, intoxicação exógena,
+  meningite, leptospirose, malária, zika, febre amarela, os agravos de saúde
+  do trabalhador e os demais, com o nome oficial de cada um. Os agravos que só
+  existem em dado preliminar (pasta `PRELIM`) também saem, marcados em
+  `preliminary_files`; quando um ano existe nas duas pastas, vale o final. O
+  padrão continua o das 9 doenças negligenciadas.
+- **SIM.** `sim_obitos_fetais` traz as declarações de óbito fetal, que não
+  estão na base geral, de 1996 em diante. Os arquivos de óbito infantil,
+  materno e por causa externa da mesma pasta são recortes da base geral
+  (conferido registro a registro em 2020) e ficam de fora.
+- **Vacinação e SISVAN por arquivo.** `pni_doses_aplicadas_arquivos` (um zip
+  por mês desde 2020, cerca de 205 GB comprimidos) e
+  `sisvan_estado_nutricional_arquivos` (um zip por ano, 2008 a 2023, cerca
+  de 35 GB). As APIs dessas duas bases param por volta de 1 milhão de
+  registros por ano, então um ano inteiro só sai pelo arquivo. As fontes de
+  API ficam marcadas como outro caminho para elas, assim como zika e febre
+  amarela pela API passam a ser outro caminho para o SINAN.
+
+### Changed: o catálogo mostra o volume e as fontes leves têm ano padrão
+- Cada cartão mostra o tamanho do histórico completo em CSV, medido em
+  2026-10-15 (`guaraci/data/volume_estimates.json`), com "≥" quando a medida
+  é um piso.
+- SIOPS, SICONFI, PRF e FNS têm 2025 como ano padrão.
+- As mensagens de validação de parâmetros saem em português.
+- A verificação semanal ganha a camada `interface`, que percorre o aplicativo
+  num navegador real.
+
+### Fixed
+- Data inválida (`********`) num DBF derrubava o arquivo inteiro; agora vira
+  nulo.
+
 ### Changed: o catálogo separa conjuntos de bases distintas
 Dos 182 conjuntos, oito são a mesma base de outro por um caminho diferente:
 `srag_demas` (bancos anuais do SRAG), `dengue` e `chikungunya` (SINAN pelo

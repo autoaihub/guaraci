@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 182 sources cataloged; 144 sampled with real field names.
+- 185 sources cataloged; 147 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -754,6 +754,13 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `groups`, `states`
 - **Fields:** `ANO`, `UF`, `MUNIC`, `FX_ETARIA`, `IMUNO`, `DOSE`, `QT_DOSE`, `POP`, `COBERT`
 
+## pni_doses_aplicadas_arquivos
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `co_documento`, `co_paciente`, `tp_sexo_paciente`, `co_raca_cor_paciente`, `no_raca_cor_paciente`, `co_municipio_paciente`, `co_pais_paciente`, `no_municipio_paciente`, `no_pais_paciente`, `sg_uf_paciente`, `nu_cep_paciente`, `ds_nacionalidade_paciente`, `no_etnia_indigena_paciente`, `co_etnia_indigena_paciente`, `co_cnes_estabelecimento`, `no_razao_social_estabelecimento`, `no_fantasia_estalecimento`, `co_municipio_estabelecimento`, `no_municipio_estabelecimento`, `sg_uf_estabelecimento`, `co_troca_documento`, `co_vacina`, `sg_imunobiologico`, `dt_vacina`, `co_dose_vacina`, `ds_tipo_dose`, `co_local_aplicacao`, `ds_local_aplicacao`, `co_via_administracao`, `ds_via_administracao`, `co_lote_vacina`, `ds_vacina_fabricante`, `dt_entrada_rnds`, `co_sistema_origem`, `ds_sistema_origem`, `st_documento`, `co_estrategia_vacinacao`, `no_estrategia`, `co_origem_registro`, `ds_origem_registro`, `co_vacina_grupo_atendimento`, `no_grupo_atendimento`, `co_categoria`, `ds_categoria`, `co_vacina_fabricante`, `ds_nome`, `ds_condicao_maternal`, `co_tipo_estabelecimento`, `ds_tipo_estabelecimento`, `co_natureza_estabelecimento`, `ds_natureza_estabelecimento`, `nu_idade_paciente`, `co_condicao_maternal`, `no_uf_paciente`, `no_uf_estabelecimento`, `dt_deletado_rnds`
+- **Note:** PNI doses (SI-PNI/RNDS), one zip per month 2020-2026 (~205 GB compressed in total, 0.4 to 4.2 GB per month); header read from vacinacao_jan_2024 on 2026-10-19; ';' separated, latin-1.
+
 ## prevencao_e_promocao_distribuicao_epi_insumo
 
 - **Status:** ok
@@ -975,6 +982,13 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `groups`, `states`, `uf`, `municipio`, `sexo`, `causa_basica`, `ano_obito`
 - **Fields:** `ORIGEM`, `TIPOBITO`, `DTOBITO`, `HORAOBITO`, `NATURAL`, `CODMUNNATU`, `DTNASC`, `IDADE`, `SEXO`, `RACACOR`, `ESTCIV`, `ESC`, `ESC2010`, `SERIESCFAL`, `OCUP`, `CODMUNRES`, `LOCOCOR`, `CODESTAB`, `ESTABDESCR`, `CODMUNOCOR`, `IDADEMAE`, `ESCMAE`, `ESCMAE2010`, `SERIESCMAE`, `OCUPMAE`, `QTDFILVIVO`, `QTDFILMORT`, `GRAVIDEZ`, `SEMAGESTAC`, `GESTACAO`, `PARTO`, `OBITOPARTO`, `PESO`, `TPMORTEOCO`, `OBITOGRAV`, `OBITOPUERP`, `ASSISTMED`, `EXAME`, `CIRURGIA`, `NECROPSIA`, `LINHAA`, `LINHAB`, `LINHAC`, `LINHAD`, `LINHAII`, `CAUSABAS`, `CB_PRE`, `COMUNSVOIM`, `DTATESTADO`, `CIRCOBITO`, `ACIDTRAB`, `FONTE`, `NUMEROLOTE`, `TPPOS`, `DTINVESTIG`, `CAUSABAS_O`, `DTCADASTRO`, `ATESTANTE`, `STCODIFICA`, `CODIFICADO`, `VERSAOSIST`, `VERSAOSCB`, `FONTEINV`, `DTRECEBIM`, `ATESTADO`, `DTRECORIGA`, `CAUSAMAT`, `ESCMAEAGR1`, `ESCFALAGR1`, `STDOEPIDEM`, `STDONOVA`, `DIFDATA`, `NUDIASOBCO`, `NUDIASOBIN`, `DTCADINV`, `TPOBITOCOR`, `DTCONINV`, `FONTES`, `TPRESGINFO`, `TPNIVELINV`, `NUDIASINF`, `DTCADINF`, `MORTEPARTO`, `DTCONCASO`, `FONTESINF`, `ALTCAUSA`, `CONTADOR`
 
+## sim_obitos_fetais
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`
+- **Fields:** `ORIGEM`, `CODMUNCART`, `NUMREGCART`, `CODCART`, `DTREGCART`, `TIPOBITO`, `DTOBITO`, `HORAOBITO`, `NATURAL`, `CODMUNNATU`, `DTNASC`, `IDADE`, `SEXO`, `RACACOR`, `ESTCIV`, `ESC`, `ESC2010`, `SERIESCFAL`, `OCUP`, `CODMUNRES`, `LOCOCOR`, `CODESTAB`, `ESTABDESCR`, `CODMUNOCOR`, `IDADEMAE`, `ESCMAE`, `ESCMAE2010`, `SERIESCMAE`, `OCUPMAE`, `QTDFILVIVO`, `QTDFILMORT`, `GRAVIDEZ`, `SEMAGESTAC`, `GESTACAO`, `PARTO`, `OBITOPARTO`, `PESO`, `TPMORTEOCO`, `OBITOGRAV`, `OBITOPUERP`, `ASSISTMED`, `EXAME`, `CIRURGIA`, `NECROPSIA`, `LINHAA`, `LINHAB`, `LINHAC`, `LINHAD`, `LINHAII`, `CAUSABAS`, `CB_PRE`, `MEDICO`, `COMUNSVOIM`, `DTATESTADO`, `CIRCOBITO`, `ACIDTRAB`, `FONTE`, `NUMEROLOTE`, `TPPOS`, `DTINVESTIG`, `LINHAA_O`, `LINHAB_O`, `LINHAC_O`, `LINHAD_O`, `LINHAII_O`, `CAUSABAS_O`, `DTCADASTRO`, `ATESTANTE`, `STCODIFICA`, `CODIFICADO`, `VERSAOSIST`, `VERSAOSCB`, `FONTEINV`, `DTRECEBIM`, `ATESTADO`, `DTRECORIG`, `DTRECORIGA`, `CAUSAMAT`, `ESCMAEAGR1`, `ESCFALAGR1`, `STDOEPIDEM`, `STDONOVA`, `DIFDATA`, `NUDIASOBCO`, `NUDIASOBIN`, `DTCADINV`, `TPOBITOCOR`, `DTCONINV`, `FONTES`, `TPRESGINFO`, `TPNIVELINV`, `NUDIASINF`, `DTCADINF`, `MORTEPARTO`, `DTCONCASO`, `FONTESINF`, `ALTCAUSA`, `CONTADOR`
+- **Note:** SIM fetal deaths (DOFET), national file per year from 1996; columns read from DOFET 2020 on 2026-10-19 (98 columns, same layout family as DORES). DOEXT/DOINF/DOMAT in the same folder are subsets of DORES and are not exposed.
+
 ## sinan
 
 - **Status:** ok (1405095 rows sampled)
@@ -1132,6 +1146,13 @@ to refresh.
 - **Status:** ok (10 rows sampled)
 - **Filters:** `codigo_municipio`, `uf`, `codigo_cnes`, `idade_minima`, `idade_maxima`, `codigo_fase_vida`, `codigo_povo_comunidade`, `codigo_escolaridade`, `ano_mes_competencia`, `gestante`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `status_participacao`, `codigo_municipio`, `uf`, `municipio`, `codigo_cnes`, `idade`, `codigo_fase_vida`, `fase_vida`, `sexo`, `codigo_raca_cor`, `raca_cor`, `codigo_povo_comunidade`, `povo_comunidade`, `codigo_escolaridade`, `escolaridade`, `data_acompanhamento`, `ano_mes_competencia`, `peso`, `altura`, `imc`, `imc_pre_gestacional`, `peso_x_idade`, `peso_x_altura`, `crianca_altura_x_idade`, `crianca_imc_x_idade`, `adolescente_altura_x_idade`, `adolescente_imc_x_idade`, `codigo_estado_nutricional_adulto`, `codigo_estado_nutricional_idoso`, `codigo_estado_nutricional_imc_gestante`, `codigo_sistema_origem_acompanhamento`, `sistema_origem_acompanhamento`, `codigo_sequencial_acompanhamento`
+
+## sisvan_estado_nutricional_arquivos
+
+- **Status:** ok
+- **Filters:** `anos`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `CO_ACOMPANHAMENTO`, `CO_PESSOA_SISVAN`, `ST_PARTICIPA_ANDI`, `CO_MUNICIPIO_IBGE`, `SG_UF`, `NO_MUNICIPIO`, `CO_CNES`, `NU_IDADE_ANO`, `NU_FASE_VIDA`, `DS_FASE_VIDA`, `SG_SEXO`, `CO_RACA_COR`, `DS_RACA_COR`, `CO_POVO_COMUNIDADE`, `DS_POVO_COMUNIDADE`, `CO_ESCOLARIDADE`, `DS_ESCOLARIDADE`, `DT_ACOMPANHAMENTO`, `NU_COMPETENCIA`, `NU_PESO`, `NU_ALTURA`, `DS_IMC`, `DS_IMC_PRE_GESTACIONAL`, `PESO X IDADE`, `PESO X ALTURA`, `CRI. ALTURA X IDADE`, `CRI. IMC X IDADE`, `ADO. ALTURA X IDADE`, `ADO. IMC X IDADE`, `CO_ESTADO_NUTRI_ADULTO`, `CO_ESTADO_NUTRI_IDOSO`, `CO_ESTADO_NUTRI_IMC_SEMGEST`, `CO_SISTEMA_ORIGEM_ACOMP`, `SISTEMA_ORIGEM_ACOMP`
+- **Note:** SISVAN nutritional status, one zip per year 2008-2023 (~35 GB compressed); header read from 2023 on 2026-10-19; ';' separated with quotes, latin-1, mixed decimal marks.
 
 ## snis
 

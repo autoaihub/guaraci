@@ -154,6 +154,17 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             auto=False,
             note="needs latitude/longitude - collect on demand, not swept",
         )
+    elif name in ("pni_doses_aplicadas_arquivos", "sisvan_estado_nutricional_arquivos"):
+        # Recorte por lista de ``anos`` (não start_year/end_year) e centenas de
+        # GB no histórico (PNI ~205 GB comprimidos): coleta sob pedido.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.MONTHLY,
+            2020 if name.startswith("pni") else 2008,
+            auto=False,
+            note="hundreds of GB, selected by anos - collect on demand, not swept",
+        )
     elif name.startswith("ana"):
         profile = SourceProfile(
             name,

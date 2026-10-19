@@ -335,6 +335,9 @@ def params_pequenos(schema: Dict[str, Any], s: str, output_dir: Path) -> Dict[st
                 continue
             params[chave] = valor
     # Ano: o padrão do formulário; sem padrão (INMET, INPE), 2023.
+    # Com start_year já preenchido pelo padrão da fonte, o fim acompanha o início.
+    if params.get("start_year") is not None and "end_year" in nomes and params.get("end_year") is None:
+        params["end_year"] = params["start_year"]
     for spec in schema["params"]:
         if spec["name"] in ("start_year", "end_year") and params.get(spec["name"]) is None:
             params[spec["name"]] = min(2023, spec.get("maximum") or 2023)

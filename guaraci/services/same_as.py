@@ -9,8 +9,10 @@ distinta. O mapa mora aqui, num lugar só, para que a API, a interface e o site
 digam a mesma coisa.
 
 Cada par foi conferido campo a campo no ``field_dictionary.json`` em
-2026-10-14. Zika e febre amarela pela API não entram: o SINAN pelo FTP do
-Guaraci não traz esses agravos, então a API é o único caminho para eles.
+2026-10-14. Zika e febre amarela pela API entraram em 2026-10-19, quando o
+SINAN pelo FTP passou a trazer os agravos ZIKA e FMAC. Vacinação e SISVAN pela
+API têm outro leiaute de colunas que os arquivos, mas são os mesmos registros,
+e a API não entrega um ano inteiro (para por volta de 1 milhão de offset).
 """
 
 from __future__ import annotations
@@ -31,6 +33,22 @@ SAME_AS: Mapping[str, Tuple[str, str]] = {
     "chikungunya": (
         "sinan",
         "Notificações de chikungunya do SINAN pela API; o FTP traz o mesmo agravo (CHIK).",
+    ),
+    "zikavirus": (
+        "sinan",
+        "Notificações de zika do SINAN pela API; o FTP traz o mesmo agravo (ZIKA).",
+    ),
+    "febre_amarela": (
+        "sinan",
+        "Notificações de febre amarela do SINAN pela API; o FTP traz o mesmo agravo (FMAC).",
+    ),
+    "doses_aplicadas_pni": (
+        "pni_doses_aplicadas_arquivos",
+        "Mesmas doses dos arquivos mensais, com outro leiaute; a API não entrega um ano inteiro.",
+    ),
+    "sisvan_estado_nutricional": (
+        "sisvan_estado_nutricional_arquivos",
+        "Mesmos acompanhamentos dos arquivos anuais, com outro leiaute; a API não entrega um ano inteiro.",
     ),
     "vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_mortalidade": (
         "sim",

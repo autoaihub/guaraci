@@ -180,6 +180,7 @@ def theme_slugs() -> Tuple[str, ...]:
 _EXPLICIT: Mapping[str, Tuple[str, ...]] = {
     # DATASUS FTP
     "sim": ("mortalidade", "oncologia"),
+    "sim_obitos_fetais": ("mortalidade", "materno_infantil"),
     "sinasc": ("natalidade", "materno_infantil"),
     "sinan": ("vigilancia_epidemiologica",),
     "sih": ("assistencia_hospitalar", "oncologia"),
@@ -210,6 +211,8 @@ _EXPLICIT: Mapping[str, Tuple[str, ...]] = {
     "esavi": ("imunizacao", "vigilancia_epidemiologica"),
     "doses_aplicadas_pni": ("imunizacao",),
     "sisvan_estado_nutricional": ("nutricao",),
+    "sisvan_estado_nutricional_arquivos": ("nutricao",),
+    "pni_doses_aplicadas_arquivos": ("imunizacao",),
     "macrorregiao_e_regiao_de_saude_municipio": ("estabelecimentos",),
     "daf_estoque_medicamentos_bnafar_horus": ("medicamentos",),
     "outros_temas_ced": ("gestao",),

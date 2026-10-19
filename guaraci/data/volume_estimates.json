@@ -566,6 +566,11 @@
   "method": "estimado",
   "measured_on": "2026-10-15"
  },
+ "pni_doses_aplicadas_arquivos": {
+  "csv_bytes": 205000000000,
+  "method": "pelo menos",
+  "measured_on": "2026-10-19"
+ },
  "prevencao_e_promocao_distribuicao_epi_insumo": {
   "csv_bytes": 385132,
   "rows": 7055,
@@ -892,6 +897,11 @@
   "rows": 67108865,
   "method": "pelo menos",
   "measured_on": "2026-10-15"
+ },
+ "sisvan_estado_nutricional_arquivos": {
+  "csv_bytes": 35000000000,
+  "method": "pelo menos",
+  "measured_on": "2026-10-19"
  },
  "snis": {
   "csv_bytes": 24378843,
