@@ -73,6 +73,7 @@ G_ONC = "Câncer · INCA"
 CURATED = {
     # DATASUS FTP (microdados)
     "sih": ("SIH", "Internações hospitalares pelo SUS", G_FTP, DTS, "saude"),
+    "sim_obitos_fetais": ("SIM · óbitos fetais", "Declarações de óbito fetal, arquivo nacional por ano desde 1996", G_FTP, DTS, "saude"),
     "sim": ("SIM", "Mortalidade — óbitos e causas", G_FTP, DTS, "saude"),
     "sinan": ("SINAN", "Notificação compulsória de agravos", G_FTP, DTS, "saude"),
     "sinasc": ("SINASC", "Nascidos vivos", G_FTP, DTS, "saude"),
@@ -192,6 +193,8 @@ CURATED = {
     "ouvidoria_ouvidor2": ("Ouvidoria, manifestações (Ouvidor 2)", "Manifestações por UF, esfera e status", G_OUT, MS, "saude"),
     "ouvidoria_ouvidor3": ("Ouvidoria, manifestações (Ouvidor 3)", "Manifestações por canal de entrada, UF e status", G_OUT, MS, "saude"),
     # Outras áreas
+    "sisvan_estado_nutricional_arquivos": ("Sisvan · arquivos anuais", "Acompanhamentos do estado nutricional, um arquivo por ano de 2008 a 2023", G_OUT, MS, "saude"),
+    "pni_doses_aplicadas_arquivos": ("Doses aplicadas (PNI) · arquivos mensais", "Microdados das doses aplicadas, um arquivo por mês desde 2020", G_VAC, PNI_M, "saude"),
     "sisvan_estado_nutricional": ("Sisvan", "Estado nutricional da população", G_OUT, MS, "saude"),
     "daf_estoque_medicamentos_bnafar_horus": ("DAF", "Estoque de medicamentos (BNAFAR/Hórus)", G_OUT, MS, "saude"),
     "educacao_em_saude_pvc": ("Educação em saúde (PVC)", "Ações de educação em saúde", G_OUT, MS, "saude"),
