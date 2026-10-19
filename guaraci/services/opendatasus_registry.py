@@ -1633,7 +1633,12 @@ def get_opendatasus_sources() -> List[OpenDataSUSDownloadSource]:
                         name="ano_mes_competencia",
                         phase="basico",
                         param_type="string",
-                        description="Refinamento opcional na chamada da API para ano_mes_competencia.",
+                        description=(
+                            "Refinamento opcional na chamada da API para ano_mes_competencia. "
+                            "A API tem mais de 67 milhões de linhas e quebra (502 ou timeout) em "
+                            "offset alto; para um ano inteiro (2008-2023) use a fonte por arquivo "
+                            "sisvan_estado_nutricional_arquivos."
+                        ),
                         required=False,
                         default=None,
                     ),

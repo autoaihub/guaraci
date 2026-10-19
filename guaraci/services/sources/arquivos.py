@@ -1,4 +1,4 @@
-"""Fontes de arquivos HTTP de URL fixa (Vigitel, IBAMA, Farmácia Popular, MGDI)."""
+"""Fontes de arquivos HTTP de URL fixa (Vigitel, IBAMA, Farmácia Popular, MGDI, PNI, SISVAN)."""
 
 from typing import List
 
@@ -22,6 +22,8 @@ _MODES = {
     "mgdi_academia_saude": "demas s3 files",
     "mgdi_telessaude": "demas s3 files",
     "mgdi_saude_bucal": "demas s3 files",
+    "pni_doses_aplicadas_arquivos": "demas s3 files",
+    "sisvan_estado_nutricional_arquivos": "demas s3 files",
 }
 
 
@@ -83,6 +85,36 @@ def _params(key: str) -> List[SourceParameterSpec]:
                 allowed_values=codes,
             ),
         )
+    if HTTP_FILES[key].selector == "periodo":
+        years = sorted({r.code.split("_")[0] for r in HTTP_FILES[key].resources})
+        params.insert(
+            0,
+            SourceParameterSpec(
+                name="anos",
+                phase="coleta",
+                param_type="string_list",
+                description=(
+                    "Anos a baixar (obrigatório). Cada arquivo tem de 0,4 a 4,4 GB "
+                    "comprimidos, então peça poucos anos por vez."
+                ),
+                required=True,
+                default=[years[-1]],
+                allowed_values=years,
+            ),
+        )
+        if "_" in HTTP_FILES[key].resources[0].code:
+            params.insert(
+                1,
+                SourceParameterSpec(
+                    name="meses",
+                    phase="coleta",
+                    param_type="string_list",
+                    description="Meses (01 a 12) dentro dos anos pedidos. Omita para o ano inteiro.",
+                    required=False,
+                    default=None,
+                    allowed_values=[f"{m:02d}" for m in range(1, 13)],
+                ),
+            )
     return params
 
 

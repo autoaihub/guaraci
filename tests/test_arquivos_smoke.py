@@ -54,3 +54,11 @@ def test_live_mgdi_samu_samuaer(tmp_path):
     assert payload["failed_count"] == 0
     frame = pl.read_csv(payload["exported_files"][0], infer_schema=False, n_rows=5)
     assert {"co_ibge", "vl_indicador_calculado_mun"} <= set(frame.columns)
+
+
+def test_live_pni_e_sisvan_so_head():
+    client = HttpFileClient(timeout_seconds=60)
+    pni = client.head(HTTP_FILES["pni_doses_aplicadas_arquivos"].resources[11].url)
+    assert pni.size and pni.size > 300_000_000
+    sisvan = client.head(HTTP_FILES["sisvan_estado_nutricional_arquivos"].resources[0].url)
+    assert sisvan.size and sisvan.size > 500_000_000

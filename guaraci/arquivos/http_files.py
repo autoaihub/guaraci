@@ -19,6 +19,13 @@ Fontes:
 - ``mgdi_*``: indicadores agregados do MGDI do Ministério da Saúde (SAMU, UPA,
   RAPS, eMulti, Academia da Saúde, Telessaúde, saúde bucal), mesmo bucket e mesmo
   esquema da Farmácia Popular. Só indicador agregado, sem dado pessoal.
+- ``pni_doses_aplicadas_arquivos``: doses aplicadas do PNI (microdado de vacinação),
+  um zip de CSV por mês de 2020 a 2026 no bucket ``ckan.saude.gov.br``. Alternativa
+  à API DEMAS (``doses_aplicadas_pni``), que devolve 502 acima de ~1 milhão de
+  offset por ano. Cada zip tem de 0,4 a 4 GB e o ano inteiro passa de 14 GB
+  comprimidos, por isso ``anos`` é obrigatório e ``meses`` recorta dentro do ano.
+- ``sisvan_estado_nutricional_arquivos``: acompanhamento do estado nutricional do
+  SISVAN, um zip de CSV por ano (2008-2023, de 0,9 a 4,4 GB cada), mesma origem.
 """
 
 from __future__ import annotations
@@ -257,7 +264,9 @@ class HttpFile:
     member_pattern: Optional[str] = None
     # ``auto`` decide pelo conteúdo: BOM ou UTF-8 válido, senão cp1252.
     encoding: str = "auto"
-    # Parâmetro que escolhe um subconjunto de ``resources`` pelo ``code``.
+    # Parâmetro que escolhe um subconjunto de ``resources`` pelo ``code``:
+    # ``indicadores`` (código exato) ou ``periodo`` (``code`` = ``AAAA`` ou
+    # ``AAAA_MM``, filtrado por ``anos`` e ``meses``).
     selector: Optional[str] = None
 
 
@@ -379,6 +388,30 @@ _SAUDE_BUCAL = (
     ('sbesb', 'Número de Equipes de Saúde Bucal (40h + carga horária diferenciada)'),
     ('sbesb40h', 'Número de Equipes de Saúde Bucal 40h'),
     ('sbuomp', 'Número de Unidades Odontológicas Móveis - UOM pagas'),
+)
+
+_CKAN_S3 = "https://s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/"
+_MESES_PNI = ("jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez")
+PNI_ANOS: Tuple[int, ...] = tuple(range(2020, 2027))
+# O ano corrente entra com os 12 meses: o Ministério publica um mês depois do outro (em
+# 2026-10-19 havia jan-set) e um mês ainda não publicado vira aviso (HEAD 404), não erro.
+PNI_RECURSOS: Tuple[HttpResource, ...] = tuple(
+    HttpResource(
+        f"{ano}_{numero:02d}",
+        f"{_CKAN_S3}PNI/csv/vacinacao_{mes}_{ano}_csv.zip",
+        f"Vacinação - {mes} {ano}",
+    )
+    for ano in PNI_ANOS
+    for numero, mes in enumerate(_MESES_PNI, start=1)
+)
+SISVAN_ANOS: Tuple[int, ...] = tuple(range(2008, 2024))
+SISVAN_RECURSOS: Tuple[HttpResource, ...] = tuple(
+    HttpResource(
+        str(ano),
+        f"{_CKAN_S3}SISVAN/estado_nutricional/sisvan_estado_nutricional_{ano}.zip",
+        f"Estado nutricional {ano}",
+    )
+    for ano in SISVAN_ANOS
 )
 
 
@@ -510,6 +543,35 @@ HTTP_FILES: Dict[str, HttpFile] = {
             ),
             separator=",",
             selector="indicadores",
+        ),
+        # Verificado ao vivo em 2026-10-19 (HEAD e primeiros 3 MB por Range): dataset
+        # ``doses-aplicadas-pelo-programa-de-nacional-de-imunizacoes-pni-AAAA``. Os 54
+        # campos vêm em snake_case curto (``co_documento``, ``dt_vacina``...), em
+        # latin-1 com ``;``. A API devolve nomes longos (``codigo_documento``), então
+        # os dois não têm as mesmas colunas.
+        HttpFile(
+            "pni_doses_aplicadas_arquivos",
+            "PNI - Doses aplicadas (arquivos mensais)",
+            "Microdados de doses aplicadas do PNI, um CSV por mês de 2020 a 2026, publicados "
+            "como arquivo no bucket do portal. Alternativa à API DEMAS, que falha acima de "
+            "~1 milhão de offset por ano.",
+            PNI_RECURSOS,
+            separator=";",
+            encoding="auto",
+            selector="periodo",
+        ),
+        # Verificado ao vivo em 2026-10-19: dataset ``sisvan-estado-nutricional``, um zip
+        # por ano de 2008 a 2023, 35 colunas, ``;`` e aspas, latin-1.
+        HttpFile(
+            "sisvan_estado_nutricional_arquivos",
+            "SISVAN - Estado nutricional (arquivos anuais)",
+            "Acompanhamento do estado nutricional do SISVAN, um CSV por ano de 2008 a 2023, "
+            "publicado como arquivo no bucket do portal. Alternativa à API DEMAS, que passa "
+            "de 67 milhões de linhas e quebra em offset alto.",
+            SISVAN_RECURSOS,
+            separator=";",
+            encoding="auto",
+            selector="periodo",
         ),
     )
 }
@@ -724,7 +786,39 @@ class HttpFileDataSource(DataSource):
     def load_dataframe(self, *args, **kwargs) -> pl.DataFrame:  # pragma: no cover
         raise NotImplementedError("Read the exported file with polars.scan_*.")
 
-    def _select(self, indicadores: Optional[Sequence[str]]) -> List[HttpResource]:
+    def _select_periodo(
+        self, anos: Optional[Sequence[object]], meses: Optional[Sequence[object]]
+    ) -> List[HttpResource]:
+        """Recorta por ano (obrigatório) e, quando o código tem mês, por mês."""
+        if not anos:
+            raise ValueError(
+                f"'{self.name}' tem arquivos de vários GB por período; informe 'anos' "
+                "(e, se quiser, 'meses') para escolher o que baixar."
+            )
+        try:
+            wanted_years = {str(int(a)) for a in anos}
+            wanted_months = {f"{int(m):02d}" for m in meses or ()}
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"'anos' e 'meses' devem ser números: {exc}") from exc
+        known_years = {r.code.split("_")[0] for r in self.spec.resources}
+        unknown = sorted(wanted_years - known_years)
+        if unknown:
+            raise ValueError(f"Unknown anos {unknown}. Known: {sorted(known_years)}")
+        picked = []
+        for resource in self.spec.resources:
+            year, _, month = resource.code.partition("_")
+            if year in wanted_years and (not wanted_months or not month or month in wanted_months):
+                picked.append(resource)
+        return picked
+
+    def _select(
+        self,
+        indicadores: Optional[Sequence[str]],
+        anos: Optional[Sequence[object]] = None,
+        meses: Optional[Sequence[object]] = None,
+    ) -> List[HttpResource]:
+        if self.spec.selector == "periodo":
+            return self._select_periodo(anos, meses)
         if not indicadores or not self.spec.selector:
             return list(self.spec.resources)
         wanted = [str(c).strip().lower() for c in indicadores]
@@ -742,13 +836,15 @@ class HttpFileDataSource(DataSource):
         output_dir: Optional[str] = None,
         timeout: int = DEFAULT_TIMEOUT,
         indicadores: Optional[Sequence[str]] = None,
+        anos: Optional[Sequence[object]] = None,
+        meses: Optional[Sequence[object]] = None,
         progress_callback: Optional[ProgressCallback] = None,
     ) -> Dict[str, object]:
         requested = _normalize_format(output_format)
         base_dir = Path(output_dir) if output_dir else self.output_path
         base_dir.mkdir(parents=True, exist_ok=True)
         client = self._client or HttpFileClient(timeout_seconds=timeout)
-        resources = self._select(indicadores)
+        resources = self._select(indicadores, anos, meses)
         # ``multi`` nomeia os arquivos (a fonte tem vários recursos); ``isolate`` decide se
         # a falha de um recurso vira aviso: com um só recurso pedido, a causa real sobe.
         multi = len(self.spec.resources) > 1

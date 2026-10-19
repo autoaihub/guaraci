@@ -54,7 +54,12 @@ def build_sources() -> List[DownloadSource]:
                     name="start_year",
                     phase="coleta",
                     param_type="integer",
-                    description="Ano inicial para consulta na API OpenDataSUS (endpoint anual).",
+                    description=(
+                        "Ano inicial para consulta na API OpenDataSUS (endpoint anual). "
+                        "Medido em 2026-10-15: a API devolve 502 ou timeout acima de ~1 "
+                        "milhão de offset por ano, então um ano inteiro sai incompleto. "
+                        "Para o ano completo use a fonte por arquivo pni_doses_aplicadas_arquivos."
+                    ),
                     required=True,
                     default=last_year,
                     minimum=2020,
