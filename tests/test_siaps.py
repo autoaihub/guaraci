@@ -103,10 +103,10 @@ def test_pagina_ate_a_pagina_vazia_e_converte_data(tmp_path: Path) -> None:
     assert rows[0]["tipo_de_estabelecimento"] == " UBS"
 
 
-def test_competencia_longa_nao_trunca_em_250_paginas(tmp_path: Path) -> None:
-    # 300 paginas de 10 linhas: acima dos 250 do DEFAULT_MAX_PAGES.
-    total = 300 * 10 - 3
-    assert OpenDataSUSDataSource.DEFAULT_MAX_PAGES == 250
+def test_competencia_longa_nao_trunca_no_padrao_do_opendatasus(tmp_path: Path) -> None:
+    # 1100 paginas de 10 linhas: acima das 1000 do DEFAULT_MAX_PAGES.
+    total = 1100 * 10 - 3
+    assert OpenDataSUSDataSource.DEFAULT_MAX_PAGES == 1000
 
     # Controle: com o padrao antigo a coleta trunca e so avisa no manifesto.
     controle_client = _FakeSiapsClient(total=total)
@@ -118,7 +118,7 @@ def test_competencia_longa_nao_trunca_em_250_paginas(tmp_path: Path) -> None:
         batch_size=10,
         output_format="csv",
     )
-    assert len(_read_csv(controle["exported_files"][0])) == 250 * 10
+    assert len(_read_csv(controle["exported_files"][0])) == 1000 * 10
 
     # Com o padrao da fonte, a competencia vem inteira e sem aviso de teto.
     client = _FakeSiapsClient(total=total)
@@ -131,7 +131,7 @@ def test_competencia_longa_nao_trunca_em_250_paginas(tmp_path: Path) -> None:
     )
     rows = _read_csv(payload["exported_files"][0])
     assert len(rows) == total
-    assert len(client.calls) == 300
+    assert len(client.calls) == 1100
     assert not any("max_pages" in w for w in payload.get("warnings", []))
 
 

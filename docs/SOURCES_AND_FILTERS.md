@@ -268,10 +268,13 @@ Cost of date and UF refinements (measured against `/arboviroses/dengue`):
   for a single month therefore costs the same as asking for the whole year.
 - Dengue 2024 holds over 4 million records, paginated at roughly 200 records
   per second, so a complete year takes on the order of 5 hours. The default
-  `max_pages=250` with `batch_size=1000` stops at 250 000 records, about 6% of
-  that year, and the result is reported with `status=partial_success` plus a
-  truncation warning. Raise `max_pages` deliberately, and expect the runtime
-  to scale with it.
+  `max_pages=1000` with `batch_size=1000` stops at 1 000 000 records (about a
+  quarter of that year, and around 80 minutes of collection), and the result is
+  reported with `status=partial_success` plus a truncation warning. The default
+  sits at 1 million because the DEMAS API itself breaks (502 or timeout) at
+  offsets around that depth; past it, narrow the request with the source's
+  filters or use the file-based source when there is one. Raising `max_pages`
+  further only helps sources that do not hit that limit.
 - Records no longer accumulate in memory: past 5 000 rows the collection spills
   to parquet parts and the final file is written by streaming. Measured over
   60 000 dengue records, peak memory drops from 1696 MB to 593 MB, at a cost of

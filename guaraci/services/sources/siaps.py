@@ -6,8 +6,8 @@ competencia (AAAAMM) e perfil do individuo, e o atendimento passa de 6
 milhoes de linhas por competencia.
 
 Por isso o ``max_pages`` padrao aqui e o teto do coletor (200000 paginas), e
-nao o ``DEFAULT_MAX_PAGES`` de 250 do OpenDataSUS, que cortaria a competencia
-em 250 mil linhas e so avisaria no manifesto. A coleta termina na primeira
+nao o ``DEFAULT_MAX_PAGES`` de 1000 do OpenDataSUS, que cortaria a competencia
+em 1 milhao de linhas e so avisaria no manifesto. A coleta termina na primeira
 pagina incompleta ou vazia; o teto existe apenas como trava de seguranca.
 
 O orquestrador (cadencia ``API_MONTHLY``) entrega ``start_date``/``end_date``

@@ -99,7 +99,12 @@ class OpenDataSUSDataSource(DataSource):
     """OpenDataSUS datasource supporting CKAN and DEMAS vaccination APIs."""
 
     DEFAULT_DATASET = "doses_aplicadas_pni"
-    DEFAULT_MAX_PAGES = 250
+    # 1000 páginas de 1000 linhas: 1 milhão, que é por volta de onde a DEMAS
+    # quebra em offset profundo (502, medido em 2026-10-15). Com 250, 13 das 17
+    # APIs grandes sem caminho por arquivo vinham cortadas no padrão; com 1000
+    # vêm inteiras, ao custo de coletas mais longas (cerca de 200 linhas por
+    # segundo, então até uns 80 minutos por ano numa fonte grande).
+    DEFAULT_MAX_PAGES = 1000
     LOCAL_SWAGGER_PATH = Path(__file__).resolve().parent / "utils" / "swagger.json"
     DATASET_SPECS: Dict[str, OpenDataSUSDatasetSpec] = {
         "doses_aplicadas_pni": OpenDataSUSDatasetSpec(

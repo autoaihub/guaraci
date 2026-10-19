@@ -56,7 +56,14 @@ O catálogo passa a 185 entradas e 173 bases distintas.
   para na página que falhou, o parcial é exportado e o resultado sai como
   sucesso parcial, com o aviso de onde parou (`stopped_endpoints` no
   manifesto). Sem nada coletado, ou com erro que não é passageiro, o job falha
-  como antes. Com o padrão de 250 páginas nada muda.
+  como antes.
+- O padrão de `max_pages` das APIs DEMAS passa de 250 para 1000 páginas, ou
+  1 milhão de linhas, que é por volta de onde a origem quebra. Com 250, 13 das
+  17 APIs grandes sem caminho por arquivo vinham cortadas no padrão; agora vêm
+  inteiras, ao custo de coletas mais longas (a DEMAS entrega cerca de 200
+  linhas por segundo, então até uns 80 minutos numa fonte grande). As três que
+  passam muito do teto (população residente da SVS, estoque do BNAFAR e
+  vigilância alimentar indígena) seguem como sucesso parcial, com aviso.
 - As notas que o swagger não traz (o SISVAN pela API aponta para a fonte por
   arquivo; o `codigo_uf` do estoque de medicamentos BNAFAR é o código IBGE,
   35 para SP, e a sigla dá erro 400) passam a morar no gerador
