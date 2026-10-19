@@ -77,7 +77,13 @@ def build_sources() -> List[DownloadSource]:
                     description="Disease code list to download.",
                     required=False,
                     default=list(_downloads.SinanDataSource.NEGLECTED_DISEASES),
-                    allowed_values=list(_downloads.SinanDataSource.NEGLECTED_DISEASES),
+                    allowed_values=list(
+                        getattr(
+                            _downloads.SinanDataSource,
+                            "ALL_DISEASES",
+                            _downloads.SinanDataSource.NEGLECTED_DISEASES,
+                        )
+                    ),
                 ),
                 SourceParameterSpec(
                     name="uf",

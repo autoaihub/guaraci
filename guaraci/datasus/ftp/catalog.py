@@ -39,6 +39,7 @@ class System(str, Enum):
     RESP = "RESP"
     PCE = "PCE"
     PAINEL_ONCOLOGIA = "PAINEL_ONCOLOGIA"
+    SIM_FETAL = "SIM_FETAL"
 
 
 @dataclass(frozen=True)
@@ -58,6 +59,9 @@ class FileRecord:
     month: Optional[int] = None
     size: int = 0
     path: str = ""
+    # True para arquivo vindo do diretório PRELIM do SINAN (dado preliminar,
+    # ainda não consolidado). Os demais sistemas nunca o marcam.
+    preliminary: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -69,6 +73,7 @@ class FileRecord:
             "month": self.month,
             "size": self.size,
             "path": self.path,
+            "preliminary": self.preliminary,
         }
 
     def with_path(self, full_path: str) -> "FileRecord":
@@ -76,6 +81,9 @@ class FileRecord:
 
     def with_size(self, size: int) -> "FileRecord":
         return replace(self, size=int(size))
+
+    def as_preliminary(self) -> "FileRecord":
+        return replace(self, preliminary=True)
 
 
 # --- SIH ---------------------------------------------------------------------

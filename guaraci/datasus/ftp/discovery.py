@@ -159,7 +159,8 @@ async def discover_sinan(
     fixed year split between them. When the same basename exists in both,
     the ``FINAIS`` copy wins (``PRELIM`` only fills gaps, e.g. the most
     recent not-yet-consolidated year), which also keeps the download step
-    idempotent. ``groups`` filters by disease code. Results are sorted by
+    idempotent. Records taken from ``PRELIM`` carry ``preliminary=True``, and
+    some diseases (HIVA, SIFG, VARC…) exist only there. ``groups`` filters by disease code. Results are sorted by
     ``(group, year, basename)`` — SINAN national files have no state.
     """
     year_set = {int(y) for y in years}
@@ -170,8 +171,13 @@ async def discover_sinan(
 
     finais = await _list_and_parse(client, SINAN_FINAIS_PATH, parse_sinan)
     prelim = await _list_and_parse(client, SINAN_PRELIM_PATH, parse_sinan)
-    seen = {rec.basename for rec in finais}
-    discovered = finais + [rec for rec in prelim if rec.basename not in seen]
+    # A chave é (agravo, ano): o mesmo ano em FINAIS e PRELIM não se duplica.
+    seen = {(rec.group, rec.year) for rec in finais}
+    discovered = finais + [
+        rec.as_preliminary()
+        for rec in prelim
+        if (rec.group, rec.year) not in seen
+    ]
 
     filtered = [
         rec

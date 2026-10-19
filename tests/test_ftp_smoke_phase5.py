@@ -95,3 +95,41 @@ async def test_smoke_download_decode_pni_dbf(tmp_path) -> None:
     df = dbc.read(dest)  # .DBF -> dbfread directly, no dbc2dbf
     assert isinstance(df, pl.DataFrame)
     assert df.height > 0
+
+
+# --- SINAN ampliado e SIM fetal (conferido em 2026-10-19) --------------------
+
+
+@pytest.mark.asyncio
+async def test_smoke_sinan_prelim_only_and_new_finais_and_dofet(tmp_path) -> None:
+    """Tres arquivos pequenos: HIVE 2024 (so em PRELIM), PEST 2024 (FINAIS novo) e DOFET."""
+    from guaraci.datasus.ftp.discovery import discover_sinan
+
+    async with DatasusFtpClient() as client:
+        sinan = await discover_sinan(
+            client, years=[2024], groups=["HIVE", "PEST"], fetch_sizes=False
+        )
+        by_group = {r.group: r for r in sinan}
+        assert by_group["HIVE"].preliminary is True  # existe apenas em PRELIM
+        assert by_group["PEST"].preliminary is False  # FINAIS
+        assert len(sinan) == 2  # nenhum ano duplicado
+
+        fetal = await discover_spec(client, specs.SIM_OBITOS_FETAIS, years=[2020])
+        assert len(fetal) == 1
+        assert fetal[0].state is None and fetal[0].group == "DOFET"
+
+        paths = []
+        for record in (by_group["HIVE"], by_group["PEST"], fetal[0]):
+            dest = tmp_path / record.basename
+            await client.download(record.path, dest)
+            assert dest.exists() and dest.stat().st_size > 0
+            paths.append(dest)
+
+    # Caminho real de producao (streaming); dbc.read tropeca em datas '********'.
+    frames = []
+    for dest in paths:
+        out = dest.with_suffix(".parquet")
+        dbc.decode_to_parquet(dest, out)
+        frames.append(pl.read_parquet(out))
+    assert all(df.height > 0 for df in frames)
+    assert "CAUSABAS" in frames[2].columns

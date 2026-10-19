@@ -92,6 +92,7 @@ async def download_records(
     successful = 0
     failed: List[Tuple[str, str]] = []
     paths_by_group: Dict[str, List[str]] = defaultdict(list)
+    preliminary_files: List[str] = []
 
     for index, record in enumerate(records, start=1):
         dbc_path = cache_dir / record.basename
@@ -108,6 +109,8 @@ async def download_records(
                     df.write_parquet(parquet_path)
                 safe_unlink(dbc_path)
             paths_by_group[record.group].append(str(parquet_path))
+            if getattr(record, "preliminary", False):
+                preliminary_files.append(record.basename)
             successful += 1
         except ImportError:
             # Falha determinística de ambiente: os arquivos seguintes falhariam
@@ -127,6 +130,8 @@ async def download_records(
         "failed_downloads": failed,
         "total_files": total,
         "paths_by_group": dict(paths_by_group),
+        # Arquivos baixados que são dado preliminar (SINAN/PRELIM).
+        "preliminary_files": preliminary_files,
     }
 
 
@@ -145,6 +150,14 @@ def build_summary(
     """
     by_group: Dict[str, int] = defaultdict(int)
     by_state: Dict[str, int] = defaultdict(int)
+    preliminary = [rec.basename for rec in records if rec.preliminary]
+    warning_list = list(warnings or [])
+    if preliminary:
+        warning_list.append(
+            f"{len(preliminary)} file(s) are preliminary (PRELIM, not yet "
+            f"consolidated): {', '.join(preliminary[:10])}"
+            + (" ..." if len(preliminary) > 10 else "")
+        )
     total_size = 0
     sample: List[Dict[str, Any]] = []
     for rec in records:
@@ -161,6 +174,7 @@ def build_summary(
                     "year": rec.year,
                     "month": rec.month,
                     "size_bytes": int(rec.size or 0),
+                    "preliminary": rec.preliminary,
                 }
             )
 
@@ -172,5 +186,6 @@ def build_summary(
         "by_state": dict(sorted(by_state.items())),
         "sample": sample,
         "filters": filters,
-        "warnings": list(warnings or []),
+        "preliminary_files": preliminary,
+        "warnings": warning_list,
     }

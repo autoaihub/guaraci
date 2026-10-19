@@ -422,3 +422,37 @@ async def test_discover_sinan_returns_empty_when_no_years_requested() -> None:
     results = await discover_sinan(client, years=[])
     assert results == []
     assert client.calls == []
+
+
+@pytest.mark.asyncio
+async def test_discover_sinan_marks_prelim_only_records_as_preliminary() -> None:
+    client = _StubClient(
+        {
+            SINAN_FINAIS_PATH: ["DENGBR23.dbc", "TUBEBR19.dbc"],
+            SINAN_PRELIM_PATH: ["DENGBR23.dbc", "HIVEBR24.dbc", "SRCBR26.dbc"],
+        }
+    )
+
+    results = await discover_sinan(client, years=[2019, 2023, 2024, 2026])
+
+    by_group = {r.group: r for r in results}
+    assert set(by_group) == {"DENG", "TUBE", "HIVE", "SRC"}
+    assert by_group["DENG"].preliminary is False  # FINAIS ganha
+    assert by_group["TUBE"].preliminary is False
+    assert by_group["HIVE"].preliminary is True  # agravo so existe em PRELIM
+    assert by_group["SRC"].preliminary is True
+    assert by_group["HIVE"].path == f"{SINAN_PRELIM_PATH}/HIVEBR24.dbc"
+
+
+@pytest.mark.asyncio
+async def test_discover_sinan_does_not_duplicate_year_present_in_both() -> None:
+    client = _StubClient(
+        {
+            SINAN_FINAIS_PATH: ["SIFGBR22.dbc"],
+            SINAN_PRELIM_PATH: ["SIFGBR22.dbc", "SIFGBR25.dbc"],
+        }
+    )
+
+    results = await discover_sinan(client, years=[2022, 2025], groups=["SIFG"])
+
+    assert [(r.year, r.preliminary) for r in results] == [(2022, False), (2025, True)]
