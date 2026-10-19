@@ -121,3 +121,17 @@ def test_mixed_types_across_chunks(fake_decoders, tmp_path, monkeypatch) -> None
 
     assert df.height == 4
     assert df["A"].to_list() == [None, None, "x", "y"]
+
+
+def test_tolerant_parser_turns_invalid_date_into_null() -> None:
+    """HIVEBR24 (SINAN/PRELIM) traz ``********`` num campo de data."""
+    pytest.importorskip("dbfread")
+    from dbfread import FieldParser
+
+    from guaraci.datasus.ftp import dbc
+
+    cls = dbc._tolerant_parser_kwargs()["parserclass"]  # noqa: SLF001
+    assert issubclass(cls, FieldParser)
+    inst = cls.__new__(cls)
+    assert inst.parseD(None, b"********") is None
+    assert str(inst.parseD(None, b"20240131")) == "2024-01-31"

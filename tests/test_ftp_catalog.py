@@ -169,3 +169,14 @@ def test_parse_dispatches_by_pattern() -> None:
 def test_parse_returns_none_for_unknown_pattern() -> None:
     assert parse("README.txt") is None
     assert parse("") is None
+
+
+def test_parse_sinan_three_letter_codes_and_lone_file() -> None:
+    from guaraci.datasus.ftp.catalog import parse_sinan
+
+    src = parse_sinan("SRCBR26.dbc")
+    assert src is not None and (src.group, src.year) == ("SRC", 2026)
+    ler = parse_sinan("LERBR19.dbc")  # arquivo avulso de FINAIS (dado, 2019)
+    assert ler is not None and (ler.group, ler.year) == ("LER", 2019)
+    assert ler.preliminary is False
+    assert ler.as_preliminary().preliminary is True

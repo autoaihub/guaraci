@@ -288,6 +288,27 @@ PAINEL_ONCOLOGIA = SystemSpec(
     min_year=2013,
 )
 
+# --- SIM fetal: DOFET<YY>, national, yearly ----------------------------------
+
+# Só o DOFET. A pasta DOFET também guarda DOEXT, DOINF e DOMAT, mas conferido
+# ao vivo em 2026-10-19 (ano 2020, UF AC) que são subconjuntos da DORES já
+# coberta pela fonte ``sim``; óbito fetal, por sua vez, não está na DORES.
+SIM_OBITOS_FETAIS = SystemSpec(
+    name="sim_obitos_fetais",
+    system=System.SIM_FETAL,
+    title="SIM (Óbitos fetais)",
+    description="Sistema de Informações sobre Mortalidade: óbitos fetais (DOFET, CID-10, nacional).",
+    roots=(f"{_PUB}/SIM/CID10/DOFET",),
+    # O servidor mistura DOFET07.DBC e DOFET00.dbc; o regex ignora a caixa.
+    pattern=re.compile(r"^DOFET(?P<yy>\d{2})\.dbc$", re.IGNORECASE),
+    ext=".dbc",
+    has_state=False,
+    has_month=False,
+    national=True,
+    fixed_group="DOFET",
+    min_year=1996,
+)
+
 
 ALL_SPECS: Tuple[SystemSpec, ...] = (
     SINASC,
@@ -301,6 +322,7 @@ ALL_SPECS: Tuple[SystemSpec, ...] = (
     RESP,
     PCE,
     PAINEL_ONCOLOGIA,
+    SIM_OBITOS_FETAIS,
 )
 
 SPECS = {spec.name: spec for spec in ALL_SPECS}

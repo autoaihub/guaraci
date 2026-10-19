@@ -27,17 +27,74 @@ class SinanDataSource(DataSource):
 
     NEGLECTED_DISEASES = ['ANIM', 'CHAG', 'CHIK', 'DENG', 'ESQU', 'HANS', 'LEIV', 'LTAN', 'RAIV']
     
+    # Agravos com arquivo de dado no FTP (FINAIS e/ou PRELIM), conferidos em
+    # 2026-10-19. Rótulos seguem a nomenclatura oficial do SINAN. Os códigos
+    # são os do nome do arquivo (<AGRAVO>BR<AA>.dbc), por isso SRC e LER têm
+    # três letras.
     DISEASE_NAMES = {
+        'ACBI': 'Acidente de trabalho com exposição a material biológico',
+        'ACGR': 'Acidente de trabalho grave',
+        'AIDA': 'Aids em adulto',
+        'AIDC': 'Aids em criança',
         'ANIM': 'Acidentes por Animais Peçonhentos',
+        'ANTR': 'Atendimento antirrábico humano',
+        'BOTU': 'Botulismo',
+        'CANC': 'Câncer relacionado ao trabalho',
         'CHAG': 'Doença de Chagas',
         'CHIK': 'Chikungunya',
+        'COLE': 'Cólera',
+        'COQU': 'Coqueluche',
+        'DCRJ': 'Doença de Creutzfeldt-Jakob',
         'DENG': 'Dengue',
+        'DERM': 'Dermatoses ocupacionais',
+        'DIFT': 'Difteria',
+        'ESPO': 'Esporotricose',
         'ESQU': 'Esquistossomose',
+        'EXAN': 'Doenças exantemáticas',
+        'FMAC': 'Febre maculosa e outras riquetsioses',
+        'FTIF': 'Febre tifoide',
         'HANS': 'Hanseníase',
+        'HANT': 'Hantavirose',
+        'HEPA': 'Hepatites virais',
+        'HIVA': 'Infecção pelo HIV em adulto',
+        'HIVC': 'Infecção pelo HIV em criança',
+        'HIVE': 'Criança exposta ao HIV',
+        'HIVG': 'Infecção pelo HIV em gestante',
+        'IEXO': 'Intoxicação exógena',
         'LEIV': 'Leishmaniose Visceral',
+        'LEPT': 'Leptospirose',
+        'LER': 'LER (arquivo avulso de 2019)',
+        'LERD': 'LER/DORT',
         'LTAN': 'Leishmaniose Tegumentar',
-        'RAIV': 'Raiva Humana'
+        'MALA': 'Malária',
+        'MENI': 'Meningite',
+        'MENT': 'Transtornos mentais relacionados ao trabalho',
+        'NTRA': 'Notificação de tracoma',
+        'PAIR': 'Perda auditiva induzida por ruído',
+        'PEST': 'Peste',
+        'PFAN': 'Paralisia flácida aguda',
+        'PNEU': 'Pneumoconioses',
+        'RAIV': 'Raiva Humana',
+        'ROTA': 'Rotavírus',
+        'SDTA': 'Surto de doenças transmitidas por alimentos',
+        'SIFA': 'Sífilis adquirida',
+        'SIFC': 'Sífilis congênita',
+        'SIFG': 'Sífilis em gestante',
+        'SRC': 'Síndrome da rubéola congênita',
+        'TETA': 'Tétano acidental',
+        'TETN': 'Tétano neonatal',
+        'TOXC': 'Toxoplasmose congênita',
+        'TOXG': 'Toxoplasmose gestacional',
+        'TRAC': 'Tracoma',
+        'TUBE': 'Tuberculose',
+        'VARC': 'Varicela',
+        'VIOL': 'Violência interpessoal/autoprovocada',
+        'ZIKA': 'Zika vírus',
     }
+
+    # Todos os códigos aceitos em ``diseases``. O padrão segue sendo
+    # NEGLECTED_DISEASES; o resto é opt-in.
+    ALL_DISEASES = list(DISEASE_NAMES)
 
     def __init__(self, output_path: Optional[str] = None):
         super().__init__(name="sinan", output_path=output_path)

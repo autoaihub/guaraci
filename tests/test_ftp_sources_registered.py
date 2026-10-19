@@ -20,12 +20,13 @@ def service() -> DownloadService:
     return DownloadService()
 
 
-def test_all_eleven_ftp_sources_registered(service) -> None:
+def test_all_twelve_ftp_sources_registered(service) -> None:
     descriptors = {d.source: d for d in service.list_sources()}
     for name in FTP_NAMES:
         assert name in descriptors, f"{name} not registered"
         assert descriptors[name].mode == "datasus ftp"
-    assert len(FTP_NAMES) == 11
+    assert len(FTP_NAMES) == 12
+    assert "sim_obitos_fetais" in FTP_NAMES
 
 
 def test_grouped_state_spec_schema(service) -> None:
@@ -111,3 +112,27 @@ def test_discover_dispatches_into_ftp_datasource(service, monkeypatch) -> None:
 def test_discover_still_rejects_non_ftp_unsupported_source(service) -> None:
     with pytest.raises(ValueError, match="not supported"):
         service.discover("sinan", start_year=2020, end_year=2020)
+
+
+def test_sim_obitos_fetais_schema_is_national_without_groups_or_states(service) -> None:
+    params = {p["name"] for p in service.get_source_schema("sim_obitos_fetais")["params"]}
+    assert "states" not in params
+    assert "groups" not in params
+    assert {"start_year", "end_year"} <= params
+    start = next(
+        p for p in service.get_source_schema("sim_obitos_fetais")["params"]
+        if p["name"] == "start_year"
+    )
+    assert start["minimum"] == 1996
+
+
+def test_sinan_accepts_all_diseases_but_keeps_default(service) -> None:
+    from guaraci.datasus.sinan import SinanDataSource
+
+    params = {p["name"]: p for p in service.get_source_schema("sinan")["params"]}
+    diseases = params["diseases"]
+    assert set(diseases["allowed_values"]) == set(SinanDataSource.DISEASE_NAMES)
+    assert {"TUBE", "VIOL", "SIFG", "HIVE", "SRC", "LER"} <= set(diseases["allowed_values"])
+    assert diseases["default"] == SinanDataSource.NEGLECTED_DISEASES
+    assert len(SinanDataSource.NEGLECTED_DISEASES) == 9
+    assert set(SinanDataSource.NEGLECTED_DISEASES) <= set(SinanDataSource.ALL_DISEASES)

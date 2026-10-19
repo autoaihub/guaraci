@@ -204,3 +204,57 @@ def test_download_sinan_progress_callback_is_invoked(tmp_path) -> None:
 
     assert calls[0] == (0, 2)
     assert calls[-1] == (2, 2)
+
+
+# --- dado preliminar ---------------------------------------------------------
+
+
+def test_discover_sinan_summary_flags_preliminary_files() -> None:
+    client = FakeClient(
+        {
+            SINAN_FINAIS_PATH: ["TUBEBR19.dbc"],
+            SINAN_PRELIM_PATH: ["HIVEBR24.dbc", "TUBEBR19.dbc"],
+        }
+    )
+
+    payload = sinan_backend.discover_sinan_summary(
+        years=[2019, 2024],
+        diseases=["TUBE", "HIVE"],
+        client_factory=lambda: client,
+    )
+
+    assert payload["documents_found"] == 2
+    assert payload["preliminary_files"] == ["HIVEBR24.dbc"]
+    flags = {e["name"]: e["preliminary"] for e in payload["sample"]}
+    assert flags == {"HIVEBR24.dbc": True, "TUBEBR19.dbc": False}
+    assert any("preliminary" in w and "HIVEBR24.dbc" in w for w in payload["warnings"])
+
+
+def test_discover_sinan_summary_has_no_warning_without_preliminary() -> None:
+    client = FakeClient({SINAN_FINAIS_PATH: ["DENGBR23.dbc"]})
+    payload = sinan_backend.discover_sinan_summary(
+        years=[2023], diseases=["DENG"], client_factory=lambda: client
+    )
+    assert payload["preliminary_files"] == []
+    assert payload["warnings"] == []
+
+
+def test_download_sinan_reports_preliminary_files(tmp_path) -> None:
+    client = FakeClient(
+        {
+            SINAN_FINAIS_PATH: ["TUBEBR19.dbc"],
+            SINAN_PRELIM_PATH: ["HIVEBR24.dbc"],
+        }
+    )
+
+    result = sinan_backend.download_sinan(
+        years=[2019, 2024],
+        diseases=["TUBE", "HIVE"],
+        cache_dir=tmp_path,
+        client_factory=lambda: client,
+        dbc_reader=make_fake_dbc_reader(),
+    )
+
+    assert result["successful_downloads"] == 2
+    assert result["preliminary_files"] == ["HIVEBR24.dbc"]
+    assert set(result["paths_by_group"]) == {"TUBE", "HIVE"}

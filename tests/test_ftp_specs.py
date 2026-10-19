@@ -102,10 +102,38 @@ def test_two_digit_year_window_boundary() -> None:
 
 def test_registry_is_complete_and_consistent() -> None:
     assert set(specs.SPECS) == {s.name for s in specs.ALL_SPECS}
-    assert len(specs.ALL_SPECS) == 11
+    assert len(specs.ALL_SPECS) == 12
     # Every spec defines exactly one of roots / group_dirs.
     for spec in specs.ALL_SPECS:
         assert bool(spec.roots) != bool(spec.group_dirs), spec.name
     assert specs.get_spec("SINASC").system is System.SINASC
     with pytest.raises(KeyError):
         specs.get_spec("nope")
+
+
+@pytest.mark.parametrize(
+    "basename,year",
+    [
+        ("DOFET96.dbc", 1996),
+        ("DOFET99.dbc", 1999),
+        ("DOFET00.dbc", 2000),
+        ("DOFET07.DBC", 2007),  # o servidor mistura .dbc e .DBC
+        ("DOFET25.dbc", 2025),
+    ],
+)
+def test_sim_obitos_fetais_parses_national_two_digit_year(basename, year) -> None:
+    rec = specs.SIM_OBITOS_FETAIS.parse(basename)
+    assert rec is not None
+    assert (rec.system, rec.group, rec.state, rec.year, rec.month) == (
+        System.SIM_FETAL,
+        "DOFET",
+        None,
+        year,
+        None,
+    )
+
+
+@pytest.mark.parametrize("basename", ["DOEXT20.dbc", "DOINF20.dbc", "DOMAT20.dbc", "DOREXT20.dbc"])
+def test_sim_obitos_fetais_rejects_other_files_of_the_folder(basename) -> None:
+    # Subconjuntos da DORES (fonte "sim"): ficam de fora de proposito.
+    assert specs.SIM_OBITOS_FETAIS.parse(basename) is None

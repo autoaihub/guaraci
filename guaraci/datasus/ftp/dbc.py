@@ -87,6 +87,28 @@ def _frame_from_records_static(records: list) -> pl.DataFrame:
             raise second_exc from first_exc
 
 
+def _tolerant_parser_kwargs() -> dict:
+    """``parserclass`` que aceita data inválida (ex. ``********``) como nulo.
+
+    O dbfread levanta ``ValueError`` num campo ``D`` fora do formato, o que
+    derrubava o arquivo inteiro (HIVEBR24, do PRELIM do SINAN, traz
+    ``********``). Sem o ``FieldParser`` (dbfread simulado), não passa nada.
+    """
+    try:
+        from dbfread import FieldParser
+    except ImportError:
+        return {}
+
+    class _TolerantFieldParser(FieldParser):
+        def parseD(self, field, data):  # noqa: N802 - API do dbfread
+            try:
+                return super().parseD(field, data)
+            except ValueError:
+                return None
+
+    return {"parserclass": _TolerantFieldParser}
+
+
 def read(path: PathLike, *, encoding: str = "latin-1") -> pl.DataFrame:
     """Decode a DBC (or plain DBF) file into a :class:`polars.DataFrame`.
 
@@ -118,6 +140,7 @@ def read(path: PathLike, *, encoding: str = "latin-1") -> pl.DataFrame:
             encoding=encoding,
             char_decode_errors="ignore",
             lowernames=False,
+            **_tolerant_parser_kwargs(),
         )
         frames: list[pl.DataFrame] = []
         chunk: list = []
@@ -216,6 +239,7 @@ def decode_to_parquet(
             encoding=encoding,
             char_decode_errors="ignore",
             lowernames=False,
+            **_tolerant_parser_kwargs(),
         )
         chunk: list = []
         for record in table:
