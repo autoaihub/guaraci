@@ -78,7 +78,9 @@ class InepCensoEscolarDataSource(HttpFileDataSource):
         self.spec = _SPEC
         self._client = client
 
-    def _select(self, anos: Optional[Sequence[str]]):
+    def _select(self, anos: Optional[Sequence[str]], *_periodo: object):
+        # A base passa também ``anos``/``meses`` do recorte por período (PNI,
+        # SISVAN); aqui o ano já vem em ``indicadores``, montado em download().
         if not anos:
             return list(_resources(MIN_YEAR, latest_year()))
         years = [int(a) for a in anos]
