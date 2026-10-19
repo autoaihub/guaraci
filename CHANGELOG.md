@@ -37,6 +37,12 @@ O catálogo passa a 185 entradas e 173 bases distintas.
 ### Fixed
 - Data inválida (`********`) num DBF derrubava o arquivo inteiro; agora vira
   nulo.
+- O SIDRA visto do runner do GitHub oscila: recusou a conexão em 28/09,
+  esgotou o tempo em 05/10 e devolveu às onze fontes uma resposta que não era
+  JSON em 12/10, e foi isso que reprovou a verificação semanal nessas
+  semanas. A resposta que não é JSON agora é repetida como as demais falhas
+  passageiras, a espera entre tentativas passa de 0,25 s e 0,5 s para 2 s e
+  4 s, e a mensagem traz o tipo e o começo do corpo recebido.
 
 ### Changed: o catálogo separa conjuntos de bases distintas
 Dos 182 conjuntos, oito são a mesma base de outro por um caminho diferente:

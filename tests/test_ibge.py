@@ -347,7 +347,7 @@ def test_client_retries_incomplete_read_and_succeeds(monkeypatch):
 
     monkeypatch.setattr("guaraci.ibge.client.urlopen", fake_urlopen)
     monkeypatch.setattr("guaraci.core.http.time.sleep", lambda s: None)
-    out = IbgeSidraClient().aggregate(
+    out = IbgeSidraClient(backoff_seconds=0).aggregate(
         table="6579", variable="9324", period="2021", localities="N6[all]"
     )
     assert out == [{"id": "9324", "resultados": []}]
@@ -360,7 +360,33 @@ def test_client_incomplete_read_exhausted_is_retryable_client_error(monkeypatch)
     )
     monkeypatch.setattr("guaraci.core.http.time.sleep", lambda s: None)
     with pytest.raises(IbgeClientError) as exc:
-        IbgeSidraClient().aggregate(
+        IbgeSidraClient(backoff_seconds=0).aggregate(
             table="6579", variable="9324", period="2021", localities="N6[all]"
         )
     assert exc.value.retryable is True
+
+
+def test_client_retries_non_json_page_and_reports_what_came(monkeypatch):
+    # 2026-10-12, no runner do GitHub: onze fontes do SIDRA receberam ao mesmo
+    # tempo uma resposta que não era JSON; a mesma consulta voltou JSON depois.
+    calls = {"n": 0}
+
+    def fake_urlopen(request, timeout=None):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _FakeResp(b"<html><body>Servico indisponivel</body></html>")
+        return _FakeResp(b'[{"id":"9324","resultados":[]}]')
+
+    monkeypatch.setattr("guaraci.ibge.client.urlopen", fake_urlopen)
+    client = IbgeSidraClient(backoff_seconds=0)
+    out = client.aggregate(table="6579", variable="9324", period="2021", localities="N6[all]")
+    assert out == [{"id": "9324", "resultados": []}] and calls["n"] == 2
+
+    monkeypatch.setattr(
+        "guaraci.ibge.client.urlopen",
+        lambda req, timeout=None: _FakeResp(b"<html><body>Servico indisponivel</body></html>"),
+    )
+    with pytest.raises(IbgeClientError) as exc:
+        client.aggregate(table="6579", variable="9324", period="2021", localities="N6[all]")
+    assert exc.value.retryable is True
+    assert "Servico indisponivel" in str(exc.value)

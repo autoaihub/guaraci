@@ -40,6 +40,7 @@ class IbgeSidraClient:
         base_url: str | None = None,
         timeout_seconds: int = 120,
         max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+        backoff_seconds: float = 2.0,
     ) -> None:
         selected = (base_url or self.DEFAULT_BASE_URL).strip().rstrip("/")
         if not selected:
@@ -47,6 +48,11 @@ class IbgeSidraClient:
         self.base_url = selected
         self.timeout_seconds = max(1, int(timeout_seconds))
         self.max_attempts = max(1, int(max_attempts))
+        # O SIDRA oscila visto de fora do Brasil (runner do GitHub): recusa a
+        # conexão, demora a responder ou devolve por alguns minutos uma página
+        # que não é JSON. Esperar 2 s e depois 4 s entre as tentativas dá à
+        # origem tempo de voltar; 0,25 s, o padrão dos outros clientes, não dá.
+        self.backoff_seconds = max(0.0, float(backoff_seconds))
 
     def aggregate(
         self,
@@ -168,10 +174,22 @@ class IbgeSidraClient:
             try:
                 return json.loads(raw.decode("utf-8-sig"))
             except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                # Retentável: em produção isso foi página de erro passageira da
+                # origem, não URL errada (a mesma consulta volta JSON depois).
+                # O começo do corpo vai na mensagem para a próxima falha já
+                # chegar com o diagnóstico.
+                content_type = ""
+                if headers is not None:
+                    content_type = str(headers.get("Content-Type") or "")
+                trecho = " ".join(raw[:160].decode("utf-8", "replace").split())
                 raise IbgeClientError(
-                    "IBGE returned a non-JSON response.",
+                    f"IBGE returned a non-JSON response "
+                    f"(Content-Type: {content_type or '?'}, {len(raw)} bytes: {trecho!r}).",
                     category="response_format",
+                    retryable=True,
                     hint="Check the base URL and the aggregates endpoint path.",
                 ) from exc
 
-        return request_with_retry(send, max_attempts=self.max_attempts)
+        return request_with_retry(
+            send, max_attempts=self.max_attempts, backoff_seconds=self.backoff_seconds
+        )
