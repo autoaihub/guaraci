@@ -187,10 +187,15 @@
       return '<p class="same-as"><i class="bi bi-signpost-split"></i> Outro caminho para <b>' + canon.n + "</b></p>";
     }
 
+    // Selo discreto de volume; só aparece quando há medição em volume_estimates.json.
+    function volumeLine(b) {
+      return b.volume ? '<p class="vol-seal"><i class="bi bi-hdd"></i> ' + b.volume + "</p>" : "";
+    }
+
     function card(b) {
       return '<article class="base-card" data-key="' + (b.key || "") + '" tabindex="0" role="button" aria-label="Detalhes de ' + b.n + '"><h4>' + b.n +
         ' <i class="bi bi-box-arrow-up-right card-hint" aria-hidden="true"></i></h4><p>' + b.d +
-        "</p>" + sameAsLine(b) + '<div class="tags"><span class="base-tag">' + b.g +
+        "</p>" + sameAsLine(b) + volumeLine(b) + '<div class="tags"><span class="base-tag">' + b.g +
         '</span><span class="base-tag org">' + b.m + "</span></div>" +
         '<span class="card-cta"><i class="bi bi-list-columns-reverse"></i> Consultar campos e parâmetros</span></article>';
     }
@@ -240,6 +245,7 @@
         '<div class="src-badges" style="margin-bottom:14px;"><span class="src-badge mode">' + esc(s.modeLabel) + "</span>" +
         '<span class="src-badge"><i class="bi bi-arrow-repeat"></i> atualização ' + esc(s.cadence) + "</span>" +
         (s.minYear ? '<span class="src-badge"><i class="bi bi-clock-history"></i> desde ' + s.minYear + "</span>" : "") + "</div>" +
+        (s.volume ? '<p class="vol-seal"><i class="bi bi-hdd"></i> ' + esc(s.volume) + "</p>" : "") +
         '<div class="src-meta" style="margin-bottom:6px;"><span>Identificador: <code>' + esc(s.key) + "</code></span></div>" + live +
         "<h4>Parâmetros de coleta (" + basic.length + " básicos, " + (s.params.length - basic.length) + " avançados)</h4>" +
         '<div class="fields">' + basic.map((p) => '<span class="field-chip">' + esc(p.name) + "</span>").join("") + "</div>" +

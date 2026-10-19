@@ -519,6 +519,8 @@ kbd { font-family: var(--font-mono); font-size: .8em; background: rgba(255,255,2
 .src-head h3 { font-size: 1.25rem; margin: 0; color: var(--txt); }
 .src-badges { display: flex; flex-wrap: wrap; gap: 8px; }
 .src-badge { font-size: .72rem; font-weight: 600; letter-spacing: .04em; padding: 4px 11px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--txt-2); display: inline-flex; gap: 6px; align-items: center; }
+.vol-seal { margin: 6px 0 0; font-size: .74rem; color: var(--txt-3, var(--txt-2)); display: flex; gap: 6px; align-items: center; }
+.vol-seal .bi { opacity: .7; }
 .src-badge.mode { background: rgba(20, 184, 166, .1); border-color: rgba(20, 184, 166, .3); color: var(--teal); }
 .src-badge.year-badge { background: rgba(247, 164, 29, .08); border-color: rgba(247, 164, 29, .25); color: var(--sun-2); }
 .src-desc { color: var(--txt-2); margin: 10px 0 12px; }
