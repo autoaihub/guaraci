@@ -626,6 +626,9 @@ class OpenDataSUSDataSource(DataSource):
         records = PagedRecordBuffer()
         pages_scanned = 0
         truncated = False
+        # Páginas que falharam de novo depois das pausas, quando já havia
+        # linhas coletadas nesta rodada: (endpoint, página, offset, erro).
+        interrompidas: List[tuple[str, int, int, str]] = []
         uf_conferivel = True
         repaired_values = 0
 
@@ -651,6 +654,20 @@ class OpenDataSUSDataSource(DataSource):
                 try:
                     payload = self._demas_page_with_pauses(client, endpoint, params)
                 except OpenDataSUSClientError as exc:
+                    # A origem quebra em offset profundo (502 ou timeout por
+                    # volta de 1 milhão de linhas, medido em 2026-10-15). Com
+                    # linhas já coletadas, derrubar o job jogava fora horas de
+                    # coleta sem deixar arquivo; agora o endpoint para ali e o
+                    # parcial sai com o aviso de onde parou. Sem nada coletado,
+                    # ou com erro que não é passageiro, o job falha como antes.
+                    if getattr(exc, "retryable", False) and pages_scanned > 0:
+                        offset = page * page_size
+                        logger.warning(
+                            f"DEMAS {endpoint} stopped at page {page + 1} "
+                            f"(offset {offset}) after repeated failures: {exc}"
+                        )
+                        interrompidas.append((endpoint, page + 1, offset, str(exc)))
+                        break
                     raise self._annotate_client_error(
                         exc,
                         context=(
@@ -761,6 +778,16 @@ class OpenDataSUSDataSource(DataSource):
                 f"Increase max_pages (current={max_pages_per_year}) or narrow the selected date window."
             )
 
+        for endpoint_parado, pagina, offset, erro in interrompidas:
+            warnings.append(
+                f"OpenDataSUS DEMAS stopped at endpoint '{endpoint_parado}' page {pagina} "
+                f"(offset {offset}) after repeated failures ({erro}). The export holds only "
+                "the rows collected before that point. The origin is known to fail at deep "
+                "offsets (around 1 million rows): narrow the request with the source's "
+                "filters (UF, municipality, period) or use its file-based source when "
+                "there is one."
+            )
+
         if uf is not None and not uf_conferivel:
             warnings.append(
                 f"UF filter '{uf}' was sent to the origin but could not be verified: "
@@ -800,6 +827,10 @@ class OpenDataSUSDataSource(DataSource):
                 "max_pages": max_pages_per_year,
                 "batch_size": page_size,
                 "truncated": truncated,
+                "stopped_endpoints": [
+                    {"path": e, "page": pg, "offset": off}
+                    for e, pg, off, _ in interrompidas
+                ],
                 "api_params": dict(api_params),
                 "endpoint_query_params": [
                     {"path": item.path, "params": dict(item.query_params)}
@@ -816,7 +847,7 @@ class OpenDataSUSDataSource(DataSource):
                     "documents_total": estimated_pages_total,
                     "downloaded_count": len(records),
                     "pages_scanned": pages_scanned,
-                    "failed_count": 0,
+                    "failed_count": len(interrompidas),
                     "skipped_count": 0,
                     "output_dir": str(self.output_path),
                 }
@@ -826,7 +857,9 @@ class OpenDataSUSDataSource(DataSource):
             "documents_found": len(records),
             "downloaded_count": len(records),
             "skipped_count": 0,
-            "failed_count": 0,
+            # Cada endpoint interrompido conta como falha: com linhas
+            # entregues, o resultado fica em partial_success, não em sucesso.
+            "failed_count": len(interrompidas),
             "manifest_path": str(manifest_path),
             "output_dir": str(self.output_path),
             "dataset": dataset,

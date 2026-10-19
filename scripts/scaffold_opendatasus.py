@@ -48,6 +48,23 @@ _SCAFFOLD_EXCLUDES = frozenset(
 )
 
 
+# Notas que o swagger não traz e o usuário precisa ver na descrição do
+# parâmetro. Ficam aqui, e não editadas no registro gerado, porque o registro
+# é reescrito por inteiro a cada `--all` e a edição manual se perderia.
+_PARAM_NOTES: dict[tuple[str, str], str] = {
+    ("/sisvan/estado-nutricional", "ano_mes_competencia"): (
+        "A API tem mais de 67 milhões de linhas e quebra (502 ou timeout) em "
+        "offset alto; para um ano inteiro (2008-2023) use a fonte por arquivo "
+        "sisvan_estado_nutricional_arquivos."
+    ),
+    # Verificado em 2026-10-19: codigo_uf=35 recorta São Paulo e codigo_uf=SP
+    # responde 400 (invalid literal for int()).
+    ("/daf/estoque-medicamentos-bnafar-horus", "codigo_uf"): (
+        "Código IBGE da UF com dois dígitos (35 para SP), não a sigla."
+    ),
+}
+
+
 def get_phase_and_type(param_name: str) -> tuple[str, str, str]:
     """Returns (param_type, phase, allowed_values_code) for a given parameter."""
     name = param_name.lower()
@@ -101,7 +118,11 @@ def generate_source_block(endpoint: str, params: tuple[str, ...]) -> str:
         lines.append(f"                        name=\"{param}\",")
         lines.append(f"                        phase=\"{phase}\",")
         lines.append(f"                        param_type=\"{ptype}\",")
-        lines.append(f"                        description=\"Refinamento opcional na chamada da API para {param}.\",")
+        description = f"Refinamento opcional na chamada da API para {param}."
+        note = _PARAM_NOTES.get((endpoint, param))
+        if note:
+            description = f"{description} {note}"
+        lines.append(f"                        description=\"{description}\",")
         lines.append(f"                        required={param in path_params},")
         lines.append(f"                        default=None,")
         if allowed:
@@ -198,7 +219,9 @@ def main():
             
         lines.append("    ]")
         
-        out_path.write_text("\n".join(lines), encoding="utf-8")
+        # newline="\n": no Windows o padrão grava CRLF e o diff do registro
+        # regenerado vira o arquivo inteiro.
+        out_path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
         print(f"Done! Generated {count} sources in {out_path.name}.")
         return
 

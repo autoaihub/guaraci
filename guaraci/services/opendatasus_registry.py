@@ -1633,12 +1633,7 @@ def get_opendatasus_sources() -> List[OpenDataSUSDownloadSource]:
                         name="ano_mes_competencia",
                         phase="basico",
                         param_type="string",
-                        description=(
-                            "Refinamento opcional na chamada da API para ano_mes_competencia. "
-                            "A API tem mais de 67 milhões de linhas e quebra (502 ou timeout) em "
-                            "offset alto; para um ano inteiro (2008-2023) use a fonte por arquivo "
-                            "sisvan_estado_nutricional_arquivos."
-                        ),
+                        description="Refinamento opcional na chamada da API para ano_mes_competencia. A API tem mais de 67 milhões de linhas e quebra (502 ou timeout) em offset alto; para um ano inteiro (2008-2023) use a fonte por arquivo sisvan_estado_nutricional_arquivos.",
                         required=False,
                         default=None,
                     ),
@@ -1719,7 +1714,7 @@ def get_opendatasus_sources() -> List[OpenDataSUSDownloadSource]:
                         name="codigo_uf",
                         phase="basico",
                         param_type="string",
-                        description="Refinamento opcional na chamada da API para codigo_uf.",
+                        description="Refinamento opcional na chamada da API para codigo_uf. Código IBGE da UF com dois dígitos (35 para SP), não a sigla.",
                         required=False,
                         default=None,
                     ),

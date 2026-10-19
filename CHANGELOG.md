@@ -43,6 +43,19 @@ O catálogo passa a 185 entradas e 173 bases distintas.
   semanas. A resposta que não é JSON agora é repetida como as demais falhas
   passageiras, a espera entre tentativas passa de 0,25 s e 0,5 s para 2 s e
   4 s, e a mensagem traz o tipo e o começo do corpo recebido.
+- A API DEMAS quebra (502 ou timeout) por volta de 1 milhão de linhas de
+  offset. Com `max_pages` alto, uma coleta grande que chegava lá caía inteira,
+  sem arquivo, depois de horas. Agora, se já há linhas coletadas, o endpoint
+  para na página que falhou, o parcial é exportado e o resultado sai como
+  sucesso parcial, com o aviso de onde parou (`stopped_endpoints` no
+  manifesto). Sem nada coletado, ou com erro que não é passageiro, o job falha
+  como antes. Com o padrão de 250 páginas nada muda.
+- As notas que o swagger não traz (o SISVAN pela API aponta para a fonte por
+  arquivo; o `codigo_uf` do estoque de medicamentos BNAFAR é o código IBGE,
+  35 para SP, e a sigla dá erro 400) passam a morar no gerador
+  `scripts/scaffold_opendatasus.py`, e não editadas à mão no registro, que a
+  regeneração reescreve por inteiro. O gerador também grava com fim de linha
+  LF no Windows.
 
 ### Changed: o catálogo separa conjuntos de bases distintas
 Dos 182 conjuntos, oito são a mesma base de outro por um caminho diferente:

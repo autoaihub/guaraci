@@ -322,6 +322,63 @@ def test_download_demas_failure_adds_endpoint_context(tmp_path, monkeypatch) -> 
     assert "retry later" in message.lower()
 
 
+def test_download_demas_deep_failure_keeps_collected_rows(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    # A origem quebra por volta de 1 milhão de offset (502); o que já veio fica.
+    monkeypatch.setattr(OpenDataSUSDataSource, "_sleep", staticmethod(lambda _s: None))
+
+    class _DeepFailingClient:
+        mode = "demas"
+        base_url = "https://apidadosabertos.saude.gov.br"
+
+        def demas_get(self, path: str, params):  # noqa: ANN001
+            if params["offset"] >= 4:
+                raise OpenDataSUSClientError(
+                    "OpenDataSUS request failed (502).", category="http_error", retryable=True
+                )
+            return {"parametros": [{"id": params["offset"] + i} for i in range(2)]}
+
+    datasource = OpenDataSUSDataSource(output_path=str(tmp_path), client=_DeepFailingClient())  # type: ignore[arg-type]
+    payload = datasource.download(
+        dataset="vigilancia-e-meio-ambiente/svsa-populacao-residente",
+        start_year=2024,
+        end_year=2024,
+        batch_size=2,
+        max_pages=10,
+        output_format="csv",
+    )
+    assert payload["downloaded_count"] == 4
+    assert payload["failed_count"] == 1
+    assert payload["exported_files"]
+    assert "page 3 (offset 4)" in payload["export_warning"]
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["filters"]["stopped_endpoints"][0]["offset"] == 4
+
+
+def test_download_demas_non_retryable_deep_failure_still_raises(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.setattr(OpenDataSUSDataSource, "_sleep", staticmethod(lambda _s: None))
+
+    class _BadRequestClient:
+        mode = "demas"
+        base_url = "https://apidadosabertos.saude.gov.br"
+
+        def demas_get(self, path: str, params):  # noqa: ANN001
+            if params["offset"] >= 2:
+                raise OpenDataSUSClientError(
+                    "OpenDataSUS request failed (400).", category="configuration", retryable=False
+                )
+            return {"parametros": [{"id": 1}, {"id": 2}]}
+
+    datasource = OpenDataSUSDataSource(output_path=str(tmp_path), client=_BadRequestClient())  # type: ignore[arg-type]
+    with pytest.raises(OpenDataSUSClientError):
+        datasource.download(
+            dataset="vigilancia-e-meio-ambiente/svsa-populacao-residente",
+            start_year=2024,
+            end_year=2024,
+            batch_size=2,
+            max_pages=10,
+        )
+
+
 def test_download_zikavirus_filters_by_date_and_uf_code(tmp_path) -> None:  # noqa: ANN001
     datasource = OpenDataSUSDataSource(
         output_path=str(tmp_path),
