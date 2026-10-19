@@ -101,7 +101,7 @@ jobs:
           esac
           {
             echo "### ${{ matrix.camada }}"
-            grep -E "^([0-9]+ (fontes|casos|corpos)|FALHA|PROBLEMA|RECUSA)" saida.log | sed 's/^/    /' || true
+            grep -E "^([0-9]+ (fontes|casos|corpos)|FALHA|PROBLEMA|RECUSA|2a )" saida.log | sed 's/^/    /' || true
           } > resumo.md
           cat resumo.md >> "$GITHUB_STEP_SUMMARY"
           exit $status

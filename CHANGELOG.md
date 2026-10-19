@@ -45,7 +45,11 @@ O catálogo passa a 185 entradas e 173 bases distintas.
   4 s, e a mensagem traz o tipo e o começo do corpo recebido. No caso "jobs
   simultâneos" da camada de resiliência, o job que falha por erro passageiro
   da origem é repetido sozinho uma vez, um minuto depois, antes de reprovar:
-  o caso mede concorrência, não a estabilidade do SIDRA.
+  o caso mede concorrência, não a estabilidade do SIDRA. Na camada de
+  coletas, a fonte que passa só na segunda tentativa guarda a mensagem da
+  primeira (`primeira_falha`) e aparece no resumo da semanal como `2a`: numa
+  rodada local de 2026-10-19 dez fontes do IBGE passaram assim, e a causa se
+  perdeu.
 - A API DEMAS quebra (502 ou timeout) por volta de 1 milhão de linhas de
   offset. Com `max_pages` alto, uma coleta grande que chegava lá caía inteira,
   sem arquivo, depois de horas. Agora, se já há linhas coletadas, o endpoint

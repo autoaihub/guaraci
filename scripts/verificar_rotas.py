@@ -461,12 +461,24 @@ def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, t
     falharam = {l["fonte"] for l in rel.falhas if l["verificacao"].startswith("POST /jobs")}
     if falharam:
         time.sleep(60)
+        # A primeira falha fica guardada na linha da segunda tentativa: sem
+        # ela, em 2026-10-19 dez fontes do IBGE passaram só na segunda e não
+        # ficou registro do que a origem tinha feito.
+        primeira = {
+            l["fonte"]: str(l["detalhe"])[:300]
+            for l in rel.linhas
+            if l["fonte"] in falharam and not l["ok"]
+        }
         rel.linhas = [l for l in rel.linhas if not (l["fonte"] in falharam and not l["ok"])]
         with ThreadPoolExecutor(max_workers=2) as pool:
             list(pool.map(um, [f for f in fontes if f["source"] in falharam]))
         for linha in rel.linhas:
             if linha["fonte"] in falharam and linha["ok"]:
-                linha["detalhe"] = {"segunda_tentativa": True, "resultado": linha["detalhe"]}
+                linha["detalhe"] = {
+                    "segunda_tentativa": True,
+                    "primeira_falha": primeira.get(linha["fonte"]),
+                    "resultado": linha["detalhe"],
+                }
 
 
 # ---------------------------------------------------------------------------
@@ -509,6 +521,10 @@ def main() -> int:
           f"{len(avisos)} com aviso, {time.monotonic() - t0:.0f}s -> {saida}")
     for linha in rel.falhas:
         print(f"FALHA  {linha['fonte']:<40} {linha['verificacao']}: {linha['detalhe']}")
+    for linha in rel.linhas:
+        detalhe = linha["detalhe"]
+        if linha["ok"] and isinstance(detalhe, dict) and detalhe.get("segunda_tentativa"):
+            print(f"2a     {linha['fonte']:<40} passou na segunda; a primeira: {detalhe.get('primeira_falha')}")
     return 1 if rel.falhas else 0
 
 
