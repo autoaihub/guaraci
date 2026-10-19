@@ -56,7 +56,9 @@ def _specs(family: str, *, with_biomas: bool) -> List[SourceParameterSpec]:
             name="biomas", phase="coleta", param_type="string_list",
             description=(
                 "Biomas (um CSV por bioma). Valores: " + ", ".join(BIOMAS)
-                + ". Omitido, baixa todos."
+                + ". Omitido, baixa todos. A Amazônia tem dado de 2008 em diante; "
+                "os demais biomas são bienais até 2010 e têm anos faltantes depois "
+                "(o aviso de recorte vazio lista os anos de cada um)."
             ),
             required=False, default=None, allowed_values=BIOMAS,
         ))

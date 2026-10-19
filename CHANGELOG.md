@@ -64,6 +64,12 @@ O catálogo passa a 185 entradas e 173 bases distintas.
 - A verificação semanal não baixa mais essas duas fontes: o menor zip tem
   0,8 GB (PNI) e 1 GB (SISVAN), e o ano padrão passa de 20 GB. Ela confere na
   origem que os arquivos do pedido padrão existem e começam como zip.
+- PRODES: os anos com dado mudam por bioma (contados no WFS em 2026-10-19).
+  A Amazônia começa em 2008; o Cerrado tem 2002 a 2010 de dois em dois anos
+  e 2012 em diante; Caatinga, Mata Atlântica, Pampa e Pantanal têm 2004 a
+  2010 de dois em dois anos, 2011, 2013, 2014 e 2016 em diante. Quem pedia
+  um ano que o bioma não tem recebia só "nenhuma linha"; agora o aviso lista
+  os anos daquele bioma, e a descrição de `biomas` antecipa isso.
 
 ### Changed: o catálogo separa conjuntos de bases distintas
 Dos 182 conjuntos, oito são a mesma base de outro por um caminho diferente:

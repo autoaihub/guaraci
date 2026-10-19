@@ -30,7 +30,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Sequence
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -112,6 +112,40 @@ PRODES_LAYERS: Dict[str, LayerSpec] = {
 
 # Pisos de ano verificados ao vivo (primeira feicao por data/ano).
 MIN_YEAR = {"inpe_deter_amazonia": 2016, "inpe_deter_cerrado": 2018, "inpe_prodes": 2002}
+
+# Anos com dado em cada camada do PRODES, contados no WFS em 2026-10-19
+# (resultType=hits por ano, de 1985 a 2026). Fora da Amazônia o mapeamento é
+# bienal até 2010 e tem buracos depois (2012 e 2015 na Caatinga, por exemplo);
+# a Amazônia começa em 2008. Anos com 1 a 8 polígonos soltos (2000, 2005,
+# 2007...) ficaram de fora: não são um ano mapeado. Sem esta tabela, quem
+# pedia Caatinga 2012 recebia "nenhuma linha" sem saber quais anos existem.
+_BIENAL_E_DEPOIS = (2004, 2006, 2008, 2010, 2011, 2013, 2014) + tuple(range(2016, 2026))
+PRODES_ANOS: Dict[str, Tuple[int, ...]] = {
+    "legal_amz": tuple(range(2008, 2026)),
+    "amazon": tuple(range(2008, 2026)),
+    "cerrado": (2002, 2004, 2006, 2008, 2010) + tuple(range(2012, 2026)),
+    "caatinga": _BIENAL_E_DEPOIS,
+    "mata_atlantica": _BIENAL_E_DEPOIS,
+    "pampa": _BIENAL_E_DEPOIS,
+    "pantanal": _BIENAL_E_DEPOIS,
+}
+
+
+def _anos_por_extenso(anos: Sequence[int]) -> str:
+    """``(2004, 2006, 2010, 2011, 2016, 2017, 2018)`` vira ``"2004, 2006, 2010, 2011, 2016-2018"``."""
+    partes: List[str] = []
+    inicio = anterior = None
+    for ano in list(anos) + [None]:
+        if inicio is not None and ano == anterior + 1:
+            anterior = ano
+            continue
+        if inicio is not None:
+            if anterior - inicio >= 2:
+                partes.append(f"{inicio}-{anterior}")
+            else:
+                partes.extend(str(a) for a in range(inicio, anterior + 1))
+        inicio = anterior = ano
+    return ", ".join(partes)
 
 
 def build_cql(spec: LayerSpec, start_year: Optional[int], end_year: Optional[int]) -> Optional[str]:
@@ -325,9 +359,14 @@ class TerraBrasilisDataSource(DataSource):
             if rows == 0:
                 # So cabecalho: nao e um artefato util e nao conta como exportado.
                 csv_path.unlink(missing_ok=True)
-                warnings.append(
-                    f"{spec.key}: nenhuma linha para o recorte pedido; arquivo nao gerado."
-                )
+                aviso = f"{spec.key}: nenhuma linha para o recorte pedido; arquivo nao gerado."
+                bioma = spec.key.removeprefix("inpe_prodes_")
+                if bioma in PRODES_ANOS:
+                    aviso += (
+                        f" Anos com dado neste bioma (contados em 2026-10-19): "
+                        f"{_anos_por_extenso(PRODES_ANOS[bioma])}, e os publicados depois."
+                    )
+                warnings.append(aviso)
                 continue
             total_rows += rows
             try:

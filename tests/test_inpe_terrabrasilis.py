@@ -244,3 +244,11 @@ def test_leitura_truncada_e_repetida_e_status_5xx_e_retentavel(monkeypatch):
     with pytest.raises(TerraBrasilisError) as info:
         TerraBrasilisClient(max_attempts=2, opener=erro_500).request({})
     assert info.value.retryable is True
+
+
+def test_ano_sem_dado_no_bioma_lista_os_anos_que_existem(tmp_path: Path):
+    # Caatinga não tem 2012 (contado no WFS em 2026-10-19): o aviso diz quais anos há.
+    ds = TerraBrasilisDataSource("inpe_prodes", output_path=str(tmp_path), client=_Fake([]))
+    payload = ds.download(biomas=["caatinga"], start_year=2012, end_year=2012)
+    assert "inpe_prodes_caatinga: nenhuma linha" in payload["export_warning"]
+    assert "2004, 2006, 2008, 2010, 2011, 2013, 2014, 2016-2025" in payload["export_warning"]
