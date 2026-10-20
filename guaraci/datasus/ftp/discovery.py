@@ -32,6 +32,9 @@ _SIM_PATH_BY_GROUP: dict[str, str] = {
     "CID10": SIM_CID10_PATH,
     "CID9": SIM_CID9_PATH,
 }
+# Óbitos preliminares (2025-2026 em 2026-10-20), mesmo layout e mesmo nome
+# DO<UF><AAAA> do CID10, por isso entram no grupo CID10.
+SIM_PRELIM_PATH: str = "/dissemin/publicos/SIM/PRELIM/DORES"
 
 # SINAN keeps consolidated (FINAIS) and preliminary (PRELIM) national files.
 SINAN_FINAIS_PATH: str = "/dissemin/publicos/SINAN/DADOS/FINAIS"
@@ -137,6 +140,17 @@ async def discover_sim(
         for rec in discovered
         if _matches(rec, year_set, group_set, state_set, None)
     ]
+    if "CID10" in target_groups:
+        filtered = await _fill_from_prelim(
+            client,
+            (SIM_PRELIM_PATH,),
+            parse_sim,
+            discovered=discovered,
+            filtered=filtered,
+            years=year_set,
+            groups=group_set,
+            states=state_set,
+        )
 
     if fetch_sizes:
         filtered = await _attach_sizes(client, filtered)
@@ -228,13 +242,30 @@ async def discover_spec(
 
     discovered: list[FileRecord] = []
     for directory in directories:
-        discovered.extend(await _list_and_parse(client, directory, spec.parse))
+        # O mesmo arquivo pode reaparecer num diretório posterior (o SINASC/ANT
+        # repete o DNAC2014 do NOV): vale o primeiro, para não baixar em dobro.
+        seen = {_identity(rec) for rec in discovered}
+        discovered.extend(
+            rec
+            for rec in await _list_and_parse(client, directory, spec.parse)
+            if _identity(rec) not in seen
+        )
 
     filtered = [
         rec
         for rec in discovered
         if _matches(rec, year_set, group_set, state_set, None)
     ]
+    filtered = await _fill_from_prelim(
+        client,
+        tuple(getattr(spec, "prelim_roots", ()) or ()),
+        spec.parse,
+        discovered=discovered,
+        filtered=filtered,
+        years=year_set,
+        groups=group_set,
+        states=state_set,
+    )
 
     if fetch_sizes:
         filtered = await _attach_sizes(client, filtered)
@@ -266,6 +297,7 @@ async def discover_available_years(
         ]
     else:
         directories = list(spec.roots)
+    directories += list(getattr(spec, "prelim_roots", ()) or ())
 
     anos: set[int] = set()
     for directory in directories:
@@ -306,6 +338,43 @@ def _matches(
     if months is not None and rec.month not in months:
         return False
     return True
+
+
+def _identity(rec: FileRecord) -> tuple:
+    """O que torna dois arquivos o mesmo dado, independente do diretório."""
+    return (rec.group, rec.state or "", rec.year, rec.month or 0)
+
+
+async def _fill_from_prelim(
+    client: _FtpListing,
+    directories: Sequence[str],
+    parser: Callable[[str], Optional[FileRecord]],
+    *,
+    discovered: Sequence[FileRecord],
+    filtered: list[FileRecord],
+    years: set[int],
+    groups: Optional[set[str]],
+    states: Optional[set[str]],
+) -> list[FileRecord]:
+    """Completa ``filtered`` com o PRELIM, marcado como preliminar.
+
+    Como no SINAN, o consolidado vence quando os dois existem. O PRELIM só é
+    listado se algum ano pedido ficou sem arquivo consolidado, o que poupa
+    uma listagem por coleta na série histórica.
+    """
+    if not directories or not (years - {rec.year for rec in filtered}):
+        return filtered
+    seen = {_identity(rec) for rec in discovered}
+    extra: list[FileRecord] = []
+    for directory in directories:
+        for rec in await _list_and_parse(client, directory, parser):
+            if _identity(rec) in seen:
+                continue
+            if not _matches(rec, years, groups, states, None):
+                continue
+            seen.add(_identity(rec))
+            extra.append(rec.as_preliminary())
+    return filtered + extra
 
 
 async def _list_and_parse(

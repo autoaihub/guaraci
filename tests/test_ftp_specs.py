@@ -102,7 +102,7 @@ def test_two_digit_year_window_boundary() -> None:
 
 def test_registry_is_complete_and_consistent() -> None:
     assert set(specs.SPECS) == {s.name for s in specs.ALL_SPECS}
-    assert len(specs.ALL_SPECS) == 12
+    assert len(specs.ALL_SPECS) == 13
     # Every spec defines exactly one of roots / group_dirs.
     for spec in specs.ALL_SPECS:
         assert bool(spec.roots) != bool(spec.group_dirs), spec.name
