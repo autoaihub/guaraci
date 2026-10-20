@@ -1,5 +1,5 @@
 """Microdados de pesquisas amostrais do IBGE: PNS, PeNSE, POF, PNAD Contínua,
-PNAD COVID-19 e amostra do Censo 2022.
+PNAD COVID-19, amostra do Censo 2022 e PNAD anual.
 
 Os arquivos ficam em ``https://ftp.ibge.gov.br/``, um zip por edição (ou por
 amostra), sem API. Cada fonte cobre uma pesquisa, e o ano escolhido é a
@@ -7,7 +7,8 @@ EDIÇÃO: ano sem edição não gera requisição alguma.
 
 Dois formatos convivem:
 
-- largura fixa (PNS 2013 e 2019, POF 2017-2018, PeNSE 2012, PNAD Contínua),
+- largura fixa (PNS 2013 e 2019, POF 2017-2018, PeNSE 2012, PNAD Contínua,
+  PNAD anual com suplemento de saúde),
   lida pelo programa SAS de leitura que o próprio IBGE publica
   (``fixed_width``), dentro de um zip ou como ``.txt`` solto (PNAD Contínua);
 - CSV (PeNSE 2015, 2019 e 2024, PNAD COVID-19, Censo 2022), regravado em UTF-8.
@@ -463,6 +464,7 @@ _PNAD_COVID = (
     "Microdados/Dados/"
 )
 _PNAD_COVID_MESES = ("05", "06", "07", "08", "09", "10", "11")
+_PNAD_ANUAL = "Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/"
 
 
 PESQUISAS: Dict[str, Pesquisa] = {
@@ -669,6 +671,53 @@ PESQUISAS: Dict[str, Pesquisa] = {
                 )
             },
             recorte=Recorte("meses", "mês", {m: {"mes": m} for m in _PNAD_COVID_MESES}),
+        ),
+        # PNAD anual com o suplemento de saúde, que vem no próprio arquivo de
+        # pessoas. 2003 e 2008 saem da reponderação de 2001-2012 (pesos V4729
+        # e V4611 recalibrados pela projeção de população de 2013), que traz
+        # dado e INPUT SAS no mesmo zip; 1998 não foi reponderada e fica com
+        # os pesos originais, com o INPUT num Layout.zip à parte.
+        Pesquisa(
+            "ibge_pnad_saude",
+            "IBGE PNAD anual com suplemento de saúde (microdados)",
+            "Microdados da PNAD anual de 1998, 2003 e 2008, edições com o "
+            "suplemento de saúde: morbidade referida, doenças crônicas, "
+            "mobilidade física, plano de saúde e acesso e uso de serviços, "
+            "além de domicílio, trabalho, educação e rendimentos.",
+            {
+                1998: Edicao(
+                    1998,
+                    "1998",
+                    {
+                        "dados": _PNAD_ANUAL + "1998/Dados.zip",
+                        "layout": _PNAD_ANUAL + "1998/Layout.zip",
+                    },
+                    (
+                        Tabela("pessoas", "dados", "Pessoa98.txt", layout=("layout", "SAS_PES98.txt")),
+                        Tabela(
+                            "domicilios", "dados", "Domicilio98.txt", layout=("layout", "SAS_DOM98.txt")
+                        ),
+                    ),
+                ),
+                2003: Edicao(
+                    2003,
+                    "2003",
+                    {"dados": _PNAD_ANUAL + "reponderacao_2001_2012/PNAD_reponderado_2003_20150814.zip"},
+                    (
+                        Tabela("pessoas", "dados", "PES2003.txt", layout=("dados", "INPUT PES2003.TXT")),
+                        Tabela("domicilios", "dados", "DOM2003.txt", layout=("dados", "INPUT DOM2003.TXT")),
+                    ),
+                ),
+                2008: Edicao(
+                    2008,
+                    "2008",
+                    {"dados": _PNAD_ANUAL + "reponderacao_2001_2012/PNAD_reponderado_2008.zip"},
+                    (
+                        Tabela("pessoas", "dados", "PES2008.TXT", layout=("dados", "input PES2008.txt")),
+                        Tabela("domicilios", "dados", "DOM2008.txt", layout=("dados", "input DOM2008.txt")),
+                    ),
+                ),
+            },
         ),
     )
 }
