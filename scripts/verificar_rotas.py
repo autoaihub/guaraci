@@ -89,6 +89,12 @@ _OVERRIDES: Dict[str, Dict[str, Any]] = {
     "inpe_deter_amazonia": {"page_size": 50000},
     "inpe_deter_cerrado": {"page_size": 50000},
     "inpe_prodes": {"page_size": 50000},
+    # Leva 5 (2026-10-20): o padrão dessas traria centenas de MB ou minutos de
+    # coleta; o recorte abaixo é o menor que ainda exercita o caminho inteiro.
+    "ibge_censo2022_amostra": {"ufs": ["AC"], "tabelas": ["mortalidade"]},
+    "ibge_pnad_covid19": {"meses": ["05"]},
+    "ibge_pnad_saude": {"start_year": 1998, "end_year": 1998, "tabelas": ["domicilios"]},
+    "mds_misocial": {"start_year": 2024, "end_year": 2024, "grupos": ["bpc"]},
 }
 
 # Endpoints do DEMAS que respondem 200 com lista vazia sem filtro algum
@@ -108,7 +114,8 @@ _ORIGEM_VAZIA = {
 # 1 GB comprimidos (medido em 2026-10-19), mais de 8 GB em CSV, e o pedido
 # padrão traz o ano inteiro. A coleta não cabe no runner; a verificação confere
 # na origem que os arquivos do pedido padrão existem e são zip, sem baixá-los.
-_SO_CABECALHO = {"pni_doses_aplicadas_arquivos", "sisvan_estado_nutricional_arquivos"}
+_SO_CABECALHO = {"pni_doses_aplicadas_arquivos", "sisvan_estado_nutricional_arquivos",
+                 "inpe_sisam"}  # SISAM: 130 a 217 MB por ano
 
 
 def confere_cabecalho(s: str, params: Dict[str, Any]) -> Dict[str, Any]:

@@ -164,7 +164,9 @@ _RC_RESIDENCIA = (
 def _rc_residencia_sources() -> List[DownloadSource]:
     """Óbitos fetais (2990) e óbitos por residência (2654), desde 2003."""
     current_year = datetime.now().year
-    last_year = current_year - 1
+    # As duas tabelas publicam o ano Y por volta de nov/dez de Y+1: em
+    # 2026-10-20 iam até 2024, e o padrão no ano anterior abria vazio.
+    last_year = current_year - 2
     fontes: List[DownloadSource] = []
     for cls, titulo, assunto, mes_desc in _RC_RESIDENCIA:
         nome = cls().name
