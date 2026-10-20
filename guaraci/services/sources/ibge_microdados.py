@@ -1,4 +1,5 @@
-"""Fontes de microdados do IBGE (PNS, PeNSE, POF) do registro padrão."""
+"""Fontes de microdados do IBGE (PNS, PeNSE, POF, PNAD Contínua, PNAD COVID-19,
+amostra do Censo 2022) do registro padrão."""
 
 from typing import List
 
@@ -10,6 +11,32 @@ from guaraci.services.downloads import (
     DownloadSource,
     SourceDescriptor,
 )
+
+
+def _recorte_params(pesquisa: Pesquisa) -> List[SourceParameterSpec]:
+    """Parâmetro ``ufs`` ou ``meses`` das pesquisas publicadas em partes."""
+    recorte = pesquisa.recorte
+    if recorte is None:
+        return []
+    valores = list(recorte.valores)
+    if recorte.obrigatorio:
+        padrao = "Obrigatório: o país inteiro passa de 1 GB zipado."
+    else:
+        padrao = f"Padrão: todos ({', '.join(valores)})."
+    return [
+        SourceParameterSpec(
+            name=recorte.param,
+            phase="coleta",
+            param_type="string_list",
+            description=(
+                f"Recorte por {recorte.rotulo}: um zip por {recorte.rotulo}, e cada "
+                f"tabela sai num arquivo por {recorte.rotulo}. {padrao}"
+            ),
+            required=recorte.obrigatorio,
+            default=None,
+            allowed_values=valores,
+        )
+    ]
 
 
 def _params(pesquisa: Pesquisa) -> List[SourceParameterSpec]:
@@ -60,6 +87,7 @@ def _params(pesquisa: Pesquisa) -> List[SourceParameterSpec]:
             default=None,
             allowed_values=tabelas,
         ),
+        *_recorte_params(pesquisa),
         SourceParameterSpec(
             name="output_format",
             phase="exportacao",

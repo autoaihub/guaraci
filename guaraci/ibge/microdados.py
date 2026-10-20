@@ -1,4 +1,5 @@
-"""Microdados de pesquisas amostrais do IBGE: PNS, PeNSE, POF e PNAD Contínua.
+"""Microdados de pesquisas amostrais do IBGE: PNS, PeNSE, POF, PNAD Contínua,
+PNAD COVID-19 e amostra do Censo 2022.
 
 Os arquivos ficam em ``https://ftp.ibge.gov.br/``, um zip por edição (ou por
 amostra), sem API. Cada fonte cobre uma pesquisa, e o ano escolhido é a
@@ -9,7 +10,12 @@ Dois formatos convivem:
 - largura fixa (PNS 2013 e 2019, POF 2017-2018, PeNSE 2012, PNAD Contínua),
   lida pelo programa SAS de leitura que o próprio IBGE publica
   (``fixed_width``), dentro de um zip ou como ``.txt`` solto (PNAD Contínua);
-- CSV (PeNSE 2015, 2019 e 2024), regravado em UTF-8.
+- CSV (PeNSE 2015, 2019 e 2024, PNAD COVID-19, Censo 2022), regravado em UTF-8.
+
+Algumas pesquisas publicam a edição em partes, um zip por UF (Censo 2022) ou
+por mês (PNAD COVID-19). Elas declaram um ``Recorte``: o parâmetro (``ufs``
+ou ``meses``) escolhe as partes, e os caminhos e membros da edição são
+modelos preenchidos com os campos de cada parte.
 
 A saída é um arquivo por tabela, tudo como texto, com o nome de coluna do
 leiaute publicado. Pesos e códigos não são convertidos: interpretar é papel
@@ -62,6 +68,7 @@ __all__ = [
     "Tabela",
     "Edicao",
     "Pesquisa",
+    "Recorte",
     "PESQUISAS",
     "IbgeFtpClient",
     "IbgeFtpError",
@@ -234,11 +241,28 @@ class Edicao:
 
 
 @dataclass(frozen=True)
+class Recorte:
+    """Partes em que uma edição é publicada, um zip por parte.
+
+    ``valores`` leva, por valor aceito no parâmetro, os campos que preenchem
+    os modelos ``{campo}`` dos caminhos e membros da edição. Com
+    ``obrigatorio`` o parâmetro não tem padrão: o Brasil inteiro do Censo
+    2022 passa de 1 GB zipado e 8 GB em CSV, e isso não deve sair por omissão.
+    """
+
+    param: str
+    rotulo: str
+    valores: Dict[str, Dict[str, str]]
+    obrigatorio: bool = False
+
+
+@dataclass(frozen=True)
 class Pesquisa:
     key: str
     title: str
     description: str
     edicoes: Dict[int, Edicao]
+    recorte: Optional[Recorte] = None
 
 
 def _pof_tabelas() -> Tuple[Tabela, ...]:
@@ -394,6 +418,51 @@ def _pnadc_trimestre(numero: int, anos: Dict[int, str], leitura: str) -> Dict[in
         },
         "PNADC_{ano}_trimestre" + str(numero) + ".txt",
     )
+
+
+_CENSO2022 = (
+    "Censos/Censo_Demografico_2022/Microdados_e_Areas_de_Ponderacao/"
+    "Microdados_de_acesso_Publico/csv/"
+)
+_UFS = {
+    "RO": "11", "AC": "12", "AM": "13", "RR": "14", "PA": "15", "AP": "16", "TO": "17",
+    "MA": "21", "PI": "22", "CE": "23", "RN": "24", "PB": "25", "PE": "26", "AL": "27",
+    "SE": "28", "BA": "29", "MG": "31", "ES": "32", "RJ": "33", "SP": "35", "PR": "41",
+    "SC": "42", "RS": "43", "MS": "50", "MT": "51", "GO": "52", "DF": "53",
+}
+
+
+def _censo2022_amostra() -> Dict[int, Edicao]:
+    """Amostra de acesso público, um zip por UF com as quatro tabelas.
+
+    O membro leva o código da UF (``Pessoas_12_publico.csv``) e o zip, código
+    e sigla (``12_AC.zip``). CSV com ``;``, cabeçalho e só ASCII no AC
+    conferido inteiro; a regravação em UTF-8 decide pelo conteúdo mesmo assim.
+    """
+    pares = (
+        ("pessoas", "Pessoas"),
+        ("domicilios", "Domicilios"),
+        ("familias", "Familia"),
+        ("mortalidade", "Mortalidade"),
+    )
+    return {
+        2022: Edicao(
+            2022,
+            "2022",
+            {"dados": _CENSO2022 + "{cod}_{uf}.zip"},
+            tuple(
+                Tabela(nome, "dados", f"{prefixo}_{{cod}}_publico.csv", separador=";")
+                for nome, prefixo in pares
+            ),
+        )
+    }
+
+
+_PNAD_COVID = (
+    "Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_PNAD_COVID19/"
+    "Microdados/Dados/"
+)
+_PNAD_COVID_MESES = ("05", "06", "07", "08", "09", "10", "11")
 
 
 PESQUISAS: Dict[str, Pesquisa] = {
@@ -568,6 +637,39 @@ PESQUISAS: Dict[str, Pesquisa] = {
                 "_20251010",
             ),
         ),
+        Pesquisa(
+            "ibge_censo2022_amostra",
+            "IBGE Censo Demográfico 2022, amostra (microdados de acesso público)",
+            "Microdados da amostra do Censo 2022 por UF em quatro tabelas: "
+            "pessoas (deficiência e dificuldades funcionais, autismo, "
+            "fecundidade, educação, trabalho e rendimento), domicílios "
+            "(saneamento e características do domicílio), famílias e "
+            "mortalidade (óbitos de moradores de ago/2021 a jul/2022 por sexo "
+            "e idade), com pesos e área de ponderação.",
+            _censo2022_amostra(),
+            recorte=Recorte(
+                "ufs",
+                "UF",
+                {uf: {"uf": uf, "cod": cod} for uf, cod in _UFS.items()},
+                obrigatorio=True,
+            ),
+        ),
+        Pesquisa(
+            "ibge_pnad_covid19",
+            "IBGE PNAD COVID-19 (microdados mensais, mai a nov de 2020)",
+            "Microdados mensais da PNAD COVID-19: sintomas, procura de "
+            "atendimento, internação, testagem e condições crônicas, junto com "
+            "trabalho, rendimento e auxílios, por pessoa, UF e capital/RM.",
+            {
+                2020: Edicao(
+                    2020,
+                    "2020 (mai a nov)",
+                    {"dados": _PNAD_COVID + "PNAD_COVID_{mes}2020.zip"},
+                    (Tabela("microdados", "dados", "PNAD_COVID_{mes}2020.csv"),),
+                )
+            },
+            recorte=Recorte("meses", "mês", {m: {"mes": m} for m in _PNAD_COVID_MESES}),
+        ),
     )
 }
 
@@ -592,6 +694,50 @@ def _normalize_tabelas(value: object) -> Optional[List[str]]:
         raise ValueError(f"tabelas must be a list of names, got {value!r}.")
     names = [item.strip().lower() for item in items if str(item).strip()]
     return names or None
+
+
+def _normalize_partes(value: object, recorte: Optional[Recorte], param: str) -> Optional[List[str]]:
+    """Valida o recorte pedido e devolve as partes na ordem do registro.
+
+    ``None`` quando o parâmetro não é o recorte da pesquisa (e nada foi pedido
+    nele); pedir UF numa pesquisa sem UF é erro, não silêncio.
+    """
+    if value is None or (isinstance(value, str) and not value.strip()):
+        items: List[str] = []
+    elif isinstance(value, (str, int)):
+        items = str(value).split(",")
+    elif isinstance(value, Iterable):
+        items = [str(v) for v in value]
+    else:
+        raise ValueError(f"{param} must be a list, got {value!r}.")
+    wanted = [item.strip().upper() for item in items if str(item).strip()]
+    if recorte is None or recorte.param != param:
+        if wanted:
+            raise ValueError(f"{param} does not apply to this survey.")
+        return None
+    if param == "meses":
+        wanted = [w.zfill(2) for w in wanted]
+    if not wanted:
+        if recorte.obrigatorio:
+            raise ValueError(f"{param} is required (one or more of {list(recorte.valores)}).")
+        return list(recorte.valores)
+    unknown = sorted(set(wanted) - set(recorte.valores))
+    if unknown:
+        raise ValueError(f"Unknown {param} {unknown}. Known: {list(recorte.valores)}")
+    return [v for v in recorte.valores if v in wanted]
+
+
+def _materialize(edicao: Edicao, campos: Dict[str, str]) -> Edicao:
+    """Preenche os modelos ``{campo}`` dos caminhos e membros com uma parte."""
+    return Edicao(
+        edicao.ano,
+        edicao.rotulo,
+        {alias: path.format(**campos) for alias, path in edicao.arquivos.items()},
+        tuple(
+            Tabela(t.nome, t.arquivo, t.membro.format(**campos), t.layout, t.separador)
+            for t in edicao.tabelas
+        ),
+    )
 
 
 def _find_member(archive: zipfile.ZipFile, name: str) -> zipfile.ZipInfo:
@@ -663,8 +809,16 @@ class IbgeMicrodadosDataSource(DataSource):
         )
 
     def _plan(
-        self, start_year: Optional[int], end_year: Optional[int], tabelas: Optional[List[str]]
-    ) -> List[Tuple[Edicao, List[Tabela]]]:
+        self,
+        start_year: Optional[int],
+        end_year: Optional[int],
+        tabelas: Optional[List[str]],
+        partes: Optional[List[str]] = None,
+    ) -> List[Tuple[Edicao, str, List[Tabela]]]:
+        """Edições (já preenchidas com a parte, quando há recorte) e tabelas.
+
+        A parte é ``""`` em pesquisa sem recorte.
+        """
         if start_year is None:
             raise ValueError("start_year is required (survey edition year).")
         first = int(start_year)
@@ -681,10 +835,16 @@ class IbgeMicrodadosDataSource(DataSource):
                     f"Known: {sorted(known)}"
                 )
         plan = []
+        recorte = self.spec.recorte
         for edicao in edicoes:
-            chosen = [t for t in edicao.tabelas if not tabelas or t.nome in tabelas]
-            if chosen:
-                plan.append((edicao, chosen))
+            if recorte is None:
+                expanded = [(edicao, "")]
+            else:
+                expanded = [(_materialize(edicao, recorte.valores[p]), p) for p in partes or []]
+            for item, parte in expanded:
+                chosen = [t for t in item.tabelas if not tabelas or t.nome in tabelas]
+                if chosen:
+                    plan.append((item, parte, chosen))
         return plan
 
     def download(
@@ -693,6 +853,8 @@ class IbgeMicrodadosDataSource(DataSource):
         start_year: Optional[int] = None,
         end_year: Optional[int] = None,
         tabelas: object = None,
+        ufs: object = None,
+        meses: object = None,
         output_format: Optional[str] = None,
         keep_raw: bool = False,
         output_dir: Optional[str] = None,
@@ -701,11 +863,14 @@ class IbgeMicrodadosDataSource(DataSource):
         progress_callback: Optional[ProgressCallback] = None,
     ) -> Dict[str, object]:
         requested = _normalize_format(output_format)
-        plan = self._plan(start_year, end_year, _normalize_tabelas(tabelas))
+        recorte = self.spec.recorte
+        partes = _normalize_partes(ufs, recorte, "ufs")
+        partes = _normalize_partes(meses, recorte, "meses") or partes
+        plan = self._plan(start_year, end_year, _normalize_tabelas(tabelas), partes)
         base_dir = Path(output_dir) if output_dir else self.output_path
         base_dir.mkdir(parents=True, exist_ok=True)
         payload: Dict[str, object] = {
-            "documents_found": sum(len(chosen) for _, chosen in plan),
+            "documents_found": sum(len(chosen) for _, _, chosen in plan),
             "downloaded_count": 0,
             "skipped_count": 0,
             "failed_count": 0,
@@ -715,10 +880,12 @@ class IbgeMicrodadosDataSource(DataSource):
             "output_format": requested,
             "exported_files": [],
             "keep_raw": keep_raw,
-            "editions": [e.ano for e, _ in plan],
+            "editions": list(dict.fromkeys(e.ano for e, _, _ in plan)),
             "encodings": {},
             "export_warning": None,
         }
+        if recorte is not None:
+            payload[recorte.param] = list(dict.fromkeys(p for _, p, _ in plan))
         if not plan:
             payload["export_warning"] = (
                 f"Nenhuma edição de {self.name} entre {start_year} e "
@@ -729,24 +896,24 @@ class IbgeMicrodadosDataSource(DataSource):
 
         client = self._client or IbgeFtpClient(base_url=api_base_url, timeout_seconds=timeout)
         downloads = [
-            (edicao, alias)
-            for edicao, chosen in plan
+            (edicao, parte, alias)
+            for edicao, parte, chosen in plan
             for alias in dict.fromkeys(
                 [t.arquivo for t in chosen]
                 + [t.layout[0] for t in chosen if t.layout and t.layout[0] != _FROZEN]
             )
         ]
         total = len(downloads)
-        raws: Dict[Tuple[int, str], Path] = {}
+        raws: Dict[Tuple[int, str, str], Path] = {}
         baixados: List[Path] = []  # só o que esta execução baixou
         warnings: List[str] = []
         if progress_callback is not None:
             progress_callback({"event": "download_start", "source": self.name, "documents_total": total})
-        for index, (edicao, alias) in enumerate(downloads, start=1):
+        for index, (edicao, parte, alias) in enumerate(downloads, start=1):
             path = edicao.arquivos[alias]
             remote = client.head(path)
             raw_path = base_dir / f"{self.name}_{edicao.ano}_{Path(path).name}"
-            raws[(edicao.ano, alias)] = raw_path
+            raws[(edicao.ano, parte, alias)] = raw_path
             payload["source_urls"].append(remote.url)
             skipped = (
                 raw_path.exists()
@@ -775,11 +942,14 @@ class IbgeMicrodadosDataSource(DataSource):
         payload["source_url"] = payload["source_urls"][0]
 
         if requested:
-            for edicao, chosen in plan:
+            for edicao, parte, chosen in plan:
                 for tabela in chosen:
-                    dest, encoding, warning = self._export(edicao, tabela, raws, base_dir, requested)
+                    dest, encoding, warning = self._export(
+                        edicao, parte, tabela, raws, base_dir, requested
+                    )
                     payload["exported_files"].append(str(dest))
-                    payload["encodings"][f"{edicao.ano}/{tabela.nome}"] = encoding
+                    chave = "/".join(str(x) for x in (edicao.ano, parte, tabela.nome) if x != "")
+                    payload["encodings"][chave] = encoding
                     if warning:
                         warnings.append(warning)
             if not keep_raw:
@@ -798,16 +968,17 @@ class IbgeMicrodadosDataSource(DataSource):
     def _export(
         self,
         edicao: Edicao,
+        parte: str,
         tabela: Tabela,
-        raws: Dict[Tuple[int, str], Path],
+        raws: Dict[Tuple[int, str, str], Path],
         base_dir: Path,
         fmt: str,
     ) -> Tuple[Path, str, Optional[str]]:
-        stem = f"{self.name}_{edicao.ano}_{tabela.nome}"
+        stem = "_".join(str(x) for x in (self.name, edicao.ano, parte, tabela.nome) if x != "")
         utf8 = base_dir / f"{stem}.utf8.tmp"
         warning = None
         try:
-            with zipfile.ZipFile(raws[(edicao.ano, tabela.arquivo)]) as archive:
+            with zipfile.ZipFile(raws[(edicao.ano, parte, tabela.arquivo)]) as archive:
                 info = _find_member(archive, tabela.membro)
                 if tabela.layout is None:
                     encoding = _transcode_csv(archive, info, utf8)
@@ -823,7 +994,7 @@ class IbgeMicrodadosDataSource(DataSource):
                     if layout_zip == _FROZEN:
                         block = load_frozen_layout(_LAYOUTS_DIR / programa, name=tabela.nome)
                     else:
-                        layout_raw = raws[(edicao.ano, layout_zip)]
+                        layout_raw = raws[(edicao.ano, parte, layout_zip)]
                         if layout_raw.suffix.lower() == ".zip":
                             with zipfile.ZipFile(layout_raw) as layout_archive:
                                 text = layout_archive.read(_find_member(layout_archive, programa))
