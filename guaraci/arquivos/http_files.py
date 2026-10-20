@@ -26,17 +26,26 @@ Fontes:
   comprimidos, por isso ``anos`` é obrigatório e ``meses`` recorta dentro do ano.
 - ``sisvan_estado_nutricional_arquivos``: acompanhamento do estado nutricional do
   SISVAN, um zip de CSV por ano (2008-2023, de 0,9 a 4,4 GB cada), mesma origem.
+- ``pni_cobertura_vacinal_residencia``: cobertura vacinal por município de residência,
+  imunobiológico e ano (SIPNI), um parquet de 5 MB no FTP do DATASUS, lido por
+  ``ftp://``. A exportação converte todas as colunas para texto, como nos CSV.
+- ``mgdi_cancer_colo_mama``, ``mgdi_cirurgias_especialistas``, ``mgdi_equidade``,
+  ``mgdi_residencias_saude``, ``mgdi_rnds`` e ``mgdi_saude_bucal_fluoretacao``: os
+  demais grupos do MGDI, no mesmo bucket e esquema dos ``mgdi_*`` acima.
 """
 
 from __future__ import annotations
 
 import codecs
+import ftplib
 import http.client
 import os
 import re
 import socket
 import zipfile
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from email.utils import format_datetime
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 from urllib.error import HTTPError, URLError
@@ -128,6 +137,9 @@ class HttpFileClient:
         self.max_attempts = max_attempts
 
     def head(self, url: str) -> RemoteFile:
+        if urlsplit(url).scheme == "ftp":
+            return request_with_retry(lambda: self._ftp_head(url), max_attempts=self.max_attempts)
+
         def send() -> RemoteFile:
             request = Request(url, method="HEAD", headers={"User-Agent": self.USER_AGENT})
             try:
@@ -220,6 +232,41 @@ class HttpFileClient:
         partial.replace(destination)
         return written
 
+    def _ftp_head(self, url: str) -> RemoteFile:
+        """``SIZE`` e ``MDTM`` no lugar do HEAD, pois abrir ``ftp://`` pelo urllib já dispara o RETR.
+
+        O ``download`` segue pelo urllib, que lê ``ftp://`` em fluxo e informa o
+        tamanho em ``Content-Length``.
+        """
+        parts = urlsplit(url)
+        try:
+            with ftplib.FTP(parts.hostname or "", timeout=self.timeout_seconds) as ftp:
+                ftp.login()
+                ftp.voidcmd("TYPE I")
+                size = ftp.size(parts.path)
+                stamp = ftp.voidcmd(f"MDTM {parts.path}").split()[-1]
+        except ftplib.error_perm as exc:
+            raise HttpFileClientError(
+                f"FTP refused '{url}': {exc}",
+                category="not_found",
+                retryable=False,
+                hint="Confira se o arquivo ainda existe no FTP do DATASUS.",
+            ) from exc
+        except (ftplib.Error, OSError, EOFError) as exc:
+            timed_out = isinstance(exc, (TimeoutError, socket.timeout))
+            raise HttpFileClientError(
+                f"Could not reach '{url}': {exc}",
+                category="timeout" if timed_out else "connectivity",
+                retryable=True,
+                hint="O FTP do DATASUS oscila; tente de novo em alguns minutos.",
+            ) from exc
+        try:
+            moment = datetime.strptime(stamp[:14], "%Y%m%d%H%M%S").replace(tzinfo=timezone.utc)
+            last_modified: Optional[str] = format_datetime(moment, usegmt=True)
+        except ValueError:
+            last_modified = None
+        return RemoteFile(url=url, size=size, last_modified=last_modified)
+
     @staticmethod
     def _http_error(exc: HTTPError, url: str) -> HttpFileClientError:
         category, retryable = classify_http_status(exc.code)
@@ -268,6 +315,9 @@ class HttpFile:
     # ``indicadores`` (código exato) ou ``periodo`` (``code`` = ``AAAA`` ou
     # ``AAAA_MM``, filtrado por ``anos`` e ``meses``).
     selector: Optional[str] = None
+    # ``csv`` (texto, zipado ou não) ou ``parquet``. O parquet não passa pela
+    # transcodificação: o polars o lê e ele sai com todas as colunas como texto.
+    file_format: str = "csv"
 
 
 _FARMACIA_BASE = "https://demas-dados-abertos.s3.amazonaws.com/csv/"
@@ -389,6 +439,90 @@ _SAUDE_BUCAL = (
     ('sbesb40h', 'Número de Equipes de Saúde Bucal 40h'),
     ('sbuomp', 'Número de Unidades Odontológicas Móveis - UOM pagas'),
 )
+
+# Grupos MGDI que faltavam, raspados de dadosabertos.saude.gov.br em 2026-10-20. Os 57
+# CSV abriram com o mesmo esquema; a granularidade muda por grupo (município, UF ou
+# DSEI) e alguns indicadores têm um único período publicado.
+_CANCER_COLO_MAMA = (
+    ('ccmec25a64', 'Exames citopatológicos realizados em mulheres na faixa etária de 25 a 64 anos'),
+    ('ccmec50a69', 'Mamografias realizadas em mulheres na faixa etária de 50 a 69 anos'),
+    ('ccmhhcac', 'Hospitais habilitados para o tratamento do câncer em alta complexidade'),
+    ('ccmhpersus', 'Hospitais com licença de operação pelo PERSUS'),
+    ('ccmqucito', 'Laboratório em citopatologia na prevenção do câncer do colo do útero (QualiCito) habilitados'),
+    ('ccmrftradi', 'Total de recursos financeiros transferidos pelo PERSUS para radioterapia'),
+    ('ccmsdmh', 'Serviço de referência para diagnóstico de câncer de mama (SDM) habilitados'),
+    ('ccmsrch', 'Serviço de Referência para Diagnóstico e Tratamento de Lesões Precursoras do Câncer do Colo de Útero (SRC) habilitados'),
+)
+
+_CIRURGIAS = (
+    ('mgdi_ms_3f6', 'Quantidade de procedimentos cirúrgicos eletivos do rol do Programa Agora Tem Especialista'),
+    ('pnrfcirpre', 'Cirurgias previstas no Programa'),
+    ('pnrfcirrea', 'Número de cirurgias realizadas no ATE'),
+)
+
+# População negra (MUNIC e ESTADIC do IBGE, só 2021), população indígena (por DSEI)
+# e pessoa com deficiência ficam juntas porque são as linhas de equidade do MGDI.
+_EQUIDADE = (
+    ('spneap', 'Estados com ações da Política Nacional de Saúde Integral da População Negra nos Planos Estaduais de Saúde (ESTADIC)'),
+    ('spnecp', 'Categorias Profissionais participantes dos cursos e formações em saúde da população negra e combate ao racismo nos estados (ESTADIC)'),
+    ('spnecr', 'Estados com tópicos de saúde da população negra e combate ao racismo nos cursos e processos de formação de pessoas da área da saúde (ESTADIC)'),
+    ('spnmap', 'Municípios com ações da Política Nacional de Saúde Integral da População Negra nos Planos Municipais de Saúde (MUNIC)'),
+    ('spnmcp', 'Categorias Profissionais participantes dos cursos e formações em saúde da população negra e combate ao racismo nos municípios (MUNIC)'),
+    ('spnmcr', 'Municípios com tópicos de saúde da população negra e combate ao racismo nos cursos e processos de formação de pessoas da área da saúde do município (MUNIC)'),
+    ('spnmpr', 'Municípios com programas ou ações voltados especificamente para saúde da população negra (MUNIC)'),
+    ('spnmst', 'Municípios com setor para coordenar e monitorar as ações de saúde voltadas para a população negra (MUNIC)'),
+    ('spnter', 'Termos relacionados a saúde da população negra, que constam no conteúdo dos Planos Municipais de Saúde'),
+    ('mgdi_ms_0ks', 'Percentual das gestantes indígenas com no mínimo 6 consultas de pré-natal'),
+    ('mgdi_ms_5oa', 'Total da população indígena no mesmo local e período'),
+    ('mgdi_ms_7kp', 'Percentual de tratamento odontológico básico concluído na população indígena com primeira consulta odontológica programática'),
+    ('mgdi_ms_a26', 'Número total de gestações finalizadas, exceto as finalizadas por aborto'),
+    ('mgdi_ms_omk', 'Percentual de crianças indígenas menores de 1 ano com no mínimo 6 acompanhamentos alimentar e nutricional'),
+    ('mgdi_ms_wrk', 'Percentual de crianças indígenas menores de 1 ano com esquema vacinal completo'),
+    ('mgdi_ms_yk0', 'Percentual da população indígena com primeira consulta odontológica programática'),
+    ('mgdi_ms_zd4', 'Percentual de crianças indígenas menores de 1 ano com no mínimo 6 consultas preconizadas de crescimento e desenvolvimento'),
+    ('vslefnq', 'Centros Especializados em Reabilitação (CER) habilitados'),
+    ('vsleftn', 'Estabelecimentos de Saúde com financiamento para aquisição de equipamentos para Triagem Auditiva Neonatal (TAN)'),
+    ('vslnpoc', 'Órteses, Próteses e Meios Auxiliares de Locomoção (OPM) não cirúrgicas concedidas'),
+    ('vslorf', 'Oficinas ortopédicas habilitadas'),
+    ('vslvaa', 'Veículos adaptados financiados'),
+)
+
+_RESIDENCIAS = (
+    ('mgdi_ms_3kp', 'Total de profissionais da área da saúde que ingressaram nos Programas de Residência em Área Profissional da Saúde com bolsas financiadas pelo Ministério da Saúde (MS)'),
+    ('mgdi_ms_4ru', 'Total de residentes em Área Profissional da Saúde ativos com bolsas financiadas pelo Ministério da Saúde (MS)'),
+    ('mgdi_ms_543', 'Total de Programas de Residência em Área Profissional da Saúde com bolsas financiadas pelo Ministério da Saúde (MS)'),
+    ('mgdi_ms_bhx', 'Total de Instituições com Programas de Residência em Área Profissional da Saúde com bolsas financiadas pelo Ministério da Saúde por estado'),
+    ('mgdi_ms_h5m', 'Total de profissionais da área da saúde egressos de Programas de Residência em Área Profissional da Saúde com bolsas financiadas pelo Ministério da Saúde (MS)'),
+    ('mgdi_ms_9w6', 'Total de Instituições com Programas de Residência Médica com bolsas financiadas pelo Ministério da Saúde por estado'),
+    ('mgdi_ms_am3', 'Total de residentes médicos ativos com bolsas financiadas pelo Ministério da Saúde por estado'),
+    ('mgdi_ms_l8k', 'Total de Programas de Residência Médica com bolsas financiadas pelo Ministério da Saúde por estado'),
+    ('mgdi_ms_m04', 'Total de médicos egressos de programas de Residência Médica com bolsas financiadas pelo Ministério da saúde por estado'),
+    ('mgdi_ms_xlj', 'Número médicos que ingressaram no programa de Residência Médica com bolsas financiadas pelo Ministério da Saúde'),
+)
+
+_RNDS = (
+    ('sdigi008rc', 'Total de registros na Rede Nacional de Dados em Saúde (RNDS)'),
+    ('sdigi009rc', 'Total de Registros de Imunobiológicos Administrados (RIA) na RNDS'),
+    ('sdigi010rc', 'Total de Registros de Atendimento Clínico (RAC) na RNDS'),
+    ('sdigi011rc', 'Total de Registros de atestados médico/odontológicos  na RNDS'),
+    ('sdigi013rc', 'Total de registros de prescrição de medicamento (RPM) na RNDS'),
+    ('sdigi014rc', 'Total de registros de exames laboratoriais (REL) na RNDS'),
+    ('sdigi015rc', 'Total de registros de informações de regulação assistencial (RIRA) na RNDS'),
+)
+
+# Repasses de saúde bucal e fluoretação ficam fora de ``mgdi_saude_bucal`` para não
+# mudar os recursos de uma fonte já publicada.
+_BUCAL_FLUORETACAO = (
+    ('ceovlr', 'Valor repassado para custeio de  Centros de Especialidades Odontológicas - CEO'),
+    ('sbrcuom', 'Valor repassado para custeio UOM'),
+    ('sbvrfaf', 'Valor repassado para custeio das Equipes de Saúde Bucal'),
+    ('mgdi_ms_5r9', 'Número de habitantes com acesso à água fluoretada por município'),
+    ('mgdi_ms_6nm', 'Proporção de amostras de acordo com os intervalos de concentração de fluoretos'),
+    ('mgdi_ms_aap', 'Proporção de população com acesso à água fluoretada em relação à água tratada'),
+    ('mgdi_ms_hoe', 'Número de municípios com valores de fluoretação da água no intervalo de risco'),
+)
+
+_SIPNIBD = "ftp://ftp.datasus.gov.br/dissemin/publicos/Dados_Abertos/SIPNIBD/"
 
 _CKAN_S3 = "https://s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/"
 _MESES_PNI = ("jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez")
@@ -572,6 +706,103 @@ HTTP_FILES: Dict[str, HttpFile] = {
             separator=";",
             encoding="auto",
             selector="periodo",
+        ),
+        # Verificado ao vivo em 2026-10-20 (baixado inteiro): 1.088.479 linhas de 2015 a
+        # 2026 e um único ``DT_CARGA``, porque o arquivo é sobrescrito a cada carga, sem
+        # histórico. ``NU_TAXA_COBERTURA`` é decimal(18,2) e vem como fração.
+        HttpFile(
+            "pni_cobertura_vacinal_residencia",
+            "PNI - Cobertura vacinal por município de residência",
+            "Cobertura vacinal do SIPNI por município de residência, imunobiológico e ano "
+            "(2015 em diante): doses (QT_DOSE), população-alvo (NU_POPULACAO) e taxa "
+            "(NU_TAXA_COBERTURA, em fração: 0.95 = 95%, pode passar de 1). Instantâneo "
+            "sobrescrito a cada carga (DT_CARGA). Os rótulos de NU_IMUNO saem como "
+            "publicados e variam na grafia e entre anos (\"Hepatite B (< 30 Dias)\" e "
+            "\"(< 30 dias)\", \"Pneumo 10\" e \"Pneumocócica Conjugada\").",
+            (
+                HttpResource(
+                    "cobertura_residencia",
+                    f"{_SIPNIBD}Cobertura_Residencia.parquet",
+                    "Cobertura vacinal por residência",
+                ),
+            ),
+            file_format="parquet",
+        ),
+        HttpFile(
+            "mgdi_cancer_colo_mama",
+            "MGDI Prevenção do câncer de colo e mama - Indicadores",
+            "Exames citopatológicos (25 a 64 anos) e mamografias (50 a 69 anos) realizados, "
+            "serviços habilitados e recursos do PERSUS, um CSV por indicador "
+            "(por município e mês, desde 2016-12).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _CANCER_COLO_MAMA
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_cirurgias_especialistas",
+            "MGDI Agora Tem Especialistas (cirurgias) - Indicadores",
+            "Cirurgias eletivas previstas e realizadas no Programa Agora Tem Especialistas, "
+            "um CSV por indicador (por UF e mês, de 2023-03 a 2025-07).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _CIRURGIAS
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_equidade",
+            "MGDI Equidade (população negra, indígena e PCD) - Indicadores",
+            "Indicadores de saúde da população negra (MUNIC e ESTADIC 2021, por município ou "
+            "UF), da população indígena (por DSEI e mês) e da pessoa com deficiência "
+            "(por município e mês), um CSV por indicador.",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _EQUIDADE
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_residencias_saude",
+            "MGDI Pró-Residência (médica e multiprofissional) - Indicadores",
+            "Programas, instituições, ingressantes, ativos e egressos das residências médica "
+            "e em área profissional da saúde com bolsa do MS, um CSV por indicador "
+            "(por UF e ano, desde 2010).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _RESIDENCIAS
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_rnds",
+            "MGDI Rede Nacional de Dados em Saúde (RNDS) - Indicadores",
+            "Registros recebidos pela RNDS por tipo (imunobiológicos, atendimento clínico, "
+            "atestados, prescrições, exames, regulação), um CSV por indicador (por UF; "
+            "a maioria traz um único mês).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _RNDS
+            ),
+            separator=",",
+            selector="indicadores",
+        ),
+        HttpFile(
+            "mgdi_saude_bucal_fluoretacao",
+            "MGDI Repasses de saúde bucal e fluoretação - Indicadores",
+            "Repasses federais de custeio de CEO, UOM e equipes de saúde bucal e vigilância "
+            "da fluoretação da água, um CSV por indicador (por município, mês ou ano).",
+            tuple(
+                HttpResource(code, f"{_MGDI_BASE}{code}.csv.zip", title)
+                for code, title in _BUCAL_FLUORETACAO
+            ),
+            separator=",",
+            selector="indicadores",
         ),
     )
 }
@@ -931,6 +1162,15 @@ class HttpFileDataSource(DataSource):
         warnings: Optional[List[str]] = None,
     ) -> Path:
         name = f"{self.name}_{resource.code}" if multi else self.name
+        suffix = {"csv": ".csv", "parquet": ".parquet"}.get(fmt, ".sqlite")
+        if self.spec.file_format == "parquet":
+            # Tipado na origem (int32, decimal); passar a texto mantém o contrato do bronze.
+            frame = pl.scan_parquet(raw_path).select(pl.all().cast(pl.String))
+            names = frame.collect_schema().names()
+            stripped = {n: n.strip() for n in names if n != n.strip()}
+            if stripped:
+                frame = frame.rename(stripped)
+            return _sink_atomic(frame, base_dir / f"{name}{suffix}", fmt, name, raw_path.name)
         utf8 = base_dir / f"{name}.utf8.tmp.csv"
         try:
             stats: Dict[str, int] = {}
@@ -944,7 +1184,6 @@ class HttpFileDataSource(DataSource):
             stripped = {n: n.strip() for n in names if n != n.strip()}
             if stripped:
                 frame = frame.rename(stripped)
-            suffix = {"csv": ".csv", "parquet": ".parquet"}.get(fmt, ".sqlite")
             return _sink_atomic(frame, base_dir / f"{name}{suffix}", fmt, name, raw_path.name)
         finally:
             utf8.unlink(missing_ok=True)

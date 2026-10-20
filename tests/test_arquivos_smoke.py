@@ -62,3 +62,28 @@ def test_live_pni_e_sisvan_so_head():
     assert pni.size and pni.size > 300_000_000
     sisvan = client.head(HTTP_FILES["sisvan_estado_nutricional_arquivos"].resources[0].url)
     assert sisvan.size and sisvan.size > 500_000_000
+
+
+def test_live_pni_cobertura_vacinal_residencia(tmp_path):
+    # 5 MB pelo FTP do DATASUS: SIZE e MDTM no lugar do HEAD, RETR pelo urllib.
+    payload = HttpFileDataSource(
+        output_path=str(tmp_path), dataset="pni_cobertura_vacinal_residencia"
+    ).download(output_dir=str(tmp_path), output_format="csv")
+    assert payload["source_size"] and payload["source_size"] > 1_000_000
+    assert payload["source_last_modified"]
+    frame = pl.read_csv(payload["exported_files"][0], infer_schema=False)
+    assert {"CO_ANO", "CO_MUNICIPIO", "NU_IMUNO", "NU_TAXA_COBERTURA"} <= set(frame.columns)
+    assert frame.height > 1_000_000
+
+
+def test_live_mgdi_novos_um_indicador_por_fonte(tmp_path):
+    for key, code in (
+        ("mgdi_cancer_colo_mama", "ccmec25a64"),
+        ("mgdi_rnds", "sdigi008rc"),
+        ("mgdi_equidade", "mgdi_ms_wrk"),
+    ):
+        payload = HttpFileDataSource(output_path=str(tmp_path), dataset=key).download(
+            output_dir=str(tmp_path), output_format="csv", indicadores=[code]
+        )
+        frame = pl.read_csv(payload["exported_files"][0], infer_schema=False, n_rows=5)
+        assert "sg_granularidade" in frame.columns, key
