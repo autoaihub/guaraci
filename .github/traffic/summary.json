@@ -1,14 +1,14 @@
 {
-  "updated_at": "2026-10-18T09:44:59+00:00",
+  "updated_at": "2026-10-19T10:55:35+00:00",
   "repo_count": 55,
-  "total_clones": 2556,
-  "total_uniques": 976,
+  "total_clones": 2569,
+  "total_uniques": 984,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1748,
-      "total_uniques": 605,
-      "uniques_14d": 205,
+      "total_clones": 1761,
+      "total_uniques": 613,
+      "uniques_14d": 197,
       "tracking_since": "2026-08-12"
     },
     {

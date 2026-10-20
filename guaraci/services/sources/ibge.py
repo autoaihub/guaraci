@@ -5,6 +5,10 @@ from typing import List
 
 from guaraci.core.contracts import SourceParameterSpec
 from guaraci.ibge.censo import CENSO_SOURCES
+from guaraci.ibge.registro_civil import (
+    IbgeObitosFetaisRcDataSource,
+    IbgeObitosResidenciaRcDataSource,
+)
 from guaraci.services import downloads as _downloads
 from guaraci.services.downloads import (
     EXPORT_FORMAT_VALUES,
@@ -23,6 +27,9 @@ _CENSO_TITULOS = {
     "ibge_censo_adensamento": "IBGE Censo 2022: Adensamento Domiciliar",
     "ibge_censo_paredes": "IBGE Censo 2022: Material das Paredes dos Domicílios",
     "ibge_censo_deficiencia": "IBGE Censo 2022: Pessoas com Deficiência",
+    "ibge_censo_obitos": "IBGE Censo 2022: Óbitos de Moradores (2019-2022)",
+    "ibge_censo_autismo": "IBGE Censo 2022: População Diagnosticada com Autismo",
+    "ibge_censo_dificuldade_funcional": "IBGE Censo 2022: Tipo e Grau de Dificuldade Funcional",
 }
 
 
@@ -101,6 +108,137 @@ def _censo_sources() -> List[DownloadSource]:
                         required=False,
                         default="completo",
                         allowed_values=["completo", "total"],
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva o JSON bruto da resposta.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="timeout",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="HTTP timeout in seconds.",
+                        required=False,
+                        default=cls.DEFAULT_TIMEOUT,
+                        minimum=1,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Optional IBGE API base URL override.",
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                normalize_params=_normalize_ibge_params,
+            )
+        )
+    return fontes
+
+
+# Registro civil pela residência (óbitos fetais pela da mãe, óbitos pela do
+# falecido): mesmo molde de mes/sexo da ``ibge_obitos_rc``.
+_RC_RESIDENCIA = (
+    (
+        IbgeObitosFetaisRcDataSource,
+        "IBGE Óbitos Fetais (Registro Civil)",
+        "óbitos fetais (IBGE SIDRA tabela 2990, registro civil, pela residência da mãe",
+        "Recorte de mês do registro: total (padrão) ou all (quebra mensal; requer "
+        "level != municipio).",
+    ),
+    (
+        IbgeObitosResidenciaRcDataSource,
+        "IBGE Óbitos por Residência (Registro Civil)",
+        "óbitos (IBGE SIDRA tabela 2654, registro civil, pela residência do falecido",
+        "Recorte de mês de ocorrência: total (padrão) ou all (quebra mensal com "
+        "Ignorado; requer level != municipio).",
+    ),
+)
+
+
+def _rc_residencia_sources() -> List[DownloadSource]:
+    """Óbitos fetais (2990) e óbitos por residência (2654), desde 2003."""
+    current_year = datetime.now().year
+    last_year = current_year - 1
+    fontes: List[DownloadSource] = []
+    for cls, titulo, assunto, mes_desc in _RC_RESIDENCIA:
+        nome = cls().name
+        fontes.append(
+            ApiDownloadSource(
+                descriptor=SourceDescriptor(source=nome, title=titulo, mode="ibge api"),
+                datasource_cls=cls,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for the deaths table.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description=f"Ano inicial dos {assunto}, desde 2003).",
+                        required=False,
+                        default=last_year,
+                        minimum=2003,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final.",
+                        required=False,
+                        default=last_year,
+                        minimum=2003,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="level",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Nível territorial: municipio, uf, regiao ou brasil. "
+                            "Com mes != total, apenas uf/regiao/brasil são aceitos."
+                        ),
+                        required=False,
+                        default=cls.DEFAULT_LEVEL,
+                        allowed_values=["municipio", "uf", "regiao", "brasil"],
+                    ),
+                    SourceParameterSpec(
+                        name="mes",
+                        phase="coleta",
+                        param_type="string",
+                        description=mes_desc,
+                        required=False,
+                        default="total",
+                        allowed_values=["total", "all"],
+                    ),
+                    SourceParameterSpec(
+                        name="sexo",
+                        phase="coleta",
+                        param_type="string",
+                        description="Recorte de sexo: total (padrão), ambos, homens ou mulheres.",
+                        required=False,
+                        default="total",
+                        allowed_values=["total", "ambos", "homens", "mulheres"],
                     ),
                     SourceParameterSpec(
                         name="keep_raw",
@@ -1242,4 +1380,4 @@ def build_sources() -> List[DownloadSource]:
             ],
             normalize_params=_normalize_ibge_params,
         ),
-    ] + _censo_sources()
+    ] + _censo_sources() + _rc_residencia_sources()

@@ -328,3 +328,55 @@ class IbgeDivorciosDataSource(SidraAggregateSource):
             timeout=timeout,
             progress_callback=progress_callback,
         )
+
+
+class IbgeObitosFetaisRcDataSource(_CivilRegistrySource):
+    """Óbitos fetais por mês do registro e sexo, SIDRA tabela 2990, var 225.
+
+    "Óbitos fetais, ocorridos no ano, por mês do registro[...] e lugar de
+    residência da mãe." Períodos anuais 2003-2024 (conferidos ao vivo em
+    2026-10-20). É a natimortalidade cartorial, independente do SIM fetal
+    (``sim_obitos_fetais``): comparar as duas mede o sub-registro. As outras
+    quatro classificações (local do nascimento, número de nascidos por parto,
+    idade da mãe e duração da gestação) ficam no Total, como nas irmãs.
+    """
+
+    TABLE = "2990"
+    VARIABLE = "225"
+    DEFAULT_LEVEL = "municipio"
+    MES_CLASSIFICACAO_ID = "236"
+
+    def __init__(
+        self,
+        output_path: Optional[str] = None,
+        *,
+        client: Optional[IbgeSidraClient] = None,
+    ) -> None:
+        super().__init__(name="ibge_obitos_fetais_rc", output_path=output_path, client=client)
+
+
+class IbgeObitosResidenciaRcDataSource(_CivilRegistrySource):
+    """Óbitos por mês de ocorrência e sexo, pela residência do falecido.
+
+    SIDRA tabela 2654, var 343, períodos 2003-2024 (conferidos ao vivo em
+    2026-10-20). A ``ibge_obitos_rc`` (2681) conta pelo lugar do registro,
+    que concentra óbitos nos municípios com cartório e hospital; esta conta
+    pelo município de residência, a base usual de taxa de mortalidade. As duas
+    se complementam. Natureza do óbito, idade e local de ocorrência ficam no
+    Total. O mês tem a categoria "Ignorado" (102885), que vem com ``mes=all``.
+    """
+
+    TABLE = "2654"
+    VARIABLE = "343"
+    DEFAULT_LEVEL = "municipio"
+    MES_CLASSIFICACAO_ID = "244"
+
+    def __init__(
+        self,
+        output_path: Optional[str] = None,
+        *,
+        client: Optional[IbgeSidraClient] = None,
+    ) -> None:
+        super().__init__(
+            name="ibge_obitos_residencia_rc", output_path=output_path, client=client
+        )

@@ -1,6 +1,6 @@
 """Censo Demografico 2022 (e 2010) no SIDRA: tabelas de recorte detalhado.
 
-Sete fontes sobre o mesmo molde de :class:`~guaraci.ibge.sidra.SidraAggregateSource`.
+Dez fontes sobre o mesmo molde de :class:`~guaraci.ibge.sidra.SidraAggregateSource`.
 Cada uma fixa tabela, variaveis e as classificacoes (cor ou raca, sexo, idade,
 localizacao...), todas verificadas ao vivo em 2026-10-13 via
 ``GET /api/v3/agregados/<tabela>/metadados``. Todas publicam N1, N2, N3 e N6.
@@ -52,6 +52,18 @@ _CONDICAO_OCUPACAO = (
     "73554", "73126", "4343", "1055", "73553", "73127", "73128", "73129", "1058",
 )
 _TIPO_DOMICILIO = ("6815", "121264", "3247", "71975", "71976", "71977")
+# C420 da tabela 6584, todas as categorias menos o Total, na ordem publicada:
+# 0 a 4 anos, menos de 1 ano e suas faixas em meses, 1 a 4 anos, 5 a 9 ...
+# 100 ou mais, sem declaracao. Os subtotais da primeira infancia ficam porque
+# sao o recorte de mortalidade infantil e neonatal.
+_IDADE_OBITO_CENSO = (
+    "72571", "10918", "73027", "73028", "73029", "73030", "73102", "72572",
+    "72573", "72574", "72575", "72576", "72577", "72578", "72579", "72580",
+    "72581", "72582", "72583", "72584", "72585", "72586", "72587", "72588",
+    "72589", "72590", "72591", "72592", "11625",
+)
+# C1509 da tabela 10133: enxergar, ouvir, andar, pegar objetos, funcoes mentais.
+_TIPO_DIFICULDADE = ("73771", "73772", "73773", "73789", "73790")
 
 
 @dataclass(frozen=True)
@@ -389,6 +401,75 @@ class IbgeCensoDeficienciaDataSource(_CensoSidraSource):
         caminho.write_text(json.dumps(manifesto, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+class IbgeCensoObitosDataSource(_CensoSidraSource):
+    """Obitos de ex-moradores dos domicilios particulares -- tabela 6584, var 13136.
+
+    Censo 2022. O questionario perguntou por quem morava no domicilio e
+    faleceu entre janeiro de 2019 e julho de 2022, entao a tabela cobre o
+    periodo da pandemia em semestres (mes e ano de ocorrencia), por sexo e
+    grupo de idade ao falecer. Serve para comparar com o SIM e o registro civil
+    no mesmo recorte. Os grupos de idade vem como o IBGE publica, com subtotais
+    aninhados (0 a 4 anos contem menos de 1 ano, que contem menos de 1 mes...):
+    somar todas as categorias conta duas vezes.
+    """
+
+    SOURCE_NAME = "ibge_censo_obitos"
+    ESPEC = TabelaCenso(
+        "6584",
+        "13136",
+        (
+            Classif(
+                "322",
+                "72249",
+                ("73020", "73024", "73021", "73025", "73023", "73026", "73022", "9702"),
+            ),
+            Classif("321", "72245", ("3090", "3091", "12102")),
+            Classif("420", "10917", _IDADE_OBITO_CENSO),
+        ),
+        (2022,),
+    )
+
+
+class IbgeCensoAutismoDataSource(_CensoSidraSource):
+    """Populacao residente e diagnosticada com autismo -- tabela 10145.
+
+    Censo 2022, vars 93 (populacao), 13267 (diagnosticada com autismo) e 13408
+    (percentual; ``unidade`` traz o ``%`` e nao se soma com as contagens). Por
+    sexo e grupo de idade quinquenal (0 a 4 ... 100 ou mais).
+    """
+
+    SOURCE_NAME = "ibge_censo_autismo"
+    ESPEC = TabelaCenso(
+        "10145",
+        "93|13267|13408",
+        (_SEXO_C, Classif("58", "95253", _GRUPO_IDADE_21)),
+        (2022,),
+    )
+
+
+class IbgeCensoDificuldadeFuncionalDataSource(_CensoSidraSource):
+    """Pessoas de 2 anos ou mais por tipo e grau de dificuldade funcional -- tabela 10133.
+
+    Censo 2022, vars 11852 (pessoas) e 11856 (distribuicao percentual). Complementa
+    ``ibge_censo_deficiencia`` (10125 e 10132, que dizem quem tem deficiencia):
+    aqui cada um dos cinco dominios (enxergar, ouvir, andar, pegar objetos,
+    funcoes mentais) vem com os quatro graus do questionario. A classificacao
+    de tipo nao tem categoria Total (os dominios se sobrepoem, uma pessoa pode
+    ter varios), entao os cinco tipos vem sempre, tambem em ``detalhe=total``.
+    """
+
+    SOURCE_NAME = "ibge_censo_dificuldade_funcional"
+    ESPEC = TabelaCenso(
+        "10133",
+        "11852|11856",
+        (
+            Classif("1509", ",".join(_TIPO_DIFICULDADE), _TIPO_DIFICULDADE),
+            Classif("623", "56918", ("60004", "56921", "56920", "32318")),
+        ),
+        (2022,),
+    )
+
+
 CENSO_SOURCES: List[type] = [
     IbgeCensoCorRacaIdadeSexoDataSource,
     IbgeCensoAlfabetizacaoDataSource,
@@ -397,4 +478,7 @@ CENSO_SOURCES: List[type] = [
     IbgeCensoAdensamentoDataSource,
     IbgeCensoParedesDataSource,
     IbgeCensoDeficienciaDataSource,
+    IbgeCensoObitosDataSource,
+    IbgeCensoAutismoDataSource,
+    IbgeCensoDificuldadeFuncionalDataSource,
 ]
