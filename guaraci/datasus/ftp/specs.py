@@ -62,6 +62,12 @@ class SystemSpec:
     default_groups: Tuple[str, ...] = ()
     roots: Tuple[str, ...] = ()
     group_dirs: Tuple[Tuple[str, str], ...] = ()
+    # Diretórios PRELIM: só preenchem o ano que os ``roots`` ainda não
+    # consolidaram, e o registro sai marcado como preliminar (como no SINAN).
+    prelim_roots: Tuple[str, ...] = ()
+    # False quando as colunas de UF trazem o nome por extenso ("Minas Gerais"):
+    # o mapeamento de código para sigla as apagaria (e-SUS Notifica).
+    uf_coded: bool = True
 
     def parse(self, basename: str) -> Optional[FileRecord]:
         """Parse a basename into a :class:`FileRecord`, or ``None``."""
@@ -93,14 +99,20 @@ SINASC = SystemSpec(
     system=System.SINASC,
     title="SINASC",
     description="Sistema de Informações sobre Nascidos Vivos (declarações por residência).",
-    roots=(f"{_PUB}/SINASC/NOV/DNRES",),
-    pattern=re.compile(r"^DN(?P<state>[A-Z]{2})(?P<year>\d{4})\.dbc$", re.IGNORECASE),
+    # NOV vem antes de ANT: o ANT repete o DNAC2014 do NOV, e o primeiro
+    # diretório vence na deduplicação de discover_spec.
+    roots=(f"{_PUB}/SINASC/NOV/DNRES", f"{_PUB}/SINASC/ANT/DNRES"),
+    prelim_roots=(f"{_PUB}/SINASC/PRELIM/DNRES",),
+    # O ANT (1994-1995) usa DNR<UF><AAAA>; a duplicata de nome curto
+    # (DNRAC94.DBC, mesmo conteúdo) fica de fora por ter ano de dois dígitos.
+    pattern=re.compile(r"^DNR?(?P<state>[A-Z]{2})(?P<year>\d{4})\.dbc$", re.IGNORECASE),
     ext=".dbc",
     has_state=True,
     has_month=False,
     fixed_group="DNRES",
-    min_year=1996,
-    default_year=2022,  # 2023 ainda ausente de NOV/DNRES em 2026-09-24
+    min_year=1994,
+    # 2023 e 2024 ausentes de NOV e de PRELIM em 2026-10-20; PRELIM tem 2025-2026.
+    default_year=2022,
 )
 
 RESP = SystemSpec(
@@ -299,6 +311,7 @@ SIM_OBITOS_FETAIS = SystemSpec(
     title="SIM (Óbitos fetais)",
     description="Sistema de Informações sobre Mortalidade: óbitos fetais (DOFET, CID-10, nacional).",
     roots=(f"{_PUB}/SIM/CID10/DOFET",),
+    prelim_roots=(f"{_PUB}/SIM/PRELIM/DOFET",),
     # O servidor mistura DOFET07.DBC e DOFET00.dbc; o regex ignora a caixa.
     pattern=re.compile(r"^DOFET(?P<yy>\d{2})\.dbc$", re.IGNORECASE),
     ext=".dbc",
@@ -307,6 +320,33 @@ SIM_OBITOS_FETAIS = SystemSpec(
     national=True,
     fixed_group="DOFET",
     min_year=1996,
+)
+
+# --- e-SUS Notifica: Doença de Chagas crônica, nacional, anual ---------------
+
+# Fonte própria, e não agravo do SINAN: a forma crônica é notificada no e-SUS
+# Notifica, e o arquivo chega com rótulos por extenso ("Minas Gerais",
+# "Feminino") em vez dos códigos do SINAN, sem CLASSI_FIN nem EVOLUCAO, que
+# os filtros do SINAN supõem. Conferido ao vivo em 2026-10-20 (109 colunas,
+# sem nome nem CPF); dicionário em ESUSNOTIFICA/DOCS.
+ESUS_NOTIFICA_CHAGAS_CRONICA = SystemSpec(
+    name="esus_notifica_chagas_cronica",
+    system=System.ESUS_NOTIFICA,
+    title="e-SUS Notifica (Doença de Chagas crônica)",
+    description="Notificações de Doença de Chagas crônica no e-SUS Notifica (nacional, anual).",
+    roots=(f"{_PUB}/ESUSNOTIFICA/DADOS/FINAIS",),
+    prelim_roots=(f"{_PUB}/ESUSNOTIFICA/DADOS/PRELIM",),
+    pattern=re.compile(r"^DCCRBR(?P<yy>\d{2})\.dbc$", re.IGNORECASE),
+    ext=".dbc",
+    has_state=False,
+    has_month=False,
+    national=True,
+    fixed_group="DCCR",
+    min_year=2023,
+    # Único ano consolidado em 2026-10-20; 2024 e 2025 só em PRELIM, e o
+    # padrão do formulário não deve abrir em dado preliminar.
+    default_year=2023,
+    uf_coded=False,
 )
 
 
@@ -323,6 +363,7 @@ ALL_SPECS: Tuple[SystemSpec, ...] = (
     PCE,
     PAINEL_ONCOLOGIA,
     SIM_OBITOS_FETAIS,
+    ESUS_NOTIFICA_CHAGAS_CRONICA,
 )
 
 SPECS = {spec.name: spec for spec in ALL_SPECS}

@@ -171,7 +171,7 @@ class FtpDataSource(DataSource):
             try:
                 df = pl.read_parquet(filepath)
                 uf_columns = [c for c in df.columns if any(p in c.upper() for p in ["UF", "SG_UF"])]
-                if uf_columns:
+                if uf_columns and getattr(self.spec, "uf_coded", True):
                     df = apply_uf_mapping_polars(df, uf_columns)
                 frames.append(df)
             except Exception as exc:  # noqa: BLE001
