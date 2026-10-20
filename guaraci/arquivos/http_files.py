@@ -26,6 +26,11 @@ Fontes:
   comprimidos, por isso ``anos`` é obrigatório e ``meses`` recorta dentro do ano.
 - ``sisvan_estado_nutricional_arquivos``: acompanhamento do estado nutricional do
   SISVAN, um zip de CSV por ano (2008-2023, de 0,9 a 4,4 GB cada), mesma origem.
+- ``ibama_rapp_emissoes_atmosfericas`` e ``ibama_rapp_efluentes_liquidos``: RAPP do
+  IBAMA, emissões atmosféricas e efluentes líquidos declarados por estabelecimento.
+- ``inpe_area_queimada_biomas``: área queimada mensal por bioma (AQ1km, coleção 2).
+- ``inpe_sisam``: SISAM, poluentes e meteorologia modelados por município a cada 6 h,
+  um zip por ano de 2000 a 2019 (``anos`` obrigatório).
 """
 
 from __future__ import annotations
@@ -577,6 +582,90 @@ HTTP_FILES: Dict[str, HttpFile] = {
             SISVAN_RECURSOS,
             separator=";",
             encoding="auto",
+            selector="periodo",
+        ),
+        # Verificado ao vivo em 2026-10-20: os dois relatórios do RAPP são um CSV só,
+        # republicado por cima (o metadado CKAN parou em 2021, o arquivo já traz 2025).
+        # UTF-8 com ``;``; o de emissões usa ponto decimal, o de efluentes, vírgula.
+        # Anos vistos no arquivo: emissões 2013-2025, efluentes 2000-2025 (o último
+        # ano chega incompleto, pois a declaração vence em março do ano seguinte).
+        HttpFile(
+            "ibama_rapp_emissoes_atmosfericas",
+            "IBAMA RAPP - Emissões de poluentes atmosféricos",
+            "Relatório Anual de Atividades Potencialmente Poluidoras (RAPP) do IBAMA: "
+            "quantidade declarada de cada poluente atmosférico emitido por estabelecimento "
+            "(CNPJ) e ano de referência, de 2013 em diante, com categoria de atividade, "
+            "metodologia (estimativa, cálculo, medição) e UF e município por nome, sem "
+            "código IBGE. É autodeclaração da empresa, não medição do órgão. Arquivo único "
+            "republicado por cima: cada download é um instantâneo do cadastro.",
+            (
+                HttpResource(
+                    "emissoes_poluentes_atmosfericos",
+                    "https://dadosabertos.ibama.gov.br/dados/RAPP/"
+                    "emissoesPoluentesAtmosfericos/relatorio.csv",
+                ),
+            ),
+            separator=";",
+        ),
+        HttpFile(
+            "ibama_rapp_efluentes_liquidos",
+            "IBAMA RAPP - Efluentes líquidos",
+            "Relatório Anual de Atividades Potencialmente Poluidoras (RAPP) do IBAMA: "
+            "volume declarado de efluente líquido lançado por estabelecimento (CNPJ) e ano "
+            "de referência, de 2000 em diante, com tipo e nível de tratamento, corpo "
+            "receptor (classe e nome "
+            "do corpo hídrico), coordenadas declaradas e UF e município por nome, sem "
+            "código IBGE. É autodeclaração da empresa. Arquivo único republicado por cima: "
+            "cada download é um instantâneo do cadastro.",
+            (
+                HttpResource(
+                    "efluentes_liquidos",
+                    "https://dadosabertos.ibama.gov.br/dados/RAPP/efluentesLiquidos/relatorio.csv",
+                ),
+            ),
+            separator=";",
+        ),
+        # Verificado ao vivo em 2026-10-20 (coleção 2, reprocessada em jan/2026). O
+        # README não declara a unidade; os valores (Cerrado com ~74 mil em set/2002 e
+        # ~114 mil no acumulado de 2026) só fecham em km², um por pixel de 1 km.
+        HttpFile(
+            "inpe_area_queimada_biomas",
+            "INPE Área Queimada AQ1km (coleção 2) - por bioma",
+            "Área queimada mensal por bioma (Amazônia, Caatinga, Cerrado, Mata Atlântica, "
+            "Pampa, Pantanal e total) do produto AQ1km do INPE, de setembro de 2002 em "
+            "diante, em km² (unidade não declarada no README, inferida da grade de 1 km). "
+            "Cada ano termina numa linha 'Total anual' com o mês vazio. Arquivo único "
+            "republicado por cima a cada mês.",
+            (
+                HttpResource(
+                    "aq1km_biomas",
+                    "https://dataserver-coids.inpe.br/queimadas/queimadas/area_queimada/"
+                    "colecao2/csv/aq1km_biomas_v2.csv",
+                ),
+            ),
+            separator=",",
+        ),
+        # Verificado ao vivo em 2026-10-20: um zip por ano de 2000 a 2019 (130 a 217 MB),
+        # cada um com um CSV só (``task_9045.dados_sisam.AAAA.csv``, ~0,6 a 0,8 GB),
+        # vírgula e UTF-8. A série parou em 2019 (arquivos de 2023-05-15).
+        HttpFile(
+            "inpe_sisam",
+            "INPE SISAM - Qualidade do ar e meteorologia por município (modelo)",
+            "Sistema de Informações Ambientais Integrado à Saúde (SISAM) do INPE: CO, NO2, "
+            "O3, PM2.5 e SO2, precipitação, temperatura, umidade e vento a cada 6 horas "
+            "para 5.572 municípios, de 2000 a 2019. São estimativas de MODELO (reanálise "
+            "de composição atmosférica e meteorologia), não medição de estação. A série "
+            "para em 2019. Município e UF vêm por nome e centroide, sem código IBGE.",
+            tuple(
+                HttpResource(
+                    str(ano),
+                    "https://dataserver-coids.inpe.br/queimadas/queimadas/sisam/"
+                    f"dados_sisam-{ano}.zip",
+                    f"SISAM {ano}",
+                )
+                for ano in range(2000, 2020)
+            ),
+            separator=",",
             selector="periodo",
         ),
     )
