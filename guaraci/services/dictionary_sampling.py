@@ -57,6 +57,14 @@ FTP_LEGACY_SOURCES = frozenset(
         "prf_acidentes_ocorrencias", "prf_acidentes_pessoas", "inca_rhc",
         "sim_obitos_fetais", "pni_doses_aplicadas_arquivos", "sisvan_estado_nutricional_arquivos",
         "siconfi_rreo_saude", "siops_indicadores_municipios", "siops_indicadores_estados",
+        # Leva 5: SIDRA, microdados, arquivos, FTP em CSV e o Solr do MI Social.
+        "esus_notifica_chagas_cronica", "ibge_censo2022_amostra", "ibge_censo_autismo",
+        "ibge_censo_dificuldade_funcional", "ibge_censo_obitos", "ibge_obitos_fetais_rc",
+        "ibge_obitos_residencia_rc", "ibge_pnad_covid19", "ibge_pnad_saude",
+        "inpe_area_queimada_biomas", "inpe_sisam", "pni_cobertura_vacinal_residencia",
+        "mgdi_cancer_colo_mama", "mgdi_cirurgias_especialistas", "mgdi_equidade",
+        "mgdi_residencias_saude", "mgdi_rnds", "mgdi_saude_bucal_fluoretacao",
+        "mds_misocial", "siscan_csv",
     }
 )
 

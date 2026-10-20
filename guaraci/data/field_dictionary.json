@@ -3131,6 +3131,128 @@
     "rows_sampled": 1000,
     "status": "ok"
   },
+  "esus_notifica_chagas_cronica": {
+    "fields": [
+      "SG_UF_NOT",
+      "ID_MUNICIP",
+      "ID_ESTRANG",
+      "ID_OCUPA_N",
+      "ID_PAIS",
+      "NU_IDADE_N",
+      "CS_SEXO",
+      "CS_RACA",
+      "CS_ESCOL_N",
+      "SG_UF",
+      "ID_MN_RESI",
+      "SG_PAIS",
+      "DT_NOTIFIC",
+      "ANO_DIAG",
+      "MO_SUSPEIT",
+      "CS_GESTANT",
+      "UF_NASC",
+      "MUN_NASC",
+      "COUFINF",
+      "COMUNINF",
+      "EIE_IGG",
+      "IFI_IGG",
+      "HAI_IGG",
+      "QUIMIO_IGG",
+      "PCR",
+      "OUTRO_POSI",
+      "AC_NOT",
+      "UF_UBS_AC",
+      "MUN_UBS_AC",
+      "HOSP_ESP",
+      "UF_HOSPESP",
+      "MUN_ESP",
+      "ELETROCARD",
+      "RX_TORAX",
+      "RX_COLON",
+      "RX_ESOFAGO",
+      "ECOCARDIO",
+      "OUTRO_EXAM",
+      "EXAME_DESC",
+      "COMORBID",
+      "HIV",
+      "HIPERTEN",
+      "HEPATITE",
+      "DIABETES",
+      "CARDIOPAT",
+      "NEOPLASIA",
+      "LEISHMANIA",
+      "OUT_COMORB",
+      "FORMA",
+      "REATIVACAO",
+      "HIST_BNZ",
+      "TRAT_BNZ",
+      "BNZ_TOT_CP",
+      "BNZ_DIAS",
+      "TRAT_NFX",
+      "NFX_TOT_CP",
+      "NFX_DIAS",
+      "ADVERS_BNZ",
+      "BNZ_LEVE",
+      "BNZ_GRAVE",
+      "BNZ_AUGESI",
+      "BNZ_PAREST",
+      "BNZ_DEPRE",
+      "BNZ_GASTRO",
+      "BNZ_ARTRAL",
+      "REAC_BNZ",
+      "BNZ_OUTRAS",
+      "ADVERS_NFX",
+      "NFX_LEVE",
+      "NFX_GRAVE",
+      "NFX_AGEUSI",
+      "NFX_PAREST",
+      "NFX_MEDULA",
+      "NFX_GASTRO",
+      "NFX_ARTRAL",
+      "REAC_NFX",
+      "NFX_OUTRAS",
+      "HIST_EPID",
+      "BUSCAATIVA",
+      "DIAG_FAMIL",
+      "EXAM_FAMIL",
+      "CONF_FAMIL",
+      "TF_RESIDEN",
+      "UF_RESI_TF",
+      "MN_RESI_TF",
+      "MUD_UBS_AC",
+      "UF_NOV_AC",
+      "MUN_NOV_AC",
+      "NOVO_ESPEC",
+      "ANT_UF_ESP",
+      "ANT_MUN",
+      "ST_ENCERRA",
+      "DT_OBITO",
+      "DT_ENCERRA",
+      "SITUACAO",
+      "DT_CRIACAO",
+      "DT_DIGITAC",
+      "LAB_CNES",
+      "CNES",
+      "CD_MUNICIP",
+      "CD_MN_RESI",
+      "CD_MUN_NAS",
+      "CD_COMUNIN",
+      "CD_MUN_UBS",
+      "CD_MUN_ESP",
+      "CD_MN_RES0",
+      "CD_MUN_NOV",
+      "CD_ANT_MUN",
+      "ANO_NASC"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year"
+    ],
+    "note": "e-SUS Notifica chronic Chagas disease (DCCRBR), 2023 final and 2024-2025 preliminary; sampled live from DCCRBR23 on 2026-10-20 (109 columns).",
+    "rows_sampled": 5455,
+    "status": "ok"
+  },
   "farmacia_popular_indicadores": {
     "fields": [],
     "filters": [
@@ -3275,6 +3397,22 @@
     "rows_sampled": 1,
     "status": "ok"
   },
+  "ibge_censo2022_amostra": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "start_year",
+      "end_year",
+      "tabelas",
+      "ufs",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Census 2022 public-use sample, one zip per UF (ufs is required) with four ';' CSV tables: pessoas, domicilios, familias and mortalidade, with weights and weighting area. Not sampled here (the whole country passes 8 GB in CSV); columns as published by IBGE.",
+    "status": "empty"
+  },
   "ibge_censo_adensamento": {
     "fields": [
       "nivel",
@@ -3330,6 +3468,33 @@
     "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9542 (2022).",
     "status": "ok"
   },
+  "ibge_censo_autismo": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "sexo",
+      "grupo_de_idade",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 10145 (Censo 2022, autism diagnosis); sampled live at level brasil on 2026-10-20.",
+    "rows_sampled": 126,
+    "status": "ok"
+  },
   "ibge_censo_cor_raca_idade_sexo": {
     "fields": [
       "nivel",
@@ -3373,6 +3538,33 @@
     "note": "Two files per run: SIDRA 10125 (sexo, grupo_de_idade) and 10132 (cor_ou_raca, existencia_de_deficiencia), both with nivel, localidade_id, localidade_nome, ano, variavel_id, unidade, valor (2022).",
     "status": "empty"
   },
+  "ibge_censo_dificuldade_funcional": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipos_de_dificuldades_funcionais",
+      "grau_de_dificuldade",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 10133 (Censo 2022, functional difficulties by type and degree); sampled live at level brasil on 2026-10-20.",
+    "rows_sampled": 40,
+    "status": "ok"
+  },
   "ibge_censo_indigena": {
     "fields": [
       "nivel",
@@ -3400,6 +3592,34 @@
       "api_base_url"
     ],
     "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9845, variables 93 and 350 (2010, 2022).",
+    "status": "ok"
+  },
+  "ibge_censo_obitos": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "mes_e_ano_de_ocorrencia_do_falecimento",
+      "sexo_da_pessoa_falecida",
+      "grupos_de_idade_das_pessoas_ao_falecerem",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 6584 (Censo 2022, deaths of household members Aug/2021 to Jul/2022); sampled live at level brasil on 2026-10-20.",
+    "rows_sampled": 696,
     "status": "ok"
   },
   "ibge_censo_paredes": {
@@ -3516,6 +3736,38 @@
     "rows_sampled": 1,
     "status": "ok"
   },
+  "ibge_obitos_fetais_rc": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "mes_do_registro",
+      "sexo",
+      "local_do_nascimento",
+      "numero_de_nascidos_por_parto",
+      "idade_da_mae_na_ocasiao_do_parto",
+      "duracao_da_gestacao_em_semanas",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "mes",
+      "sexo",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 2990 (Registro Civil, fetal deaths by mother residence), 2003 onwards; sampled live at level brasil for 2023 on 2026-10-20.",
+    "rows_sampled": 1,
+    "status": "ok"
+  },
   "ibge_obitos_rc": {
     "fields": [
       "nivel",
@@ -3543,6 +3795,37 @@
       "timeout",
       "api_base_url"
     ],
+    "rows_sampled": 1,
+    "status": "ok"
+  },
+  "ibge_obitos_residencia_rc": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "mes_de_ocorrencia",
+      "sexo",
+      "local_de_ocorrencia",
+      "idade_do_a_falecido_a",
+      "natureza_do_obito",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "mes",
+      "sexo",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 2654 (Registro Civil, deaths by residence of the deceased), 2003 onwards; sampled live at level brasil for 2023 on 2026-10-20.",
     "rows_sampled": 1,
     "status": "ok"
   },
@@ -3583,6 +3866,37 @@
     ],
     "rows_sampled": 1,
     "status": "ok"
+  },
+  "ibge_pnad_covid19": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "start_year",
+      "end_year",
+      "tabelas",
+      "meses",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "PNAD COVID-19 monthly microdata, May to November 2020, one CSV per month (table microdados) with the published IBGE variable codes. Not sampled here (~758 MB in CSV).",
+    "status": "empty"
+  },
+  "ibge_pnad_saude": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "start_year",
+      "end_year",
+      "tabelas",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Annual PNAD with the health supplement (1998, 2003, 2008), fixed-width microdata read through the IBGE SAS input at download time, tables pessoas and domicilios; 2003 and 2008 come from the 2001-2012 reweighting. Field list depends on the edition. Not sampled here (~2.2 GB in CSV).",
+    "status": "empty"
   },
   "ibge_pnadc_trimestre1": {
     "fields": [],
@@ -3950,6 +4264,28 @@
     "rows_sampled": 8760,
     "status": "ok"
   },
+  "inpe_area_queimada_biomas": {
+    "fields": [
+      "Ano",
+      "Mês",
+      "Amazônia",
+      "Caatinga",
+      "Cerrado",
+      "Mata Atlântica",
+      "Pampa",
+      "Pantanal",
+      "Total mensal"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "INPE AQ1km collection 2, monthly burned area per biome from 2002-09, in km2 (unit inferred from the 1 km grid); each year ends with a Total anual row with empty month. Whole file read live on 2026-10-20.",
+    "rows_sampled": 314,
+    "status": "ok"
+  },
   "inpe_deter_amazonia": {
     "fields": [
       "gid",
@@ -4053,6 +4389,34 @@
     "rows_sampled": 341237,
     "status": "ok"
   },
+  "inpe_sisam": {
+    "fields": [
+      "datahora",
+      "uf_nome",
+      "municipio_nome",
+      "longitude",
+      "latitude",
+      "co_ppb",
+      "no2_ppb",
+      "o3_ppb",
+      "pm25_ugm3",
+      "so2_ugm3",
+      "precipitacao_mmdia",
+      "temperatura_c",
+      "umidade_relativa_percentual",
+      "vento_direcao_grau",
+      "vento_velocidade_ms"
+    ],
+    "filters": [
+      "anos",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "INPE SISAM, model estimates (not station measurements) every 6 hours for 5,572 municipalities, 2000-2019, one zip per year (130 to 217 MB); municipality by name and centroid, no IBGE code. Header read from the first 256 KB of the 2019 zip on 2026-10-20.",
+    "status": "ok"
+  },
   "macrorregiao_e_regiao_de_saude_municipio": {
     "fields": [
       "codigo_regiao_pais",
@@ -4085,6 +4449,20 @@
     "rows_sampled": 10,
     "status": "ok"
   },
+  "mds_misocial": {
+    "fields": [],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "grupos",
+      "timeout",
+      "base_url"
+    ],
+    "note": "MI Social (MDS/SAGI) monthly municipal indicators from 2003, Solr field names as published, chosen by grupos: bolsa_familia (166), cadunico (59), bpc (29), condicionalidades (317), suas (182), auxilios (357), outros (157). Field list fixed in guaraci/mds/campos.py; not sampled here.",
+    "status": "empty"
+  },
   "mgdi_academia_saude": {
     "fields": [],
     "filters": [
@@ -4095,6 +4473,30 @@
       "timeout"
     ],
     "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
+    "status": "empty"
+  },
+  "mgdi_cancer_colo_mama": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with mgdi_samu: 8 indicators by municipality and month since 2016-12. Layouts: 25 columns (8 files). Header of every file read live on 2026-10-20.",
+    "status": "empty"
+  },
+  "mgdi_cirurgias_especialistas": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with mgdi_samu: 3 indicators by UF and month, 2023-03 to 2025-07. Layouts: 16 columns (3 files). Header of every file read live on 2026-10-20.",
     "status": "empty"
   },
   "mgdi_emulti": {
@@ -4109,6 +4511,18 @@
     "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
     "status": "empty"
   },
+  "mgdi_equidade": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with mgdi_samu: 22 indicators, MUNIC/ESTADIC 2021 by municipality or UF (co_ano), indigenous health by DSEI and month (co_dsei, sg_dsei, no_sede) and disabled people by municipality and month. Layouts: 11 columns (8 files), 16 columns (3 files), 25 columns (11 files). Header of every file read live on 2026-10-20.",
+    "status": "empty"
+  },
   "mgdi_raps": {
     "fields": [],
     "filters": [
@@ -4119,6 +4533,30 @@
       "timeout"
     ],
     "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
+    "status": "empty"
+  },
+  "mgdi_residencias_saude": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with mgdi_samu: 10 indicators by UF and year since 2010. Layouts: 16 columns (10 files). Header of every file read live on 2026-10-20.",
+    "status": "empty"
+  },
+  "mgdi_rnds": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with mgdi_samu: 7 indicators by UF, most with a single month. Layouts: 16 columns (7 files). Header of every file read live on 2026-10-20.",
     "status": "empty"
   },
   "mgdi_samu": {
@@ -4143,6 +4581,18 @@
       "timeout"
     ],
     "note": "One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.",
+    "status": "empty"
+  },
+  "mgdi_saude_bucal_fluoretacao": {
+    "fields": [],
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "One CSV per indicator, MGDI layout shared with mgdi_samu: 7 indicators by municipality, monthly (co_anomes) or yearly (co_ano). Layouts: 25 columns (7 files). Header of every file read live on 2026-10-20.",
     "status": "empty"
   },
   "mgdi_telessaude": {
@@ -4555,6 +5005,27 @@
       "states"
     ],
     "rows_sampled": 8485,
+    "status": "ok"
+  },
+  "pni_cobertura_vacinal_residencia": {
+    "fields": [
+      "CO_ANO",
+      "CO_UF",
+      "CO_MUNICIPIO",
+      "NU_IMUNO",
+      "QT_DOSE",
+      "NU_POPULACAO",
+      "NU_TAXA_COBERTURA",
+      "DT_CARGA"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "SIPNI coverage by municipality of residence, 2015 onwards; single parquet (5.1 MB) overwritten at every load (DT_CARGA). NU_TAXA_COBERTURA is a fraction (0.95 = 95%). Whole file read live on 2026-10-20.",
+    "rows_sampled": 1088479,
     "status": "ok"
   },
   "pni_doses_aplicadas_arquivos": {
@@ -7322,6 +7793,19 @@
     ],
     "rows_sampled": 633543,
     "status": "ok"
+  },
+  "siscan_csv": {
+    "fields": [],
+    "filters": [
+      "tabelas",
+      "anos",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Current SISCAN in CSV, one file per table and year 2013-2025 (10 tables, ~53 GB), ';' with quoted header, no name, CPF or CNS (CO_PACIENTE is a pseudonym in the _PACNT tables). Columns per table read from the 2025 headers on 2026-10-20: CITO_COLO 84, CITO_COLO_PACNT 86, CITO_MAMA 50, CITO_MAMA_PACNT 29, HISTO_COLO 59, HISTO_COLO_PACNT 32; the breast histopathology and mammography headers were not read.",
+    "status": "empty"
   },
   "sisprenatal": {
     "fields": [

@@ -304,6 +304,28 @@ _EXPLICIT: Mapping[str, Tuple[str, ...]] = {
     "siops_indicadores_municipios": ("economia_saude", "gestao"),
     "siops_indicadores_estados": ("economia_saude", "gestao"),
     "vigilancia_e_meio_ambiente_svsa_populacao_residente": ("socioeconomico",),
+    # Leva 5 de outubro/2026. Sem tema próprio para equidade, saúde bucal, RNDS
+    # ou cirurgia eletiva: cada uma vai para o tema existente mais próximo.
+    "esus_notifica_chagas_cronica": ("vigilancia_epidemiologica",),
+    "ibge_censo2022_amostra": ("socioeconomico", "mortalidade", "materno_infantil"),
+    "ibge_censo_autismo": ("socioeconomico",),
+    "ibge_censo_dificuldade_funcional": ("socioeconomico",),
+    "ibge_censo_obitos": ("mortalidade", "materno_infantil", "socioeconomico"),
+    "ibge_obitos_fetais_rc": ("mortalidade", "materno_infantil", "socioeconomico"),
+    "ibge_obitos_residencia_rc": ("mortalidade", "socioeconomico"),
+    "ibge_pnad_covid19": ("vigilancia_epidemiologica", "socioeconomico"),
+    "inpe_area_queimada_biomas": ("ambiente_clima",),
+    "inpe_sisam": ("qualidade_ar", "ambiente_clima"),
+    "mgdi_cancer_colo_mama": ("oncologia", "atencao_primaria"),
+    "mgdi_cirurgias_especialistas": ("assistencia_hospitalar",),
+    "mgdi_equidade": ("saude_indigena", "gestao"),
+    "mgdi_residencias_saude": ("forca_trabalho",),
+    "mgdi_rnds": ("gestao",),
+    "mgdi_saude_bucal_fluoretacao": ("atencao_primaria", "saneamento"),
+    "pni_cobertura_vacinal_residencia": ("imunizacao",),
+    "ibge_pnad_saude": ("vigilancia_epidemiologica", "socioeconomico"),
+    "mds_misocial": ("socioeconomico", "materno_infantil", "imunizacao", "nutricao"),
+    "siscan_csv": ("oncologia",),
 }
 
 

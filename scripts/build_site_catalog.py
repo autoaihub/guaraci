@@ -68,6 +68,7 @@ G_INQ = "Inquéritos populacionais · microdados"
 G_EDU = "Educação · INEP"
 G_TRA = "Trânsito · PRF"
 G_ONC = "Câncer · INCA"
+G_MDS = "Assistência social · MDS"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -292,6 +293,27 @@ CURATED = {
     "saude_indigena_sesai_doencas_zoonoticas": ("SESAI · doenças zoonóticas", "Registros da saúde indígena sobre doenças zoonóticas, por DSEI e polo base", G_IND, SESAI, "saude"),
     "saude_indigena_sesai_hepatites_virais": ("SESAI · hepatites virais", "Registros da saúde indígena sobre hepatites virais, por DSEI e polo base", G_IND, SESAI, "saude"),
     "saude_indigena_sesai_obitos": ("SESAI · óbitos", "Registros da saúde indígena sobre óbitos, por DSEI e polo base", G_IND, SESAI, "saude"),
+    # Leva 5 de outubro/2026
+    "esus_notifica_chagas_cronica": ("Doença de Chagas crônica (e-SUS Notifica)", "Notificações de Chagas crônica com exames, comorbidades e tratamento, desde 2023", G_FTP, DTS, "saude"),
+    "siscan_csv": ("SISCAN · arquivos CSV", "Exames de rastreamento de câncer de colo e mama do SISCAN atual, por exame e por paciente, 2013 a 2025", G_FTP, DTS, "saude"),
+    "pni_cobertura_vacinal_residencia": ("Cobertura vacinal por residência", "Doses, população-alvo e cobertura por município de residência e imunobiológico, desde 2015", G_VAC, PNI_M, "saude"),
+    "ibge_obitos_fetais_rc": ("Registro Civil: óbitos fetais", "Óbitos fetais por residência da mãe, idade da mãe e duração da gestação, desde 2003", G_IBGE, "IBGE", "pop"),
+    "ibge_obitos_residencia_rc": ("Registro Civil: óbitos por residência", "Óbitos por residência do falecido, sexo, idade e natureza do óbito, desde 2003", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_obitos": ("Censo: óbitos de moradores", "Óbitos de moradores entre agosto de 2021 e julho de 2022 por sexo, idade e mês, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_autismo": ("Censo: diagnóstico de autismo", "Pessoas com diagnóstico de autismo por sexo e grupo de idade, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_dificuldade_funcional": ("Censo: dificuldades funcionais", "Pessoas por tipo e grau de dificuldade funcional, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo2022_amostra": ("Censo 2022 · amostra", "Microdados da amostra por UF: pessoas, domicílios, famílias e mortalidade, com pesos", G_INQ, "IBGE", "pop"),
+    "ibge_pnad_covid19": ("PNAD COVID-19", "Microdados mensais de maio a novembro de 2020: sintomas, atendimento, testagem, trabalho e auxílios", G_INQ, "IBGE", "saude"),
+    "ibge_pnad_saude": ("PNAD · suplemento de saúde", "Microdados da PNAD anual de 1998, 2003 e 2008 com morbidade, plano de saúde e uso de serviços", G_INQ, "IBGE", "saude"),
+    "inpe_area_queimada_biomas": ("Área queimada por bioma", "Área queimada mensal em km² por bioma, produto AQ1km, desde 2002", G_AMB, "INPE", "clima"),
+    "inpe_sisam": ("SISAM · qualidade do ar modelada", "Poluentes e meteorologia a cada 6 horas por município, estimativa de modelo, 2000 a 2019", G_AMB, "INPE", "clima"),
+    "mgdi_cancer_colo_mama": ("Câncer de colo e mama · indicadores", "Citopatológicos, mamografias, serviços habilitados e recursos por município e mês, desde 2016", G_AS, MS, "saude"),
+    "mgdi_cirurgias_especialistas": ("Agora Tem Especialistas · cirurgias", "Cirurgias eletivas previstas e realizadas por UF e mês, 2023 a 2025", G_AS, MS, "saude"),
+    "mgdi_equidade": ("Equidade · indicadores", "Indicadores de saúde da população negra, indígena e da pessoa com deficiência", G_AS, MS, "saude"),
+    "mgdi_residencias_saude": ("Pró-Residência · indicadores", "Programas, ingressantes, ativos e egressos das residências em saúde por UF e ano, desde 2010", G_OUT, MS, "saude"),
+    "mgdi_rnds": ("RNDS · indicadores", "Registros recebidos pela Rede Nacional de Dados em Saúde por tipo e UF", G_OUT, MS, "saude"),
+    "mgdi_saude_bucal_fluoretacao": ("Saúde bucal e fluoretação · indicadores", "Repasses de custeio de CEO, UOM e equipes de saúde bucal e vigilância da fluoretação da água", G_AP, APS, "saude"),
+    "mds_misocial": ("MI Social", "Indicadores municipais mensais de Bolsa Família, CadÚnico, BPC, condicionalidades e SUAS, desde 2003", G_MDS, "MDS, Ministério do Desenvolvimento e Assistência Social", "pop"),
 }
 
 MODE_LABEL = {

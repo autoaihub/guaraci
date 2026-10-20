@@ -2,6 +2,40 @@
 
 ## [Unreleased]
 
+### Added: leva 5, Censo 2022, PNAD de saúde, SISCAN em CSV, MI Social e indicadores do MGDI
+O catálogo passa a 205 entradas e 193 bases distintas.
+- **IBGE.** Do Censo 2022 entram os microdados da amostra por UF
+  (`ibge_censo2022_amostra`: pessoas, domicílios, famílias e mortalidade) e
+  três tabelas do SIDRA: óbitos de moradores (`ibge_censo_obitos`), autismo
+  (`ibge_censo_autismo`) e dificuldades funcionais
+  (`ibge_censo_dificuldade_funcional`). Do Registro Civil, óbitos fetais e
+  óbitos por residência desde 2003 (`ibge_obitos_fetais_rc`,
+  `ibge_obitos_residencia_rc`). Entram também os microdados da PNAD COVID-19
+  (`ibge_pnad_covid19`, maio a novembro de 2020) e da PNAD anual com
+  suplemento de saúde (`ibge_pnad_saude`, 1998, 2003 e 2008).
+- **DATASUS.** `siscan_csv` traz o SISCAN atual em CSV, dez tabelas de
+  2013 a 2025, e `esus_notifica_chagas_cronica` as notificações de Chagas
+  crônica desde 2023. SIM, SIM fetal e SINASC passam a ler a pasta `PRELIM`
+  quando falta o arquivo consolidado (2025 e 2026), marcados em
+  `preliminary_files`, e o SINASC desce a 1994.
+- **Vacinação e MGDI.** `pni_cobertura_vacinal_residencia` dá a cobertura por
+  município de residência desde 2015, num arquivo que o SIPNI sobrescreve a
+  cada carga. Do MGDI entram seis grupos de indicadores: câncer de colo e
+  mama, cirurgias do Agora Tem Especialistas, equidade, residências em saúde,
+  RNDS e saúde bucal com fluoretação.
+- **Ambiente.** `inpe_area_queimada_biomas` (área queimada mensal por bioma
+  desde 2002) e `inpe_sisam` (poluentes e meteorologia por município de 2000
+  a 2019, estimados por modelo e não medidos em estação).
+- **Assistência social.** `mds_misocial` traz os indicadores municipais
+  mensais do MI Social desde 2003: Bolsa Família, CadÚnico, BPC,
+  condicionalidades e SUAS.
+- Censo 2022 amostra, SISAM e SISCAN em CSV ficam fora da varredura
+  automática, porque exigem recorte por UF, ano ou tabela; os demais seguem a
+  cadência da origem.
+
+Ficam de fora, à espera de decisão, o RAPP do IBAMA, a CAT do INSS e os
+produtos irregulares da ANVISA, pois trazem CPF ou nome de pessoa física.
+
 ### Added: SINAN completo, óbitos fetais e vacinação e SISVAN por arquivo
 O catálogo passa a 185 entradas e 173 bases distintas.
 - **SINAN.** A fonte `sinan` libera os 58 agravos que o FTP publica, e não

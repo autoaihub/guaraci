@@ -41,6 +41,11 @@ _FROZEN_YEAR_RANGES: Dict[str, tuple] = {
     "srag_arquivos_2009_2012": (2009, 2012),
     "srag_arquivos_2013_2018": (2013, 2018),
     "enani_2019": (2019, 2019),
+    # Pesquisa encerrada: só houve a edição de 2020 (meses 05 a 11).
+    "ibge_pnad_covid19": (2020, 2020),
+    # PNAD anual com suplemento de saúde: edições de 1998, 2003 e 2008, e a
+    # PNAD anual acabou em 2015 sem outro suplemento.
+    "ibge_pnad_saude": (1998, 2008),
 }
 
 # Leva de outubro/2026: (Kind, Cadence, piso do backfill). Pisos marcados com
@@ -76,6 +81,18 @@ _NOVAS_FONTES_2026_10: Dict[str, tuple] = {
     "mgdi_academia_saude": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
     "mgdi_telessaude": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
     "mgdi_saude_bucal": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    # Leva 5: arquivos únicos republicados por cima, sem versão (instantâneo).
+    "inpe_area_queimada_biomas": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "pni_cobertura_vacinal_residencia": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_cancer_colo_mama": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_cirurgias_especialistas": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_equidade": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    # Os indicadores das residências saem por ano.
+    "mgdi_residencias_saude": (Kind.SNAPSHOT, Cadence.ANNUAL, None),
+    "mgdi_rnds": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mgdi_saude_bucal_fluoretacao": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    # O MI Social republica os últimos meses; MONTHLY reconsulta a janela.
+    "mds_misocial": (Kind.API_WINDOW, Cadence.MONTHLY, 2003),
 }
 
 # Edit here to re-tune how often a source is re-checked for new data.
@@ -165,6 +182,42 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             auto=False,
             note="hundreds of GB, selected by anos - collect on demand, not swept",
         )
+    elif name == "inpe_sisam":
+        # Série parada em 2019 e um zip de 130 a 217 MB por ano (13 a 15 GB em
+        # CSV no total), escolhido por lista de ``anos``: coleta sob pedido.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.ANNUAL,
+            2000,
+            auto=False,
+            note="frozen 2000-2019, ~15 GB, selected by anos - collect on demand, not swept",
+            max_year=2019,
+        )
+    elif name == "siscan_csv":
+        # ``tabelas`` e ``anos`` obrigatórios e 53 GB no conjunto (a citologia
+        # de colo passa de 2 GB por ano): coleta sob pedido, como o PNI por
+        # arquivo. O ano novo sai de uma vez, sem data fixa.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.ANNUAL,
+            2013,
+            auto=False,
+            note="~53 GB, selected by tabelas and anos - collect on demand, not swept",
+        )
+    elif name == "ibge_censo2022_amostra":
+        # Edição única, e ``ufs`` é obrigatório (o país inteiro passa de 1 GB
+        # zipado e de 8 GB em CSV): coleta sob pedido, por UF.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.ANNUAL,
+            2022,
+            auto=False,
+            note="single 2022 edition, needs ufs - collect on demand, not swept",
+            max_year=2022,
+        )
     elif name.startswith("ana"):
         profile = SourceProfile(
             name,
@@ -205,8 +258,23 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_censo_paredes": 2022,
             "ibge_censo_deficiencia": 2022,
             "ibge_pof": 2017,
+            # Leva 5: registro civil por residência e Censo 2022 no SIDRA.
+            "ibge_obitos_fetais_rc": 2003,
+            "ibge_obitos_residencia_rc": 2003,
+            "ibge_censo_obitos": 2022,
+            "ibge_censo_autismo": 2022,
+            "ibge_censo_dificuldade_funcional": 2022,
         }.get(name, 2001)
-        profile = SourceProfile(name, Kind.API_WINDOW, Cadence.ANNUAL, ibge_floor)
+        # Pesquisa encerrada (PNAD COVID-19, PNAD de saúde): o piso e o teto vêm da tabela de
+        # bancos congelados, para o update não reconsultar depois da última edição.
+        frozen = _FROZEN_YEAR_RANGES.get(name)
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.ANNUAL,
+            frozen[0] if frozen else ibge_floor,
+            max_year=frozen[1] if frozen else None,
+        )
     elif name.startswith("inmet"):
         # Annual ZIP per year (all automatic stations); the current year is
         # re-checked by Content-Length since INMET republishes it as more
