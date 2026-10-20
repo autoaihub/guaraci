@@ -23,6 +23,7 @@ from guaraci.services.sources import (
     inep,
     inmet,
     inpe,
+    mds,
     mma,
     inpe_terrabrasilis,
     nasa,
@@ -66,4 +67,5 @@ def build_default_sources() -> List[DownloadSource]:
         *prf.build_sources(),
         *siops.build_sources(),
         *inep.build_sources(),
+        *mds.build_sources(),
     ]
