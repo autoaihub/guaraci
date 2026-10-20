@@ -8,7 +8,8 @@ subconjunto que esses programas usam:
 - ``INFILE '...\\arquivo.txt' LRECL=n;`` dá o arquivo e o tamanho do registro;
 - ``INPUT`` lista as variáveis, cada uma como ``@<pos> <VAR> [$]<w>.[d]``
   (PNS e POF, posição com ou sem zeros à esquerda) ou só ``<VAR> [$]<w>.[d]``,
-  em sequência a partir da posição 1 (PeNSE 2012);
+  em sequência a partir da posição 1 (PeNSE 2012), com ``$CHARw.`` aceito
+  como sinônimo de ``$w.`` (PNAD anual de 1998);
 - ``/* rótulo */`` na mesma linha da variável vira o rótulo dela.
 
 As posições são de BYTE. O fatiador decodifica o arquivo em cp1252, que mapeia
@@ -86,7 +87,9 @@ _TOKEN = re.compile(
     r"|[^\s;]+?(?=;|/\*|\s|$)",
     re.S,
 )
-_FORMAT = re.compile(r"^(\$)?(\d+)\.(\d*)$")
+# ``$CHARw.`` é a forma dos programas da PNAD anual dos anos 1990 (1998):
+# mesmo campo de texto que ``$w.``, só com o informat escrito por extenso.
+_FORMAT = re.compile(r"^(\$)?(?:char)?(\d+)\.(\d*)$", re.I)
 _NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _LRECL = re.compile(r"^lrecl=(\d+)$", re.I)
 
@@ -134,6 +137,10 @@ def _parse_input(tokens, text: str, block: SasBlock, context: str) -> None:
             if i >= len(items):
                 raise ValueError(f"{context}: '@{digits}' sem variável.")
             tok = items[i][0]
+        if start is None and i == len(items) - 1 and tok.casefold() == "run":
+            # O programa da PNAD de 1998 não fecha o INPUT com ``;`` e o
+            # ``RUN;`` final cai dentro do comando.
+            break
         if not _NAME.match(tok):
             raise ValueError(f"{context}: token inesperado '{tok}' no INPUT.")
         name = tok
