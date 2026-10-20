@@ -24,8 +24,6 @@ _MODES = {
     "mgdi_saude_bucal": "demas s3 files",
     "pni_doses_aplicadas_arquivos": "demas s3 files",
     "sisvan_estado_nutricional_arquivos": "demas s3 files",
-    "ibama_rapp_emissoes_atmosfericas": "ibama files",
-    "ibama_rapp_efluentes_liquidos": "ibama files",
     "inpe_area_queimada_biomas": "inpe files",
     "inpe_sisam": "inpe files",
 }

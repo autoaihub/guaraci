@@ -1,8 +1,7 @@
 """Smoke opt-in das fontes ambientais de arquivo HTTP (rede real).
 
-Desligado por padrão; ``GUARACI_ARQUIVOS_SMOKE=1`` liga. A área queimada e as
-emissões do RAPP baixam o arquivo inteiro (13 KB e 59 MB); os efluentes só fazem
-HEAD (188 MB). O SISAM só baixa com ``GUARACI_SISAM_SMOKE=1``, pois o ano mais
+Desligado por padrão; ``GUARACI_ARQUIVOS_SMOKE=1`` liga. A área queimada baixa o
+arquivo inteiro (13 KB). O SISAM só baixa com ``GUARACI_SISAM_SMOKE=1``, pois o ano mais
 leve (2018) tem 136 MB comprimidos e ~590 MB de CSV.
 """
 
@@ -36,21 +35,6 @@ def test_live_area_queimada_inteira(tmp_path):
     assert frame["Ano"][0] == "2002" and frame["Mês"][0] == "09"
 
 
-def test_live_rapp_emissoes_inteiro(tmp_path):
-    key = "ibama_rapp_emissoes_atmosfericas"
-    payload = HttpFileDataSource(output_path=str(tmp_path), dataset=key).download(
-        output_dir=str(tmp_path), output_format="parquet"
-    )
-    frame = pl.read_parquet(payload["exported_files"][0])
-    assert frame.columns[0] == "CNPJ"
-    assert {"Ano", "Poluente emitido", "Quantidade", "Município"} <= set(frame.columns)
-    assert frame.height > 100_000
-
-
-def test_live_rapp_efluentes_so_head():
-    url = HTTP_FILES["ibama_rapp_efluentes_liquidos"].resources[0].url
-    remote = HttpFileClient(timeout_seconds=60).head(url)
-    assert remote.size and remote.size > 100_000_000
 
 
 def test_live_sisam_so_head():
