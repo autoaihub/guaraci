@@ -26,6 +26,13 @@ _MODES = {
     "sisvan_estado_nutricional_arquivos": "demas s3 files",
     "inpe_area_queimada_biomas": "inpe files",
     "inpe_sisam": "inpe files",
+    "pni_cobertura_vacinal_residencia": "datasus ftp file",
+    "mgdi_cancer_colo_mama": "demas s3 files",
+    "mgdi_cirurgias_especialistas": "demas s3 files",
+    "mgdi_equidade": "demas s3 files",
+    "mgdi_residencias_saude": "demas s3 files",
+    "mgdi_rnds": "demas s3 files",
+    "mgdi_saude_bucal_fluoretacao": "demas s3 files",
 }
 
 
