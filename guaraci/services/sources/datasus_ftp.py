@@ -5,9 +5,17 @@ from typing import List
 
 from guaraci.core.contracts import SourceParameterSpec
 from guaraci.datasus.ftp import specs as ftp_specs
+from guaraci.datasus.siscan_csv import (
+    SISCAN_CSV,
+    SISCAN_CSV_ANOS,
+    SISCAN_CSV_TABELAS,
+    FtpFileClient,
+    SiscanCsvDataSource,
+)
 from guaraci.services import downloads as _downloads
 from guaraci.services.downloads import (
     EXPORT_FORMAT_VALUES,
+    ApiDownloadSource,
     DownloadSource,
     DatasusDownloadSource,
     SourceDescriptor,
@@ -104,6 +112,82 @@ def _build_ftp_source(spec, *, last_year: int, uf_values: List[str]) -> "Datasus
     )
 
 
+def _build_siscan_csv_source() -> "ApiDownloadSource":
+    """SISCAN em CSV: arquivo por tabela e ano, sem a descoberta por UF do DBC.
+
+    O padrão é a menor combinação útil (histopatológico de mama do último ano,
+    12 MB); a citologia de colo de um único ano passa de 2 GB.
+    """
+    schema = [
+        SourceParameterSpec(
+            name="tabelas",
+            phase="coleta",
+            param_type="string_list",
+            description=(
+                "Tabelas do SISCAN (obrigatório). CITO_COLO e MAMOGRAFIA, e suas versões "
+                "_PACNT, têm de 0,5 a 2,1 GB por ano; as de mama e histopatológico, "
+                "menos de 13 MB."
+            ),
+            required=True,
+            default=["HISTO_MAMA"],
+            allowed_values=list(SISCAN_CSV_TABELAS),
+        ),
+        SourceParameterSpec(
+            name="anos",
+            phase="coleta",
+            param_type="string_list",
+            description="Anos de competência a baixar (obrigatório), de 2013 a 2025.",
+            required=True,
+            default=[str(SISCAN_CSV_ANOS[-1])],
+            allowed_values=[str(a) for a in SISCAN_CSV_ANOS],
+        ),
+        SourceParameterSpec(
+            name="output_dir",
+            phase="tecnica",
+            param_type="string",
+            description="Output directory for downloaded files.",
+            required=False,
+            default=None,
+        ),
+        SourceParameterSpec(
+            name="output_format",
+            phase="exportacao",
+            param_type="string",
+            description=(
+                "Exporta em CSV UTF-8, Parquet ou SQLite, com todas as colunas "
+                "como texto e nomes de coluna como publicados. Omita para guardar "
+                "o arquivo como a fonte publica."
+            ),
+            required=False,
+            default=None,
+            allowed_values=EXPORT_FORMAT_VALUES,
+        ),
+        SourceParameterSpec(
+            name="keep_raw",
+            phase="tecnica",
+            param_type="boolean",
+            description="Se true, mantém o arquivo original além da exportação.",
+            required=False,
+            default=False,
+        ),
+        SourceParameterSpec(
+            name="timeout",
+            phase="tecnica",
+            param_type="integer",
+            description="FTP timeout in seconds.",
+            required=False,
+            default=FtpFileClient.DEFAULT_TIMEOUT,
+            minimum=1,
+        ),
+    ]
+    return ApiDownloadSource(
+        descriptor=SourceDescriptor(
+            source=SISCAN_CSV.key, title=SISCAN_CSV.title, mode="datasus ftp csv"
+        ),
+        datasource_cls=SiscanCsvDataSource,
+        params_schema=schema,
+    )
+
 
 def build_sources() -> List[DownloadSource]:
     """Retorna as fontes FTP genericas na ordem dos specs (ALL_SPECS)."""
@@ -111,6 +195,9 @@ def build_sources() -> List[DownloadSource]:
     last_year = current_year - 1
     uf_values = sorted(set(UF_DICT.values()))
     return [
-        _build_ftp_source(spec, last_year=last_year, uf_values=uf_values)
-        for spec in ftp_specs.ALL_SPECS
+        *(
+            _build_ftp_source(spec, last_year=last_year, uf_values=uf_values)
+            for spec in ftp_specs.ALL_SPECS
+        ),
+        _build_siscan_csv_source(),
     ]
