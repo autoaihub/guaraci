@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-10-19T10:55:35+00:00",
+  "updated_at": "2026-10-20T10:11:31+00:00",
   "repo_count": 55,
-  "total_clones": 2569,
-  "total_uniques": 984,
+  "total_clones": 2624,
+  "total_uniques": 1011,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1761,
-      "total_uniques": 613,
-      "uniques_14d": 197,
+      "total_clones": 1805,
+      "total_uniques": 630,
+      "uniques_14d": 204,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 474,
-      "total_uniques": 178,
-      "uniques_14d": 56,
+      "total_clones": 482,
+      "total_uniques": 183,
+      "uniques_14d": 59,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 14,
+      "total_uniques": 15,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
@@ -34,9 +34,9 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 25,
-      "total_uniques": 25,
-      "uniques_14d": 6,
+      "total_clones": 26,
+      "total_uniques": 26,
+      "uniques_14d": 7,
       "tracking_since": "2026-08-20"
     },
     {
@@ -48,8 +48,15 @@
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 23,
-      "total_uniques": 23,
+      "total_clones": 24,
+      "total_uniques": 24,
+      "uniques_14d": 8,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/loadbay",
+      "total_clones": 22,
+      "total_uniques": 22,
       "uniques_14d": 7,
       "tracking_since": "2026-08-20"
     },
@@ -58,13 +65,6 @@
       "total_clones": 21,
       "total_uniques": 21,
       "uniques_14d": 8,
-      "tracking_since": "2026-08-20"
-    },
-    {
-      "repo": "LuisVogelDS/loadbay",
-      "total_clones": 21,
-      "total_uniques": 21,
-      "uniques_14d": 6,
       "tracking_since": "2026-08-20"
     },
     {
@@ -84,8 +84,8 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 9,
-      "uniques_14d": 3,
+      "total_uniques": 10,
+      "uniques_14d": 2,
       "tracking_since": "2026-09-19"
     },
     {
