@@ -1,42 +1,45 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-10-20T10:11:31+00:00. 2624 clonagens (1011 únicas) em 55 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-10-21T10:19:16+00:00. 2645 clonagens (1031 únicas) em 55 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 1805 | 630 | 204 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 482 | 183 | 59 | 2026-08-20 |
+| autoaihub/guaraci | 1812 | 636 | 196 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 490 | 188 | 62 | 2026-08-20 |
 | LuisVogelDS/IntraAct | 76 | 15 | 1 | 2026-08-21 |
 | cajuice/shop-list | 63 | 9 | 2 | 2026-09-20 |
-| LuisVogelDS/LuisVogelDS | 26 | 26 | 7 | 2026-08-20 |
+| LuisVogelDS/LuisVogelDS | 26 | 26 | 6 | 2026-08-20 |
 | LuisVogelDS/MemoriaRam | 24 | 8 | 1 | 2026-08-21 |
-| LuisVogelDS/retail-pulse | 24 | 24 | 8 | 2026-08-20 |
-| LuisVogelDS/loadbay | 22 | 22 | 7 | 2026-08-20 |
-| LuisVogelDS/churnlab | 21 | 21 | 8 | 2026-08-20 |
-| LuisVogelDS/vitrine | 21 | 16 | 2 | 2026-08-20 |
+| LuisVogelDS/retail-pulse | 24 | 24 | 7 | 2026-08-20 |
+| LuisVogelDS/churnlab | 22 | 22 | 7 | 2026-08-20 |
+| LuisVogelDS/loadbay | 22 | 22 | 6 | 2026-08-20 |
+| LuisVogelDS/vitrine | 21 | 17 | 2 | 2026-08-20 |
 | LuisVogelDS/Alquimia | 8 | 2 | 1 | 2026-08-21 |
-| LuisVogelDS/HarpyNest | 8 | 10 | 2 | 2026-09-19 |
+| LuisVogelDS/HarpyNest | 8 | 11 | 2 | 2026-09-19 |
+| cajuice/cajuzinho | 6 | 5 | 2 | 2026-09-22 |
 | LuisVogelDS/GolDePlaca | 5 | 5 | 1 | 2026-09-13 |
-| cajuice/cajuzinho | 5 | 4 | 2 | 2026-09-22 |
 | LuisVogelDS/Volvo | 3 | 3 | 0 | 2026-08-20 |
-| cajuice/clinica | 3 | 4 | 4 | 2026-09-23 |
+| cajuice/clinica | 3 | 5 | 3 | 2026-09-23 |
 | cajuice/game-duct-tape | 3 | 2 | 1 | 2026-09-24 |
-| cajuice/presto | 3 | 4 | 4 | 2026-09-29 |
-| LuisVogelDS/Cajuice | 2 | 2 | 2 | 2026-09-19 |
+| cajuice/presto | 3 | 5 | 3 | 2026-09-29 |
+| LuisVogelDS/Cajuice | 2 | 2 | 1 | 2026-09-19 |
 | LuisVogelDS/GobbleGoblin | 2 | 1 | 1 | 2026-08-21 |
 | LuisVogelDS/LilianeVogelAtelier | 2 | 2 | 1 | 2026-08-21 |
-| cajuice/Cajuice | 2 | 2 | 2 | 2026-09-20 |
-| cajuice/conteudo | 2 | 2 | 2 | 2026-09-22 |
-| cajuice/game-slime | 2 | 2 | 2 | 2026-09-23 |
-| cajuice/site | 2 | 2 | 2 | 2026-09-22 |
+| LuisVogelDS/prospero-dados | 2 | 1 | 1 | 2026-09-22 |
+| cajuice/Cajuice | 2 | 2 | 1 | 2026-09-20 |
+| cajuice/conteudo | 2 | 2 | 1 | 2026-09-22 |
+| cajuice/game-slime | 2 | 2 | 1 | 2026-09-23 |
+| cajuice/site | 2 | 2 | 1 | 2026-09-22 |
 | LuisVogelDS/CartaoVermelho | 1 | 1 | 0 | 2026-08-18 |
 | LuisVogelDS/Prospero | 1 | 1 | 0 | 2026-08-21 |
+| LuisVogelDS/adormecer-abas | 1 | 1 | 1 | 2026-09-26 |
 | LuisVogelDS/hub-2ms | 1 | 1 | 1 | 2026-09-22 |
 | LuisVogelDS/hub-pessoal | 1 | 1 | 1 | 2026-09-22 |
 | cajuice/FangYouVeryMuch | 1 | 1 | 1 | 2026-09-30 |
 | cajuice/acervo | 1 | 1 | 1 | 2026-09-30 |
 | cajuice/bus-tracker | 1 | 3 | 2 | 2026-09-27 |
 | cajuice/music-channels | 1 | 1 | 1 | 2026-09-26 |
+| cajuice/prospero | 1 | 1 | 1 | 2026-09-22 |
 | LuisVogelDS/Bem-te-vi | 0 | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/Cantin-do-Fogueu | 0 | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/Controle-de-Campo | 0 | 0 | 0 | 2026-08-21 |
@@ -48,9 +51,7 @@ Atualizado em 2026-10-20T10:11:31+00:00. 2624 clonagens (1011 únicas) em 55 rep
 | LuisVogelDS/MemoriasPostumasDeBrazucas | 0 | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/ScoutCamisa10 | 0 | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/Tatuacu | 0 | 0 | 0 | 2026-08-21 |
-| LuisVogelDS/adormecer-abas | 0 | 0 | 0 | 2026-09-26 |
 | LuisVogelDS/baldor-scraper | 0 | 0 | 0 | 2026-08-20 |
-| LuisVogelDS/prospero-dados | 0 | 0 | 0 | 2026-09-22 |
 | autoaihub/guaraci-docs | 0 | 0 | 0 | 2026-08-21 |
 | cajuice/game-baluarte | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-fractal | 0 | 0 | 0 | 2026-10-05 |
@@ -58,4 +59,3 @@ Atualizado em 2026-10-20T10:11:31+00:00. 2624 clonagens (1011 únicas) em 55 rep
 | cajuice/game-orbita | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-pinta | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-vetor | 0 | 0 | 0 | 2026-10-05 |
-| cajuice/prospero | 0 | 0 | 0 | 2026-09-22 |
