@@ -81,6 +81,11 @@ api = [
     "httpx>=0.25.0",
     "aiofiles>=23.2.0"
 ]
+# Extrator 7z em Python puro para o Novo CAGED e a RAIS (MTE). Opcional: com o
+# binário 7z/7za/7zz no PATH (ou o 7-Zip no Windows) o pacote não é necessário.
+trabalho = [
+    "py7zr>=0.21"
+]
 dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
@@ -93,7 +98,7 @@ dev = [
 ]
 # Agregado autorreferente: sem duplicar pins, não há como divergir dos extras acima.
 full = [
-    "guaraci[datasus,snis-legacy,api,dev]"
+    "guaraci[datasus,snis-legacy,api,trabalho,dev]"
 ]
 docs = [
     "mkdocs>=1.5.0",
