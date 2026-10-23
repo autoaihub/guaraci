@@ -1,6 +1,6 @@
 """Censo Demografico 2022 (e 2010) no SIDRA: tabelas de recorte detalhado.
 
-Dez fontes sobre o mesmo molde de :class:`~guaraci.ibge.sidra.SidraAggregateSource`.
+Fontes sobre o mesmo molde de :class:`~guaraci.ibge.sidra.SidraAggregateSource`.
 Cada uma fixa tabela, variaveis e as classificacoes (cor ou raca, sexo, idade,
 localizacao...), todas verificadas ao vivo em 2026-10-13 via
 ``GET /api/v3/agregados/<tabela>/metadados``. Todas publicam N1, N2, N3 e N6.
@@ -149,8 +149,8 @@ class _CensoSidraSource(SidraAggregateSource):
     def download(
         self,
         *,
-        start_year: object = 2022,
-        end_year: object = 2022,
+        start_year: object = None,
+        end_year: object = None,
         level: str = DEFAULT_LEVEL,
         detalhe: str = "completo",
         output_format: Optional[str] = None,
@@ -159,6 +159,12 @@ class _CensoSidraSource(SidraAggregateSource):
         timeout: int = SidraAggregateSource.DEFAULT_TIMEOUT,
         progress_callback: Optional[Callable[[Dict[str, object]], None]] = None,
     ) -> Dict[str, object]:
+        # Sem ano, vale o período mais recente da tabela (2022 no Censo
+        # Demográfico, 2017 no Agropecuário).
+        if start_year is None:
+            start_year = max(self.ESPEC.periodos)
+        if end_year is None:
+            end_year = max(self.ESPEC.periodos)
         y0, y1, detalhe_norm = self._validar(start_year, end_year, detalhe)
         return self._coletar(
             self.ESPEC,
@@ -470,6 +476,93 @@ class IbgeCensoDificuldadeFuncionalDataSource(_CensoSidraSource):
     )
 
 
+class IbgeCensoRendimentoDataSource(_CensoSidraSource):
+    """Rendimento do trabalho -- tabela 10281, vars 13535, 13536 e 13537.
+
+    Censo 2022. Pessoas de 14 anos ou mais ocupadas com rendimento de trabalho,
+    com o rendimento nominal mensal médio e mediano de todos os trabalhos
+    (reais), por sexo, cor ou raça, nível de instrução e condição de
+    contribuição para a previdência. A tabela 10292, de classes de rendimento
+    em salários mínimos, não entra.
+    """
+
+    SOURCE_NAME = "ibge_censo_rendimento"
+    ESPEC = TabelaCenso(
+        "10281",
+        "13535|13536|13537",
+        (
+            _SEXO_C,
+            _COR,
+            Classif("1568", "120704", ("9493", "9494", "9495", "99713")),
+            Classif("526", "15349", ("15350", "15351")),
+        ),
+        (2022,),
+    )
+
+
+class IbgeCensoFrequenciaEscolarDataSource(_CensoSidraSource):
+    """Taxa bruta de frequência escolar -- tabela 10056, variável 3795.
+
+    Censo 2022. Por idade simples e grupos de idade (0 a 3 anos, 4 a 5, 6 a 14,
+    15 a 17, 18 a 24 e idades isoladas, que se sobrepõem aos grupos), sexo e
+    cor ou raça. As tabelas por nível de ensino (10057 a 10059) e de nível de
+    instrução (10061) não entram.
+    """
+
+    SOURCE_NAME = "ibge_censo_frequencia_escolar"
+    ESPEC = TabelaCenso(
+        "10056",
+        "3795",
+        (
+            Classif(
+                "58",
+                "95253",
+                (
+                    "99749", "2483", "2484", "2485", "2486", "47813", "2487", "2488",
+                    "31615", "2489", "2490", "2491", "2492", "2493", "2494", "2495",
+                    "2496", "2497", "2792", "2498", "2499", "2500", "100052", "2501",
+                    "2502", "92958", "92959", "92960", "92961", "92962", "108866",
+                ),
+            ),
+            _SEXO_C,
+            _COR,
+        ),
+        (2022,),
+    )
+
+
+class IbgeCensoFecundidadeDataSource(_CensoSidraSource):
+    """Mulheres e filhos tidos nascidos vivos -- tabela 10078, vars 13315 a 13318.
+
+    Censo 2022. Mulheres de 12 anos ou mais, total de filhos tidos nascidos
+    vivos, de filhos vivos na data de referência e nascidos no período, por
+    grupo de idade da mulher, nível de instrução e cor ou raça. As variáveis de
+    percentual ficam de fora. O estado conjugal (tabela 10183) não entra.
+    """
+
+    SOURCE_NAME = "ibge_censo_fecundidade"
+    ESPEC = TabelaCenso(
+        "10078",
+        "13315|13316|13317|13318",
+        (
+            Classif(
+                "12232",
+                "58896",
+                (
+                    "58897", "104541", "104542", "104543", "104544", "104545",
+                    "104546", "104547", "104548", "104549", "105109", "105110",
+                    "105111", "105112", "105113",
+                ),
+            ),
+            Classif("1568", "120704", ("9493", "9494", "9495", "99713", "11626")),
+            Classif(
+                "12293", "58898", ("105167", "105168", "105169", "105170", "105171", "105172")
+            ),
+        ),
+        (2022,),
+    )
+
+
 CENSO_SOURCES: List[type] = [
     IbgeCensoCorRacaIdadeSexoDataSource,
     IbgeCensoAlfabetizacaoDataSource,
@@ -481,4 +574,7 @@ CENSO_SOURCES: List[type] = [
     IbgeCensoObitosDataSource,
     IbgeCensoAutismoDataSource,
     IbgeCensoDificuldadeFuncionalDataSource,
+    IbgeCensoRendimentoDataSource,
+    IbgeCensoFrequenciaEscolarDataSource,
+    IbgeCensoFecundidadeDataSource,
 ]

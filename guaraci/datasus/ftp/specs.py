@@ -350,6 +350,34 @@ ESUS_NOTIFICA_CHAGAS_CRONICA = SystemSpec(
 )
 
 
+# --- SIM exterior: DOREXT<YY>, national, yearly --------------------------------
+
+# Óbitos ocorridos no Brasil de residentes no exterior. Conferido ao vivo em
+# 2026-10-23 no DOREXT20 (318 linhas, 87 colunas no leiaute do SIM): CODMUNRES
+# traz o código do país de residência (900068, 900126...), com CODPAISRES
+# preenchido, e CODMUNOCOR é município brasileiro. Fica de fora o óbito de
+# brasileiro residente que morreu no exterior, que o SIM não registra. A pasta
+# PRELIM/DOFET repete o último ano consolidado (DOREXT25) e traz o corrente
+# (DOREXT26); só o diretório consolidado entra, para não duplicar o arquivo.
+SIM_OBITOS_EXTERIOR = SystemSpec(
+    name="sim_obitos_exterior",
+    system=System.SIM_EXTERIOR,
+    title="SIM (Óbitos de residentes no exterior)",
+    description=(
+        "Sistema de Informações sobre Mortalidade: óbitos ocorridos no Brasil "
+        "de residentes no exterior (DOREXT, CID-10, nacional)."
+    ),
+    roots=(f"{_PUB}/SIM/CID10/DOFET",),
+    pattern=re.compile(r"^DOREXT(?P<yy>\d{2})\.dbc$", re.IGNORECASE),
+    ext=".dbc",
+    has_state=False,
+    has_month=False,
+    national=True,
+    fixed_group="DOREXT",
+    min_year=2013,
+)
+
+
 ALL_SPECS: Tuple[SystemSpec, ...] = (
     SINASC,
     SIA,
@@ -364,6 +392,7 @@ ALL_SPECS: Tuple[SystemSpec, ...] = (
     PAINEL_ONCOLOGIA,
     SIM_OBITOS_FETAIS,
     ESUS_NOTIFICA_CHAGAS_CRONICA,
+    SIM_OBITOS_EXTERIOR,
 )
 
 SPECS = {spec.name: spec for spec in ALL_SPECS}
