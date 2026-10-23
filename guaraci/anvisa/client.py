@@ -56,6 +56,10 @@ class AnvisaClient:
         self.max_attempts = max_attempts
 
     def url_for(self, filename: str) -> str:
+        # URL completa (ex.: Hemoprod, no gov.br) passa como está; o resto é
+        # relativo à listagem de dados.anvisa.gov.br/dados/.
+        if filename.startswith(("http://", "https://")):
+            return filename
         return self.base_url + quote(filename)
 
     def head(self, filename: str) -> RemoteFile:
