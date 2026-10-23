@@ -59,6 +59,9 @@ class AnvisaFile:
     # tecnovigilância, OCORRENCIA_NIVEL_1 e _2 trazem "A ; B ; C", e 3 439
     # das 287 mil linhas tinham 2 a 8 campos a mais que o cabeçalho.
     list_separator: Optional[str] = None
+    # URL completa, para arquivo fora de dados.anvisa.gov.br/dados/ (Hemoprod,
+    # no gov.br). ``filename`` segue dando o nome do arquivo bruto e da saída.
+    url: Optional[str] = None
 
 
 ANVISA_FILES: Dict[str, AnvisaFile] = {
@@ -126,6 +129,64 @@ ANVISA_FILES: Dict[str, AnvisaFile] = {
             "apresentação.",
             encoding="utf-8-sig",
             header_prefix="SUBST",
+            quoted=True,
+        ),
+        AnvisaFile(
+            "anvisa_hemoprod",
+            "hemoprod_nacional.csv",
+            "ANVISA Hemoprod - Produção Hemoterápica",
+            "Produção dos serviços de hemoterapia declarada ao Hemoprod, de 2022 em "
+            "diante (as planilhas de 2010 a 2021 ficam fora, com outro leiaute): "
+            "triagem clínica e sorológica (HIV, Chagas, sífilis, hepatites, HTLV, "
+            "malária), reações transfusionais e perdas, uma linha por resposta do "
+            "formulário, com CNES e CNPJ do serviço. Cerca de 270 colunas, com o "
+            "nome longo do formulário. O CNES vem em notação científica na origem "
+            "(4,03453E+12) e fica como texto, sem correção. Traz identificador "
+            "pessoal do informante (a coluna Endereço IP) e razão social, publicado "
+            "assim pelo órgão; o tratamento LGPD fica nas camadas prata e ouro do Sabiá.",
+            encoding="utf-8-sig",
+            quoted=True,
+            url=(
+                "https://www.gov.br/anvisa/pt-br/centraisdeconteudo/publicacoes/"
+                "sangue-tecidos-celulas-e-orgaos/producao-e-avaliacao-de-servicos-de-"
+                "hemoterapia/dados-brutos-de-producao-hemoterapica-1/"
+                "hemoprod_nacional.csv/@@download/file"
+            ),
+        ),
+        AnvisaFile(
+            "anvisa_nucleos_seguranca_paciente",
+            "TA_NUCLEO_SEGURANCA.csv",
+            "ANVISA Núcleos de Segurança do Paciente",
+            "Estabelecimentos de saúde com Núcleo de Segurança do Paciente cadastrado: "
+            "UF, município, razão social, CNPJ, CNES, categoria e mantenedora. A "
+            "primeira coluna se chama #UF na origem.",
+        ),
+        AnvisaFile(
+            "anvisa_produtos_saude_registrados",
+            "TA_PRODUTO_SAUDE_SITE.csv",
+            "ANVISA Produtos para Saúde Registrados",
+            "Produtos para saúde (dispositivos médicos) registrados ou cadastrados: "
+            "nome técnico e comercial, classe de risco, detentor com CNPJ, fabricante, "
+            "país e validade do registro.",
+        ),
+        AnvisaFile(
+            "anvisa_produtos_saude_modelos",
+            "TA_PRODUTO_SAUDE_MODELO.csv",
+            "ANVISA Produtos para Saúde - Modelos",
+            "Modelos de cada produto para saúde registrado (descrição do modelo, "
+            "detentor, fabricante e validade). Arquivo de cerca de 1 GB.",
+        ),
+        AnvisaFile(
+            "anvisa_produtos_irregulares",
+            "CONSULTAS/EMPRESA_FISCALIZACAO_PRODUTO/TA_CONSULTA_PRODUTOS_IRREGULARES_RESULTADO.CSV",
+            "ANVISA Produtos Irregulares",
+            "Medidas de fiscalização da ANVISA sobre produtos irregulares, com o tipo do "
+            "produto (DS_TIPO_PRODUTO): dossiê, processo, empresa, risco, ação e "
+            "atividade de fiscalização, data de publicação da medida e lista de produtos. "
+            "Todas as colunas, como publicadas. Traz razão social, CNPJ e nome de empresa "
+            "investigada, que em MEI e empresa individual pode ser o nome de uma pessoa "
+            "física, publicado assim pelo órgão; o tratamento LGPD fica nas camadas prata "
+            "e ouro do Sabiá.",
             quoted=True,
         ),
     )
@@ -283,8 +344,9 @@ class AnvisaFileDataSource(DataSource):
         base_dir.mkdir(parents=True, exist_ok=True)
         client = self._client or AnvisaClient(base_url=api_base_url, timeout_seconds=timeout)
 
-        remote = client.head(self.spec.filename)
-        raw_path = base_dir / self.spec.filename
+        ref = self.spec.url or self.spec.filename
+        remote = client.head(ref)
+        raw_path = base_dir / Path(self.spec.filename).name
         skipped = raw_path.exists() and remote.size is not None and raw_path.stat().st_size == remote.size
         if progress_callback is not None:
             progress_callback({"event": "download_start", "source": self.name, "documents_total": 1})
@@ -299,7 +361,7 @@ class AnvisaFileDataSource(DataSource):
                         "file_bytes_downloaded": written, "file_total_bytes": remote.size or 0,
                     })
 
-            client.download(self.spec.filename, raw_path, progress_callback=on_bytes)
+            client.download(ref, raw_path, progress_callback=on_bytes)
         if progress_callback is not None:
             progress_callback({
                 "event": "file_skipped" if skipped else "file_completed", "source": self.name,
