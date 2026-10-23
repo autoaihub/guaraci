@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List
 
 from guaraci.core.contracts import SourceParameterSpec
+from guaraci.ibge.agro import AGRO_ANUAL_SOURCES, CENSO_AGRO_SOURCES
 from guaraci.ibge.censo import CENSO_SOURCES
 from guaraci.ibge.registro_civil import (
     IbgeObitosFetaisRcDataSource,
@@ -30,6 +31,20 @@ _CENSO_TITULOS = {
     "ibge_censo_obitos": "IBGE Censo 2022: Óbitos de Moradores (2019-2022)",
     "ibge_censo_autismo": "IBGE Censo 2022: População Diagnosticada com Autismo",
     "ibge_censo_dificuldade_funcional": "IBGE Censo 2022: Tipo e Grau de Dificuldade Funcional",
+    "ibge_censo_rendimento": "IBGE Censo 2022: Rendimento do Trabalho",
+    "ibge_censo_frequencia_escolar": "IBGE Censo 2022: Frequência Escolar",
+    "ibge_censo_fecundidade": "IBGE Censo 2022: Mulheres e Filhos Tidos Nascidos Vivos",
+    "ibge_censo_agro_2017_agrotoxicos": "IBGE Censo Agropecuário 2017: Uso de Agrotóxicos",
+    "ibge_censo_agro_2017_estabelecimentos": (
+        "IBGE Censo Agropecuário 2017: Estabelecimentos e Área por Condição das Terras"
+    ),
+    "ibge_censo_agro_2017_produtor": "IBGE Censo Agropecuário 2017: Perfil do Produtor",
+    "ibge_pam_lavouras": "IBGE PAM: Lavouras Temporárias e Permanentes por Município",
+    "ibge_ppm_rebanhos": "IBGE PPM: Efetivo dos Rebanhos por Município",
+    "ibge_ppm_aquicultura": "IBGE PPM: Aquicultura por Município",
+    "ibge_ppm_producao_animal": "IBGE PPM: Produção de Origem Animal por Município",
+    "ibge_pevs_extracao_vegetal": "IBGE PEVS: Extração Vegetal por Município",
+    "ibge_pevs_silvicultura": "IBGE PEVS: Silvicultura por Município",
 }
 
 
@@ -37,7 +52,7 @@ def _censo_sources() -> List[DownloadSource]:
     """Fontes do Censo no SIDRA (guaraci/ibge/censo.py), com o mesmo molde."""
     current_year = datetime.now().year
     fontes: List[DownloadSource] = []
-    for cls in CENSO_SOURCES:
+    for cls in list(CENSO_SOURCES) + list(CENSO_AGRO_SOURCES):
         periodos = cls.periodos()
         referencia = ", ".join(str(p) for p in periodos)
         fontes.append(
@@ -241,6 +256,115 @@ def _rc_residencia_sources() -> List[DownloadSource]:
                         required=False,
                         default="total",
                         allowed_values=["total", "ambos", "homens", "mulheres"],
+                    ),
+                    SourceParameterSpec(
+                        name="keep_raw",
+                        phase="tecnica",
+                        param_type="boolean",
+                        description="Se true, salva o JSON bruto da resposta.",
+                        required=False,
+                        default=False,
+                    ),
+                    SourceParameterSpec(
+                        name="timeout",
+                        phase="tecnica",
+                        param_type="integer",
+                        description="HTTP timeout in seconds.",
+                        required=False,
+                        default=cls.DEFAULT_TIMEOUT,
+                        minimum=1,
+                    ),
+                    SourceParameterSpec(
+                        name="api_base_url",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Optional IBGE API base URL override.",
+                        required=False,
+                        default=None,
+                    ),
+                ],
+                normalize_params=_normalize_ibge_params,
+            )
+        )
+    return fontes
+
+
+def _agro_sources() -> List[DownloadSource]:
+    """Séries anuais PAM, PPM e PEVS no SIDRA (guaraci/ibge/agro.py)."""
+    current_year = datetime.now().year
+    last_year = current_year - 1
+    fontes: List[DownloadSource] = []
+    for cls in AGRO_ANUAL_SOURCES:
+        primeiro = cls.primeiro_ano()
+        fontes.append(
+            ApiDownloadSource(
+                descriptor=SourceDescriptor(
+                    source=cls.SOURCE_NAME,
+                    title=_CENSO_TITULOS[cls.SOURCE_NAME],
+                    mode="ibge api",
+                ),
+                datasource_cls=cls,
+                params_schema=[
+                    SourceParameterSpec(
+                        name="output_dir",
+                        phase="tecnica",
+                        param_type="string",
+                        description="Output directory for downloaded files.",
+                        required=False,
+                        default=None,
+                    ),
+                    SourceParameterSpec(
+                        name="output_format",
+                        phase="exportacao",
+                        param_type="string",
+                        description="Optional export format for the table.",
+                        required=False,
+                        default=None,
+                        allowed_values=EXPORT_FORMAT_VALUES,
+                    ),
+                    SourceParameterSpec(
+                        name="start_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description=(
+                            f"Ano inicial (IBGE SIDRA, tabela {cls.ESPEC.tabela}, "
+                            f"desde {primeiro})."
+                        ),
+                        required=False,
+                        default=last_year,
+                        minimum=primeiro,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="end_year",
+                        phase="coleta",
+                        param_type="integer",
+                        description="Ano final.",
+                        required=False,
+                        default=last_year,
+                        minimum=primeiro,
+                        maximum=current_year,
+                    ),
+                    SourceParameterSpec(
+                        name="level",
+                        phase="coleta",
+                        param_type="string",
+                        description="Nível territorial: municipio, uf, regiao ou brasil.",
+                        required=False,
+                        default=cls.DEFAULT_LEVEL,
+                        allowed_values=["municipio", "uf", "regiao", "brasil"],
+                    ),
+                    SourceParameterSpec(
+                        name="detalhe",
+                        phase="coleta",
+                        param_type="string",
+                        description=(
+                            "Recorte: completo (padrão, cada produto em sua "
+                            "categoria) ou total (só a categoria Total)."
+                        ),
+                        required=False,
+                        default="completo",
+                        allowed_values=["completo", "total"],
                     ),
                     SourceParameterSpec(
                         name="keep_raw",
@@ -1382,4 +1506,4 @@ def build_sources() -> List[DownloadSource]:
             ],
             normalize_params=_normalize_ibge_params,
         ),
-    ] + _censo_sources() + _rc_residencia_sources()
+    ] + _censo_sources() + _agro_sources() + _rc_residencia_sources()

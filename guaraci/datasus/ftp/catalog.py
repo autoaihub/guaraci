@@ -41,6 +41,7 @@ class System(str, Enum):
     PAINEL_ONCOLOGIA = "PAINEL_ONCOLOGIA"
     SIM_FETAL = "SIM_FETAL"
     ESUS_NOTIFICA = "ESUS_NOTIFICA"
+    SIM_EXTERIOR = "SIM_EXTERIOR"
 
 
 @dataclass(frozen=True)
