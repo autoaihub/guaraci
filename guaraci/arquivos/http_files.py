@@ -26,6 +26,8 @@ Fontes:
   comprimidos, por isso ``anos`` é obrigatório e ``meses`` recorta dentro do ano.
 - ``sisvan_estado_nutricional_arquivos``: acompanhamento do estado nutricional do
   SISVAN, um zip de CSV por ano (2008-2023, de 0,9 a 4,4 GB cada), mesma origem.
+- ``ibama_rapp_emissoes_atmosfericas`` e ``ibama_rapp_efluentes_liquidos``: RAPP do
+  IBAMA, emissões atmosféricas e efluentes líquidos declarados por estabelecimento.
 - ``inpe_area_queimada_biomas``: área queimada mensal por bioma (AQ1km, coleção 2).
 - ``inpe_sisam``: SISAM, poluentes e meteorologia modelados por município a cada 6 h,
   um zip por ano de 2000 a 2019 (``anos`` obrigatório).
@@ -77,6 +79,7 @@ __all__ = [
     "HttpResource",
     "RemoteFile",
     "datasource_for",
+    "datasource_for_spec",
 ]
 
 ProgressCallback = Callable[[Dict[str, object]], None]
@@ -142,15 +145,29 @@ class HttpFileClient:
         self.timeout_seconds = max(1, int(timeout_seconds))
         self.max_attempts = max_attempts
 
-    def head(self, url: str) -> RemoteFile:
+    def head(
+        self, url: str, *, user_agent: Optional[str] = None, probe: str = "head"
+    ) -> RemoteFile:
+        """Tamanho e data do arquivo. ``probe="range"`` troca o HEAD por GET de 1 byte."""
         if urlsplit(url).scheme == "ftp":
             return request_with_retry(lambda: self._ftp_head(url), max_attempts=self.max_attempts)
+        headers = {"User-Agent": user_agent or self.USER_AGENT}
+        if probe == "range":
+            headers["Range"] = "bytes=0-0"
+        elif probe != "head":
+            raise ValueError(f"Unknown probe '{probe}'. Use 'head' or 'range'.")
 
         def send() -> RemoteFile:
-            request = Request(url, method="HEAD", headers={"User-Agent": self.USER_AGENT})
+            request = Request(
+                url, method="GET" if probe == "range" else "HEAD", headers=headers
+            )
             try:
                 with urlopen(request, timeout=self.timeout_seconds) as response:
                     length = response.headers.get("Content-Length")
+                    content_range = response.headers.get("Content-Range")
+                    if probe == "range" and content_range and "/" in content_range:
+                        # ``bytes 0-0/12345``: o total vem depois da barra; ``*`` = desconhecido.
+                        length = content_range.rsplit("/", 1)[1].strip()
                     return RemoteFile(
                         url=url,
                         size=int(length) if length and length.isdigit() else None,
@@ -176,6 +193,7 @@ class HttpFileClient:
         *,
         progress_callback: Optional[Callable[[int], None]] = None,
         chunk_size: int = 1 << 20,
+        user_agent: Optional[str] = None,
     ) -> int:
         """Baixa em fluxo para ``destination``, passando por um ``.part``."""
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -184,7 +202,7 @@ class HttpFileClient:
         def send() -> int:
             written = 0
             expected: Optional[int] = None
-            request = Request(url, headers={"User-Agent": self.USER_AGENT})
+            request = Request(url, headers={"User-Agent": user_agent or self.USER_AGENT})
             try:
                 with urlopen(request, timeout=self.timeout_seconds) as response, open(
                     partial, "wb"
@@ -326,6 +344,23 @@ class HttpFile:
     # ``csv`` (texto, zipado ou não) ou ``parquet``. O parquet não passa pela
     # transcodificação: o polars o lê e ele sai com todas as colunas como texto.
     file_format: str = "csv"
+    # User-Agent próprio da spec (alguns portais recusam o do Guaraci); ``None`` usa o padrão.
+    user_agent: Optional[str] = None
+    # ``head`` (padrão) ou ``range``: GET com ``Range: bytes=0-0``, lendo ``Content-Range``
+    # e ``Last-Modified``, para o host que responde 403 ao HEAD (Disque 100).
+    probe: str = "head"
+    # ``file_format="xlsx"``: nomes das abas a exportar (``None`` = todas, uma saída irmã
+    # por aba) e quantas linhas de preâmbulo pular antes do cabeçalho. Linhas totalmente
+    # vazias nunca contam, pois o leitor de xlsx já as descarta.
+    sheets: Optional[Tuple[str, ...]] = None
+    skip_rows: int = 0
+    # Zip com vários membros que casam: regex (sem caixa) sobre o caminho do membro; sai
+    # uma saída irmã por membro (``<fonte>[_<código>]_<membro>``), como o ENANI.
+    members_pattern: Optional[str] = None
+    # ``selector="periodo"``: sem ``anos`` baixa tudo quando falso (arquivos pequenos).
+    period_required: bool = True
+    # ``selector="periodo"``: aceita ``start_year``/``end_year`` (recorte do orquestrador).
+    year_window: bool = False
 
 
 _FARMACIA_BASE = "https://demas-dados-abertos.s3.amazonaws.com/csv/"
@@ -716,6 +751,49 @@ HTTP_FILES: Dict[str, HttpFile] = {
             encoding="auto",
             selector="periodo",
         ),
+        # Verificado ao vivo em 2026-10-20: os dois relatórios do RAPP são um CSV só,
+        # republicado por cima (o metadado CKAN parou em 2021, o arquivo já traz 2025).
+        # UTF-8 com ``;``; o de emissões usa ponto decimal, o de efluentes, vírgula.
+        # Anos vistos no arquivo: emissões 2013-2025, efluentes 2000-2025 (o último
+        # ano chega incompleto, pois a declaração vence em março do ano seguinte).
+        HttpFile(
+            "ibama_rapp_emissoes_atmosfericas",
+            "IBAMA RAPP - Emissões de poluentes atmosféricos",
+            "Relatório Anual de Atividades Potencialmente Poluidoras (RAPP) do IBAMA: "
+            "quantidade declarada de cada poluente atmosférico emitido por estabelecimento "
+            "(CNPJ) e ano de referência, de 2013 em diante, com categoria de atividade, "
+            "metodologia (estimativa, cálculo, medição) e UF e município por nome, sem "
+            "código IBGE. É autodeclaração da empresa, não medição do órgão. Arquivo único "
+            "republicado por cima: cada download é um instantâneo do cadastro. "
+            "Traz identificador pessoal (Razão Social, que em MEI e empresário individual costuma ser nome e CPF da pessoa), publicado assim pelo órgão; o tratamento LGPD fica nas camadas prata e ouro do Sabiá.",
+            (
+                HttpResource(
+                    "emissoes_poluentes_atmosfericos",
+                    "https://dadosabertos.ibama.gov.br/dados/RAPP/"
+                    "emissoesPoluentesAtmosfericos/relatorio.csv",
+                ),
+            ),
+            separator=";",
+        ),
+        HttpFile(
+            "ibama_rapp_efluentes_liquidos",
+            "IBAMA RAPP - Efluentes líquidos",
+            "Relatório Anual de Atividades Potencialmente Poluidoras (RAPP) do IBAMA: "
+            "volume declarado de efluente líquido lançado por estabelecimento (CNPJ) e ano "
+            "de referência, de 2000 em diante, com tipo e nível de tratamento, corpo "
+            "receptor (classe e nome "
+            "do corpo hídrico), coordenadas declaradas e UF e município por nome, sem "
+            "código IBGE. É autodeclaração da empresa. Arquivo único republicado por cima: "
+            "cada download é um instantâneo do cadastro. "
+            "Traz identificador pessoal (Razão Social, que em MEI e empresário individual costuma ser nome e CPF da pessoa), publicado assim pelo órgão; o tratamento LGPD fica nas camadas prata e ouro do Sabiá.",
+            (
+                HttpResource(
+                    "efluentes_liquidos",
+                    "https://dadosabertos.ibama.gov.br/dados/RAPP/efluentesLiquidos/relatorio.csv",
+                ),
+            ),
+            separator=";",
+        ),
         # Verificado ao vivo em 2026-10-20 (coleção 2, reprocessada em jan/2026). O
         # README não declara a unidade; os valores (Cerrado com ~74 mil em set/2002 e
         # ~114 mil no acumulado de 2026) só fecham em km², um por pixel de 1 km.
@@ -887,7 +965,7 @@ class _ZipMember:
         self._archive.close()
 
 
-def _open_member(raw: Path, spec: HttpFile):
+def _open_member(raw: Path, spec: HttpFile, member: Optional[str] = None):
     """Abre os bytes do dado: o arquivo em si ou o membro do zip.
 
     Quando o recurso é esperado como zip (nome ``.zip`` ou spec com ``member`` ou
@@ -903,7 +981,13 @@ def _open_member(raw: Path, spec: HttpFile):
         return open(raw, "rb")
     archive = zipfile.ZipFile(raw)
     names = [n for n in archive.namelist() if not n.endswith("/")]
-    if spec.member_pattern is not None:
+    if member is not None:
+        # Membro já escolhido por quem exporta um por vez (``members_pattern``).
+        if member not in names:
+            archive.close()
+            raise ValueError(f"Member '{member}' not found in {raw.name}: {names}")
+        chosen = member
+    elif spec.member_pattern is not None:
         found = [n for n in names if re.search(spec.member_pattern, n, re.IGNORECASE)]
         if len(found) != 1:
             archive.close()
@@ -980,7 +1064,11 @@ def transcode_lines(source, sink, stats: Optional[Dict[str, int]] = None) -> str
 
 
 def _to_utf8(
-    raw: Path, spec: HttpFile, target: Path, stats: Optional[Dict[str, int]] = None
+    raw: Path,
+    spec: HttpFile,
+    target: Path,
+    stats: Optional[Dict[str, int]] = None,
+    member: Optional[str] = None,
 ) -> str:
     """Grava ``raw`` (ou seu membro do zip) em UTF-8, em blocos, sem BOM.
 
@@ -988,7 +1076,9 @@ def _to_utf8(
     (:func:`transcode_lines`). Com codificação declarada, ``stats["replaced"]``
     recebe quantos U+FFFD a conversão produziu (bytes que ela não define).
     """
-    with _open_member(raw, spec) as source, open(target, "w", encoding="utf-8", newline="") as sink:
+    with _open_member(raw, spec, member) as source, open(
+        target, "w", encoding="utf-8", newline=""
+    ) as sink:
         if spec.encoding == "auto":
             return transcode_lines(source, sink, stats)
         replaced = 0
@@ -1046,6 +1136,25 @@ def _sink_atomic(frame, dest: Path, fmt: str, table: str, label: str) -> Path:
     return dest
 
 
+def _slug(text: str) -> str:
+    return re.sub(r"[^\w.-]+", "_", text).strip("_")
+
+
+_SUBPERIOD = re.compile(r"[ST]\d", re.IGNORECASE)
+
+
+def _period_token(value: object) -> str:
+    """Sufixo do código do recurso: mês ``01``-``12``, semestre ``S1``/``S2`` ou trimestre ``T3``.
+
+    ``selector="periodo"`` com código ``AAAA_S1`` (semestre) ou ``AAAA_T3`` (trimestre):
+    o parâmetro ``meses`` recebe esses mesmos sufixos.
+    """
+    text = str(value).strip()
+    if _SUBPERIOD.fullmatch(text):
+        return text.upper()
+    return f"{int(text):02d}"
+
+
 class HttpFileDataSource(DataSource):
     """Fonte de arquivo(s) de URL fixa. Subclasses fixam ``DATASET`` (ver ``datasource_for``)."""
 
@@ -1074,13 +1183,15 @@ class HttpFileDataSource(DataSource):
     ) -> List[HttpResource]:
         """Recorta por ano (obrigatório) e, quando o código tem mês, por mês."""
         if not anos:
+            if not self.spec.period_required:
+                return list(self.spec.resources)
             raise ValueError(
                 f"'{self.name}' tem arquivos de vários GB por período; informe 'anos' "
                 "(e, se quiser, 'meses') para escolher o que baixar."
             )
         try:
             wanted_years = {str(int(a)) for a in anos}
-            wanted_months = {f"{int(m):02d}" for m in meses or ()}
+            wanted_months = {_period_token(m) for m in meses or ()}
         except (TypeError, ValueError) as exc:
             raise ValueError(f"'anos' e 'meses' devem ser números: {exc}") from exc
         known_years = {r.code.split("_")[0] for r in self.spec.resources}
@@ -1111,6 +1222,21 @@ class HttpFileDataSource(DataSource):
             raise ValueError(f"Unknown indicadores {unknown}. Known: {sorted(by_code)}")
         return [by_code[c] for c in dict.fromkeys(wanted)]
 
+    def _window_years(self, start_year: Optional[int], end_year: Optional[int]) -> List[str]:
+        """Anos da janela que a spec conhece; falha se nenhum for conhecido."""
+        first = int(start_year) if start_year is not None else int(end_year)
+        last = int(end_year) if end_year is not None else first
+        if last < first:
+            raise ValueError("end_year must be >= start_year.")
+        known = {int(r.code.split("_")[0]) for r in self.spec.resources}
+        years = [str(y) for y in range(first, last + 1) if y in known]
+        if not years:
+            raise ValueError(
+                f"'{self.name}' não tem arquivo para {first}-{last} "
+                f"(anos conhecidos: {min(known)}-{max(known)})."
+            )
+        return years
+
     def download(
         self,
         *,
@@ -1121,13 +1247,25 @@ class HttpFileDataSource(DataSource):
         indicadores: Optional[Sequence[str]] = None,
         anos: Optional[Sequence[object]] = None,
         meses: Optional[Sequence[object]] = None,
+        start_year: Optional[int] = None,
+        end_year: Optional[int] = None,
         progress_callback: Optional[ProgressCallback] = None,
     ) -> Dict[str, object]:
         requested = _normalize_format(output_format)
         base_dir = Path(output_dir) if output_dir else self.output_path
         base_dir.mkdir(parents=True, exist_ok=True)
         client = self._client or HttpFileClient(timeout_seconds=timeout)
+        if (start_year is not None or end_year is not None) and self.spec.year_window:
+            anos = self._window_years(start_year, end_year)
         resources = self._select(indicadores, anos, meses)
+        # Opções por spec só chegam ao cliente quando saem do padrão, para que clientes
+        # de teste e subclasses com a assinatura antiga (``head(url)``) sigam valendo.
+        head_kwargs: Dict[str, object] = {}
+        download_kwargs: Dict[str, object] = {}
+        if self.spec.user_agent:
+            head_kwargs["user_agent"] = download_kwargs["user_agent"] = self.spec.user_agent
+        if self.spec.probe != "head":
+            head_kwargs["probe"] = self.spec.probe
         # ``multi`` nomeia os arquivos (a fonte tem vários recursos); ``isolate`` decide se
         # a falha de um recurso vira aviso: com um só recurso pedido, a causa real sobe.
         multi = len(self.spec.resources) > 1
@@ -1151,7 +1289,7 @@ class HttpFileDataSource(DataSource):
             raw_path = base_dir / (f"{self.name}__{suffix}" if multi else suffix)
             try:
                 try:
-                    remote = client.head(resource.url)
+                    remote = client.head(resource.url, **head_kwargs)
                 except HttpFileClientError as exc:
                     if self.spec.selector != "periodo" or exc.status not in (403, 404):
                         raise
@@ -1177,7 +1315,9 @@ class HttpFileDataSource(DataSource):
                             "file_total_bytes": _r.size or 0,
                         })
 
-                    client.download(resource.url, raw_path, progress_callback=on_bytes)
+                    client.download(
+                        resource.url, raw_path, progress_callback=on_bytes, **download_kwargs
+                    )
                 emit({
                     "event": "file_skipped" if skipped else "file_completed",
                     "document_index": index, "file_path": str(raw_path),
@@ -1185,8 +1325,10 @@ class HttpFileDataSource(DataSource):
                 skipped_count += 1 if skipped else 0
                 downloaded += 0 if skipped else 1
                 if requested:
-                    dest = self._export(raw_path, base_dir, requested, resource, multi, warnings)
-                    exported.append(str(dest))
+                    for dest in self._export_all(
+                        raw_path, base_dir, requested, resource, multi, warnings
+                    ):
+                        exported.append(str(dest))
                     if not keep_raw:
                         raw_path.unlink(missing_ok=True)
             except (ApiClientError, ValueError, zipfile.BadZipFile) as exc:
@@ -1245,22 +1387,135 @@ class HttpFileDataSource(DataSource):
             if stripped:
                 frame = frame.rename(stripped)
             return _sink_atomic(frame, base_dir / f"{name}{suffix}", fmt, name, raw_path.name)
+        return self._export_text(raw_path, base_dir, fmt, name, warnings)
+
+    def _export_text(
+        self,
+        raw_path: Path,
+        base_dir: Path,
+        fmt: str,
+        name: str,
+        warnings: Optional[List[str]] = None,
+        member: Optional[str] = None,
+    ) -> Path:
+        """Texto (ou um membro de zip) para UTF-8 e depois para ``fmt``, tudo como texto."""
+        suffix = {"csv": ".csv", "parquet": ".parquet"}.get(fmt, ".sqlite")
         utf8 = base_dir / f"{name}.utf8.tmp.csv"
         try:
             stats: Dict[str, int] = {}
-            encoding = _to_utf8(raw_path, self.spec, utf8, stats)
+            encoding = _to_utf8(raw_path, self.spec, utf8, stats, member)
             if warnings is not None:
-                warnings.extend(encoding_warnings(raw_path.name, stats, encoding))
-            frame = pl.scan_csv(
-                utf8, separator=self.spec.separator, infer_schema=False, quote_char='"'
+                label = f"{raw_path.name}:{member}" if member else raw_path.name
+                warnings.extend(encoding_warnings(label, stats, encoding))
+            return self._sink_text_csv(
+                utf8, self.spec.separator, base_dir / f"{name}{suffix}", fmt, name, raw_path.name
             )
-            names = frame.collect_schema().names()
-            stripped = {n: n.strip() for n in names if n != n.strip()}
-            if stripped:
-                frame = frame.rename(stripped)
-            return _sink_atomic(frame, base_dir / f"{name}{suffix}", fmt, name, raw_path.name)
         finally:
             utf8.unlink(missing_ok=True)
+
+    @staticmethod
+    def _sink_text_csv(
+        utf8: Path, separator: str, dest: Path, fmt: str, name: str, label: str
+    ) -> Path:
+        frame = pl.scan_csv(utf8, separator=separator, infer_schema=False, quote_char='"')
+        names = frame.collect_schema().names()
+        stripped = {n: n.strip() for n in names if n != n.strip()}
+        if stripped:
+            frame = frame.rename(stripped)
+        return _sink_atomic(frame, dest, fmt, name, label)
+
+    def _export_all(
+        self,
+        raw_path: Path,
+        base_dir: Path,
+        fmt: str,
+        resource: HttpResource,
+        multi: bool,
+        warnings: Optional[List[str]] = None,
+    ) -> List[Path]:
+        """Saídas de um recurso: uma, ou uma por aba (xlsx) ou por membro (``members_pattern``)."""
+        base = f"{self.name}_{resource.code}" if multi else self.name
+        if self.spec.file_format == "xlsx":
+            return self._export_xlsx(raw_path, base_dir, fmt, base)
+        if self.spec.members_pattern and zipfile.is_zipfile(raw_path):
+            return self._export_members(raw_path, base_dir, fmt, resource, base, warnings)
+        return [self._export(raw_path, base_dir, fmt, resource, multi, warnings)]
+
+    def _export_members(
+        self,
+        raw_path: Path,
+        base_dir: Path,
+        fmt: str,
+        resource: HttpResource,
+        base: str,
+        warnings: Optional[List[str]],
+    ) -> List[Path]:
+        with zipfile.ZipFile(raw_path) as archive:
+            members = sorted(
+                n
+                for n in archive.namelist()
+                if not n.endswith("/") and re.search(self.spec.members_pattern, n, re.IGNORECASE)
+            )
+        if not members:
+            raise ValueError(
+                f"Pattern '{self.spec.members_pattern}' matched no member in {raw_path.name}."
+            )
+        outputs = []
+        for member in members:
+            stem = _slug(Path(member).stem)
+            # O membro já costuma repetir o código do recurso (auto_infracao_1977).
+            name = f"{self.name}_{stem}" if stem.startswith(resource.code) else f"{base}_{stem}"
+            outputs.append(self._export_text(raw_path, base_dir, fmt, name, warnings, member))
+        return outputs
+
+    def _export_xlsx(self, raw_path: Path, base_dir: Path, fmt: str, base: str) -> List[Path]:
+        # Import tardio: ``guaraci.fns`` importa este módulo (``repasses.py``).
+        from guaraci.fns.xlsx import list_sheets, xlsx_to_csv
+
+        available = list_sheets(raw_path)
+        wanted = list(self.spec.sheets) if self.spec.sheets else available
+        missing = [s for s in wanted if s not in available]
+        if missing:
+            raise ValueError(
+                f"Sheets {missing} not found in {raw_path.name}. Available: {available}"
+            )
+        suffix = {"csv": ".csv", "parquet": ".parquet"}.get(fmt, ".sqlite")
+        outputs = []
+        for sheet in wanted:
+            name = f"{base}_{_slug(sheet)}" if len(wanted) > 1 else base
+            utf8 = base_dir / f"{name}.utf8.tmp.csv"
+            try:
+                xlsx_to_csv(raw_path, utf8, sheet, self.spec.skip_rows)
+                outputs.append(
+                    self._sink_text_csv(
+                        utf8, ",", base_dir / f"{name}{suffix}", fmt, name, raw_path.name
+                    )
+                )
+            finally:
+                utf8.unlink(missing_ok=True)
+        return outputs
+
+
+def datasource_for_spec(spec: HttpFile) -> type:
+    """Subclasse de ``HttpFileDataSource`` para spec que não está em ``HTTP_FILES``.
+
+    Mesmo padrão de ``inep_censo_escolar.py``: ``DataSource.__init__`` direto e ``self.spec``
+    fixo. Usada pelos módulos de ``guaraci/arquivos/`` registrados por ``http_file_source``.
+    """
+
+    def __init__(
+        self,
+        output_path: Optional[str] = None,
+        *,
+        dataset: Optional[str] = None,
+        client: Optional[HttpFileClient] = None,
+    ) -> None:
+        DataSource.__init__(self, name=spec.key, output_path=output_path)
+        self.spec = spec
+        self._client = client
+
+    class_name = "".join(part.title() for part in spec.key.split("_")) + "DataSource"
+    return type(class_name, (HttpFileDataSource,), {"DATASET": spec.key, "__init__": __init__})
 
 
 def datasource_for(key: str) -> type:
