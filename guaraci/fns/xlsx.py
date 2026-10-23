@@ -196,18 +196,24 @@ def iter_xlsx_rows(path: Path, sheet: Optional[str] = None) -> Iterator[List[str
                 yield [cells.get(i, "") for i in range(width)]
 
 
-def xlsx_to_csv(path: Path, target: Path, sheet: Optional[str] = None) -> int:
+def xlsx_to_csv(
+    path: Path, target: Path, sheet: Optional[str] = None, skip_rows: int = 0
+) -> int:
     """Grava a aba como CSV UTF-8 (vírgula, aspas só onde precisa). Devolve as linhas de dados.
 
     A primeira linha é o cabeçalho, com ``strip()`` em cada nome. Linhas mais
     curtas que ele são completadas com vazio; mais longas só passam se o
-    excedente estiver vazio.
+    excedente estiver vazio. ``skip_rows`` descarta esse número de linhas de
+    preâmbulo antes do cabeçalho (linhas totalmente vazias não contam).
     """
     header_width = 0
     count = 0
     with open(target, "w", encoding="utf-8", newline="") as sink:
         writer = csv.writer(sink, lineterminator="\n")
-        for number, row in enumerate(iter_xlsx_rows(path, sheet), start=1):
+        rows = iter_xlsx_rows(path, sheet)
+        for _ in range(max(0, int(skip_rows))):
+            next(rows, None)
+        for number, row in enumerate(rows, start=1):
             if number == 1:
                 row = [name.strip() for name in row]
                 header_width = len(row)

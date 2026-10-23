@@ -10,6 +10,7 @@ from guaraci.arquivos.http_files import (
     HttpResource,
     RemoteFile,
     datasource_for,
+    datasource_for_spec,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "HttpResource",
     "RemoteFile",
     "datasource_for",
+    "datasource_for_spec",
 ]
