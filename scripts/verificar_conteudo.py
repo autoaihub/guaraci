@@ -351,7 +351,7 @@ def main() -> int:
     if args.excluir:
         fontes = [f for f in fontes if f not in set(args.excluir.split(","))]
     dicionario = json.loads(DICIONARIO.read_text(encoding="utf-8"))
-    base = Path(vr.tempfile.mkdtemp(prefix="guaraci_conteudo_"))
+    base = vr.pasta_temporaria("guaraci_conteudo_")
 
     def um(s: str) -> Tuple[str, Dict[str, Any]]:
         try:

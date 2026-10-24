@@ -223,7 +223,7 @@ def main() -> int:
     fontes = [d.source for d in service.list_sources()]
     if args.fontes:
         fontes = [f for f in fontes if f in set(args.fontes.split(","))]
-    base = Path(vr.tempfile.mkdtemp(prefix="guaraci_filtros_"))
+    base = vr.pasta_temporaria("guaraci_filtros_")
 
     def um(s: str) -> Tuple[str, Dict[str, Any]]:
         try:

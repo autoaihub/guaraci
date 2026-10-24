@@ -22,9 +22,11 @@ import os
 import socket
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _temporarios import pasta_temporaria  # noqa: E402
 from typing import Any, Callable, Dict, List
 
 import httpx
@@ -93,7 +95,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--casos", default="", help="trechos do nome dos casos a rodar")
     filtro = [c for c in parser.parse_args().casos.split(",") if c]
-    base = Path(tempfile.mkdtemp(prefix="guaraci_resil_"))
+    base = pasta_temporaria("guaraci_resil_")
     out = base / "saida"
     srv = Servidor(base)
     srv.sobe()

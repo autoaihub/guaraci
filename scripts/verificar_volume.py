@@ -15,9 +15,11 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _temporarios import pasta_temporaria  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -87,7 +89,7 @@ def main() -> int:
     parser.add_argument("--limite-mb", type=int, default=4096, help="pico de memória acima disto é falha")
     args = parser.parse_args()
     casos = {k: v for k, v in CASOS.items() if not args.casos or k in args.casos.split(",")}
-    base = Path(tempfile.mkdtemp(prefix="guaraci_volume_"))
+    base = pasta_temporaria("guaraci_volume_")
     env = dict(os.environ, GUARACI_DATA_ROOT=str(base / "data"))
     resultados = {}
     falhas = 0

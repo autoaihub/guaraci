@@ -26,7 +26,6 @@ import argparse
 import json
 import os
 import sys
-import tempfile
 import time
 import traceback
 import warnings
@@ -37,10 +36,12 @@ from typing import Any, Callable, Dict, List, Optional
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from _temporarios import pasta_temporaria  # noqa: E402
 
 # Os jobs de teste não podem cair no histórico real (data/jobs): a raiz de
 # dados precisa estar definida antes do import, que instancia o serviço.
-os.environ.setdefault("GUARACI_DATA_ROOT", tempfile.mkdtemp(prefix="guaraci_verif_"))
+if "GUARACI_DATA_ROOT" not in os.environ:
+    os.environ["GUARACI_DATA_ROOT"] = str(pasta_temporaria("guaraci_verif_"))
 
 from click.testing import CliRunner  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
@@ -399,7 +400,7 @@ def params_pequenos(schema: Dict[str, Any], s: str, output_dir: Path) -> Dict[st
 
 
 def camada_jobs(api: TestClient, fontes: List[Dict[str, Any]], rel: Relatorio, timeout: int) -> None:
-    base = Path(tempfile.mkdtemp(prefix="guaraci_jobs_"))
+    base = pasta_temporaria("guaraci_jobs_")
 
     def um(fonte: Dict[str, Any]) -> None:
         s = fonte["source"]

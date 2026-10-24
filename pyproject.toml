@@ -165,6 +165,10 @@ markers = [
     "smoke: live network smoke tests (opt-in via GUARACI_*_SMOKE env vars); deselect with -m 'not smoke'",
 ]
 testpaths = ["tests"]
+# Pasta temporária de teste só sobrevive quando o teste falha (para depurar);
+# a de teste que passou é apagada ao fim da sessão, para não acumular download.
+tmp_path_retention_policy = "failed"
+tmp_path_retention_count = 1
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
