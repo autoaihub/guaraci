@@ -10,6 +10,12 @@ Verificado ao vivo em 2026-10-23 (HEAD ou Range e primeiros 3 a 20 MB de cada fa
   ``disque100-segundo-semestre-2025``). O leiaute passa de 34 colunas (1S2020) para 62
   (2S2020 em diante; nomes com espaço até 1S2022, com sublinhado depois). Entre 2011 e 2019 o índice traz uma página por ano (``disque-100-AAAA``)
   e balanços temáticos, que ficam fora.
+- ``mdhc_ligue180``: mesmo leiaute do Disque 100 (34 colunas em 1S2020, 62 depois), CSV UTF-8
+  com BOM e ``;`` de 50 MB a 270 MB por semestre, de 1S2020 a 1S2024. A página-índice
+  ``.../dados-abertos/ligue180`` redireciona ao login do gov.br, mas a página de cada semestre
+  responde 302 para ``dadosabertos.mdh.gov.br/ligue180-<semestre>-semestre-<ano>.csv``, que
+  serve o arquivo (HEAD e Range). Esse host é a URL fixada aqui. 2S2024 em diante dá 404 (o
+  Ligue 180 passou ao Ministério das Mulheres).
 - ``senappen_sisdepen``: um CSV por ciclo semestral do SISDEPEN/Infopen, lista raspada de
   ``.../sisdepen/bases-de-dados``. Entre 1.117 e 1.737 colunas (contadas no cabeçalho
   com aspas) e rótulos que mudam entre ciclos: cada ciclo sai como arquivo
@@ -56,6 +62,36 @@ MDHC_DISQUE100 = HttpFile(
     tuple(
         HttpResource(code, _DISQUE + slug, f"Disque 100 {code}")
         for code, slug in _DISQUE_PAGINAS
+    ),
+    separator=";",
+    selector="periodo",
+    probe="range",
+    period_required=True,
+    year_window=True,
+)
+
+_LIGUE180 = "https://dadosabertos.mdh.gov.br/ligue180-"
+_LIGUE180_SEMESTRES: Tuple[Tuple[str, str], ...] = tuple(
+    (f"{ano}_S{n}", f"{'primeiro' if n == 1 else 'segundo'}-semestre-{ano}")
+    for ano in range(2020, 2025)
+    for n in (1, 2)
+    if (ano, n) != (2024, 2)
+)
+
+MDHC_LIGUE180 = HttpFile(
+    "mdhc_ligue180",
+    "MDHC Ligue 180 - Central de Atendimento à Mulher",
+    "Atendimentos do Ligue 180 (Central de Atendimento à Mulher, MDHC), um CSV por semestre "
+    "de 1S2020 a 1S2024: relatos de violência contra a mulher com cenário e tipo da violação, "
+    "município e UF, perfil da vítima e do suspeito, frequência e relação entre eles. O "
+    "leiaute muda de 34 colunas (1S2020) para 62 (2S2020 em diante) e cada semestre sai como "
+    "arquivo próprio, com as colunas como publicadas. Não traz nome nem documento; a coluna "
+    "hash é um identificador anonimizado. A partir de 2S2024 o serviço passou ao Ministério "
+    "das Mulheres, e o MDHC não publica mais. Os arquivos vão de 50 MB a 270 MB, por isso o "
+    "recorte por anos.",
+    tuple(
+        HttpResource(code, f"{_LIGUE180}{slug}.csv", f"Ligue 180 {code}")
+        for code, slug in _LIGUE180_SEMESTRES
     ),
     separator=";",
     selector="periodo",
@@ -145,12 +181,14 @@ ISP_RJ_MUNICIPIOS_MENSAL = HttpFile(
 
 SPECS: Tuple[HttpFile, ...] = (
     MDHC_DISQUE100,
+    MDHC_LIGUE180,
     SENAPPEN_SISDEPEN,
     ISP_RJ_DELEGACIAS_MENSAL,
     ISP_RJ_MUNICIPIOS_MENSAL,
 )
 MODES: Dict[str, str] = {
     "mdhc_disque100": "mdhc files",
+    "mdhc_ligue180": "mdhc files",
     "senappen_sisdepen": "senappen files",
     "isp_rj_delegacias_mensal": "isp rj files",
     "isp_rj_municipios_mensal": "isp rj files",
