@@ -1,4 +1,4 @@
-"""Segurança pública e violência: Disque 100, SISDEPEN e ISP-RJ, arquivos CSV por HTTP.
+"""Segurança pública e violência: Disque 100, SISDEPEN, ISP-RJ e SSP-SP, arquivos CSV por HTTP.
 
 Verificado ao vivo em 2026-10-23 (HEAD ou Range e primeiros 3 a 20 MB de cada família).
 
@@ -179,12 +179,39 @@ ISP_RJ_MUNICIPIOS_MENSAL = HttpFile(
     separator=";",
 )
 
+_SSP_SP = "https://www.ssp.sp.gov.br/assets/estatistica/transparencia/spDados/"
+SSP_SP_ANOS: Tuple[int, ...] = (2022, 2023, 2024, 2025, 2026)
+
+SSP_SP_DADOS_CRIMINAIS = HttpFile(
+    "ssp_sp_dados_criminais",
+    "SSP-SP - Dados criminais (boletins de ocorrência)",
+    "Boletins de ocorrência registrados no estado de São Paulo (Secretaria da Segurança "
+    "Pública, SSP-SP), um xlsx por ano de 2022 em diante (cerca de 200 MB cada; 2021 e "
+    "anteriores dão 404): departamento, seccional e delegacia, município e código IBGE "
+    "(CD_IBGE), data e hora da ocorrência, tipo e subtipo de local, bairro, logradouro, "
+    "latitude e longitude, rubrica, conduta e natureza apurada. Cada ano traz uma aba de "
+    "dicionário dos campos e uma aba por semestre (JAN-JUN, JUL-DEZ), todas exportadas como "
+    "saídas irmãs. Não traz nome de pessoa; o número do BO e o endereço do fato vêm como "
+    "publicados (a SSP substitui o logradouro por \"VEDAÇÃO DA DIVULGAÇÃO\" nos crimes "
+    "sexuais). O arquivo é lido em fluxo, com pico de cerca de 200 MB de memória Python "
+    "(tabela de textos compartilhados), e a conversão leva uns 5 minutos por semestre (cerca de 585 mil linhas), por isso o recorte por anos é obrigatório.",
+    tuple(
+        HttpResource(str(year), f"{_SSP_SP}SPDadosCriminais_{year}.xlsx", f"SSP-SP {year}")
+        for year in SSP_SP_ANOS
+    ),
+    file_format="xlsx",
+    selector="periodo",
+    period_required=True,
+    year_window=True,
+)
+
 SPECS: Tuple[HttpFile, ...] = (
     MDHC_DISQUE100,
     MDHC_LIGUE180,
     SENAPPEN_SISDEPEN,
     ISP_RJ_DELEGACIAS_MENSAL,
     ISP_RJ_MUNICIPIOS_MENSAL,
+    SSP_SP_DADOS_CRIMINAIS,
 )
 MODES: Dict[str, str] = {
     "mdhc_disque100": "mdhc files",
@@ -192,4 +219,5 @@ MODES: Dict[str, str] = {
     "senappen_sisdepen": "senappen files",
     "isp_rj_delegacias_mensal": "isp rj files",
     "isp_rj_municipios_mensal": "isp rj files",
+    "ssp_sp_dados_criminais": "ssp sp files",
 }
