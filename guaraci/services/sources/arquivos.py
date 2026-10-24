@@ -1,6 +1,6 @@
 """Fontes de arquivos HTTP de URL fixa (Vigitel, IBAMA, Farmácia Popular, MGDI, PNI, SISVAN)."""
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from guaraci.arquivos import (
     HTTP_FILES,
@@ -8,7 +8,11 @@ from guaraci.arquivos import (
     HttpFileClient,
     datasource_for,
     datasource_for_spec,
+    cgu,
     ibama,
+    ibge_ftp,
+    inep_ideb,
+    mapbiomas,
     seguranca,
     transito_sp,
 )
@@ -48,13 +52,22 @@ _MODES = {
 
 
 # Módulos de ``guaraci/arquivos/`` com spec própria (fora de ``HTTP_FILES``): cada um
-# traz ``SPECS`` e ``MODES`` (chave para modo do descritor).
-_EXTRA_MODULES = (ibama, seguranca, transito_sp)
+# traz ``SPECS`` e ``MODES`` (chave para modo do descritor) e, se precisar, ``DATASOURCES``
+# (chave para classe, quando a fonte descobre os arquivos em tempo de execução) e
+# ``EXTRA_PARAMS`` (chave para parâmetros além dos que a spec já gera).
+_EXTRA_MODULES = (ibama, seguranca, transito_sp, ibge_ftp, inep_ideb, mapbiomas, cgu)
 
 
-def _extra_specs() -> List[Tuple[HttpFile, str]]:
+def _extra_specs() -> List[Tuple[HttpFile, str, Optional[type], Sequence[SourceParameterSpec]]]:
     return [
-        (spec, module.MODES[spec.key]) for module in _EXTRA_MODULES for spec in module.SPECS
+        (
+            spec,
+            module.MODES[spec.key],
+            getattr(module, "DATASOURCES", {}).get(spec.key),
+            getattr(module, "EXTRA_PARAMS", {}).get(spec.key, ()),
+        )
+        for module in _EXTRA_MODULES
+        for spec in module.SPECS
     ]
 
 
@@ -122,7 +135,9 @@ def _params_for(spec: HttpFile) -> List[SourceParameterSpec]:
         )
     if spec.selector == "periodo":
         years = sorted({r.code.split("_")[0] for r in spec.resources})
-        if spec.period_required:
+        if spec.anos_label:
+            anos_text = spec.anos_label
+        elif spec.period_required:
             anos_text = (
                 "Anos a baixar (obrigatório). Cada arquivo tem de 0,4 a 4,4 GB "
                 "comprimidos, então peça poucos anos por vez."
@@ -155,7 +170,8 @@ def _params_for(spec: HttpFile) -> List[SourceParameterSpec]:
                     description=(
                         "Meses (01 a 12) dentro dos anos pedidos. Omita para o ano inteiro."
                         if numeric
-                        else "Semestres (S1, S2) ou trimestres (T3) dentro dos anos pedidos. "
+                        else spec.subperiod_label
+                        or "Semestres (S1, S2) ou trimestres (T3) dentro dos anos pedidos. "
                         "Omita para todos."
                     ),
                     required=False,
@@ -183,13 +199,16 @@ def _params_for(spec: HttpFile) -> List[SourceParameterSpec]:
 
 
 def http_file_source(
-    spec: HttpFile, mode: str, datasource_cls: Optional[type] = None
+    spec: HttpFile,
+    mode: str,
+    datasource_cls: Optional[type] = None,
+    extra_params: Sequence[SourceParameterSpec] = (),
 ) -> ApiDownloadSource:
     """Registra spec que não está em ``HTTP_FILES`` (módulos novos de ``guaraci/arquivos/``)."""
     return ApiDownloadSource(
         descriptor=SourceDescriptor(source=spec.key, title=spec.title, mode=mode),
         datasource_cls=datasource_cls or datasource_for_spec(spec),
-        params_schema=_params_for(spec),
+        params_schema=[*_params_for(spec), *extra_params],
     )
 
 
@@ -203,5 +222,7 @@ def build_sources() -> List[DownloadSource]:
         )
         for spec in HTTP_FILES.values()
     ]
-    sources.extend(http_file_source(spec, mode) for spec, mode in _extra_specs())
+    sources.extend(
+        http_file_source(spec, mode, cls, extra) for spec, mode, cls, extra in _extra_specs()
+    )
     return sources

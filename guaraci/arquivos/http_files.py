@@ -46,6 +46,7 @@ import ftplib
 import http.client
 import os
 import re
+import shutil
 import socket
 import zipfile
 from dataclasses import dataclass
@@ -321,6 +322,10 @@ class HttpResource:
     code: str
     url: str
     title: str = ""
+    # ``file_format="xlsx"``: sobrepõem ``HttpFile.skip_rows`` e ``HttpFile.sheets`` neste
+    # recurso (um xlsx por tabela, cada um com preâmbulo de tamanho próprio).
+    skip_rows: Optional[int] = None
+    sheets: Optional[Tuple[str, ...]] = None
 
 
 @dataclass(frozen=True)
@@ -361,6 +366,12 @@ class HttpFile:
     period_required: bool = True
     # ``selector="periodo"``: aceita ``start_year``/``end_year`` (recorte do orquestrador).
     year_window: bool = False
+    # ``selector="periodo"``: texto do parâmetro ``meses`` quando o sufixo do código não é
+    # numérico (ex.: etapas ``AI``/``AF``/``EM`` do IDEB); ``None`` usa o texto de semestre.
+    subperiod_label: Optional[str] = None
+    # ``selector="periodo"`` com ``period_required``: texto do parâmetro ``anos`` quando o
+    # aviso padrão sobre arquivos de vários GB não se aplica.
+    anos_label: Optional[str] = None
 
 
 _FARMACIA_BASE = "https://demas-dados-abertos.s3.amazonaws.com/csv/"
@@ -1140,14 +1151,15 @@ def _slug(text: str) -> str:
     return re.sub(r"[^\w.-]+", "_", text).strip("_")
 
 
-_SUBPERIOD = re.compile(r"[ST]\d", re.IGNORECASE)
+_SUBPERIOD = re.compile(r"[A-Za-z][A-Za-z0-9]*")
 
 
 def _period_token(value: object) -> str:
-    """Sufixo do código do recurso: mês ``01``-``12``, semestre ``S1``/``S2`` ou trimestre ``T3``.
+    """Sufixo do código do recurso: mês ``01``-``12``, semestre ``S1``/``S2``, trimestre ``T3``
+    ou outra marca alfanumérica (``AI``, ``AF``, ``EM``), sempre em maiúsculas.
 
-    ``selector="periodo"`` com código ``AAAA_S1`` (semestre) ou ``AAAA_T3`` (trimestre):
-    o parâmetro ``meses`` recebe esses mesmos sufixos.
+    ``selector="periodo"`` com código ``AAAA_S1``, ``AAAA_T3`` ou ``AAAA_AI``: o parâmetro
+    ``meses`` recebe esses mesmos sufixos.
     """
     text = str(value).strip()
     if _SUBPERIOD.fullmatch(text):
@@ -1436,7 +1448,7 @@ class HttpFileDataSource(DataSource):
         """Saídas de um recurso: uma, ou uma por aba (xlsx) ou por membro (``members_pattern``)."""
         base = f"{self.name}_{resource.code}" if multi else self.name
         if self.spec.file_format == "xlsx":
-            return self._export_xlsx(raw_path, base_dir, fmt, base)
+            return self._export_xlsx(raw_path, base_dir, fmt, base, resource)
         if self.spec.members_pattern and zipfile.is_zipfile(raw_path):
             return self._export_members(raw_path, base_dir, fmt, resource, base, warnings)
         return [self._export(raw_path, base_dir, fmt, resource, multi, warnings)]
@@ -1468,32 +1480,64 @@ class HttpFileDataSource(DataSource):
             outputs.append(self._export_text(raw_path, base_dir, fmt, name, warnings, member))
         return outputs
 
-    def _export_xlsx(self, raw_path: Path, base_dir: Path, fmt: str, base: str) -> List[Path]:
+    def _export_xlsx(
+        self,
+        raw_path: Path,
+        base_dir: Path,
+        fmt: str,
+        base: str,
+        resource: Optional[HttpResource] = None,
+    ) -> List[Path]:
         # Import tardio: ``guaraci.fns`` importa este módulo (``repasses.py``).
         from guaraci.fns.xlsx import list_sheets, xlsx_to_csv
 
-        available = list_sheets(raw_path)
-        wanted = list(self.spec.sheets) if self.spec.sheets else available
-        missing = [s for s in wanted if s not in available]
-        if missing:
-            raise ValueError(
-                f"Sheets {missing} not found in {raw_path.name}. Available: {available}"
-            )
-        suffix = {"csv": ".csv", "parquet": ".parquet"}.get(fmt, ".sqlite")
-        outputs = []
-        for sheet in wanted:
-            name = f"{base}_{_slug(sheet)}" if len(wanted) > 1 else base
-            utf8 = base_dir / f"{name}.utf8.tmp.csv"
-            try:
-                xlsx_to_csv(raw_path, utf8, sheet, self.spec.skip_rows)
-                outputs.append(
-                    self._sink_text_csv(
-                        utf8, ",", base_dir / f"{name}{suffix}", fmt, name, raw_path.name
-                    )
+        skip_rows = self.spec.skip_rows
+        sheets = self.spec.sheets
+        if resource is not None:
+            if resource.skip_rows is not None:
+                skip_rows = resource.skip_rows
+            if resource.sheets is not None:
+                sheets = resource.sheets
+        # Zip que embrulha o xlsx (IDEB traz xlsx, ods e md5 juntos): extrai o membro.
+        wrapper = base_dir / f"{base}.src.tmp.xlsx"
+        try:
+            source = raw_path
+            if not _is_xlsx(raw_path):
+                with _open_member(raw_path, self.spec) as src, open(wrapper, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+                source = wrapper
+            available = list_sheets(source)
+            wanted = list(sheets) if sheets else available
+            missing = [s for s in wanted if s not in available]
+            if missing:
+                raise ValueError(
+                    f"Sheets {missing} not found in {raw_path.name}. Available: {available}"
                 )
-            finally:
-                utf8.unlink(missing_ok=True)
-        return outputs
+            suffix = {"csv": ".csv", "parquet": ".parquet"}.get(fmt, ".sqlite")
+            outputs = []
+            for sheet in wanted:
+                name = f"{base}_{_slug(sheet)}" if len(wanted) > 1 else base
+                utf8 = base_dir / f"{name}.utf8.tmp.csv"
+                try:
+                    xlsx_to_csv(source, utf8, sheet, skip_rows)
+                    outputs.append(
+                        self._sink_text_csv(
+                            utf8, ",", base_dir / f"{name}{suffix}", fmt, name, raw_path.name
+                        )
+                    )
+                finally:
+                    utf8.unlink(missing_ok=True)
+            return outputs
+        finally:
+            wrapper.unlink(missing_ok=True)
+
+
+def _is_xlsx(path: Path) -> bool:
+    """Xlsx de verdade (tem ``xl/workbook.xml``), não um zip que o embrulha."""
+    if not zipfile.is_zipfile(path):
+        return False
+    with zipfile.ZipFile(path) as archive:
+        return "xl/workbook.xml" in archive.namelist()
 
 
 def datasource_for_spec(spec: HttpFile) -> type:
