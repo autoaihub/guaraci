@@ -27,6 +27,21 @@
   "method": "medido",
   "measured_on": "2026-10-15"
  },
+ "anvisa_nucleos_seguranca_paciente": {
+  "csv_bytes": 2071066,
+  "method": "medido",
+  "measured_on": "2026-10-23"
+ },
+ "anvisa_produtos_saude_modelos": {
+  "csv_bytes": 1000000000,
+  "method": "estimado",
+  "measured_on": "2026-10-23"
+ },
+ "anvisa_produtos_saude_registrados": {
+  "csv_bytes": 27684590,
+  "method": "medido",
+  "measured_on": "2026-10-23"
+ },
  "anvisa_tecnovigilancia": {
   "csv_bytes": 62974805,
   "rows": 288683,
@@ -529,6 +544,11 @@
   "method": "estimado",
   "measured_on": "2026-10-20"
  },
+ "ipeadata_metadados": {
+  "csv_bytes": 11000000,
+  "method": "estimado",
+  "measured_on": "2026-10-23"
+ },
  "macrorregiao_e_regiao_de_saude_municipio": {
   "csv_bytes": 594486,
   "rows": 5570,
@@ -629,6 +649,11 @@
   "rows": 75417,
   "method": "estimado",
   "measured_on": "2026-10-15"
+ },
+ "mte_rais_vinculos": {
+  "csv_bytes": 4000000000,
+  "method": "pelo menos",
+  "measured_on": "2026-10-23"
  },
  "outros_temas_ced": {
   "csv_bytes": 41088,

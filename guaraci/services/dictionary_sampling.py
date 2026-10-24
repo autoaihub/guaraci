@@ -65,6 +65,26 @@ FTP_LEGACY_SOURCES = frozenset(
         "mgdi_cancer_colo_mama", "mgdi_cirurgias_especialistas", "mgdi_equidade",
         "mgdi_residencias_saude", "mgdi_rnds", "mgdi_saude_bucal_fluoretacao",
         "mds_misocial", "siscan_csv",
+        # Leva 6 (onda 1): SIDRA, arquivos, WFS, FTP do MTE, APIs públicas e fontes estaduais.
+        "ibge_pam_lavouras", "ibge_ppm_rebanhos", "ibge_ppm_aquicultura",
+        "ibge_ppm_producao_animal", "ibge_pevs_extracao_vegetal", "ibge_pevs_silvicultura",
+        "ibge_censo_agro_2017_agrotoxicos", "ibge_censo_agro_2017_estabelecimentos",
+        "ibge_censo_agro_2017_produtor", "ibge_censo_rendimento",
+        "ibge_censo_frequencia_escolar", "ibge_censo_fecundidade", "sim_obitos_exterior",
+        "anvisa_hemoprod", "anvisa_nucleos_seguranca_paciente",
+        "anvisa_produtos_saude_registrados", "anvisa_produtos_saude_modelos",
+        "anvisa_produtos_irregulares", "sgb_risco_geologico", "sgb_suscetibilidade",
+        "funai_terras_indigenas", "funai_aldeias", "mte_novo_caged_movimentacoes",
+        "mte_novo_caged_fora_prazo", "mte_novo_caged_exclusoes", "mte_rais_vinculos",
+        "mte_rais_estabelecimentos", "ibama_rapp_emissoes_atmosfericas",
+        "ibama_rapp_efluentes_liquidos", "ibama_autos_infracao", "ibama_termos_embargo",
+        "mdhc_disque100", "senappen_sisdepen", "isp_rj_delegacias_mensal",
+        "isp_rj_municipios_mensal", "detran_sp_infosiga_sinistros",
+        "detran_sp_infosiga_pessoas", "detran_sp_infosiga_veiculos",
+        "transferegov_transferencias_especiais", "transferegov_fundo_a_fundo",
+        "obrasgov_projetos_investimento", "ipeadata_series", "ipeadata_metadados",
+        "cvesp_sifilis_congenita", "cvesp_sifilis_gestante", "cvesp_sifilis_adquirida",
+        "cvesp_hiv_gestante", "cvesp_aids_adulto", "cvesp_hiv", "rio_iqar_diario",
     }
 )
 

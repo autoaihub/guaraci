@@ -93,6 +93,41 @@ _NOVAS_FONTES_2026_10: Dict[str, tuple] = {
     "mgdi_saude_bucal_fluoretacao": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
     # O MI Social republica os últimos meses; MONTHLY reconsulta a janela.
     "mds_misocial": (Kind.API_WINDOW, Cadence.MONTHLY, 2003),
+    # Leva 6 (onda 1): arquivos, WFS, APIs públicas e fontes estaduais.
+    "anvisa_hemoprod": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "anvisa_nucleos_seguranca_paciente": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "anvisa_produtos_saude_registrados": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "anvisa_produtos_saude_modelos": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "anvisa_produtos_irregulares": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "sgb_risco_geologico": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
+    "funai_terras_indigenas": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
+    "funai_aldeias": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
+    "mte_novo_caged_movimentacoes": (Kind.API_MONTHLY, Cadence.MONTHLY, 2020),
+    "mte_novo_caged_fora_prazo": (Kind.API_MONTHLY, Cadence.MONTHLY, 2020),
+    "mte_novo_caged_exclusoes": (Kind.API_MONTHLY, Cadence.MONTHLY, 2020),
+    "mte_rais_estabelecimentos": (Kind.API_WINDOW, Cadence.ANNUAL, 2023),
+    "ibama_rapp_emissoes_atmosfericas": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
+    "ibama_rapp_efluentes_liquidos": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
+    "ibama_autos_infracao": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "ibama_termos_embargo": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "senappen_sisdepen": (Kind.API_WINDOW, Cadence.IRREGULAR, 2014),
+    "isp_rj_delegacias_mensal": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "isp_rj_municipios_mensal": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "detran_sp_infosiga_sinistros": (Kind.API_WINDOW, Cadence.MONTHLY, 2015),
+    "detran_sp_infosiga_pessoas": (Kind.API_WINDOW, Cadence.MONTHLY, 2015),
+    "detran_sp_infosiga_veiculos": (Kind.API_WINDOW, Cadence.MONTHLY, 2015),
+    "transferegov_transferencias_especiais": (Kind.SNAPSHOT, Cadence.DAILY, None),
+    "transferegov_fundo_a_fundo": (Kind.SNAPSHOT, Cadence.DAILY, None),
+    "obrasgov_projetos_investimento": (Kind.SNAPSHOT, Cadence.WEEKLY, None),
+    "ipeadata_series": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
+    "ipeadata_metadados": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
+    "cvesp_sifilis_congenita": (Kind.API_WINDOW, Cadence.ANNUAL, 2007),
+    "cvesp_sifilis_gestante": (Kind.API_WINDOW, Cadence.ANNUAL, 2007),
+    "cvesp_sifilis_adquirida": (Kind.API_WINDOW, Cadence.ANNUAL, 2007),
+    "cvesp_hiv_gestante": (Kind.API_WINDOW, Cadence.ANNUAL, 2002),
+    "cvesp_aids_adulto": (Kind.API_WINDOW, Cadence.ANNUAL, 1980),
+    "cvesp_hiv": (Kind.API_WINDOW, Cadence.ANNUAL, 2000),
+    "rio_iqar_diario": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
 }
 
 # Edit here to re-tune how often a source is re-checked for new data.
@@ -218,6 +253,38 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             note="single 2022 edition, needs ufs - collect on demand, not swept",
             max_year=2022,
         )
+    elif name == "mte_rais_vinculos":
+        # Mais de 4 GB comprimidos por ano (62 colunas, um vínculo por linha):
+        # coleta sob pedido, por ano.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.ANNUAL,
+            2023,
+            auto=False,
+            note="over 4 GB per year compressed, selected by anos - collect on demand, not swept",
+        )
+    elif name == "mdhc_disque100":
+        # ``anos`` obrigatório e de 100 MB a 1,9 GB por semestre: coleta sob
+        # pedido, como o PNI por arquivo.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.IRREGULAR,
+            2020,
+            auto=False,
+            note="100 MB to 1.9 GB per semester, needs anos - collect on demand, not swept",
+        )
+    elif name == "sgb_suscetibilidade":
+        # Camadas com mais de 400 mil feições cada: coleta sob pedido.
+        profile = SourceProfile(
+            name,
+            Kind.SNAPSHOT,
+            Cadence.IRREGULAR,
+            None,
+            auto=False,
+            note="layers over 400 thousand features - collect on demand, not swept",
+        )
     elif name.startswith("ana"):
         profile = SourceProfile(
             name,
@@ -264,6 +331,19 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             "ibge_censo_obitos": 2022,
             "ibge_censo_autismo": 2022,
             "ibge_censo_dificuldade_funcional": 2022,
+            # Leva 6: produção agropecuária anual e Censo Agro 2017 / Censo 2022.
+            "ibge_pam_lavouras": 1974,
+            "ibge_ppm_rebanhos": 1974,
+            "ibge_ppm_aquicultura": 2013,
+            "ibge_ppm_producao_animal": 1974,
+            "ibge_pevs_extracao_vegetal": 1986,
+            "ibge_pevs_silvicultura": 1986,
+            "ibge_censo_agro_2017_agrotoxicos": 2017,
+            "ibge_censo_agro_2017_estabelecimentos": 2017,
+            "ibge_censo_agro_2017_produtor": 2017,
+            "ibge_censo_rendimento": 2022,
+            "ibge_censo_frequencia_escolar": 2022,
+            "ibge_censo_fecundidade": 2022,
         }.get(name, 2001)
         # Pesquisa encerrada (PNAD COVID-19, PNAD de saúde): o piso e o teto vêm da tabela de
         # bancos congelados, para o update não reconsultar depois da última edição.

@@ -69,6 +69,14 @@ G_EDU = "Educação · INEP"
 G_TRA = "Trânsito · PRF"
 G_ONC = "Câncer · INCA"
 G_MDS = "Assistência social · MDS"
+G_AGR = "Agropecuária · IBGE"
+G_TRB = "Trabalho e emprego · MTE"
+G_SEG = "Segurança pública e direitos humanos"
+G_INV = "Investimento público e séries econômicas"
+G_EST = "Frente estadual · SP e RJ"
+G_TER = "Território e fiscalização ambiental"
+IBAMA = "IBAMA, Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renováveis"
+MTE = "MTE, Ministério do Trabalho e Emprego"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -314,6 +322,57 @@ CURATED = {
     "mgdi_rnds": ("RNDS · indicadores", "Registros recebidos pela Rede Nacional de Dados em Saúde por tipo e UF", G_OUT, MS, "saude"),
     "mgdi_saude_bucal_fluoretacao": ("Saúde bucal e fluoretação · indicadores", "Repasses de custeio de CEO, UOM e equipes de saúde bucal e vigilância da fluoretação da água", G_AP, APS, "saude"),
     "mds_misocial": ("MI Social", "Indicadores municipais mensais de Bolsa Família, CadÚnico, BPC, condicionalidades e SUAS, desde 2003", G_MDS, "MDS, Ministério do Desenvolvimento e Assistência Social", "pop"),
+    # Leva 6 (onda 1) de outubro/2026
+    "ibge_pam_lavouras": ("PAM · lavouras", "Produção agrícola municipal: área, quantidade, rendimento e valor por produto, desde 1974", G_AGR, "IBGE", "pop"),
+    "ibge_ppm_rebanhos": ("PPM · rebanhos", "Efetivo dos rebanhos por município e tipo, desde 1974", G_AGR, "IBGE", "pop"),
+    "ibge_ppm_aquicultura": ("PPM · aquicultura", "Produção da aquicultura por município e espécie, desde 2013", G_AGR, "IBGE", "pop"),
+    "ibge_ppm_producao_animal": ("PPM · produção de origem animal", "Leite, ovos, mel, lã e casulos por município, desde 1974", G_AGR, "IBGE", "pop"),
+    "ibge_pevs_extracao_vegetal": ("PEVS · extração vegetal", "Produção da extração vegetal por município e produto, desde 1986", G_AGR, "IBGE", "clima"),
+    "ibge_pevs_silvicultura": ("PEVS · silvicultura", "Produção da silvicultura por município e produto, desde 1986", G_AGR, "IBGE", "clima"),
+    "ibge_censo_agro_2017_agrotoxicos": ("Censo Agro 2017 · agrotóxicos", "Estabelecimentos que usaram agrotóxicos, com orientação técnica e uso de EPI, 2017", G_AGR, "IBGE", "saude"),
+    "ibge_censo_agro_2017_estabelecimentos": ("Censo Agro 2017 · estabelecimentos", "Número e área dos estabelecimentos por condição legal das terras, 2017", G_AGR, "IBGE", "pop"),
+    "ibge_censo_agro_2017_produtor": ("Censo Agro 2017 · produtor", "Perfil do produtor: sexo, idade, cor ou raça, escolaridade e associativismo, 2017", G_AGR, "IBGE", "pop"),
+    "ibge_censo_rendimento": ("Censo: rendimento do trabalho", "Rendimento médio e mediano por sexo, cor ou raça, instrução e previdência, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_frequencia_escolar": ("Censo: frequência escolar", "Taxa bruta de frequência escolar por idade, sexo e cor ou raça, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_censo_fecundidade": ("Censo: filhos tidos nascidos vivos", "Mulheres e filhos tidos por grupo de idade, instrução e cor ou raça, 2022", G_IBGE, "IBGE", "pop"),
+    "sim_obitos_exterior": ("SIM · óbitos de residentes no exterior", "Declarações de óbito ocorridas no Brasil de residentes no exterior, arquivo nacional por ano", G_FTP, DTS, "saude"),
+    "anvisa_hemoprod": ("ANVISA · Hemoprod", "Produção hemoterápica declarada pelos serviços de hemoterapia, com coleta, processamento e distribuição", G_ANV, ANV, "saude"),
+    "anvisa_nucleos_seguranca_paciente": ("ANVISA · núcleos de segurança do paciente", "Núcleos de segurança do paciente cadastrados pelos serviços de saúde", G_ANV, ANV, "saude"),
+    "anvisa_produtos_saude_registrados": ("ANVISA · produtos para saúde registrados", "Registros de produtos para saúde com empresa, classe de risco e situação", G_ANV, ANV, "saude"),
+    "anvisa_produtos_saude_modelos": ("ANVISA · produtos para saúde, modelos", "Modelos e apresentações dos produtos para saúde registrados", G_ANV, ANV, "saude"),
+    "anvisa_produtos_irregulares": ("ANVISA · produtos irregulares", "Produtos com medida sanitária de proibição, com empresa investigada", G_ANV, ANV, "saude"),
+    "sgb_risco_geologico": ("SGB · risco geológico", "Setorização de áreas de risco geológico com grau de risco e tipo de processo, em polígonos", G_TER, "SGB, Serviço Geológico do Brasil", "clima"),
+    "sgb_suscetibilidade": ("SGB · suscetibilidade", "Cartas de suscetibilidade a movimentos de massa e inundação, camadas com mais de 400 mil feições", G_TER, "SGB, Serviço Geológico do Brasil", "clima"),
+    "funai_terras_indigenas": ("FUNAI · terras indígenas", "Limites das terras indígenas por fase do procedimento, em polígonos", G_TER, "FUNAI, Fundação Nacional dos Povos Indígenas", "pop"),
+    "funai_aldeias": ("FUNAI · aldeias", "Localização das aldeias indígenas, em pontos", G_TER, "FUNAI, Fundação Nacional dos Povos Indígenas", "pop"),
+    "mte_novo_caged_movimentacoes": ("Novo CAGED · movimentações", "Admissões e desligamentos do emprego formal por mês, desde 2020", G_TRB, MTE, "pop"),
+    "mte_novo_caged_fora_prazo": ("Novo CAGED · fora do prazo", "Movimentações declaradas fora do prazo, por mês, desde 2020", G_TRB, MTE, "pop"),
+    "mte_novo_caged_exclusoes": ("Novo CAGED · exclusões", "Movimentações excluídas pelos declarantes, por mês, desde 2020", G_TRB, MTE, "pop"),
+    "mte_rais_vinculos": ("RAIS · vínculos", "Vínculos de emprego formal por ano, 62 colunas, mais de 4 GB comprimidos por ano", G_TRB, MTE, "pop"),
+    "mte_rais_estabelecimentos": ("RAIS · estabelecimentos", "Estabelecimentos com vínculos de emprego formal, por ano", G_TRB, MTE, "pop"),
+    "ibama_rapp_emissoes_atmosfericas": ("IBAMA · RAPP, emissões atmosféricas", "Emissões de poluentes atmosféricos declaradas no relatório anual de atividades potencialmente poluidoras", G_TER, IBAMA, "clima"),
+    "ibama_rapp_efluentes_liquidos": ("IBAMA · RAPP, efluentes líquidos", "Efluentes líquidos declarados no relatório anual de atividades potencialmente poluidoras", G_TER, IBAMA, "san"),
+    "ibama_autos_infracao": ("IBAMA · autos de infração", "Autos de infração ambiental com infrator, enquadramento, multa e local", G_TER, IBAMA, "clima"),
+    "ibama_termos_embargo": ("IBAMA · termos de embargo", "Termos de embargo de áreas e atividades com infrator e local", G_TER, IBAMA, "clima"),
+    "mdhc_disque100": ("Disque 100", "Denúncias de violações de direitos humanos por semestre, com vítima, suspeito e local", G_SEG, "MDHC, Ministério dos Direitos Humanos e da Cidadania", "pop"),
+    "senappen_sisdepen": ("SISDEPEN · sistema prisional", "Informações do Infopen por unidade prisional e ciclo, de 1.117 a 1.737 colunas", G_SEG, "SENAPPEN, Secretaria Nacional de Políticas Penais", "pop"),
+    "isp_rj_delegacias_mensal": ("ISP-RJ · delegacias", "Indicadores de criminalidade por delegacia (CISP) e mês, desde 2003", G_SEG, "ISP-RJ, Instituto de Segurança Pública do Rio de Janeiro", "pop"),
+    "isp_rj_municipios_mensal": ("ISP-RJ · municípios", "Indicadores de criminalidade por município e mês, desde 2003", G_SEG, "ISP-RJ, Instituto de Segurança Pública do Rio de Janeiro", "pop"),
+    "detran_sp_infosiga_sinistros": ("Infosiga SP · sinistros", "Sinistros de trânsito do estado de São Paulo, desde 2015", G_EST, "Detran-SP, Infosiga", "saude"),
+    "detran_sp_infosiga_pessoas": ("Infosiga SP · pessoas", "Pessoas envolvidas em sinistros de trânsito do estado de São Paulo, desde 2015", G_EST, "Detran-SP, Infosiga", "saude"),
+    "detran_sp_infosiga_veiculos": ("Infosiga SP · veículos", "Veículos envolvidos em sinistros de trânsito do estado de São Paulo, desde 2015", G_EST, "Detran-SP, Infosiga", "pop"),
+    "transferegov_transferencias_especiais": ("Transferegov · transferências especiais", "Emendas Pix: planos de ação, beneficiários, execução e dados bancários, em 14 tabelas", G_INV, "Transferegov, Ministério da Gestão e da Inovação", "pop"),
+    "transferegov_fundo_a_fundo": ("Transferegov · fundo a fundo", "Transferências fundo a fundo: programas, repasses e planos de ação, em 21 tabelas", G_INV, "Transferegov, Ministério da Gestão e da Inovação", "saude"),
+    "obrasgov_projetos_investimento": ("Obrasgov · projetos de investimento", "Projetos de investimento federal com execução física e financeira", G_INV, "Obrasgov, Ministério da Gestão e da Inovação", "pop"),
+    "ipeadata_series": ("IPEADATA · séries selecionadas", "Séries selecionadas de 41 temas sem par na fonte primária, incluindo o Atlas da Violência", G_INV, "IPEA, Instituto de Pesquisa Econômica Aplicada", "pop"),
+    "ipeadata_metadados": ("IPEADATA · catálogo de séries e territórios", "Catálogo de séries, temas e territórios do IPEADATA", G_INV, "IPEA, Instituto de Pesquisa Econômica Aplicada", "pop"),
+    "cvesp_sifilis_congenita": ("CVE-SP · sífilis congênita", "Casos por município de residência e ano de notificação, estado de São Paulo, desde 2007", G_EST, "CVE-SP, Centro de Vigilância Epidemiológica", "saude"),
+    "cvesp_sifilis_gestante": ("CVE-SP · sífilis em gestante", "Casos por município de residência e ano de notificação, estado de São Paulo, desde 2007", G_EST, "CVE-SP, Centro de Vigilância Epidemiológica", "saude"),
+    "cvesp_sifilis_adquirida": ("CVE-SP · sífilis adquirida", "Casos por município de residência e ano de notificação, estado de São Paulo, desde 2007", G_EST, "CVE-SP, Centro de Vigilância Epidemiológica", "saude"),
+    "cvesp_hiv_gestante": ("CVE-SP · HIV em gestante", "Casos por município de residência e ano de notificação, estado de São Paulo, desde 2002", G_EST, "CVE-SP, Centro de Vigilância Epidemiológica", "saude"),
+    "cvesp_aids_adulto": ("CVE-SP · aids em adultos", "Casos por município de residência e ano de notificação, estado de São Paulo, desde 1980", G_EST, "CVE-SP, Centro de Vigilância Epidemiológica", "saude"),
+    "cvesp_hiv": ("CVE-SP · infecção pelo HIV", "Casos por município de residência e ano de notificação, estado de São Paulo, desde 2000", G_EST, "CVE-SP, Centro de Vigilância Epidemiológica", "saude"),
+    "rio_iqar_diario": ("Rio de Janeiro · IQAR diário", "Índice de Qualidade do Ar por estação e poluente, desde 2017 (a camada parou de ser atualizada em 2024)", G_EST, "Prefeitura do Rio de Janeiro", "clima"),
 }
 
 MODE_LABEL = {
@@ -343,6 +402,17 @@ MODE_LABEL = {
     "prf drive files": "Arquivos abertos PRF",
     "inca rhc zip": "Integrador RHC (INCA)",
     "inep files": "Microdados INEP",
+    "geo wfs": "WFS de dados geográficos (SGB e FUNAI)",
+    "mte ftp files": "FTP do Ministério do Trabalho (arquivos 7z)",
+    "mdhc files": "Dados abertos do MDHC",
+    "senappen files": "Dados abertos da SENAPPEN",
+    "isp rj files": "Dados abertos do ISP-RJ",
+    "detran sp files": "Dados abertos do Infosiga (Detran-SP)",
+    "transferegov api": "API Transferegov (PostgREST)",
+    "obrasgov api": "API Obrasgov",
+    "ipeadata api": "API IPEADATA (OData)",
+    "cvesp tabnet": "TabNet do CVE-SP",
+    "arcgis rest": "ArcGIS REST (Prefeitura do Rio)",
 }
 
 CADENCE_PT = {

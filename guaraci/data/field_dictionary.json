@@ -192,6 +192,17 @@
     "rows_sampled": 25702,
     "status": "ok"
   },
+  "anvisa_hemoprod": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Hemoprod blood-service production file, 273 columns, one row per service and period, published as is. It includes the informant's IP address column ('Endereço IP'). Not sampled here.",
+    "status": "empty"
+  },
   "anvisa_hemovigilancia": {
     "fields": [
       "NU_NOTIFICACAO",
@@ -246,6 +257,50 @@
     "note": "Live collection on 2026-09-24 (43557 rows). Whole file republished over the previous one by ANVISA, cp1252 and ';' at the source; exported as UTF-8 with every column as text. Quoted fields; registration numbers keep leading zeros because every column is text.",
     "rows_sampled": 43557,
     "status": "ok"
+  },
+  "anvisa_nucleos_seguranca_paciente": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Patient safety centres file, 11 columns. Not sampled here; columns as published by ANVISA.",
+    "status": "empty"
+  },
+  "anvisa_produtos_irregulares": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Irregular products file, 23 columns, with the CNPJ and name of the investigated company (it can be a MEI), published as is. Not sampled here.",
+    "status": "empty"
+  },
+  "anvisa_produtos_saude_modelos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Health product models file, 11 columns, about 1 GB. Not sampled here; columns as published by ANVISA.",
+    "status": "empty"
+  },
+  "anvisa_produtos_saude_registrados": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Registered health products file, 12 columns. Not sampled here; columns as published by ANVISA.",
+    "status": "empty"
   },
   "anvisa_tecnovigilancia": {
     "fields": [
@@ -1720,6 +1775,120 @@
     "note": "Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).",
     "status": "ok"
   },
+  "cvesp_aids_adulto": {
+    "fields": [
+      "cod_ibge",
+      "municipio",
+      "ano",
+      "Nº de Casos"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "CVE-SP TabNet, cases by municipality of residence and year of notification. Columns as reported by the integration (cod_ibge, municipio, ano, Nº de Casos); not sampled here.",
+    "status": "empty"
+  },
+  "cvesp_hiv": {
+    "fields": [
+      "cod_ibge",
+      "municipio",
+      "ano",
+      "Nº de Casos"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "CVE-SP TabNet, cases by municipality of residence and year of notification. Columns as reported by the integration (cod_ibge, municipio, ano, Nº de Casos); not sampled here.",
+    "status": "empty"
+  },
+  "cvesp_hiv_gestante": {
+    "fields": [
+      "cod_ibge",
+      "municipio",
+      "ano",
+      "Nº de Casos"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "CVE-SP TabNet, cases by municipality of residence and year of notification. Columns as reported by the integration (cod_ibge, municipio, ano, Nº de Casos); not sampled here.",
+    "status": "empty"
+  },
+  "cvesp_sifilis_adquirida": {
+    "fields": [
+      "cod_ibge",
+      "municipio",
+      "ano",
+      "Nº de Casos"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "CVE-SP TabNet, cases by municipality of residence and year of notification. Columns as reported by the integration (cod_ibge, municipio, ano, Nº de Casos); not sampled here.",
+    "status": "empty"
+  },
+  "cvesp_sifilis_congenita": {
+    "fields": [
+      "cod_ibge",
+      "municipio",
+      "ano",
+      "Nº de Casos"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "CVE-SP TabNet, cases by municipality of residence and year of notification. Columns as reported by the integration (cod_ibge, municipio, ano, Nº de Casos); not sampled here.",
+    "status": "empty"
+  },
+  "cvesp_sifilis_gestante": {
+    "fields": [
+      "cod_ibge",
+      "municipio",
+      "ano",
+      "Nº de Casos"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "CVE-SP TabNet, cases by municipality of residence and year of notification. Columns as reported by the integration (cod_ibge, municipio, ano, Nº de Casos); not sampled here.",
+    "status": "empty"
+  },
   "daf_estoque_medicamentos_bnafar_horus": {
     "fields": [
       "codigo_uf",
@@ -1983,6 +2152,45 @@
     ],
     "rows_sampled": 20,
     "status": "ok"
+  },
+  "detran_sp_infosiga_pessoas": {
+    "filters": [
+      "anos",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "Infosiga SP people involved in collisions since 2015, 29 columns; anos selects the files. Not sampled here.",
+    "status": "empty"
+  },
+  "detran_sp_infosiga_sinistros": {
+    "filters": [
+      "anos",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "Infosiga SP traffic collisions since 2015, 48 columns; anos selects the files. Not sampled here.",
+    "status": "empty"
+  },
+  "detran_sp_infosiga_veiculos": {
+    "filters": [
+      "anos",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "Infosiga SP vehicles involved in collisions since 2015, 12 columns; anos selects the files. Not sampled here.",
+    "status": "empty"
   },
   "doses_aplicadas_pni": {
     "fields": [
@@ -3334,6 +3542,31 @@
     "note": "Fields verified live on 2026-10-13 against the source header (no full collection run yet). 2020, 2022 and 2025 converted end to end. Separator, encoding and date format change by year; 2024 and the XLSX years spell ESTRATEGIA without accent.",
     "status": "ok"
   },
+  "funai_aldeias": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "cql_filter",
+      "keep_raw",
+      "timeout",
+      "page_size"
+    ],
+    "note": "FUNAI villages (WFS), 13 attributes plus point geometry. Exact column list read from DescribeFeatureType at download time.",
+    "status": "empty"
+  },
+  "funai_terras_indigenas": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "camadas",
+      "cql_filter",
+      "keep_raw",
+      "timeout",
+      "page_size"
+    ],
+    "note": "FUNAI indigenous lands (WFS), chosen by camadas, polygon geometry. Not sampled here; attributes read from DescribeFeatureType at download time.",
+    "status": "empty"
+  },
   "ibama_agrotoxicos_comercializacao": {
     "fields": [],
     "filters": [
@@ -3343,6 +3576,48 @@
       "timeout"
     ],
     "note": "Fields verified live on 2026-10-13 against the source header (no full collection run yet). 33 wide columns: Classe de uso, Ingrediente ativo, SEMESTRE, ANO, Vendas a clientes (ton. produtos), Vendas a Industrias (ton. produtos) and 27 'Qtd. Vendas - <UF>' columns. pt-BR numbers, negative values present; kept wide and as text.",
+    "status": "empty"
+  },
+  "ibama_autos_infracao": {
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Environmental infraction notices since 1977, 84 columns, including NOME_INFRATOR and CPF_CNPJ_INFRATOR, published as is. Not sampled here.",
+    "status": "empty"
+  },
+  "ibama_rapp_efluentes_liquidos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "RAPP liquid effluents, 27 columns, from 2000. Not sampled here; columns as published by IBAMA.",
+    "status": "empty"
+  },
+  "ibama_rapp_emissoes_atmosfericas": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "RAPP air emissions, 13 columns, from 2013. It carries the CNPJ and company name, and for MEI also the name and CPF of the person, published as is. Not sampled here.",
+    "status": "empty"
+  },
+  "ibama_termos_embargo": {
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Embargo terms, 51 columns, with the offender's CPF without mask, published as is. Not sampled here.",
     "status": "empty"
   },
   "ibge_area_territorial": {
@@ -3438,6 +3713,97 @@
       "api_base_url"
     ],
     "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 9933 (2022). Some classifications include subtotals among categories.",
+    "status": "ok"
+  },
+  "ibge_censo_agro_2017_agrotoxicos": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipologia",
+      "uso_de_agrotoxicos",
+      "sexo_do_produtor",
+      "condicao_do_produtor_em_relacao_as_terras",
+      "escolaridade_do_produtor",
+      "associacao_do_produtor_a_cooperativa_e_ou_a_entidade_de_classe",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Agricultural Census 2017, pesticide use; sampled live at level brasil on 2026-10-23.",
+    "rows_sampled": 192,
+    "status": "ok"
+  },
+  "ibge_censo_agro_2017_estabelecimentos": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipologia",
+      "condicao_legal_das_terras",
+      "condicao_do_produtor_em_relacao_as_terras",
+      "sexo_do_produtor",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Agricultural Census 2017, establishments and area by legal condition of the land; sampled live at level brasil on 2026-10-23.",
+    "rows_sampled": 1764,
+    "status": "ok"
+  },
+  "ibge_censo_agro_2017_produtor": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipologia",
+      "sexo_do_produtor",
+      "escolaridade_do_produtor",
+      "conclusao_do_curso_que_o_produtor_frequentou",
+      "cor_ou_raca_do_produtor",
+      "classe_de_idade_do_produtor",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "Agricultural Census 2017, producer profile; sampled live at level brasil on 2026-10-23.",
+    "rows_sampled": 2100,
     "status": "ok"
   },
   "ibge_censo_alfabetizacao": {
@@ -3565,6 +3931,62 @@
     "rows_sampled": 40,
     "status": "ok"
   },
+  "ibge_censo_fecundidade": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "grupos_de_idade_das_mulheres",
+      "nivel_de_instrucao",
+      "cor_ou_raca_das_mulheres",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 10078 (Census 2022, women and children ever born alive); sampled live at level brasil on 2026-10-23.",
+    "rows_sampled": 1800,
+    "status": "ok"
+  },
+  "ibge_censo_frequencia_escolar": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "grupo_de_idade",
+      "sexo",
+      "cor_ou_raca",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 10056 (Census 2022, school attendance); sampled live at level brasil on 2026-10-23.",
+    "rows_sampled": 310,
+    "status": "ok"
+  },
   "ibge_censo_indigena": {
     "fields": [
       "nivel",
@@ -3675,6 +4097,35 @@
       "api_base_url"
     ],
     "note": "Fields verified live on 2026-10-13 against the source (no full collection run yet). SIDRA table 10089 (2022); variable 4728 is a percentage.",
+    "status": "ok"
+  },
+  "ibge_censo_rendimento": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "sexo",
+      "cor_ou_raca",
+      "nivel_de_instrucao",
+      "condicao_de_contribuicao_para_instituto_de_previdencia_oficial_no_trabalho_principal",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 10281 (Census 2022, work income); sampled live at level brasil on 2026-10-23.",
+    "rows_sampled": 240,
     "status": "ok"
   },
   "ibge_divorcios": {
@@ -3829,6 +4280,32 @@
     "rows_sampled": 1,
     "status": "ok"
   },
+  "ibge_pam_lavouras": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "produto_das_lavouras_temporarias_e_permanentes",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 5457 (PAM, 1974-2025), 85 products; sampled live at level brasil for 2023 on 2026-10-23.",
+    "rows_sampled": 425,
+    "status": "ok"
+  },
   "ibge_pense": {
     "fields": [],
     "filters": [
@@ -3843,6 +4320,58 @@
     ],
     "note": "Editions 2012 (fixed width, 3 tables), 2015 (two samples, 3 tables each), 2019 and 2024 (CSV). 2009 left out: layout only in XLS. Field list depends on the edition.",
     "status": "empty"
+  },
+  "ibge_pevs_extracao_vegetal": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipo_de_produto_extrativo",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 289 (PEVS plant extraction, 1986-2025); sampled live at level brasil for 2023 on 2026-10-23. Subtotals come with their children, as IBGE publishes.",
+    "rows_sampled": 126,
+    "status": "ok"
+  },
+  "ibge_pevs_silvicultura": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipo_de_produto_da_silvicultura",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 291 (PEVS forestry, 1986-2025); sampled live at level brasil for 2023 on 2026-10-23. Subtotals come with their children, as IBGE publishes.",
+    "rows_sampled": 74,
+    "status": "ok"
   },
   "ibge_pib_municipios": {
     "fields": [
@@ -4067,6 +4596,84 @@
       "api_base_url"
     ],
     "rows_sampled": 42,
+    "status": "ok"
+  },
+  "ibge_ppm_aquicultura": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipo_de_produto_da_aquicultura",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 3940 (PPM aquaculture, 2013-2025); sampled live at level brasil for 2023 on 2026-10-23.",
+    "rows_sampled": 50,
+    "status": "ok"
+  },
+  "ibge_ppm_producao_animal": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipo_de_produto_de_origem_animal",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 74 (PPM animal products, 1974-2025); sampled live at level brasil for 2023 on 2026-10-23.",
+    "rows_sampled": 12,
+    "status": "ok"
+  },
+  "ibge_ppm_rebanhos": {
+    "fields": [
+      "nivel",
+      "localidade_id",
+      "localidade_nome",
+      "ano",
+      "tipo_de_rebanho",
+      "variavel_id",
+      "unidade",
+      "valor"
+    ],
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "SIDRA 3939 (PPM herds, 1974-2025), 10 herd types; sampled live at level brasil for 2023 on 2026-10-23.",
+    "rows_sampled": 10,
     "status": "ok"
   },
   "ibge_saneamento_agua": {
@@ -4417,6 +5024,48 @@
     "note": "INPE SISAM, model estimates (not station measurements) every 6 hours for 5,572 municipalities, 2000-2019, one zip per year (130 to 217 MB); municipality by name and centroid, no IBGE code. Header read from the first 256 KB of the 2019 zip on 2026-10-20.",
     "status": "ok"
   },
+  "ipeadata_metadados": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "IPEADATA catalogue of series, themes and territories. Not sampled here.",
+    "status": "empty"
+  },
+  "ipeadata_series": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "api_base_url",
+      "series",
+      "pause_ms"
+    ],
+    "note": "IPEADATA OData series chosen by series (41 series with no primary source counterpart, among them the Atlas da Violencia). Not sampled here.",
+    "status": "empty"
+  },
+  "isp_rj_delegacias_mensal": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Monthly series by police station (CISP) since 2003, 65 columns. Not sampled here.",
+    "status": "empty"
+  },
+  "isp_rj_municipios_mensal": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Monthly series by municipality since 2003, 62 columns. Not sampled here.",
+    "status": "empty"
+  },
   "macrorregiao_e_regiao_de_saude_municipio": {
     "fields": [
       "codigo_regiao_pais",
@@ -4448,6 +5097,20 @@
     ],
     "rows_sampled": 10,
     "status": "ok"
+  },
+  "mdhc_disque100": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "Disque 100 complaints, one file per semester from 2020 (100 MB to 1.9 GB), 34 or 62 columns depending on the file; anos is required. Not sampled here.",
+    "status": "empty"
   },
   "mds_misocial": {
     "fields": [],
@@ -4727,6 +5390,75 @@
     "note": "Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).",
     "status": "ok"
   },
+  "mte_novo_caged_exclusoes": {
+    "filters": [
+      "anos",
+      "meses",
+      "start_date",
+      "end_date",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Novo CAGED excluded movements, monthly 7z file from 2020-04, 30 columns. Not sampled here.",
+    "status": "empty"
+  },
+  "mte_novo_caged_fora_prazo": {
+    "filters": [
+      "anos",
+      "meses",
+      "start_date",
+      "end_date",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Novo CAGED movements declared late, monthly 7z file from 2020-02, 28 columns. Not sampled here.",
+    "status": "empty"
+  },
+  "mte_novo_caged_movimentacoes": {
+    "filters": [
+      "anos",
+      "meses",
+      "start_date",
+      "end_date",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "Novo CAGED movements, monthly 7z file from 2020-01, 28 columns, coded values as published by MTE. Not sampled here.",
+    "status": "empty"
+  },
+  "mte_rais_estabelecimentos": {
+    "filters": [
+      "anos",
+      "start_year",
+      "end_year",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "RAIS establishments, 23 columns, one file per year from 2023. Not sampled here.",
+    "status": "empty"
+  },
+  "mte_rais_vinculos": {
+    "filters": [
+      "anos",
+      "start_year",
+      "end_year",
+      "regioes",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "RAIS employment bonds, 62 columns, more than 4 GB compressed per year (2023 onward), chosen by anos and regioes. Not sampled here.",
+    "status": "empty"
+  },
   "nasa_firms": {
     "filters": [
       "output_dir",
@@ -4792,6 +5524,19 @@
     ],
     "rows_sampled": 7,
     "status": "ok"
+  },
+  "obrasgov_projetos_investimento": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "pause_ms",
+      "api_base_url",
+      "tamanho_pagina",
+      "max_paginas"
+    ],
+    "note": "Obrasgov investment projects (REST, paged), 31 fields per project. Not sampled here.",
+    "status": "empty"
   },
   "outros_temas_ced": {
     "fields": [
@@ -5266,6 +6011,16 @@
     ],
     "rows_sampled": 48,
     "status": "ok"
+  },
+  "rio_iqar_diario": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "layer_url"
+    ],
+    "note": "Rio de Janeiro daily air quality index by station and pollutant (ArcGIS REST), 8 attributes, from 2017. The layer stopped being updated in 2024. Not sampled here.",
+    "status": "empty"
   },
   "saude_indigena_acompanhamento_obra_infraestrutura_saude": {
     "filters": [
@@ -6077,6 +6832,20 @@
     "rows_sampled": 10,
     "status": "ok"
   },
+  "senappen_sisdepen": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "SISDEPEN (Infopen), 1,117 to 1,737 columns depending on the cycle, from 2014. Not sampled here.",
+    "status": "empty"
+  },
   "sesai_tuberculose": {
     "fields": [
       "dsei_gestao",
@@ -6108,6 +6877,31 @@
     "note": "Live collection on 2026-09-24: tuberculosis cases in indigenous health (SIASI/SESAI), 2022 is the only year published. ';'-separated CSV inside a zip; the patient id is already de-identified by the source (co_indio_desidentificado).",
     "rows_sampled": 505,
     "status": "ok"
+  },
+  "sgb_risco_geologico": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "cql_filter",
+      "keep_raw",
+      "timeout",
+      "page_size"
+    ],
+    "note": "Geological risk sectorisation (SGB WFS), 32 attributes plus polygon geometry. Exact column list read from DescribeFeatureType at download time.",
+    "status": "empty"
+  },
+  "sgb_suscetibilidade": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "camadas",
+      "cql_filter",
+      "keep_raw",
+      "timeout",
+      "page_size"
+    ],
+    "note": "SGB susceptibility charts, chosen by camadas; layers with more than 400 thousand features. Not sampled here; attributes read from DescribeFeatureType at download time.",
+    "status": "empty"
   },
   "sia": {
     "fields": [
@@ -6484,6 +7278,16 @@
     ],
     "rows_sampled": 5496,
     "status": "ok"
+  },
+  "sim_obitos_exterior": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year"
+    ],
+    "note": "SIM file of deaths in Brazil of residents abroad (DOREXT), national file per year from 2013, 87 columns in the SIM layout. Not sampled here; columns as published by DATASUS.",
+    "status": "empty"
   },
   "sim_obitos_fetais": {
     "fields": [
@@ -8656,6 +9460,30 @@
     ],
     "rows_sampled": 21,
     "status": "ok"
+  },
+  "transferegov_fundo_a_fundo": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "pause_ms",
+      "api_base_url",
+      "tabelas"
+    ],
+    "note": "Transferegov fund-to-fund transfers (PostgREST), 21 tables chosen by tabelas. Not sampled here.",
+    "status": "empty"
+  },
+  "transferegov_transferencias_especiais": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "pause_ms",
+      "api_base_url",
+      "tabelas"
+    ],
+    "note": "Transferegov special transfers (PostgREST), 14 tables chosen by tabelas. Free text fields can hold CPF, and there are parliamentarian names and bank data, published as is. Not sampled here.",
+    "status": "empty"
   },
   "vacinacao_sistema_de_informacao_de_insumos_estrategicos": {
     "fields": [

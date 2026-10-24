@@ -2,6 +2,52 @@
 
 ## [Unreleased]
 
+### Added: leva 6 (onda 1), agropecuária, trabalho, segurança, trânsito, investimento público e frente estadual
+O catálogo passa a 255 entradas e 243 bases distintas.
+- **IBGE.** Entram seis tabelas anuais do SIDRA por município: lavouras da PAM
+  (`ibge_pam_lavouras`), rebanhos, aquicultura e produção de origem animal da
+  PPM, e extração vegetal e silvicultura da PEVS. Do Censo Agropecuário 2017
+  vêm agrotóxicos, estabelecimentos e perfil do produtor, e do Censo 2022
+  rendimento do trabalho, frequência escolar e filhos tidos nascidos vivos.
+- **DATASUS e ANVISA.** `sim_obitos_exterior` traz os óbitos ocorridos no
+  Brasil de residentes no exterior, de 2013 em diante. Da ANVISA entram o
+  Hemoprod, os núcleos de segurança do paciente, os produtos para saúde
+  registrados e seus modelos, e os produtos irregulares.
+- **Território e ambiente.** O SGB entra com o risco geológico e as cartas de
+  suscetibilidade, e a FUNAI com terras indígenas e aldeias, todos por WFS. Do
+  IBAMA entram o RAPP (emissões atmosféricas e efluentes líquidos), os autos
+  de infração e os termos de embargo.
+- **Trabalho.** O Novo CAGED (movimentações, fora do prazo e exclusões, desde
+  2020) e a RAIS (vínculos e estabelecimentos, desde 2023) vêm do FTP do
+  Ministério do Trabalho.
+- **Segurança e trânsito.** Disque 100 (`mdhc_disque100`), SISDEPEN, as bases
+  mensais do ISP-RJ por delegacia e por município, e três tabelas do Infosiga
+  SP (sinistros, pessoas e veículos).
+- **Investimento público.** Transferências especiais e fundo a fundo do
+  Transferegov, projetos do Obrasgov e, do IPEADATA, 41 séries sem par na fonte
+  primária e o catálogo de séries.
+- **Frente estadual.** Seis tabelas do TabNet do CVE-SP (sífilis congênita, em
+  gestante e adquirida, HIV em gestante, aids em adultos e HIV) e o IQAR diário
+  do Rio de Janeiro, cuja camada parou de ser atualizada em 2024.
+- Sete temas novos: saúde do trabalhador, segurança pública, trânsito,
+  agropecuária, conservação e território, trabalho e renda, e investimento
+  público.
+- RAIS vínculos, Disque 100 e as cartas de suscetibilidade do SGB ficam fora
+  da varredura automática, porque pedem recorte por ano ou por camada e passam
+  de 4 GB (RAIS) ou de 400 mil feições (camadas do SGB); as demais seguem a
+  cadência da origem. O volume entra no catálogo só onde há medida.
+
+Estas bases chegam como o órgão as publica, e algumas trazem dado pessoal:
+o Hemoprod traz o endereço IP do informante, os produtos irregulares da
+ANVISA a empresa investigada (que pode ser MEI), o RAPP do IBAMA nome e CPF de
+MEI, os autos de infração e os termos de embargo o nome e o CPF do infrator, e
+o Transferegov CPF em texto livre, nomes de parlamentares e dados bancários. O
+tratamento fica para as camadas prata e ouro do Sabiá.
+
+Ficam de fora o SICOR (crédito rural), que responde erro 500 na origem, o
+IntegraSUS-CE, raso demais para entrar, e o Ligue 180, cujo CSV não foi
+localizado.
+
 ### Added: leva 5, Censo 2022, PNAD de saúde, SISCAN em CSV, MI Social e indicadores do MGDI
 O catálogo passa a 205 entradas e 193 bases distintas.
 - **IBGE.** Do Censo 2022 entram os microdados da amostra por UF

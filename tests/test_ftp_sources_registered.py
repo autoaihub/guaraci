@@ -25,7 +25,7 @@ def test_all_twelve_ftp_sources_registered(service) -> None:
     for name in FTP_NAMES:
         assert name in descriptors, f"{name} not registered"
         assert descriptors[name].mode == "datasus ftp"
-    assert len(FTP_NAMES) == 13
+    assert len(FTP_NAMES) == 14
     assert "sim_obitos_fetais" in FTP_NAMES
 
 
