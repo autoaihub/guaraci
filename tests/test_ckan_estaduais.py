@@ -179,6 +179,6 @@ def test_registro_responde_ao_schema_e_so_recife_e_gercon_trazem_anos():
 def test_descricoes_sem_travessao_e_com_nota_de_dado_pessoal():
     for key, spec in CKAN_ESTADUAIS.items():
         text = spec.title + spec.description
-        assert "2014" not in text and "2013" not in text, key
+        assert "—" not in text and "–" not in text, key
         if key.startswith(("recife", "mg_", "poa")):
             assert "LGPD" in spec.description, key
