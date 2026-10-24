@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import shutil
 import tempfile
+import weakref
 from pathlib import Path
 from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Union
 
@@ -52,6 +53,7 @@ class PagedRecordBuffer:
         self._count = 0
         self._spill_root: Optional[Path] = Path(spill_dir) if spill_dir else None
         self._owns_spill_root = spill_dir is None
+        self._finalizer: Optional[weakref.finalize] = None
 
     # --- acumulação ---------------------------------------------------------
 
@@ -67,6 +69,12 @@ class PagedRecordBuffer:
     def _spill_path(self) -> Path:
         if self._spill_root is None:
             self._spill_root = Path(tempfile.mkdtemp(prefix="guaraci_ods_"))
+            # Ninguém chamava cleanup() e as partes ficavam em %TEMP% (dezenas
+            # de GB em 2026-10). A pasta própria agora sai quando o buffer é
+            # coletado ou, no mais tardar, quando o processo termina.
+            self._finalizer = weakref.finalize(
+                self, shutil.rmtree, str(self._spill_root), ignore_errors=True
+            )
         self._spill_root.mkdir(parents=True, exist_ok=True)
         return self._spill_root / f"part_{len(self._parts):05d}.parquet"
 
@@ -139,7 +147,10 @@ class PagedRecordBuffer:
 
     def cleanup(self) -> None:
         """Remove as partes temporárias, se este buffer é dono do diretório."""
-        if self._owns_spill_root and self._spill_root and self._spill_root.exists():
+        if self._finalizer is not None:
+            self._finalizer()
+            self._finalizer = None
+        elif self._owns_spill_root and self._spill_root and self._spill_root.exists():
             shutil.rmtree(self._spill_root, ignore_errors=True)
         self._parts = []
         self._spill_root = None

@@ -8,6 +8,7 @@ truncamento no limite de páginas era reportado como sucesso.
 
 from __future__ import annotations
 
+import gc
 import json
 
 import polars as pl
@@ -109,6 +110,28 @@ def test_cleanup_removes_owned_parts() -> None:
 
     buffer.cleanup()
     assert not buffer.spilled
+
+
+def test_owned_parts_go_away_with_the_buffer() -> None:
+    # Ninguém chama cleanup() no datasource: sem isto as partes ficavam em
+    # %TEMP% para sempre.
+    buffer = PagedRecordBuffer(spill_threshold=10)
+    buffer.extend(_rows(50))
+    pasta = buffer._spill_root
+    assert pasta is not None and pasta.exists()
+
+    del buffer
+    gc.collect()
+    assert not pasta.exists()
+
+
+def test_parts_in_a_given_dir_survive_the_buffer(tmp_path) -> None:
+    buffer = PagedRecordBuffer(spill_threshold=10, spill_dir=tmp_path)
+    buffer.extend(_rows(50))
+
+    del buffer
+    gc.collect()
+    assert list(tmp_path.glob("*.parquet"))
 
 
 # --- avisos e status visíveis ------------------------------------------------
