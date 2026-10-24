@@ -17,7 +17,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 import polars as pl
@@ -102,7 +102,7 @@ class JsonApiClient:
     def build_url(self, path: str = "", params: Optional[Mapping[str, object]] = None) -> str:
         url = self.base_url + ("/" + path.lstrip("/") if path else "")
         if params:
-            url += ("&" if "?" in url else "?") + urlencode(params, safe="$,.()'")
+            url += ("&" if "?" in url else "?") + urlencode(params, safe="$,.()'", quote_via=quote)
         return url
 
     def get_json(
@@ -112,7 +112,7 @@ class JsonApiClient:
         *,
         headers: Optional[Mapping[str, str]] = None,
     ) -> Any:
-        """GET com JSON de volta; números ficam como texto (``parse_float=str``)."""
+        """GET com JSON de volta; números ficam como texto. Corpo vazio (204) volta ``None``."""
         url = self.build_url(path, params)
         request_headers = {"User-Agent": self.USER_AGENT, "Accept": "application/json"}
         request_headers.update(self.headers)
@@ -151,6 +151,8 @@ class JsonApiClient:
                     category="connectivity",
                     retryable=True,
                 ) from exc
+            if not raw.strip():
+                return None  # 204 e afins: resposta sem corpo
             try:
                 return json.loads(raw.decode("utf-8-sig"), parse_float=str, parse_int=str)
             except ValueError as exc:

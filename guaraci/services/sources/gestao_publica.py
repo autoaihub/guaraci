@@ -1,9 +1,11 @@
-"""Fontes de gestão pública (Transferegov e Obrasgov) do registro padrão."""
+"""Fontes de gestão pública (Transferegov, Obrasgov, PNCP e Compras.gov.br) do registro padrão."""
 
 from typing import List
 
 from guaraci.core.contracts import SourceParameterSpec
 from guaraci.gestao_publica import (
+    ComprasCatmatSaudeDataSource as _Compras,
+    PncpContratacoesDataSource as _Pncp,
     ObrasgovProjetosDataSource as _Obrasgov,
     TransferegovFundoAFundoDataSource as _FundoAFundo,
     TransferegovTransferenciasEspeciaisDataSource as _Especiais,
@@ -80,6 +82,72 @@ def build_sources() -> List[DownloadSource]:
             required=False, default=None, minimum=1,
         ),
     ]
+    pncp_params = _technical(_Pncp.DEFAULT_TIMEOUT)
+    pncp_params[3] = SourceParameterSpec(
+        name="pause_ms", phase="tecnica", param_type="integer",
+        description="Pausa entre páginas, em milissegundos (padrão 300; o PNCP responde 429 em rajada).",
+        required=False, default=_Pncp.PAUSE_MS, minimum=0,
+    )
+    pncp_params += [
+        SourceParameterSpec(
+            name="start_date", phase="coleta", param_type="string",
+            description=(
+                "Primeiro dia de publicação (AAAA-MM-DD ou AAAAMMDD); "
+                f"a API tem dados desde {_Pncp.MIN_YEAR}."
+            ),
+            required=True, default=None,
+        ),
+        SourceParameterSpec(
+            name="end_date", phase="coleta", param_type="string",
+            description="Último dia de publicação (padrão: igual a start_date).",
+            required=False, default=None,
+        ),
+        SourceParameterSpec(
+            name="modalidades", phase="coleta", param_type="string_list",
+            description=(
+                "Códigos de modalidade (1 leilão eletrônico, 4 concorrência eletrônica, "
+                "6 pregão eletrônico, 8 dispensa, 9 inexigibilidade ...); padrão: 1 a 13."
+            ),
+            required=False, default=None,
+        ),
+        SourceParameterSpec(
+            name="janela_dias", phase="tecnica", param_type="integer",
+            description="Dias por janela de consulta (padrão 7).",
+            required=False, default=_Pncp.JANELA_DIAS, minimum=1,
+        ),
+        SourceParameterSpec(
+            name="tamanho_pagina", phase="tecnica", param_type="integer",
+            description="Registros por página (10 a 50, padrão 50).",
+            required=False, default=_Pncp.PAGE_SIZE, minimum=10, maximum=50,
+        ),
+        SourceParameterSpec(
+            name="max_paginas", phase="tecnica", param_type="integer",
+            description="Limita as páginas por janela e modalidade (padrão: todas).",
+            required=False, default=None, minimum=1,
+        ),
+    ]
+    compras_params = _technical(_Compras.DEFAULT_TIMEOUT) + [
+        SourceParameterSpec(
+            name="codigo_grupo", phase="coleta", param_type="integer",
+            description="Grupo do catálogo CATMAT (padrão 65, saúde).",
+            required=False, default=65, minimum=1,
+        ),
+        SourceParameterSpec(
+            name="codigo_classe", phase="coleta", param_type="integer",
+            description="Restringe a uma classe (ex.: 6505, drogas e medicamentos).",
+            required=False, default=None, minimum=1,
+        ),
+        SourceParameterSpec(
+            name="tamanho_pagina", phase="tecnica", param_type="integer",
+            description="Itens por página (10 a 500, padrão 500).",
+            required=False, default=_Compras.PAGE_SIZE, minimum=10, maximum=500,
+        ),
+        SourceParameterSpec(
+            name="max_paginas", phase="tecnica", param_type="integer",
+            description="Interrompe a leitura após N páginas (padrão: todas).",
+            required=False, default=None, minimum=1,
+        ),
+    ]
     return [
         _transferegov(
             _Especiais,
@@ -99,5 +167,23 @@ def build_sources() -> List[DownloadSource]:
             ),
             datasource_cls=_Obrasgov,
             params_schema=obras_params,
+        ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source=_Pncp.DATASET,
+                title="PNCP - Contratações publicadas",
+                mode="pncp api",
+            ),
+            datasource_cls=_Pncp,
+            params_schema=pncp_params,
+        ),
+        ApiDownloadSource(
+            descriptor=SourceDescriptor(
+                source=_Compras.DATASET,
+                title="Compras.gov.br - Catálogo de materiais de saúde (CATMAT, grupo 65)",
+                mode="compras api",
+            ),
+            datasource_cls=_Compras,
+            params_schema=compras_params,
         ),
     ]
