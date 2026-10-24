@@ -1,4 +1,4 @@
-"""Conjuntos CKAN dos portais federais: MMA (cadastros) e INSS (previdência e saúde do trabalhador).
+"""Conjuntos CKAN dos portais federais: MMA, INSS, SENATRAN, BNDES e MAPA.
 
 Verificado ao vivo em 2026-10-23 (``package_show`` e primeiros bytes de cada
 arquivo; relatórios em ``docs/sondagem_2026-10/``). Os nomes de arquivo do INSS
@@ -12,10 +12,20 @@ from typing import Dict
 
 from guaraci.ckan.datasets import CkanDataset
 
-__all__ = ["CKAN_FEDERAL", "MMA_BASE_URL", "INSS_BASE_URL"]
+__all__ = [
+    "CKAN_FEDERAL",
+    "MMA_BASE_URL",
+    "INSS_BASE_URL",
+    "TRANSPORTES_BASE_URL",
+    "BNDES_BASE_URL",
+    "MAPA_BASE_URL",
+]
 
 MMA_BASE_URL = "https://dados.mma.gov.br/api/3/action/"
 INSS_BASE_URL = "https://dadosabertos.inss.gov.br/api/3/action/"
+TRANSPORTES_BASE_URL = "https://dados.transportes.gov.br/api/3/action/"
+BNDES_BASE_URL = "https://dadosabertos.bndes.gov.br/api/3/action/"
+MAPA_BASE_URL = "https://dados.agricultura.gov.br/api/3/action/"
 
 _INSS_PLANO = "plano-de-dados-abertos-jun-2023-a-dez-2027"
 _INSS_NOTA = (
@@ -142,6 +152,131 @@ _SPECS = (
         file_format="xlsx",
         skip_rows=1,
         default_latest=True,
+    ),
+    CkanDataset(
+        key="senatran_renaest",
+        title="SENATRAN RENAEST (acidentes de trânsito)",
+        description=(
+            "Registro Nacional de Acidentes e Estatísticas de Trânsito, publicado pela SENATRAN: "
+            "acidentes (data, hora, município, tipo, condições da pista e do tempo, endereço, CEP, "
+            "latitude e longitude), vítimas (faixa de idade, gênero, gravidade da lesão), tipo de "
+            "veículo e população e frota por município. Cada mês o portal publica um zip acumulado "
+            "(cerca de 500 MB, dados de 2018 em diante) com quatro CSV (Acidentes, que passa de 2,7 GB "
+            "descompactado, Vitimas, TipoVeiculo e Localidade); sem 'anos'/'meses' baixa só o zip "
+            "mais novo e exporta um CSV por membro. Os registros vêm das UFs e a cobertura não é "
+            "uniforme: há subnotificação por UF, então comparações entre UFs pedem cautela. "
+            "Traz endereço e coordenada do local do acidente, sem nome nem CPF, publicado assim "
+            "pelo órgão; o tratamento LGPD fica nas camadas prata e ouro do Sabiá."
+        ),
+        base_url=TRANSPORTES_BASE_URL,
+        package_ids=("renaest",),
+        period_pattern=r"(?P<month>\d{2})-(?P<year>\d{4})",
+        file_format="zip",
+        member_pattern=r"\.csv$",
+        separator=";",
+        default_latest=True,
+    ),
+    CkanDataset(
+        key="bndes_operacoes_financiamento",
+        title="BNDES Operações de financiamento",
+        description=(
+            "Operações de financiamento contratadas pelo BNDES, em dois arquivos: indiretas "
+            "automáticas (cerca de 1,2 GB, via agente financeiro credenciado, com cliente, UF, "
+            "município, valor, juros, prazos, produto, setor e subsetor CNAE, porte) e não "
+            "automáticas (cerca de 20 MB, com número do contrato e descrição do projeto). Uma "
+            "saída por recurso. Nas indiretas automáticas o CPF/CNPJ do cliente vem mascarado "
+            "pelo órgão (**.*16.560/0001-**); nas não automáticas o CNPJ vem completo. Traz razão "
+            "social ou nome do cliente (cliente) e o CNPJ, publicados assim pelo órgão; o "
+            "tratamento LGPD fica nas camadas prata e ouro do Sabiá. Varredura de CPF com dígito "
+            "verificador válido em amostra das duas planilhas (cerca de 24 mil e 60 mil linhas): "
+            "nenhum achado. Os dicionários em PDF não entram."
+        ),
+        base_url=BNDES_BASE_URL,
+        package_ids=("operacoes-financiamento",),
+        file_format="csv",
+        separator=";",
+    ),
+    CkanDataset(
+        key="bndes_desembolsos_mensais",
+        title="BNDES Desembolsos mensais",
+        description=(
+            "Desembolsos do BNDES por mês, desde 2002, agregados por forma de apoio, produto, "
+            "instrumento, inovação, porte de empresa, região, UF, município, setor e subsetor "
+            "CNAE e setor BNDES (cerca de 750 MB), mais a tabela de mapeamento entre os setores "
+            "do BNDES e a CNAE. Uma saída por recurso. Sem nome nem CPF (dado agregado). O "
+            "dicionário em PDF não entra."
+        ),
+        base_url=BNDES_BASE_URL,
+        package_ids=("desembolsos-mensais",),
+        file_format="csv",
+        separator=";",
+    ),
+    CkanDataset(
+        key="mapa_agrofit",
+        title="MAPA AGROFIT (agrotóxicos e afins registrados)",
+        description=(
+            "Sistema de Agrotóxicos Fitossanitários do MAPA: produtos formulados (cerca de 390 MB, "
+            "um registro por marca, cultura e praga, com ingrediente ativo, titular do registro, "
+            "classe, classe toxicológica e ambiental, modo de ação, orgânico e situação) e produtos "
+            "técnicos (cerca de 0,7 MB). Uma saída por recurso. O portal exige User-Agent de "
+            "navegador e é lento. Traz a razão social do titular do registro (que pode ser pessoa "
+            "física), publicada assim pelo órgão; o tratamento LGPD fica nas camadas prata e ouro "
+            "do Sabiá. O texto vem com delimitadores soltos em alguns campos (aspas e ponto e "
+            "vírgula dentro de marca comercial), como publicado."
+        ),
+        base_url=MAPA_BASE_URL,
+        package_ids=("sistema-de-agrotoxicos-fitossanitarios-agrofit",),
+        file_format="csv",
+        separator=";",
+        browser_user_agent=True,
+    ),
+    CkanDataset(
+        key="mapa_sif",
+        title="MAPA Serviço de Inspeção Federal (SIF)",
+        description=(
+            "Dados do SIGSIF, o sistema do Serviço de Inspeção Federal: animais abatidos por "
+            "categoria, UF e município de procedência (2022 em diante), relatórios de abates "
+            "(2002 em diante), condenações de carcaças e partes por espécie, diagnóstico e destino, "
+            "doenças por procedência e as listas de estabelecimentos nacionais habilitados, "
+            "registrados no SIF e estrangeiros habilitados. Onze CSV, uma saída por recurso, de "
+            "0,5 MB a 240 MB. O portal exige User-Agent de navegador e é lento. A lista de "
+            "estabelecimentos registrados traz CPF ou CNPJ, razão social, endereço, telefone e "
+            "e-mail do estabelecimento (pode ser pessoa física), publicados assim pelo órgão; o "
+            "tratamento LGPD fica nas camadas prata e ouro do Sabiá. Varredura de CPF com dígito "
+            "verificador válido nas listas de estabelecimentos: 1 a 2 achados por lista (em até "
+            "40 mil linhas), isto é, há CPF de pessoa física no lugar do CNPJ. Os dicionários em "
+            "PDF não entram."
+        ),
+        base_url=MAPA_BASE_URL,
+        package_ids=("servico-de-inspecao-federal-sif",),
+        file_format="csv",
+        separator=";",
+        browser_user_agent=True,
+    ),
+    CkanDataset(
+        key="mapa_sipeagro",
+        title="MAPA SIPEAGRO (estabelecimentos registrados)",
+        description=(
+            "Sistema de Informação da Pasta Agropecuária: estabelecimentos registrados no MAPA por "
+            "área de atuação (fertilizantes, qualidade vegetal, produto veterinário, vinhos e "
+            "bebidas, alimentação animal, material de multiplicação animal, aves de reprodução e "
+            "aviação agrícola, em registro e em autorização), com UF, município, número do "
+            "registro, situação, atividade e classificação. Nove CSV de dados mais a lista de "
+            "agrotóxicos (identificador, nome e situação), uma saída por recurso, de 0,3 MB a "
+            "164 MB. O portal exige User-Agent de navegador e é lento. Traz razão social ou nome "
+            "do estabelecimento (que pode ser pessoa física), CPF ou CNPJ (mascarado pelo órgão em "
+            "várias listas e completo em outras), e na aviação agrícola nome do responsável "
+            "técnico, e-mail e telefone, publicados assim pelo órgão; o tratamento LGPD fica nas "
+            "camadas prata e ouro do Sabiá. Varredura de CPF com dígito verificador válido: há CPF "
+            "completo de pessoa física onde o órgão não mascara (cerca de 270 achados em 67 mil "
+            "linhas de produto veterinário, 240 em 28 mil de aviação agrícola, com 143 deles "
+            "formatados, e 20 em 16 mil de fertilizantes). Os metadados em PDF não entram."
+        ),
+        base_url=MAPA_BASE_URL,
+        package_ids=("sipeagro",),
+        file_format="csv",
+        separator=";",
+        browser_user_agent=True,
     ),
 )
 

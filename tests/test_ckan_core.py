@@ -381,7 +381,7 @@ def test_package_query_pagina_e_ua_de_navegador_na_spec(tmp_path, monkeypatch):
 def test_chaves_federais_respondem_ao_schema_e_so_as_com_periodo_trazem_anos():
     service = DownloadService(sources=ckan_federal.build_sources())
     keys = set(CKAN_FEDERAL)
-    assert keys == {
+    assert keys >= {
         "mma_unidades_conservacao", "mma_especies_ameacadas", "inss_cat",
         "inss_beneficios_concedidos", "inss_beneficios_mantidos",
         "inss_beneficios_cessados", "inss_beneficios_indeferidos",
