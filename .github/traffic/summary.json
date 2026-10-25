@@ -1,20 +1,20 @@
 {
-  "updated_at": "2026-10-24T09:39:42+00:00",
+  "updated_at": "2026-10-25T09:56:20+00:00",
   "repo_count": 55,
-  "total_clones": 2704,
-  "total_uniques": 1074,
+  "total_clones": 2720,
+  "total_uniques": 1086,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1837,
-      "total_uniques": 653,
-      "uniques_14d": 183,
+      "total_clones": 1848,
+      "total_uniques": 659,
+      "uniques_14d": 187,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 518,
-      "total_uniques": 199,
+      "total_clones": 521,
+      "total_uniques": 201,
       "uniques_14d": 44,
       "tracking_since": "2026-08-20"
     },
@@ -34,16 +34,16 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 27,
-      "total_uniques": 27,
-      "uniques_14d": 7,
+      "total_clones": 28,
+      "total_uniques": 28,
+      "uniques_14d": 8,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 25,
-      "total_uniques": 25,
-      "uniques_14d": 7,
+      "total_clones": 26,
+      "total_uniques": 26,
+      "uniques_14d": 8,
       "tracking_since": "2026-08-20"
     },
     {
@@ -71,7 +71,7 @@
       "repo": "LuisVogelDS/vitrine",
       "total_clones": 21,
       "total_uniques": 17,
-      "uniques_14d": 2,
+      "uniques_14d": 1,
       "tracking_since": "2026-08-20"
     },
     {
@@ -112,8 +112,8 @@
     {
       "repo": "cajuice/clinica",
       "total_clones": 3,
-      "total_uniques": 7,
-      "uniques_14d": 2,
+      "total_uniques": 8,
+      "uniques_14d": 1,
       "tracking_since": "2026-09-23"
     },
     {
@@ -126,8 +126,8 @@
     {
       "repo": "cajuice/presto",
       "total_clones": 3,
-      "total_uniques": 7,
-      "uniques_14d": 2,
+      "total_uniques": 8,
+      "uniques_14d": 1,
       "tracking_since": "2026-09-29"
     },
     {
