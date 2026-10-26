@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-10-25T09:56:20+00:00",
-  "repo_count": 55,
-  "total_clones": 2720,
-  "total_uniques": 1086,
+  "updated_at": "2026-10-26T11:17:20+00:00",
+  "repo_count": 56,
+  "total_clones": 2742,
+  "total_uniques": 1098,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1848,
-      "total_uniques": 659,
-      "uniques_14d": 187,
+      "total_clones": 1869,
+      "total_uniques": 670,
+      "uniques_14d": 181,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
       "total_clones": 521,
       "total_uniques": 201,
-      "uniques_14d": 44,
+      "uniques_14d": 37,
       "tracking_since": "2026-08-20"
     },
     {
@@ -34,9 +34,9 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 28,
-      "total_uniques": 28,
-      "uniques_14d": 8,
+      "total_clones": 29,
+      "total_uniques": 29,
+      "uniques_14d": 9,
       "tracking_since": "2026-08-20"
     },
     {
@@ -57,14 +57,14 @@
       "repo": "LuisVogelDS/churnlab",
       "total_clones": 24,
       "total_uniques": 24,
-      "uniques_14d": 9,
+      "uniques_14d": 8,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/loadbay",
       "total_clones": 24,
       "total_uniques": 24,
-      "uniques_14d": 8,
+      "uniques_14d": 7,
       "tracking_since": "2026-08-20"
     },
     {
@@ -141,7 +141,7 @@
       "repo": "LuisVogelDS/GobbleGoblin",
       "total_clones": 2,
       "total_uniques": 1,
-      "uniques_14d": 1,
+      "uniques_14d": 0,
       "tracking_since": "2026-08-21"
     },
     {
@@ -367,6 +367,13 @@
       "total_uniques": 0,
       "uniques_14d": 0,
       "tracking_since": "2026-10-05"
+    },
+    {
+      "repo": "cajuice/game-nuvem",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-13"
     },
     {
       "repo": "cajuice/game-orbita",

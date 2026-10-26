@@ -1,18 +1,18 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-10-25T09:56:20+00:00. 2720 clonagens (1086 únicas) em 55 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-10-26T11:17:20+00:00. 2742 clonagens (1098 únicas) em 56 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 1848 | 659 | 187 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 521 | 201 | 44 | 2026-08-20 |
+| autoaihub/guaraci | 1869 | 670 | 181 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 521 | 201 | 37 | 2026-08-20 |
 | LuisVogelDS/IntraAct | 76 | 18 | 1 | 2026-08-21 |
 | cajuice/shop-list | 63 | 9 | 2 | 2026-09-20 |
-| LuisVogelDS/LuisVogelDS | 28 | 28 | 8 | 2026-08-20 |
+| LuisVogelDS/LuisVogelDS | 29 | 29 | 9 | 2026-08-20 |
 | LuisVogelDS/retail-pulse | 26 | 26 | 8 | 2026-08-20 |
 | LuisVogelDS/MemoriaRam | 24 | 8 | 1 | 2026-08-21 |
-| LuisVogelDS/churnlab | 24 | 24 | 9 | 2026-08-20 |
-| LuisVogelDS/loadbay | 24 | 24 | 8 | 2026-08-20 |
+| LuisVogelDS/churnlab | 24 | 24 | 8 | 2026-08-20 |
+| LuisVogelDS/loadbay | 24 | 24 | 7 | 2026-08-20 |
 | LuisVogelDS/vitrine | 21 | 17 | 1 | 2026-08-20 |
 | LuisVogelDS/Alquimia | 8 | 2 | 0 | 2026-08-21 |
 | LuisVogelDS/HarpyNest | 8 | 13 | 1 | 2026-09-19 |
@@ -23,7 +23,7 @@ Atualizado em 2026-10-25T09:56:20+00:00. 2720 clonagens (1086 únicas) em 55 rep
 | cajuice/game-duct-tape | 3 | 2 | 1 | 2026-09-24 |
 | cajuice/presto | 3 | 8 | 1 | 2026-09-29 |
 | LuisVogelDS/Cajuice | 2 | 2 | 1 | 2026-09-19 |
-| LuisVogelDS/GobbleGoblin | 2 | 1 | 1 | 2026-08-21 |
+| LuisVogelDS/GobbleGoblin | 2 | 1 | 0 | 2026-08-21 |
 | LuisVogelDS/LilianeVogelAtelier | 2 | 2 | 0 | 2026-08-21 |
 | LuisVogelDS/prospero-dados | 2 | 1 | 1 | 2026-09-22 |
 | cajuice/Cajuice | 2 | 2 | 1 | 2026-09-20 |
@@ -56,6 +56,7 @@ Atualizado em 2026-10-25T09:56:20+00:00. 2720 clonagens (1086 únicas) em 55 rep
 | cajuice/game-baluarte | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-fractal | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-lados | 0 | 0 | 0 | 2026-10-05 |
+| cajuice/game-nuvem | 0 | 0 | 0 | 2026-10-13 |
 | cajuice/game-orbita | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-pinta | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-vetor | 0 | 0 | 0 | 2026-10-05 |
