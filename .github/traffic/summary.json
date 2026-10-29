@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-10-28T11:27:47+00:00",
-  "repo_count": 58,
-  "total_clones": 2812,
-  "total_uniques": 1125,
+  "updated_at": "2026-10-29T11:38:12+00:00",
+  "repo_count": 59,
+  "total_clones": 2824,
+  "total_uniques": 1137,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1900,
-      "total_uniques": 687,
-      "uniques_14d": 150,
+      "total_clones": 1907,
+      "total_uniques": 692,
+      "uniques_14d": 120,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 560,
-      "total_uniques": 203,
-      "uniques_14d": 29,
+      "total_clones": 564,
+      "total_uniques": 206,
+      "uniques_14d": 23,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 20,
+      "total_uniques": 21,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
@@ -36,7 +36,7 @@
       "repo": "LuisVogelDS/LuisVogelDS",
       "total_clones": 29,
       "total_uniques": 29,
-      "uniques_14d": 6,
+      "uniques_14d": 5,
       "tracking_since": "2026-08-20"
     },
     {
@@ -70,7 +70,7 @@
     {
       "repo": "LuisVogelDS/vitrine",
       "total_clones": 21,
-      "total_uniques": 17,
+      "total_uniques": 18,
       "uniques_14d": 1,
       "tracking_since": "2026-08-20"
     },
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 14,
+      "total_uniques": 15,
       "uniques_14d": 1,
       "tracking_since": "2026-09-19"
     },
@@ -92,7 +92,7 @@
       "repo": "cajuice/cajuzinho",
       "total_clones": 6,
       "total_uniques": 5,
-      "uniques_14d": 2,
+      "uniques_14d": 1,
       "tracking_since": "2026-09-22"
     },
     {
@@ -199,6 +199,13 @@
       "total_uniques": 1,
       "uniques_14d": 0,
       "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Vestiario",
+      "total_clones": 1,
+      "total_uniques": 1,
+      "uniques_14d": 1,
+      "tracking_since": "2026-10-15"
     },
     {
       "repo": "LuisVogelDS/adormecer-abas",
