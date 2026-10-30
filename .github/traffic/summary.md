@@ -1,21 +1,21 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-10-29T11:38:12+00:00. 2824 clonagens (1137 únicas) em 59 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-10-30T11:30:35+00:00. 2884 clonagens (1161 únicas) em 59 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 1907 | 692 | 120 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 564 | 206 | 23 | 2026-08-20 |
-| LuisVogelDS/IntraAct | 76 | 21 | 1 | 2026-08-21 |
-| cajuice/shop-list | 63 | 9 | 1 | 2026-09-20 |
-| LuisVogelDS/LuisVogelDS | 29 | 29 | 5 | 2026-08-20 |
-| LuisVogelDS/retail-pulse | 26 | 26 | 5 | 2026-08-20 |
+| autoaihub/guaraci | 1922 | 700 | 101 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 605 | 216 | 32 | 2026-08-20 |
+| LuisVogelDS/IntraAct | 76 | 22 | 1 | 2026-08-21 |
+| cajuice/shop-list | 63 | 9 | 0 | 2026-09-20 |
+| LuisVogelDS/LuisVogelDS | 30 | 30 | 6 | 2026-08-20 |
+| LuisVogelDS/retail-pulse | 27 | 27 | 5 | 2026-08-20 |
+| LuisVogelDS/churnlab | 25 | 25 | 6 | 2026-08-20 |
+| LuisVogelDS/loadbay | 25 | 25 | 5 | 2026-08-20 |
 | LuisVogelDS/MemoriaRam | 24 | 9 | 1 | 2026-08-21 |
-| LuisVogelDS/churnlab | 24 | 24 | 6 | 2026-08-20 |
-| LuisVogelDS/loadbay | 24 | 24 | 5 | 2026-08-20 |
 | LuisVogelDS/vitrine | 21 | 18 | 1 | 2026-08-20 |
 | LuisVogelDS/Alquimia | 8 | 2 | 0 | 2026-08-21 |
-| LuisVogelDS/HarpyNest | 8 | 15 | 1 | 2026-09-19 |
+| LuisVogelDS/HarpyNest | 8 | 16 | 1 | 2026-09-19 |
 | cajuice/cajuzinho | 6 | 5 | 1 | 2026-09-22 |
 | LuisVogelDS/GolDePlaca | 5 | 5 | 1 | 2026-09-13 |
 | LuisVogelDS/Volvo | 3 | 3 | 0 | 2026-08-20 |

@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-10-29T11:38:12+00:00",
+  "updated_at": "2026-10-30T11:30:35+00:00",
   "repo_count": 59,
-  "total_clones": 2824,
-  "total_uniques": 1137,
+  "total_clones": 2884,
+  "total_uniques": 1161,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1907,
-      "total_uniques": 692,
-      "uniques_14d": 120,
+      "total_clones": 1922,
+      "total_uniques": 700,
+      "uniques_14d": 101,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 564,
-      "total_uniques": 206,
-      "uniques_14d": 23,
+      "total_clones": 605,
+      "total_uniques": 216,
+      "uniques_14d": 32,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 21,
+      "total_uniques": 22,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
@@ -29,20 +29,34 @@
       "repo": "cajuice/shop-list",
       "total_clones": 63,
       "total_uniques": 9,
-      "uniques_14d": 1,
+      "uniques_14d": 0,
       "tracking_since": "2026-09-20"
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 29,
-      "total_uniques": 29,
-      "uniques_14d": 5,
+      "total_clones": 30,
+      "total_uniques": 30,
+      "uniques_14d": 6,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 26,
-      "total_uniques": 26,
+      "total_clones": 27,
+      "total_uniques": 27,
+      "uniques_14d": 5,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/churnlab",
+      "total_clones": 25,
+      "total_uniques": 25,
+      "uniques_14d": 6,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/loadbay",
+      "total_clones": 25,
+      "total_uniques": 25,
       "uniques_14d": 5,
       "tracking_since": "2026-08-20"
     },
@@ -52,20 +66,6 @@
       "total_uniques": 9,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/churnlab",
-      "total_clones": 24,
-      "total_uniques": 24,
-      "uniques_14d": 6,
-      "tracking_since": "2026-08-20"
-    },
-    {
-      "repo": "LuisVogelDS/loadbay",
-      "total_clones": 24,
-      "total_uniques": 24,
-      "uniques_14d": 5,
-      "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/vitrine",
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 15,
+      "total_uniques": 16,
       "uniques_14d": 1,
       "tracking_since": "2026-09-19"
     },

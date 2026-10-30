@@ -336,12 +336,17 @@
       "count": 8,
       "uniques": 5,
       "ci": 1
+    },
+    "2026-10-29": {
+      "count": 16,
+      "uniques": 8,
+      "ci": 1
     }
   },
-  "total_clones": 1907,
-  "total_uniques": 692,
+  "total_clones": 1922,
+  "total_uniques": 700,
   "tracking_since": "2026-08-12",
-  "updated_at": "2026-10-29T11:36:30+00:00",
+  "updated_at": "2026-10-30T11:28:40+00:00",
   "windows": {
     "2026-10-06": {
       "from": "2026-09-22",
@@ -457,7 +462,12 @@
       "from": "2026-10-15",
       "to": "2026-10-28",
       "uniques": 120
+    },
+    "2026-10-30": {
+      "from": "2026-10-16",
+      "to": "2026-10-29",
+      "uniques": 101
     }
   },
-  "uniques_14d": 120
+  "uniques_14d": 101
 }
