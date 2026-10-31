@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-10-30T11:30:35+00:00",
+  "updated_at": "2026-10-31T11:00:58+00:00",
   "repo_count": 59,
-  "total_clones": 2884,
-  "total_uniques": 1161,
+  "total_clones": 2932,
+  "total_uniques": 1183,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1922,
-      "total_uniques": 700,
-      "uniques_14d": 101,
+      "total_clones": 1929,
+      "total_uniques": 705,
+      "uniques_14d": 88,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 605,
-      "total_uniques": 216,
-      "uniques_14d": 32,
+      "total_clones": 645,
+      "total_uniques": 230,
+      "uniques_14d": 44,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 22,
+      "total_uniques": 23,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
@@ -36,28 +36,28 @@
       "repo": "LuisVogelDS/LuisVogelDS",
       "total_clones": 30,
       "total_uniques": 30,
-      "uniques_14d": 6,
+      "uniques_14d": 5,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
       "total_clones": 27,
       "total_uniques": 27,
-      "uniques_14d": 5,
+      "uniques_14d": 4,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/churnlab",
       "total_clones": 25,
       "total_uniques": 25,
-      "uniques_14d": 6,
+      "uniques_14d": 5,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/loadbay",
       "total_clones": 25,
       "total_uniques": 25,
-      "uniques_14d": 5,
+      "uniques_14d": 4,
       "tracking_since": "2026-08-20"
     },
     {
@@ -98,7 +98,7 @@
     {
       "repo": "LuisVogelDS/GolDePlaca",
       "total_clones": 5,
-      "total_uniques": 5,
+      "total_uniques": 6,
       "uniques_14d": 1,
       "tracking_since": "2026-09-13"
     },
@@ -152,6 +152,13 @@
       "tracking_since": "2026-08-21"
     },
     {
+      "repo": "LuisVogelDS/Vestiario",
+      "total_clones": 2,
+      "total_uniques": 2,
+      "uniques_14d": 2,
+      "tracking_since": "2026-10-15"
+    },
+    {
       "repo": "LuisVogelDS/prospero-dados",
       "total_clones": 2,
       "total_uniques": 1,
@@ -199,13 +206,6 @@
       "total_uniques": 1,
       "uniques_14d": 0,
       "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/Vestiario",
-      "total_clones": 1,
-      "total_uniques": 1,
-      "uniques_14d": 1,
-      "tracking_since": "2026-10-15"
     },
     {
       "repo": "LuisVogelDS/adormecer-abas",
