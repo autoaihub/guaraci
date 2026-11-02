@@ -159,6 +159,11 @@
       "count": 0,
       "uniques": 0,
       "ci": 0
+    },
+    "2026-11-01": {
+      "count": 0,
+      "uniques": 0,
+      "ci": 0
     }
   },
   "windows": {
@@ -261,11 +266,16 @@
       "from": "2026-10-18",
       "to": "2026-10-31",
       "uniques": 1
+    },
+    "2026-11-02": {
+      "from": "2026-10-19",
+      "to": "2026-11-01",
+      "uniques": 1
     }
   },
   "total_clones": 3,
   "total_uniques": 10,
   "uniques_14d": 1,
   "tracking_since": "2026-09-29",
-  "updated_at": "2026-11-01T11:55:50+00:00"
+  "updated_at": "2026-11-02T13:40:12+00:00"
 }
