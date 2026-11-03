@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="{{LANG_HTML}}">
+<head>
+{{HEAD}}
+<title>{{=docs_title}}</title>
+<meta name="description" content="{{=docs_desc}}">
+<meta property="og:title" content="{{=docs_title}}">
+<meta property="og:description" content="{{=docs_og_desc}}">
+<!-- jsonld:catalogo:inicio (gerado por scripts/build_site_catalog.py) -->
+<!-- jsonld:catalogo:fim -->
+</head>
+<body class="docs-body">
+<a class="pular" href="#conteudo">{{skip}}</a>
+<div id="scroll-progress"></div>
+
+<nav class="nav" aria-label="{{=nav_label}}">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="{{URL_INDEX}}"><img src="{{ASSETS}}logo-guaraci.svg" alt="" width="38" height="38">Guaraci</a>
+    <button class="nav-toggle" type="button" aria-label="{{=nav_menu}}" aria-expanded="false">{{i:menu:22}}</button>
+    <div class="nav-links">
+      <a href="{{URL_INDEX}}">{{dnav_home}}</a>
+      <a href="#instalacao">{{dnav_install}}</a>
+      <a href="#interface">{{dnav_interface}}</a>
+      <a href="#cli">{{dnav_cli}}</a>
+      <a href="#catalogo">{{dnav_catalog}}</a>
+      <div class="nav-tools">
+        {{LANG_SWITCH}}
+        {{THEME_SWITCH}}
+        <a class="bt bt-teal bt-sm" href="https://github.com/autoaihub/guaraci" target="_blank" rel="noopener">GitHub {{i:ext:14}}</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main id="conteudo">
+<header class="docs-hero">
+  <div class="container">
+    <span class="kicker">{{i:livro:16}} {{docs_kicker}}</span>
+    <h1>{{docs_h1_a}} <span class="grad-text">Guaraci</span></h1>
+    <p class="sec-lead">{{docs_lead}}</p>
+  </div>
+</header>
+<div class="calcadao" aria-hidden="true"></div>
+
+<div class="container docs-layout">
+  <aside class="docs-side" id="docs-side" aria-label="{{=docs_side_label}}">
+    <p class="side-title">{{docs_side_title}}</p>
+    <a href="#visao-geral">{{d_overview_h}}</a>
+    <a href="#instalacao">1 · {{d_install_h}}</a>
+    <a href="#interface">2 · {{d_ui_h}}</a>
+    <a href="#cli">3 · {{d_cli_h}}</a>
+    <a href="#saida">4 · {{d_out_h}}</a>
+    <a href="#credenciais">5 · {{d_cred_h}}</a>
+    <a href="#orquestrador">6 · {{d_orch_h}}</a>
+    <a href="#boas-praticas">7 · {{d_best_h}}</a>
+    <a href="#catalogo">8 · {{d_cat_h}}</a>
+    <div id="side-groups"></div>
+  </aside>
+
+  <div class="docs-main">
+    <section class="doc-sec" id="visao-geral">
+      <h2>{{d_overview_h}}</h2>
+      <p>{{d_ov_1}}</p>
+      <p>{{d_ov_2}}</p>
+      <ul class="doc-list">
+        <li>{{d_ov_li1}}</li>
+        <li>{{d_ov_li2}}</li>
+        <li>{{d_ov_li3}}</li>
+      </ul>
+      <p>{{d_ov_3}}</p>
+    </section>
+
+    <section class="doc-sec" id="instalacao">
+      <h2>1 · {{d_install_h}}</h2>
+      <p>{{d_in_0}}</p>
+
+      <h3>1.1 {{d_in_1_h}}</h3>
+      <p>{{d_in_1_p}}</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>git clone https://github.com/autoaihub/guaraci.git</span></div><div><span class="ps1">&gt;</span> <span class="cmd" data-type>cd guaraci</span></div></div></div>
+
+      <h3>1.2 {{d_in_2_h}}</h3>
+      <p>{{d_in_2_p}}</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell: guaraci</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>.\scripts\desktop\check-docker.cmd</span></div><div class="out" data-print="500">[OK]    Docker CLI</div><div class="out" data-print="500">[OK]    Docker Desktop (engine)</div><div class="out" data-print="500"><span class="ok">{{s2_ready_short}}</span></div></div></div>
+      <p>{{d_in_2_p2}}</p>
+
+      <h3>1.3 {{d_in_3_h}}</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell: guaraci</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>docker build -t guaraci .</span></div><div class="out" data-print="500">[+] Building... <span class="ok">ok</span></div></div></div>
+      <div class="callout">{{i:lampada:18}}<span>{{d_in_3_call}}</span></div>
+
+      <h3>1.4 {{d_in_4_h}}</h3>
+      <p>{{d_in_4_p}}</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell: guaraci</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>.\scripts\desktop\start-guaraci.cmd</span></div><div class="out" data-print="500"><span class="ok">{{s4_up}}</span> <span class="hl">http://localhost:8002/</span></div></div></div>
+      <p>{{d_in_4_p2}}</p>
+      <p>{{d_in_4_p3}}</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell: guaraci</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>docker run --rm -it -p 8002:8000 -v "${PWD}:/app" guaraci uvicorn guaraci.api.main:app --host 0.0.0.0 --port 8000 --no-access-log</span></div></div></div>
+      <div class="callout">{{i:aviso:18}}<span>{{d_in_4_call}}</span></div>
+
+      <h3>1.5 {{d_in_5_h}}</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>Invoke-RestMethod http://localhost:8002/health</span></div><div class="out" data-print="500">{"status": <span class="ok">"ok"</span>, "version": "0.6.0"}</div></div></div>
+
+      <h3>1.6 {{d_in_6_h}}</h3>
+      <div class="doc-table-wrap"><table class="doc-table">
+        <thead><tr><th>{{d_tb_symptom}}</th><th>{{d_tb_fix}}</th></tr></thead>
+        <tbody>
+          <tr><td>{{d_pr_1_a}}</td><td>{{d_pr_1_b}}</td></tr>
+          <tr><td>{{d_pr_2_a}}</td><td>{{d_pr_2_b}}</td></tr>
+          <tr><td>{{d_pr_3_a}}</td><td>{{d_pr_3_b}}</td></tr>
+          <tr><td>{{d_pr_4_a}}</td><td>{{d_pr_4_b}}</td></tr>
+          <tr><td>{{d_pr_5_a}}</td><td>{{d_pr_5_b}}</td></tr>
+          <tr><td>{{d_pr_6_a}}</td><td>{{d_pr_6_b}}</td></tr>
+          <tr><td>{{d_pr_7_a}}</td><td>{{d_pr_7_b}}</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="doc-sec" id="interface">
+      <h2>2 · {{d_ui_h}}</h2>
+      <p>{{d_ui_0}}</p>
+      <ol class="doc-steps">
+        <li>{{d_ui_1}}</li>
+        <li>{{d_ui_2}}</li>
+        <li>{{d_ui_3}}</li>
+        <li>{{d_ui_4}}</li>
+        <li>{{d_ui_5}}</li>
+      </ol>
+      <div class="callout">{{i:sinal:18}}<span>{{d_ui_call}}</span></div>
+    </section>
+
+    <section class="doc-sec" id="cli">
+      <h2>3 · {{d_cli_h}}</h2>
+      <p>{{d_cli_0}}</p>
+
+      <h3>3.1 <code>fetch list</code>: {{d_cli_1_h}}</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch list</span></div><div class="out" data-print="500">sih · sim · sinan · sinasc · dengue · nasa_power · ibge_populacao ... <span class="hl">{{E_NUM}}</span></div></div></div>
+
+      <h3>3.2 <code>fetch schema</code>: {{d_cli_2_h}}</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch schema dengue</span></div><div class="out" data-print="500">nu_ano (string) · output_format [csv|parquet|sqlite] · batch_size (int, 1000) ...</div></div></div>
+
+      <h3>3.3 <code>fetch discover</code>: {{d_cli_3_h}}</h3>
+      <p>{{d_cli_3_p}}</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch discover sih --set start_year=2024 --set end_year=2024 --set states=SP --sizes</span></div><div class="out" data-print="500">RD · SP · 12 files · <span class="hl">198.4 MB</span></div></div></div>
+
+      <h3>3.4 <code>fetch run</code>: {{d_cli_4_h}}</h3>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">terminal</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>guaraci fetch run sinan --set disease=DENG --set start_year=2023 --set end_year=2024 --format csv</span></div><div class="out" data-print="500">DENGBR23.dbc &rarr; csv &rarr; <span class="ok">sinan_deng_2023-2024.csv</span></div></div></div>
+      <p>{{d_cli_rules}}</p>
+      <ul class="doc-list">
+        <li>{{d_cli_r1}}</li>
+        <li>{{d_cli_r2}}</li>
+        <li>{{d_cli_r3}}</li>
+        <li>{{d_cli_r4}}</li>
+      </ul>
+      <p>{{d_cli_end}}</p>
+    </section>
+
+    <section class="doc-sec" id="saida">
+      <h2>4 · {{d_out_h}}</h2>
+      <div class="doc-table-wrap"><table class="doc-table">
+        <thead><tr><th>{{d_out_th1}}</th><th>{{d_out_th2}}</th></tr></thead>
+        <tbody>
+          <tr><td><code>csv</code></td><td>{{d_out_csv}}</td></tr>
+          <tr><td><code>parquet</code></td><td>{{d_out_pq}}</td></tr>
+          <tr><td><code>sqlite</code></td><td>{{d_out_sq}}</td></tr>
+        </tbody>
+      </table></div>
+      <ul class="doc-list">
+        <li>{{d_out_l1}}</li>
+        <li>{{d_out_l2}}</li>
+        <li>{{d_out_l3}}</li>
+        <li>{{d_out_l4}}</li>
+      </ul>
+    </section>
+
+    <section class="doc-sec" id="credenciais">
+      <h2>5 · {{d_cred_h}}</h2>
+      <p>{{d_cred_0}}</p>
+      <div class="doc-table-wrap"><table class="doc-table">
+        <thead><tr><th>{{d_cred_th1}}</th><th>{{d_cred_th2}}</th><th>{{d_cred_th3}}</th><th>{{d_cred_th4}}</th></tr></thead>
+        <tbody>
+          <tr><td><code>nasa_firms</code></td><td>MAP_KEY</td><td><code>GUARACI_FIRMS_MAP_KEY</code></td><td><a href="https://firms.modaps.eosdis.nasa.gov/api/map_key/" target="_blank" rel="noopener">firms.modaps.eosdis.nasa.gov</a></td></tr>
+          <tr><td><code>nasa_gpm</code></td><td>Earthdata</td><td><code>GUARACI_EARTHDATA_TOKEN</code></td><td><a href="https://urs.earthdata.nasa.gov" target="_blank" rel="noopener">urs.earthdata.nasa.gov</a> {{d_cred_gpm}}</td></tr>
+        </tbody>
+      </table></div>
+      <p>{{d_cred_1}}</p>
+      <div class="term"><div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">PowerShell</span></div>
+        <div class="term-body"><div><span class="ps1">&gt;</span> <span class="cmd" data-type>$env:GUARACI_FIRMS_MAP_KEY = "{{d_cred_key}}"</span></div><div class="out" data-print="500">(Linux/macOS: <span class="hl">export GUARACI_FIRMS_MAP_KEY={{d_cred_key}}</span>)</div></div></div>
+    </section>
+
+    <section class="doc-sec" id="orquestrador">
+      <h2>6 · {{d_orch_h}}</h2>
+      <p>{{d_orch_0}}</p>
+      <ul class="doc-list">
+        <li>{{d_orch_l1}}</li>
+        <li>{{d_orch_l2}}</li>
+      </ul>
+      <p>{{d_orch_1}}</p>
+    </section>
+
+    <section class="doc-sec" id="boas-praticas">
+      <h2>7 · {{d_best_h}}</h2>
+      <ul class="doc-list">
+        <li>{{d_best_1}}</li>
+        <li>{{d_best_2}}</li>
+        <li>{{d_best_3}}</li>
+        <li>{{d_best_4}}</li>
+        <li>{{d_best_5}}</li>
+        <li>{{d_best_6}}</li>
+      </ul>
+    </section>
+
+    <section class="doc-sec" id="catalogo">
+      <h2>8 · {{d_cat_h}}</h2>
+      <p class="sec-lead" style="max-width:none">{{d_cat_0}}</p>
+      <label class="busca" style="margin-top:26px">{{i:busca:22}}<input id="cat-search" type="search" placeholder="{{=d_cat_search_ph}}" aria-label="{{=d_cat_search_label}}"></label>
+      <p class="contagem" id="cat-count" aria-live="polite"></p>
+      <div class="cat-controls">
+        <button class="copy-btn" type="button" id="cat-expand">{{i:expandir:14}} {{d_cat_expand}}</button>
+        <button class="copy-btn" type="button" id="cat-collapse">{{i:recolher:14}} {{d_cat_collapse}}</button>
+      </div>
+      <div id="cat-root"><noscript><p>{{cat_noscript}}</p></noscript></div>
+    </section>
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand"><img src="{{ASSETS}}logo-guaraci.svg" alt="" width="32" height="32">Guaraci</div>
+    <div>{{footer_text}}</div>
+    <div><a href="mailto:vogel@usp.br">{{i:carta:16}} vogel@usp.br</a></div>
+  </div>
+</footer>
+
+{{SCRIPTS}}
+</body>
+</html>
