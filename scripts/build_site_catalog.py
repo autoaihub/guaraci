@@ -444,12 +444,156 @@ CADENCE_PT = {
 }
 
 
-def volume_label(est: dict | None) -> str | None:
+# ─── Tradução (en, es) ───
+# O que é dado editorial (descrição, nome, grupo, mantenedor, nota de SAME_AS) mora em
+# scripts/site_i18n/: catalog.<lang>.json (por chave da fonte) e terms.<lang>.json
+# (grupo e mantenedor, por valor em português). O que é rótulo fixo do gerador
+# (cadência, modo, selo de volume) é tabela aqui.
+I18N_DIR = ROOT / "scripts" / "site_i18n"
+LANGS = ("en", "es")
+
+CADENCE_I18N = {
+    "en": {"diária": "daily", "semanal": "weekly", "mensal": "monthly",
+           "anual": "annual", "irregular": "irregular"},
+    "es": {"diária": "diaria", "semanal": "semanal", "mensal": "mensual",
+           "anual": "anual", "irregular": "irregular"},
+}
+
+# Rótulos de modo traduzidos por valor em português; o que não está aqui
+# (siglas e nomes próprios, como "API OpenDataSUS (DEMAS)") fica como está.
+MODE_I18N = {
+    "en": {
+        "FTP DATASUS (microdados)": "DATASUS FTP (microdata)",
+        "Crawler gov.br": "gov.br crawler",
+        "API ANA HidroWebService": "ANA HidroWebService API",
+        "API CETESB QUALAR (ArcGIS)": "CETESB QUALAR API (ArcGIS)",
+        "QUALAR CETESB (autenticado)": "CETESB QUALAR (authenticated)",
+        "Arquivos abertos ANVISA": "ANVISA open files",
+        "Dados abertos MMA (CKAN)": "MMA open data (CKAN)",
+        "Arquivo aberto SVSA": "SVSA open file",
+        "Dados abertos IBAMA": "IBAMA open data",
+        "Arquivos abertos DEMAS": "DEMAS open files",
+        "Arquivos do Fundo Nacional de Saúde": "National Health Fund files",
+        "API SICONFI (Tesouro)": "SICONFI API (National Treasury)",
+        "Microdados IBGE": "IBGE microdata",
+        "WFS INPE TerraBrasilis": "INPE TerraBrasilis WFS",
+        "TabNet SIOPS (DATASUS)": "SIOPS TabNet (DATASUS)",
+        "Arquivos abertos PRF": "PRF open files",
+        "Integrador RHC (INCA)": "RHC Integrator (INCA)",
+        "Microdados INEP": "INEP microdata",
+        "WFS de dados geográficos (SGB e FUNAI)": "Geographic data WFS (SGB and FUNAI)",
+        "FTP do Ministério do Trabalho (arquivos 7z)": "Ministry of Labor FTP (7z files)",
+        "Dados abertos do MDHC": "MDHC open data",
+        "Dados abertos da SENAPPEN": "SENAPPEN open data",
+        "Dados abertos do ISP-RJ": "ISP-RJ open data",
+        "Dados abertos do Infosiga (Detran-SP)": "Infosiga open data (Detran-SP)",
+        "API Transferegov (PostgREST)": "Transferegov API (PostgREST)",
+        "API Obrasgov": "Obrasgov API",
+        "API IPEADATA (OData)": "IPEADATA API (OData)",
+        "TabNet do CVE-SP": "CVE-SP TabNet",
+        "ArcGIS REST (Prefeitura do Rio)": "ArcGIS REST (Rio de Janeiro City Hall)",
+        "Portal da Transparência (zips mensais da CGU)": "Transparency Portal (monthly CGU zip files)",
+        "API Compras.gov.br": "Compras.gov.br API",
+        "API do PNCP": "PNCP API",
+        "Arquivos do FTP do IBGE": "IBGE FTP files",
+        "Planilhas públicas do MapBiomas": "MapBiomas public spreadsheets",
+        "Planilhas anuais da SSP-SP": "SSP-SP annual spreadsheets",
+        "API IBGE SIDRA": "IBGE SIDRA API",
+        "API NASA POWER": "NASA POWER API",
+        "API NASA GPM": "NASA GPM API",
+        "API NASA FIRMS": "NASA FIRMS API",
+        "API INPE Queimadas": "INPE Queimadas API",
+    },
+    "es": {
+        "FTP DATASUS (microdados)": "FTP DATASUS (microdatos)",
+        "Crawler gov.br": "Rastreador de gov.br",
+        "API ANA HidroWebService": "API ANA HidroWebService",
+        "API CETESB QUALAR (ArcGIS)": "API CETESB QUALAR (ArcGIS)",
+        "QUALAR CETESB (autenticado)": "QUALAR CETESB (autenticado)",
+        "Arquivos abertos ANVISA": "Archivos abiertos de la ANVISA",
+        "Dados abertos MMA (CKAN)": "Datos abiertos del MMA (CKAN)",
+        "Arquivo aberto SVSA": "Archivo abierto de la SVSA",
+        "Dados abertos IBAMA": "Datos abiertos del IBAMA",
+        "Arquivos abertos DEMAS": "Archivos abiertos del DEMAS",
+        "Arquivos do Fundo Nacional de Saúde": "Archivos del Fondo Nacional de Salud",
+        "API SICONFI (Tesouro)": "API SICONFI (Tesoro Nacional)",
+        "Microdados IBGE": "Microdatos del IBGE",
+        "WFS INPE TerraBrasilis": "WFS INPE TerraBrasilis",
+        "TabNet SIOPS (DATASUS)": "TabNet SIOPS (DATASUS)",
+        "Arquivos abertos PRF": "Archivos abiertos de la PRF",
+        "Integrador RHC (INCA)": "Integrador RHC (INCA)",
+        "Microdados INEP": "Microdatos del INEP",
+        "WFS de dados geográficos (SGB e FUNAI)": "WFS de datos geográficos (SGB y FUNAI)",
+        "FTP do Ministério do Trabalho (arquivos 7z)": "FTP del Ministerio de Trabajo (archivos 7z)",
+        "Dados abertos do MDHC": "Datos abiertos del MDHC",
+        "Dados abertos da SENAPPEN": "Datos abiertos de la SENAPPEN",
+        "Dados abertos do ISP-RJ": "Datos abiertos del ISP-RJ",
+        "Dados abertos do Infosiga (Detran-SP)": "Datos abiertos de Infosiga (Detran-SP)",
+        "API Transferegov (PostgREST)": "API Transferegov (PostgREST)",
+        "API Obrasgov": "API Obrasgov",
+        "API IPEADATA (OData)": "API IPEADATA (OData)",
+        "TabNet do CVE-SP": "TabNet del CVE-SP",
+        "ArcGIS REST (Prefeitura do Rio)": "ArcGIS REST (Alcaldía de Río de Janeiro)",
+        "Portal da Transparência (zips mensais da CGU)": "Portal de la Transparencia (zips mensuales de la CGU)",
+        "API Compras.gov.br": "API Compras.gov.br",
+        "API do PNCP": "API del PNCP",
+        "Arquivos do FTP do IBGE": "Archivos del FTP del IBGE",
+        "Planilhas públicas do MapBiomas": "Hojas de cálculo públicas de MapBiomas",
+        "Planilhas anuais da SSP-SP": "Hojas de cálculo anuales de la SSP-SP",
+        "API IBGE SIDRA": "API IBGE SIDRA",
+        "API NASA POWER": "API NASA POWER",
+        "API NASA GPM": "API NASA GPM",
+        "API NASA FIRMS": "API NASA FIRMS",
+        "API INPE Queimadas": "API INPE Queimadas",
+    },
+}
+
+# Partes do selo de volume. "pelo menos" usa ≥ e as demais medições usam ≈.
+VOLUME_I18N = {
+    "pt": {"demand": "volume: sob demanda", "full": "histórico completo", "csv": "em CSV", "dec": ","},
+    "en": {"demand": "volume: on demand", "full": "full history", "csv": "as CSV", "dec": "."},
+    "es": {"demand": "volumen: bajo demanda", "full": "historial completo", "csv": "en CSV", "dec": ","},
+}
+
+# Textos do JSON-LD DataCatalog e da descrição de cada Dataset, por idioma.
+DOCS_I18N = {
+    "pt": {
+        "tag": "pt-BR", "path": "docs.html",
+        "name": "Catálogo de bases do Guaraci",
+        "desc": "Bases de dados públicos brasileiros (saúde, população, clima, saneamento "
+                "e território) que o Guaraci obtém direto das fontes oficiais.",
+        "keywords": ["dados públicos", "Brasil"],
+        "line": "{d}. Mantenedor: {m}. Atualização {cad}{since}. O Guaraci baixa direto da fonte oficial, por {mode}.",
+        "since": ", com dados desde {y}",
+    },
+    "en": {
+        "tag": "en", "path": "en/docs.html",
+        "name": "Guaraci data catalog",
+        "desc": "Brazilian public datasets (health, population, climate, sanitation "
+                "and territory) that Guaraci obtains directly from the official sources.",
+        "keywords": ["public data", "Brazil"],
+        "line": "{d}. Maintainer: {m}. Update frequency: {cad}{since}. Guaraci downloads directly from the official source, via {mode}.",
+        "since": ", with data since {y}",
+    },
+    "es": {
+        "tag": "es", "path": "es/docs.html",
+        "name": "Catálogo de bases de datos de Guaraci",
+        "desc": "Bases de datos públicas de Brasil (salud, población, clima, saneamiento "
+                "y territorio) que Guaraci obtiene directamente de las fuentes oficiales.",
+        "keywords": ["datos públicos", "Brasil"],
+        "line": "{d}. Mantenedor: {m}. Frecuencia de actualización: {cad}{since}. Guaraci descarga directamente de la fuente oficial, mediante {mode}.",
+        "since": ", con datos desde {y}",
+    },
+}
+
+
+def volume_label(est: dict | None, lang: str = "pt") -> str | None:
     """Texto do selo de volume; None quando a fonte não tem medição."""
     if not est:
         return None
+    t = VOLUME_I18N[lang]
     if est.get("method") == "sob demanda":
-        return "volume: sob demanda"
+        return t["demand"]
     size = est.get("csv_bytes")
     if not size:
         return None
@@ -459,9 +603,9 @@ def volume_label(est: dict | None) -> str | None:
     else:
         unit, div = "KB", 1e3
     num = size / div
-    txt = f"{num:.0f}" if num >= 10 else f"{num:.1f}".replace(".", ",")
+    txt = f"{num:.0f}" if num >= 10 else f"{num:.1f}".replace(".", t["dec"])
     prefix = "≥" if est.get("method") == "pelo menos" else "≈"
-    return f"histórico completo {prefix} {txt} {unit} em CSV"
+    return f"{t['full']} {prefix} {txt} {unit} {t['csv']}"
 
 
 def cli_example(key: str, params: list) -> str:
@@ -563,6 +707,9 @@ def main() -> None:
     if extra:
         raise SystemExit(f"entradas CURATED sem fonte no serviço: {sorted(extra)}")
 
+    # Falha antes de escrever qualquer arquivo: fonte nova não entra sem tradução.
+    i18n = build_i18n(catalog, volumes)
+
     payload = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     OUT.write_text(
         "// GERADO por scripts/build_site_catalog.py — não editar à mão.\n"
@@ -573,26 +720,113 @@ def main() -> None:
         f"const GUARACI_DISTINCT = {len(catalog) - len(SAME_AS)};\n",
         encoding="utf-8",
     )
-    n_jsonld = write_docs_jsonld(catalog)
+    for lang, data in i18n.items():
+        path = write_i18n_js(lang, data)
+        print(f"ok: {len(data)} entradas traduzidas ({lang}) -> {path.name}")
+    jsonld = write_docs_jsonld(catalog, i18n)
+    n_jsonld = jsonld["pt"]
     n_fields = sum(1 for c in catalog.values() if c["fields"])
     n_disc = sum(1 for c in catalog.values() if c["discover"])
     print(f"ok: {len(catalog)} fontes ({len(catalog) - len(SAME_AS)} distintas) -> {OUT}")
     n_vol = sum(1 for c in catalog.values() if c.get("volume"))
     print(f"    {n_fields} com campos amostrados, {n_disc} com discover ao vivo, {n_vol} com selo de volume")
     print(f"    {n_jsonld} bases na marcação DataCatalog de {DOCS.name}")
+    for lang in LANGS:
+        n = jsonld[lang]
+        where = f"{lang}/docs.html"
+        print(f"    {n} bases na marcação DataCatalog de {where}" if n is not None
+              else f"    {where} ainda não existe: JSON-LD de {lang} pulado")
 
 
 DOCS = ROOT / "site" / "docs.html"
 SITE_URL = "https://sabiadatalake.com.br/guaraci/"
 JSONLD_START = "<!-- jsonld:catalogo:inicio (gerado por scripts/build_site_catalog.py) -->"
 JSONLD_END = "<!-- jsonld:catalogo:fim -->"
+DASHES = "\u2013\u2014"
 
 
-def write_docs_jsonld(catalog: dict) -> int:
-    """Escreve no docs.html a marcação schema.org DataCatalog das bases distintas.
+def load_i18n(lang: str) -> tuple[dict, dict]:
+    """Lê catalog.<lang>.json (por chave da fonte) e terms.<lang>.json (grupo e mantenedor)."""
+    entries = json.loads((I18N_DIR / f"catalog.{lang}.json").read_text(encoding="utf-8"))
+    terms = json.loads((I18N_DIR / f"terms.{lang}.json").read_text(encoding="utf-8"))
+    return entries, terms
 
-    É o que o Google Dataset Search lê. As entradas de SAME_AS ficam de fora,
-    porque repetiriam a mesma base. O id da âncora segue o slug() de docs.js.
+
+def build_i18n(catalog: dict, volumes: dict) -> dict:
+    """Monta, por idioma, os campos traduzidos de cada entrada do catálogo.
+
+    Campo ausente no resultado significa "use o português" (o nome, quando é sigla
+    ou nome próprio). A descrição, o grupo, o mantenedor e a nota de SAME_AS são
+    obrigatórios: se faltar algum, ou se sobrar chave que não existe mais, o
+    gerador falha listando as chaves, e fonte nova não entra sem tradução.
+    """
+    out: dict = {}
+    problems: list[str] = []
+    for lang in LANGS:
+        entries, terms = load_i18n(lang)
+        miss_d = [k for k in catalog if not (entries.get(k) or {}).get("d")]
+        if miss_d:
+            problems.append(f"sem descrição traduzida ({lang}): {miss_d}")
+        stale = sorted(set(entries) - set(catalog))
+        if stale:
+            problems.append(f"chaves de tradução sem fonte no catálogo ({lang}): {stale}")
+        miss_note = [k for k, c in catalog.items()
+                     if c.get("sameAsNote") and not (entries.get(k) or {}).get("sameAsNote")]
+        if miss_note:
+            problems.append(f"sem nota de SAME_AS traduzida ({lang}): {miss_note}")
+        miss_g = sorted({c["g"] for c in catalog.values() if c["g"] not in terms["groups"]})
+        miss_m = sorted({c["m"] for c in catalog.values() if c["m"] not in terms["maintainers"]})
+        if miss_g:
+            problems.append(f"grupos sem tradução ({lang}): {miss_g}")
+        if miss_m:
+            problems.append(f"mantenedores sem tradução ({lang}): {miss_m}")
+        if miss_d or miss_note or miss_g or miss_m:
+            continue
+        data = {}
+        for key, c in catalog.items():
+            e = entries[key]
+            t = {}
+            if e.get("n"):
+                t["n"] = e["n"]
+            t["d"] = e["d"]
+            t["g"] = terms["groups"][c["g"]]
+            t["m"] = terms["maintainers"][c["m"]]
+            if c.get("sameAsNote"):
+                t["sameAsNote"] = e["sameAsNote"]
+            if c.get("volume"):
+                t["volume"] = volume_label(volumes.get(key), lang)
+            t["modeLabel"] = MODE_I18N[lang].get(c["modeLabel"], c["modeLabel"])
+            t["cadence"] = CADENCE_I18N[lang].get(c["cadence"], c["cadence"])
+            data[key] = t
+        with_dash = [k for k, t in data.items()
+                     if any(ch in v for v in t.values() for ch in DASHES)]
+        if with_dash:
+            problems.append(f"travessão ou traço em texto traduzido ({lang}): {with_dash}")
+        out[lang] = data
+    if problems:
+        raise SystemExit("tradução do catálogo incompleta:\n  " + "\n  ".join(problems))
+    return out
+
+
+def write_i18n_js(lang: str, data: dict) -> Path:
+    path = ROOT / "site" / "assets" / f"catalog-i18n.{lang}.js"
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    path.write_text(
+        f"// GERADO por scripts/build_site_catalog.py ({lang}), não editar à mão.\n"
+        f"const GUARACI_I18N = {payload};\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def write_docs_jsonld(catalog: dict, i18n: dict) -> dict:
+    """Escreve a marcação schema.org DataCatalog das bases distintas nos docs.html.
+
+    É o que o Google Dataset Search lê. Um bloco por idioma: site/docs.html (pt-BR),
+    site/en/docs.html e site/es/docs.html. As páginas en/ e es/ podem ainda não
+    existir (vêm de outra frente): nesse caso o idioma é pulado e o retorno
+    traz None para ele. As entradas de SAME_AS ficam de fora, porque repetiriam
+    a mesma base. O id da âncora segue o slug() de docs.js.
     """
     import re
 
@@ -602,49 +836,59 @@ def write_docs_jsonld(catalog: dict) -> int:
         s = re.sub(r"(\d)\u2013(\d)", r"\1-\2", s)
         return re.sub(r"\s*[\u2013\u2014]\s*", ", ", s)
 
-    datasets = []
-    for key, c in catalog.items():
-        if c.get("sameAs"):
+    counts: dict = {}
+    for lang in ("pt", *LANGS):
+        t = DOCS_I18N[lang]
+        page = ROOT / "site" / t["path"]
+        if not page.exists():
+            counts[lang] = None
             continue
-        n, d, creator = plain(c["n"]), plain(c["d"]), plain(c["m"])
-        desc = f"{d}. Mantenedor: {creator}. Atualização {c['cadence']}"
-        if c["minYear"]:
-            desc += f", com dados desde {c['minYear']}"
-        desc += f". O Guaraci baixa direto da fonte oficial, por {c['modeLabel']}."
-        ds = {
-            "@type": "Dataset",
-            "name": f"{n}: {d}",
-            "description": desc,
-            "url": SITE_URL + "docs.html#src-" + re.sub(r"[^a-z0-9]+", "-", key, flags=re.I).strip("-"),
-            "creator": {"@type": "Organization", "name": creator},
-            "keywords": [plain(c["g"]), "dados públicos", "Brasil"],
-            "isAccessibleForFree": True,
-            "inLanguage": "pt-BR",
-        }
-        if c["minYear"]:
-            ds["temporalCoverage"] = f"{c['minYear']}/.."
-        datasets.append(ds)
+        datasets = []
+        for key, c0 in catalog.items():
+            if c0.get("sameAs"):
+                continue
+            c = {**c0, **i18n[lang][key]} if lang != "pt" else c0
+            n, d, creator = plain(c["n"]), plain(c["d"]), plain(c["m"])
+            since = t["since"].format(y=c["minYear"]) if c["minYear"] else ""
+            desc = t["line"].format(d=d, m=creator, cad=c["cadence"], since=since, mode=c["modeLabel"])
+            if len(desc) < 50:
+                raise SystemExit(f"descrição curta demais no JSON-LD ({lang}, {key}): {desc!r}")
+            ds = {
+                "@type": "Dataset",
+                "name": f"{n}: {d}",
+                "description": desc,
+                "url": SITE_URL + t["path"] + "#src-" + re.sub(r"[^a-z0-9]+", "-", key, flags=re.I).strip("-"),
+                "creator": {"@type": "Organization", "name": creator},
+                "keywords": [plain(c["g"]), *t["keywords"]],
+                "isAccessibleForFree": True,
+                "inLanguage": t["tag"],
+            }
+            if c["minYear"]:
+                ds["temporalCoverage"] = f"{c['minYear']}/.."
+            datasets.append(ds)
 
-    doc = {
-        "@context": "https://schema.org",
-        "@type": "DataCatalog",
-        "name": "Catálogo de bases do Guaraci",
-        "description": "Bases de dados públicos brasileiros (saúde, população, clima, saneamento "
-                       "e território) que o Guaraci obtém direto das fontes oficiais.",
-        "url": SITE_URL + "docs.html",
-        "inLanguage": "pt-BR",
-        "publisher": {"@type": "Organization", "name": "AutoAI-Pandemics (ICMC-USP)",
-                      "url": "https://autoaipandemics.icmc.usp.br/"},
-        "dataset": datasets,
-    }
-    body = json.dumps(doc, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    html = DOCS.read_text(encoding="utf-8")
-    i, j = html.find(JSONLD_START), html.find(JSONLD_END)
-    if i < 0 or j < i:
-        raise SystemExit(f"marcadores do JSON-LD não encontrados em {DOCS}")
-    block = f'{JSONLD_START}\n  <script type="application/ld+json">{body}</script>\n  '
-    DOCS.write_text(html[:i] + block + html[j:], encoding="utf-8", newline="")
-    return len(datasets)
+        doc = {
+            "@context": "https://schema.org",
+            "@type": "DataCatalog",
+            "name": t["name"],
+            "description": t["desc"],
+            "url": SITE_URL + t["path"],
+            "inLanguage": t["tag"],
+            "publisher": {"@type": "Organization", "name": "AutoAI-Pandemics (ICMC-USP)",
+                          "url": "https://autoaipandemics.icmc.usp.br/"},
+            "dataset": datasets,
+        }
+        body = json.dumps(doc, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+        html = page.read_text(encoding="utf-8")
+        i, j = html.find(JSONLD_START), html.find(JSONLD_END)
+        if i < 0 or j < i:
+            raise SystemExit(f"marcadores do JSON-LD não encontrados em {page}")
+        block = f'{JSONLD_START}\n  <script type="application/ld+json">{body}</script>\n  '
+        page.write_text(html[:i] + block + html[j:], encoding="utf-8", newline="")
+        counts[lang] = len(datasets)
+    if counts["pt"] is None:
+        raise SystemExit(f"{DOCS} não existe")
+    return counts
 
 
 # Anos candidatos por fonte (fontes legadas não têm dados recentes). O default
