@@ -1,51 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://sabiadatalake.com.br/guaraci/</loc>
     <lastmod>2026-11-03</lastmod>
-    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://sabiadatalake.com.br/guaraci/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sabiadatalake.com.br/guaraci/en/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://sabiadatalake.com.br/guaraci/es/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sabiadatalake.com.br/guaraci/"/>
-  </url>
-  <url>
-    <loc>https://sabiadatalake.com.br/guaraci/en/</loc>
-    <lastmod>2026-11-03</lastmod>
-    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://sabiadatalake.com.br/guaraci/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sabiadatalake.com.br/guaraci/en/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://sabiadatalake.com.br/guaraci/es/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sabiadatalake.com.br/guaraci/"/>
-  </url>
-  <url>
-    <loc>https://sabiadatalake.com.br/guaraci/es/</loc>
-    <lastmod>2026-11-03</lastmod>
-    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://sabiadatalake.com.br/guaraci/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sabiadatalake.com.br/guaraci/en/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://sabiadatalake.com.br/guaraci/es/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sabiadatalake.com.br/guaraci/"/>
   </url>
   <url>
     <loc>https://sabiadatalake.com.br/guaraci/docs.html</loc>
     <lastmod>2026-11-03</lastmod>
-    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://sabiadatalake.com.br/guaraci/docs.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sabiadatalake.com.br/guaraci/en/docs.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://sabiadatalake.com.br/guaraci/es/docs.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sabiadatalake.com.br/guaraci/docs.html"/>
-  </url>
-  <url>
-    <loc>https://sabiadatalake.com.br/guaraci/en/docs.html</loc>
-    <lastmod>2026-11-03</lastmod>
-    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://sabiadatalake.com.br/guaraci/docs.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sabiadatalake.com.br/guaraci/en/docs.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://sabiadatalake.com.br/guaraci/es/docs.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sabiadatalake.com.br/guaraci/docs.html"/>
-  </url>
-  <url>
-    <loc>https://sabiadatalake.com.br/guaraci/es/docs.html</loc>
-    <lastmod>2026-11-03</lastmod>
-    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://sabiadatalake.com.br/guaraci/docs.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://sabiadatalake.com.br/guaraci/en/docs.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://sabiadatalake.com.br/guaraci/es/docs.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://sabiadatalake.com.br/guaraci/docs.html"/>
   </url>
 </urlset>
