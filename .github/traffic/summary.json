@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-10-23T10:14:42+00:00",
-  "repo_count": 55,
-  "total_clones": 2684,
-  "total_uniques": 1061,
+  "updated_at": "2026-11-03T12:54:44+00:00",
+  "repo_count": 60,
+  "total_clones": 3001,
+  "total_uniques": 1223,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1823,
-      "total_uniques": 645,
-      "uniques_14d": 186,
+      "total_clones": 1968,
+      "total_uniques": 730,
+      "uniques_14d": 75,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 513,
-      "total_uniques": 198,
-      "uniques_14d": 56,
+      "total_clones": 668,
+      "total_uniques": 239,
+      "uniques_14d": 45,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 17,
+      "total_uniques": 23,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
@@ -29,48 +29,48 @@
       "repo": "cajuice/shop-list",
       "total_clones": 63,
       "total_uniques": 9,
-      "uniques_14d": 2,
+      "uniques_14d": 0,
       "tracking_since": "2026-09-20"
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 27,
-      "total_uniques": 27,
-      "uniques_14d": 7,
+      "total_clones": 30,
+      "total_uniques": 30,
+      "uniques_14d": 4,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
+      "total_clones": 27,
+      "total_uniques": 27,
+      "uniques_14d": 3,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/churnlab",
       "total_clones": 25,
       "total_uniques": 25,
-      "uniques_14d": 7,
+      "uniques_14d": 4,
+      "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/loadbay",
+      "total_clones": 25,
+      "total_uniques": 25,
+      "uniques_14d": 3,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/MemoriaRam",
       "total_clones": 24,
-      "total_uniques": 8,
+      "total_uniques": 9,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
     {
-      "repo": "LuisVogelDS/loadbay",
-      "total_clones": 24,
-      "total_uniques": 24,
-      "uniques_14d": 8,
-      "tracking_since": "2026-08-20"
-    },
-    {
-      "repo": "LuisVogelDS/churnlab",
-      "total_clones": 23,
-      "total_uniques": 23,
-      "uniques_14d": 8,
-      "tracking_since": "2026-08-20"
-    },
-    {
       "repo": "LuisVogelDS/vitrine",
-      "total_clones": 21,
-      "total_uniques": 17,
+      "total_clones": 23,
+      "total_uniques": 19,
       "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 13,
+      "total_uniques": 16,
       "uniques_14d": 1,
       "tracking_since": "2026-09-19"
     },
@@ -92,15 +92,29 @@
       "repo": "cajuice/cajuzinho",
       "total_clones": 6,
       "total_uniques": 5,
-      "uniques_14d": 2,
+      "uniques_14d": 1,
       "tracking_since": "2026-09-22"
     },
     {
       "repo": "LuisVogelDS/GolDePlaca",
       "total_clones": 5,
-      "total_uniques": 5,
+      "total_uniques": 6,
       "uniques_14d": 1,
       "tracking_since": "2026-09-13"
+    },
+    {
+      "repo": "cajuice/clinica",
+      "total_clones": 4,
+      "total_uniques": 11,
+      "uniques_14d": 2,
+      "tracking_since": "2026-09-23"
+    },
+    {
+      "repo": "cajuice/presto",
+      "total_clones": 4,
+      "total_uniques": 11,
+      "uniques_14d": 2,
+      "tracking_since": "2026-09-29"
     },
     {
       "repo": "LuisVogelDS/Volvo",
@@ -110,11 +124,11 @@
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "cajuice/clinica",
+      "repo": "LuisVogelDS/presto",
       "total_clones": 3,
-      "total_uniques": 6,
+      "total_uniques": 3,
       "uniques_14d": 2,
-      "tracking_since": "2026-09-23"
+      "tracking_since": "2026-10-18"
     },
     {
       "repo": "cajuice/game-duct-tape",
@@ -122,13 +136,6 @@
       "total_uniques": 2,
       "uniques_14d": 1,
       "tracking_since": "2026-09-24"
-    },
-    {
-      "repo": "cajuice/presto",
-      "total_clones": 3,
-      "total_uniques": 6,
-      "uniques_14d": 2,
-      "tracking_since": "2026-09-29"
     },
     {
       "repo": "LuisVogelDS/Cajuice",
@@ -141,7 +148,7 @@
       "repo": "LuisVogelDS/GobbleGoblin",
       "total_clones": 2,
       "total_uniques": 1,
-      "uniques_14d": 1,
+      "uniques_14d": 0,
       "tracking_since": "2026-08-21"
     },
     {
@@ -150,6 +157,13 @@
       "total_uniques": 2,
       "uniques_14d": 0,
       "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "LuisVogelDS/Vestiario",
+      "total_clones": 2,
+      "total_uniques": 2,
+      "uniques_14d": 2,
+      "tracking_since": "2026-10-15"
     },
     {
       "repo": "LuisVogelDS/prospero-dados",
@@ -239,7 +253,7 @@
       "repo": "cajuice/bus-tracker",
       "total_clones": 1,
       "total_uniques": 3,
-      "uniques_14d": 2,
+      "uniques_14d": 1,
       "tracking_since": "2026-09-27"
     },
     {
@@ -355,6 +369,13 @@
       "tracking_since": "2026-10-05"
     },
     {
+      "repo": "cajuice/game-estrela",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-14"
+    },
+    {
       "repo": "cajuice/game-fractal",
       "total_clones": 0,
       "total_uniques": 0,
@@ -362,11 +383,25 @@
       "tracking_since": "2026-10-05"
     },
     {
+      "repo": "cajuice/game-galinha",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-14"
+    },
+    {
       "repo": "cajuice/game-lados",
       "total_clones": 0,
       "total_uniques": 0,
       "uniques_14d": 0,
       "tracking_since": "2026-10-05"
+    },
+    {
+      "repo": "cajuice/game-nuvem",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-13"
     },
     {
       "repo": "cajuice/game-orbita",
