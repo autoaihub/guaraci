@@ -109,6 +109,7 @@ html.tema-claro .apoio-lbl{background:var(--tinta);color:var(--creme)}
 .grade{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:3px;background:var(--rej);border:3px solid var(--rej);box-shadow:8px 8px 0 var(--teal),8px 8px 0 3px var(--rej)}
 .az-g{position:relative;background:var(--azulejo);color:var(--tinta);aspect-ratio:1;padding:18px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;min-width:0}
 .az-g .fig{position:absolute;top:0;right:0;width:40%;height:40%;transform:rotate(var(--r,0deg));transition:transform .5s cubic-bezier(.5,1.6,.4,1)}
+.az-g>:not(.fig){position:relative;z-index:1}
 .az-g strong{font:700 3rem/1 var(--f-tit);letter-spacing:-.03em}
 .az-g b{font:700 1.08rem/1.2 var(--f-tit);margin:4px 0 6px}
 .az-g b.b-lg{font-size:1.4rem}
