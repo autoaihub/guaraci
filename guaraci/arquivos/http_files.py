@@ -48,6 +48,7 @@ import os
 import re
 import shutil
 import socket
+import ssl
 import zipfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -61,6 +62,7 @@ from urllib.request import Request, urlopen
 import polars as pl
 
 from guaraci import __version__
+from guaraci.arquivos.tls import ssl_context_for
 from guaraci.core.datasource import DataSource
 from guaraci.core.http import (
     ApiClientError,
@@ -163,7 +165,9 @@ class HttpFileClient:
                 url, method="GET" if probe == "range" else "HEAD", headers=headers
             )
             try:
-                with urlopen(request, timeout=self.timeout_seconds) as response:
+                with urlopen(
+                    request, timeout=self.timeout_seconds, context=ssl_context_for(url)
+                ) as response:
                     length = response.headers.get("Content-Length")
                     content_range = response.headers.get("Content-Range")
                     if probe == "range" and content_range and "/" in content_range:
@@ -205,7 +209,9 @@ class HttpFileClient:
             expected: Optional[int] = None
             request = Request(url, headers={"User-Agent": user_agent or self.USER_AGENT})
             try:
-                with urlopen(request, timeout=self.timeout_seconds) as response, open(
+                with urlopen(
+                    request, timeout=self.timeout_seconds, context=ssl_context_for(url)
+                ) as response, open(
                     partial, "wb"
                 ) as sink:
                     length = response.headers.get("Content-Length")
@@ -307,11 +313,18 @@ class HttpFileClient:
     @staticmethod
     def _url_error(exc: URLError, url: str) -> HttpFileClientError:
         category = "timeout" if is_timeout_reason(exc.reason) else "connectivity"
+        hint = "Verifique acesso à internet, DNS e regras de proxy."
+        if isinstance(exc.reason, ssl.SSLCertVerificationError):
+            hint = (
+                "O certificado do servidor não passou na verificação, em geral porque o "
+                "servidor omite o certificado intermediário. Inclua-o em "
+                "guaraci/data/ca_intermediarios.crt e liste o host em guaraci/arquivos/tls.py."
+            )
         return HttpFileClientError(
             f"Could not reach '{url}': {exc.reason}",
             category=category,
             retryable=True,
-            hint="Verifique acesso à internet, DNS e regras de proxy.",
+            hint=hint,
         )
 
 
