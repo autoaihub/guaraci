@@ -373,6 +373,23 @@ CURATED = {
     "cvesp_aids_adulto": ("CVE-SP · aids em adultos", "Casos por município de residência e ano de notificação, estado de São Paulo, desde 1980", G_EST, "CVE-SP, Centro de Vigilância Epidemiológica", "saude"),
     "cvesp_hiv": ("CVE-SP · infecção pelo HIV", "Casos por município de residência e ano de notificação, estado de São Paulo, desde 2000", G_EST, "CVE-SP, Centro de Vigilância Epidemiológica", "saude"),
     "rio_iqar_diario": ("Rio de Janeiro · IQAR diário", "Índice de Qualidade do Ar por estação e poluente, desde 2017 (a camada parou de ser atualizada em 2024)", G_EST, "Prefeitura do Rio de Janeiro", "clima"),
+    # Leva 6 (onda 2) de novembro/2026
+    "cgu_novo_bolsa_familia": ("Novo Bolsa Família · pagamentos", "Pagamentos mensais por município e favorecido, desde março de 2023 (traz CPF mascarado e NIS)", G_MDS, "CGU, Portal da Transparência", "pop"),
+    "cgu_bpc": ("BPC · pagamentos", "Pagamentos mensais do Benefício de Prestação Continuada por município e beneficiário, desde 2019 (traz CPF mascarado e NIS)", G_MDS, "CGU, Portal da Transparência", "pop"),
+    "cgu_despesas_execucao": ("Despesas executadas da União", "Empenho, liquidação e pagamento por órgão, função, programa e favorecido, por mês desde 2014", G_INV, "CGU, Portal da Transparência", "pop"),
+    "cgu_transferencias": ("Transferências de recursos da União", "Transferências a estados, municípios e outros favorecidos, por tipo, órgão e programa, por mês desde 2014", G_INV, "CGU, Portal da Transparência", "pop"),
+    "cgu_emendas_parlamentares": ("Emendas parlamentares", "Emendas, convênios ligados a elas e pagamentos por favorecido, em três arquivos", G_INV, "CGU, Portal da Transparência", "pop"),
+    "compras_gov_catmat_saude": ("CATMAT · materiais de saúde", "Catálogo de materiais do grupo 65 (equipamentos e artigos médicos, dentários e veterinários), mais de 100 mil itens", G_INV, "Compras.gov.br, Ministério da Gestão e da Inovação", "saude"),
+    "pncp_contratacoes": ("PNCP · contratações", "Contratações publicadas no Portal Nacional de Contratações Públicas, por período e modalidade", G_INV, "PNCP, Ministério da Gestão e da Inovação", "pop"),
+    "ibge_censo2022_setores": ("Censo 2022 · agregados por setor", "Agregados do Censo 2022 por setor censitário, município, bairro ou distrito, em 12 temas", G_IBGE, "IBGE", "pop"),
+    "ibge_censo2022_renda_responsavel": ("Censo 2022 · rendimento do responsável", "Rendimento do responsável por domicílio, por setor censitário ou nível agregado, 2022", G_IBGE, "IBGE", "pop"),
+    "ibge_munic": ("MUNIC 2024 · perfil dos municípios", "Pesquisa de Informações Básicas Municipais: gestão, habitação, transporte, informática e outros blocos, em dez abas", G_IBGE, "IBGE", "pop"),
+    "ibge_projecoes_populacao_2024": ("Projeções da população · revisão 2024", "Projeções da população por sexo e idade, com nascimentos e óbitos, para o Brasil e as UFs, em cinco tabelas", G_IBGE, "IBGE", "pop"),
+    "inep_ideb_municipios": ("IDEB · municípios", "Índice de Desenvolvimento da Educação Básica por município e etapa, bienal de 2019 a 2025", G_EDU, "INEP, Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira", "pop"),
+    "mapbiomas_cobertura_municipios": ("MapBiomas · cobertura e uso da terra", "Área de cada classe de cobertura e uso da terra por município, de 1985 a 2024 (fonte secundária, CC BY 4.0)", G_TER, "MapBiomas", "clima"),
+    "mapbiomas_vegetacao_secundaria_municipios": ("MapBiomas · vegetação secundária", "Área de vegetação secundária por município e ano, coleção 10 (fonte secundária, CC BY 4.0)", G_TER, "MapBiomas", "clima"),
+    "mdhc_ligue180": ("Ligue 180", "Atendimentos da Central de Atendimento à Mulher por semestre, de 2020 a 1S2024, com perfil de vítima e suspeito", G_SEG, "MDHC, Ministério dos Direitos Humanos e da Cidadania", "pop"),
+    "ssp_sp_dados_criminais": ("SSP-SP · dados criminais", "Boletins de ocorrência do estado de São Paulo, por ano desde 2022, com local, natureza e município", G_EST, "SSP-SP, Secretaria da Segurança Pública de São Paulo", "pop"),
 }
 
 MODE_LABEL = {
@@ -413,6 +430,12 @@ MODE_LABEL = {
     "ipeadata api": "API IPEADATA (OData)",
     "cvesp tabnet": "TabNet do CVE-SP",
     "arcgis rest": "ArcGIS REST (Prefeitura do Rio)",
+    "cgu files": "Portal da Transparência (zips mensais da CGU)",
+    "compras api": "API Compras.gov.br",
+    "pncp api": "API do PNCP",
+    "ibge files": "Arquivos do FTP do IBGE",
+    "mapbiomas files": "Planilhas públicas do MapBiomas",
+    "ssp sp files": "Planilhas anuais da SSP-SP",
 }
 
 CADENCE_PT = {

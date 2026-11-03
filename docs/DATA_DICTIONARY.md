@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 255 sources cataloged; 168 sampled with real field names.
+- 271 sources cataloged; 181 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -57,6 +57,8 @@ to refresh.
 - `ipeadata_series` (empty): IPEADATA OData series chosen by series (41 series with no primary source counterpart, among them the Atlas da Violencia). Not sampled here.
 - `isp_rj_delegacias_mensal` (empty): Monthly series by police station (CISP) since 2003, 65 columns. Not sampled here.
 - `isp_rj_municipios_mensal` (empty): Monthly series by municipality since 2003, 62 columns. Not sampled here.
+- `mapbiomas_cobertura_municipios` (error): MapBiomas collection 10 land cover by municipality, 54 columns per the spec (79285 rows); the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
+- `mapbiomas_vegetacao_secundaria_municipios` (error): MapBiomas collection 10 secondary vegetation by municipality, 52 columns per the spec; the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
 - `mdhc_disque100` (empty): Disque 100 complaints, one file per semester from 2020 (100 MB to 1.9 GB), 34 or 62 columns depending on the file; anos is required. Not sampled here.
 - `mds_misocial` (empty): MI Social (MDS/SAGI) monthly municipal indicators from 2003, Solr field names as published, chosen by grupos: bolsa_familia (166), cadunico (59), bpc (29), condicionalidades (317), suas (182), auxilios (357), outros (157). Field list fixed in guaraci/mds/campos.py; not sampled here.
 - `mgdi_academia_saude` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
@@ -94,6 +96,7 @@ to refresh.
 - `siops_indicadores_municipios` (empty): Fields verified live on 2026-10-13 against the source (no full collection run yet). ano, cod_ibge, municipio and the 31 SIOPS indicators (EC 29/LC 141 shares, spending per capita, D.Total Saude). Full 2000-2025 run: 143,760 rows; 2000-2012 miss some indicators (empty columns). DF is not in this series.
 - `siscan_csv` (empty): Current SISCAN in CSV, one file per table and year 2013-2025 (10 tables, ~53 GB), ';' with quoted header, no name, CPF or CNS (CO_PACIENTE is a pseudonym in the _PACNT tables). Columns per table read from the 2025 headers on 2026-10-20: CITO_COLO 84, CITO_COLO_PACNT 86, CITO_MAMA 50, CITO_MAMA_PACNT 29, HISTO_COLO 59, HISTO_COLO_PACNT 32; the breast histopathology and mammography headers were not read.
 - `snis` (empty): no documents matched file_kinds=planilhas, module=gestao_municipal
+- `ssp_sp_dados_criminais` (empty): SSP-SP criminal records, one xlsx of about 200 MB per year from 2022, with a dictionary sheet and one sheet per semester (about 585 thousand rows each, about 5 minutes of conversion per semester); anos is required. Not sampled here.
 - `transferegov_fundo_a_fundo` (empty): Transferegov fund-to-fund transfers (PostgREST), 21 tables chosen by tabelas. Not sampled here.
 - `transferegov_transferencias_especiais` (empty): Transferegov special transfers (PostgREST), 14 tables chosen by tabelas. Free text fields can hold CPF, and there are parliamentarian names and bank data, published as is. Not sampled here.
 - `vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
@@ -321,6 +324,41 @@ to refresh.
 - **Fields:** `estacao`, `codigo_estacao`, `latitude`, `longitude`, `parametro`, `codigo_parametro`, `unidade`, `datahora`, `valor`, `validado`
 - **Note:** Live sample from the authenticated CETESB QUALAR on 2026-09-24 (Pinheiros, MP10 and TEMP, 2026-08-01 to 2026-08-07). Requires a free account (https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario); set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit (e.g. ug/m3, degC), not an index. datahora is local Sao Paulo time, naive.
 
+## cgu_bpc
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Fields:** `MÊS COMPETÊNCIA`, `MÊS REFERÊNCIA`, `UF`, `CÓDIGO MUNICÍPIO SIAFI`, `NOME MUNICÍPIO`, `NIS BENEFICIÁRIO`, `CPF BENEFICIÁRIO`, `NOME BENEFICIÁRIO`, `NIS REPRESENTANTE LEGAL`, `CPF REPRESENTANTE LEGAL`, `NOME REPRESENTANTE LEGAL`, `NÚMERO BENEFÍCIO`, `BENEFÍCIO CONCEDIDO JUDICIALMENTE`, `VALOR PARCELA`
+- **Note:** BPC payments, one zip of 130 to 190 MB per month from 2019-01; header read by a range request on the 2026-09 zip, not downloaded. Beneficiary and legal representative NIS, CPF (masked) and name. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## cgu_despesas_execucao
+
+- **Status:** ok (47964 rows sampled)
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Fields:** `Ano e mês do lançamento`, `Código Órgão Superior`, `Nome Órgão Superior`, `Código Órgão Subordinado`, `Nome Órgão Subordinado`, `Código Unidade Gestora`, `Nome Unidade Gestora`, `Código Gestão`, `Nome Gestão`, `Código Unidade Orçamentária`, `Nome Unidade Orçamentária`, `Código Função`, `Nome Função`, `Código Subfução`, `Nome Subfunção`, `Código Programa Orçamentário`, `Nome Programa Orçamentário`, `Código Ação`, `Nome Ação`, `Código Plano Orçamentário`, `Plano Orçamentário`, `Código Programa Governo`, `Nome Programa Governo`, `UF`, `Município`, `Código Subtítulo`, `Nome Subtítulo`, `Código Localizador`, `Nome Localizador`, `Sigla Localizador`, `Descrição Complementar Localizador`, `Código Autor Emenda`, `Nome Autor Emenda`, `Código Categoria Econômica`, `Nome Categoria Econômica`, `Código Grupo de Despesa`, `Nome Grupo de Despesa`, `Código Elemento de Despesa`, `Nome Elemento de Despesa`, `Código Modalidade da Despesa`, `Modalidade da Despesa`, `Valor Empenhado (R$)`, `Valor Liquidado (R$)`, `Valor Pago (R$)`, `Valor Restos a Pagar Inscritos (R$)`, `Valor Restos a Pagar Cancelado (R$)`, `Valor Restos a Pagar Pagos (R$)`
+- **Note:** Federal expenditure documents (commitment, liquidation, payment), one CSV per month from 2014-01; sampled live with anos=2024 and meses=01 on 2026-11-03. Favored party code and name (CPF or CNPJ). Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## cgu_emendas_parlamentares
+
+- **Status:** ok (828563 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `Código da Emenda`, `Ano da Emenda`, `Tipo de Emenda`, `Código do Autor da Emenda`, `Nome do Autor da Emenda`, `Número da emenda`, `Localidade de aplicação do recurso`, `Código Município IBGE`, `Município`, `Código UF IBGE`, `UF`, `Região`, `Código Função`, `Nome Função`, `Código Subfunção`, `Nome Subfunção`, `Código Programa`, `Nome Programa`, `Código Ação`, `Nome Ação`, `Código Plano Orçamentário`, `Nome Plano Orçamentário`, `Valor Empenhado`, `Valor Liquidado`, `Valor Pago`, `Valor Restos A Pagar Inscritos`, `Valor Restos A Pagar Cancelados`, `Valor Restos A Pagar Pagos`, `Localidade do gasto`, `Data Publicação Convênio`, `Convenente`, `Objeto Convênio`, `Número Convênio`, `Valor Convênio`, `Ano/Mês`, `Código do Favorecido`, `Favorecido`, `Natureza Jurídica`, `Tipo Favorecido`, `UF Favorecido`, `Município Favorecido`, `Valor Recebido`
+- **Note:** Parliamentary amendments, one fixed-URL zip with three CSVs sampled live on 2026-11-03: amendments (28 columns, 94769 rows), agreements (12 columns, 85403 rows) and payments by favored party (13 columns, 828563 rows); fields are the union. Author and favored party names and codes (CPF or CNPJ). Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## cgu_novo_bolsa_familia
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Fields:** `MÊS COMPETÊNCIA`, `MÊS REFERÊNCIA`, `UF`, `CÓDIGO MUNICÍPIO SIAFI`, `NOME MUNICÍPIO`, `CPF FAVORECIDO`, `NIS FAVORECIDO`, `NOME FAVORECIDO`, `VALOR PARCELA`
+- **Note:** Novo Bolsa Familia payments, one zip of about 330 MB per month from 2023-03; header read by a range request on the 2026-09 zip, not downloaded. Favored party CPF (masked), NIS and name. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## cgu_transferencias
+
+- **Status:** ok (109613 rows sampled)
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Fields:** `ANO / MÊS`, `TIPO TRANSFERÊNCIA`, `TIPO FAVORECIDO`, `UF`, `CÓDIGO MUNICÍPIO SIAFI`, `NOME MUNICÍPIO`, `CÓDIGO ÓRGÃO SIAFI`, `NOME ÓRGÃO`, `CÓDIGO UNIDADE GESTORA`, `NOME UNIDADE GESTORA`, `CÓDIGO FUNÇÃO`, `NOME FUNÇÃO`, `CÓDIGO SUBFUNÇÃO`, `NOME SUBFUNÇÃO`, `CÓDIGO PROGRAMA`, `NOME PROGRAMA`, `AÇÃO`, `NOME AÇÃO`, `LINGUAGEM CIDADÃ`, `CÓDIGO GRUPO DESPESA`, `NOME GRUPO DESPESA`, `CÓDIGO MODALIDADE APLICAÇÃO DESPESA`, `NOME MODALIDADE APLICAÇÃO DESPESA`, `CÓDIGO ELEMENTO DESPESA`, `NOME ELEMENTO DESPESA`, `CÓDIGO PLANO ORÇAMENTÁRIO`, `NOME PLANO ORÇAMENTÁRIO`, `CÓDIGO SUBTÍTULO`, `NOME SUBTÍTULO`, `CÓDIGO LOCALIZADOR`, `NOME LOCALIZADOR`, `SIGLA LOCALIZADOR`, `DESCRIÇÃO COMPLEMENTAR LOCALIZADOR`, `CÓDIGO FAVORECIDO`, `NOME FAVORECIDO`, `VALOR TRANSFERIDO`
+- **Note:** Federal transfers, one CSV per month from 2014-01; sampled live with anos=2024 and meses=01 on 2026-11-03. Favored party code and name (CPF or CNPJ). Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
 ## chikungunya
 
 - **Status:** ok (20 rows sampled)
@@ -406,6 +444,13 @@ to refresh.
 - **Filters:** `codigo_tipo_unidade`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `codigo_tipo_unidade`, `descricao_tipo_unidade`
 - **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
+
+## compras_gov_catmat_saude
+
+- **Status:** ok (50 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `timeout`, `pause_ms`, `api_base_url`, `codigo_grupo`, `codigo_classe`, `tamanho_pagina`, `max_paginas`
+- **Fields:** `codigoItem`, `codigoGrupo`, `nomeGrupo`, `codigoClasse`, `nomeClasse`, `codigoPdm`, `nomePdm`, `descricaoItem`, `statusItem`, `itemSustentavel`, `codigo_ncm`, `descricao_ncm`, `aplica_margem_preferencia`, `dataHoraAtualizacao`
+- **Note:** CATMAT items of group 65 (health), 108747 items in 2026-10; sampled live with max_paginas=1 on 2026-11-03. All columns as text, named as the API publishes.
 
 ## cvesp_aids_adulto
 
@@ -623,6 +668,20 @@ to refresh.
 - **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `ufs`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
 - **Note:** Census 2022 public-use sample, one zip per UF (ufs is required) with four ';' CSV tables: pessoas, domicilios, familias and mortalidade, with weights and weighting area. Not sampled here (the whole country passes 8 GB in CSV); columns as published by IBGE.
 
+## ibge_censo2022_renda_responsavel
+
+- **Status:** ok (5570 rows sampled)
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `nivel`
+- **Fields:** `CD_MUN`, `NM_MUN`, `V06001`, `V06002`, `V06003`, `V06004`, `V06005`, `V06006`
+- **Note:** Census 2022 income of the household head; sampled live at nivel=municipio on 2026-11-03. The default nivel=setor has far more rows.
+
+## ibge_censo2022_setores
+
+- **Status:** ok (5570 rows sampled)
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `nivel`
+- **Fields:** `CD_MUN`, `NM_MUN`, `CD_REGIAO`, `NM_REGIAO`, `CD_UF`, `NM_UF`, `CD_NU`, `NM_NU`, `CD_AGLOM`, `NM_AGLOM`, `CD_RGINT`, `NM_RGINT`, `CD_RGI`, `NM_RGI`, `CD_CONCURB`, `NM_CONCURB`, `AREA_KM2`, `v0001`, `v0002`, `v0003`, `v0004`, `v0005`, `v0006`, `v0007`, `v0008`, `v0009`
+- **Note:** Census 2022 aggregates; sampled live with indicadores=basico at nivel=municipio on 2026-11-03. The default nivel=setor has far more rows, and each theme (indicadores) has its own columns.
+
 ## ibge_censo_adensamento
 
 - **Status:** ok
@@ -739,6 +798,13 @@ to refresh.
 - **Status:** ok (1 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `idade_marido`, `idade_mulher`, `tempo_decorrido`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `grupos_de_idade_do_marido_na_data_da_sentenca`, `grupos_de_idade_da_mulher_na_data_da_sentenca`, `tempo_transcorrido_entre_as_datas_do_casamento_e_da_sentenca`, `variavel_id`, `unidade`, `valor`
+
+## ibge_munic
+
+- **Status:** ok (5570 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `Cod Uf`, `Faixa_populacao`, `Regiao`
+- **Note:** MUNIC 2024, one workbook of 25 MB with ten sheets exported as sibling outputs, sampled live on 2026-11-03 (Agropecuária 155 columns; Dicionário 6 columns; Evento_climático_RS 100 columns; Gestão_migratória 49 columns; Governanca 169 columns; Habitacao 92 columns; Igualdade_racial 433 columns; Informática_e_comunicação 205 columns; Recursos_humanos 29 columns; Transporte_e_mobilidade_urbana 103 columns). Fields are the columns common to the nine data sheets; the sheet columns differ.
 
 ## ibge_nascidos_vivos_rc
 
@@ -892,6 +958,13 @@ to refresh.
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `tipo_de_rebanho`, `variavel_id`, `unidade`, `valor`
 - **Note:** SIDRA 3939 (PPM herds, 1974-2025), 10 herd types; sampled live at level brasil for 2023 on 2026-10-23.
 
+## ibge_projecoes_populacao_2024
+
+- **Status:** ok (9009 rows sampled)
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `IDADE`, `SEXO`, `CÓD.`, `SIGLA`, `LOCAL`, `2000`, `2001`, `2002`, `2003`, `2004`, `2005`, `2006`, `2007`, `2008`, `2009`, `2010`, `2011`, `2012`, `2013`, `2014`, `2015`, `2016`, `2017`, `2018`, `2019`, `2020`, `2021`, `2022`, `2023`, `2024`, `2025`, `2026`, `2027`, `2028`, `2029`, `2030`, `2031`, `2032`, `2033`, `2034`, `2035`, `2036`, `2037`, `2038`, `2039`, `2040`, `2041`, `2042`, `2043`, `2044`, `2045`, `2046`, `2047`, `2048`, `2049`, `2050`, `2051`, `2052`, `2053`, `2054`, `2055`, `2056`, `2057`, `2058`, `2059`, `2060`, `2061`, `2062`, `2063`, `2064`, `2065`, `2066`, `2067`, `2068`, `2069`, `2070`
+- **Note:** Population projections (2024 revision), five workbooks of one sheet each; only tab1 was sampled live (indicadores=tab1, 2026-11-03). The other tabs have their own layouts.
+
 ## ibge_saneamento_agua
 
 - **Status:** ok (1 rows sampled)
@@ -922,6 +995,13 @@ to refresh.
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
 - **Note:** School table of the INEP school census, 2007 onward; 370 columns in 2007, 426 in 2024 and 290 in 2025 (schema changes by year). Includes CO_ENTIDADE, NU_ANO_CENSO, IN_AGUA_REDE_PUBLICA, IN_ESGOTO_REDE_PUBLICA, IN_ALIMENTACAO, IN_INTERNET.
+
+## inep_ideb_municipios
+
+- **Status:** ok (14532 rows sampled)
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Fields:** `SG_UF`, `CO_MUNICIPIO`, `NO_MUNICIPIO`, `REDE`, `VL_APROVACAO_2005_SI_4`, `VL_APROVACAO_2005_SI`, `VL_APROVACAO_2005_1`, `VL_APROVACAO_2005_2`, `VL_APROVACAO_2005_3`, `VL_APROVACAO_2005_4`, `VL_INDICADOR_REND_2005`, `VL_APROVACAO_2007_SI_4`, `VL_APROVACAO_2007_SI`, `VL_APROVACAO_2007_1`, `VL_APROVACAO_2007_2`, `VL_APROVACAO_2007_3`, `VL_APROVACAO_2007_4`, `VL_INDICADOR_REND_2007`, `VL_APROVACAO_2009_SI_4`, `VL_APROVACAO_2009_SI`, `VL_APROVACAO_2009_1`, `VL_APROVACAO_2009_2`, `VL_APROVACAO_2009_3`, `VL_APROVACAO_2009_4`, `VL_INDICADOR_REND_2009`, `VL_APROVACAO_2011_SI_4`, `VL_APROVACAO_2011_SI`, `VL_APROVACAO_2011_1`, `VL_APROVACAO_2011_2`, `VL_APROVACAO_2011_3`, `VL_APROVACAO_2011_4`, `VL_INDICADOR_REND_2011`, `VL_APROVACAO_2013_SI_4`, `VL_APROVACAO_2013_SI`, `VL_APROVACAO_2013_1`, `VL_APROVACAO_2013_2`, `VL_APROVACAO_2013_3`, `VL_APROVACAO_2013_4`, `VL_INDICADOR_REND_2013`, `VL_APROVACAO_2015_SI_4`, `VL_APROVACAO_2015_SI`, `VL_APROVACAO_2015_1`, `VL_APROVACAO_2015_2`, `VL_APROVACAO_2015_3`, `VL_APROVACAO_2015_4`, `VL_INDICADOR_REND_2015`, `VL_APROVACAO_2017_SI_4`, `VL_APROVACAO_2017_SI`, `VL_APROVACAO_2017_1`, `VL_APROVACAO_2017_2`, `VL_APROVACAO_2017_3`, `VL_APROVACAO_2017_4`, `VL_INDICADOR_REND_2017`, `VL_APROVACAO_2019_SI_4`, `VL_APROVACAO_2019_SI`, `VL_APROVACAO_2019_1`, `VL_APROVACAO_2019_2`, `VL_APROVACAO_2019_3`, `VL_APROVACAO_2019_4`, `VL_INDICADOR_REND_2019`, `VL_APROVACAO_2021_SI_4`, `VL_APROVACAO_2021_SI`, `VL_APROVACAO_2021_1`, `VL_APROVACAO_2021_2`, `VL_APROVACAO_2021_3`, `VL_APROVACAO_2021_4`, `VL_INDICADOR_REND_2021`, `VL_APROVACAO_2023_SI_4`, `VL_APROVACAO_2023_SI`, `VL_APROVACAO_2023_1`, `VL_APROVACAO_2023_2`, `VL_APROVACAO_2023_3`, `VL_APROVACAO_2023_4`, `VL_INDICADOR_REND_2023`, `VL_APROVACAO_2025_SI_4`, `VL_APROVACAO_2025_SI`, `VL_APROVACAO_2025_1`, `VL_APROVACAO_2025_2`, `VL_APROVACAO_2025_3`, `VL_APROVACAO_2025_4`, `VL_INDICADOR_REND_2025`, `VL_NOTA_MATEMATICA_2005`, `VL_NOTA_PORTUGUES_2005`, `VL_NOTA_MEDIA_2005`, `VL_NOTA_MATEMATICA_2007`, `VL_NOTA_PORTUGUES_2007`, `VL_NOTA_MEDIA_2007`, `VL_NOTA_MATEMATICA_2009`, `VL_NOTA_PORTUGUES_2009`, `VL_NOTA_MEDIA_2009`, `VL_NOTA_MATEMATICA_2011`, `VL_NOTA_PORTUGUES_2011`, `VL_NOTA_MEDIA_2011`, `VL_NOTA_MATEMATICA_2013`, `VL_NOTA_PORTUGUES_2013`, `VL_NOTA_MEDIA_2013`, `VL_NOTA_MATEMATICA_2015`, `VL_NOTA_PORTUGUES_2015`, `VL_NOTA_MEDIA_2015`, `VL_NOTA_MATEMATICA_2017`, `VL_NOTA_PORTUGUES_2017`, `VL_NOTA_MEDIA_2017`, `VL_NOTA_MATEMATICA_2019`, `VL_NOTA_PORTUGUES_2019`, `VL_NOTA_MEDIA_2019`, `VL_NOTA_MATEMATICA_2021`, `VL_NOTA_PORTUGUES_2021`, `VL_NOTA_MEDIA_2021`, `VL_NOTA_MATEMATICA_2023`, `VL_NOTA_PORTUGUES_2023`, `VL_NOTA_MEDIA_2023`, `VL_NOTA_MATEMATICA_2025`, `VL_NOTA_PORTUGUES_2025`, `VL_NOTA_MEDIA_2025`, `VL_OBSERVADO_2005`, `VL_OBSERVADO_2007`, `VL_OBSERVADO_2009`, `VL_OBSERVADO_2011`, `VL_OBSERVADO_2013`, `VL_OBSERVADO_2015`, `VL_OBSERVADO_2017`, `VL_OBSERVADO_2019`, `VL_OBSERVADO_2021`, `VL_OBSERVADO_2023`, `VL_OBSERVADO_2025`, `VL_PROJECAO_2007`, `VL_PROJECAO_2009`, `VL_PROJECAO_2011`, `VL_PROJECAO_2013`, `VL_PROJECAO_2015`, `VL_PROJECAO_2017`, `VL_PROJECAO_2019`, `VL_PROJECAO_2021`
+- **Note:** IDEB by municipality, biennial; sampled live with anos=2025 and meses=AI (initial years) on 2026-11-03. The column count grows each cycle because the series starts in 2005.
 
 ## inmet_estacoes
 
@@ -999,11 +1079,30 @@ to refresh.
 - **Filters:** `codigo_municipio`, `municipio`, `sigla_uf`, `codigo_regiao_saude`, `regiao_saude`, `codigo_macrorregiao_de_saude`, `macrorregiao_saude`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `codigo_regiao_pais`, `regiao_pais`, `codigo_uf`, `uf`, `codigo_macrorregiao_saude`, `macrorregiao_saude`, `codigo_regiao_saude`, `regiao_saude`, `codigo_municipio`, `municipio`, `populacao_estimada_ibge_2022`
 
+## mapbiomas_cobertura_municipios
+
+- **Status:** error
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** MapBiomas collection 10 land cover by municipality, 54 columns per the spec (79285 rows); the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
+
+## mapbiomas_vegetacao_secundaria_municipios
+
+- **Status:** error
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** MapBiomas collection 10 secondary vegetation by municipality, 52 columns per the spec; the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
+
 ## mdhc_disque100
 
 - **Status:** empty
 - **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
 - **Note:** Disque 100 complaints, one file per semester from 2020 (100 MB to 1.9 GB), 34 or 62 columns depending on the file; anos is required. Not sampled here.
+
+## mdhc_ligue180
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Fields:** `hash_par_vitima_suspeito`, `Data_da_denúncia`, `Denunciante`, `relacao_demandante_vitima`, `Canal_de_atendimento`, `País_de_orígem_da_vítima`, `UF`, `Estado`, `Município`, `Cenário_da_violação`, `Grupo_vulnerável`, `Gênero_da_vítima`, `idade_vitima`, `Grau_instrução_da_vítima`, `Faixa_de_renda_da_vítima`, `Raça_cor_da_vítima`, `deficiencia_vitima`, `Gênero_do_suspeito`, `idade_suspeito`, `Grau_instrução_do_suspeito`, `Faixa_de_renda_do_suspeito`, `Raça_cor_do_suspeito`, `deficiencia_suspeito`, `Relação_Suspeito_x_Vítima`, `Denúncia_Emergencial`, `Nacionalidade_da_vítima`, `Nacionalidade_do_suspeito`, `País_de_orígem_do_suspeito`, `Etnia_da_vítima`, `Etnia_do_suspeito`, `violacoes`, `motivacoes`, `agravantes`, `orientacao_sexual`
+- **Note:** Ligue 180 attendances, one CSV per semester from 1S2020 to 1S2024, 34 columns in 1S2020 and 62 from 2S2020; header of the 1S2020 file read by a range request on 2026-11-03, not downloaded. Victim and suspect profile, no names. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
 
 ## mds_misocial
 
@@ -1188,6 +1287,13 @@ to refresh.
 - **Status:** ok (716 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `states`
 - **Fields:** `ID_UF`, `SG_UF`, `ID_DISTR`, `ID_LOC`, `DT_COMP`, `QT_POP`, `QT_PRED`, `QT_EXAM`, `QT_NRECOL`, `QT_1A4`, `QT_5A16`, `QT_17`, `QT_POS`, `QT_ATRAT`, `QT_TRAT`, `QT_CI`, `QT_REC`, `QT_AUS`, `QT_ASC`, `QT_ANC`, `QT_TAE`, `QT_TT`, `QT_EV`, `QT_SE`, `QT_HN`, `QT_OUT`, `QT_CAP`, `QT_PESQ`, `QT_BGLA`, `QT_BSTR`, `QT_BTEN`, `QT_OUT1`, `QT_POSBGLA`, `QT_POSBTEN`, `QT_POSBSTR`, `QT_POSOUT`
+
+## pncp_contratacoes
+
+- **Status:** ok (50 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `timeout`, `pause_ms`, `api_base_url`, `start_date`, `end_date`, `modalidades`, `janela_dias`, `tamanho_pagina`, `max_paginas`
+- **Fields:** `valorTotalHomologado`, `orgaoEntidade_cnpj`, `orgaoEntidade_razaoSocial`, `orgaoEntidade_poderId`, `orgaoEntidade_esferaId`, `dataInclusao`, `dataAtualizacao`, `anoCompra`, `srp`, `sequencialCompra`, `emendaParlamentar`, `numeroCompra`, `processo`, `objetoCompra`, `informacaoComplementar`, `dataAberturaProposta`, `dataEncerramentoProposta`, `dataPublicacaoPncp`, `dataAtualizacaoGlobal`, `unidadeOrgao_ufNome`, `unidadeOrgao_ufSigla`, `unidadeOrgao_municipioNome`, `unidadeOrgao_codigoIbge`, `unidadeOrgao_nomeUnidade`, `unidadeOrgao_codigoUnidade`, `orgaoSubRogado`, `unidadeSubRogada`, `amparoLegal_nome`, `amparoLegal_descricao`, `amparoLegal_codigo`, `linkSistemaOrigem`, `linkProcessoEletronico`, `justificativaPresencial`, `numeroControlePNCP`, `valorTotalEstimado`, `modalidadeId`, `modalidadeNome`, `modoDisputaId`, `modoDisputaNome`, `tipoInstrumentoConvocatorioCodigo`, `tipoInstrumentoConvocatorioNome`, `fontesOrcamentarias`, `situacaoCompraId`, `situacaoCompraNome`, `usuarioNome`
+- **Note:** PNCP published procurements; sampled live for 2026-10-20 with modalidades=6 and max_paginas=1 on 2026-11-03. Nested organ, unit and legal-basis objects are flattened into object_field columns.
 
 ## pni
 
@@ -1669,6 +1775,12 @@ to refresh.
 - **Status:** ok (21 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `nu_notific`, `dt_notific`, `sem_not`, `dt_sin_pri`, `sem_pri`, `sg_uf_not`, `id_regiona`, `co_regiona`, `id_municip`, `co_mun_not`, `cs_sexo`, `dt_nasc`, `nu_idade_n`, `tp_idade`, `cod_idade`, `cs_gestant`, `cs_raca`, `cs_etinia`, `cs_escol_n`, `id_pais`, `co_pais`, `sg_uf`, `id_rg_resi`, `co_rg_resi`, `id_mn_resi`, `co_mun_res`, `cs_zona`, `nosocomial`, `ave_suino`, `febre`, `tosse`, `garganta`, `dispneia`, `desc_resp`, `saturacao`, `diarreia`, `vomito`, `outro_sin`, `outro_des`, `fator_risc`, `puerpera`, `cardiopati`, `hematologi`, `sind_down`, `hepatica`, `asma`, `diabetes`, `neurologic`, `pneumopati`, `imunodepre`, `renal`, `obesidade`, `obes_imc`, `out_morbi`, `morb_desc`, `tabag`, `vacina`, `dt_ut_dose`, `mae_vac`, `dt_vac_mae`, `m_amamenta`, `dt_doseuni`, `dt_1_dose`, `dt_2_dose`, `antiviral`, `tp_antivir`, `out_antiv`, `dt_antivir`, `hospital`, `dt_interna`, `sg_uf_inte`, `id_rg_inte`, `co_rg_inte`, `id_mn_inte`, `co_mu_inte`, `nm_un_inte`, `uti`, `dt_entuti`, `dt_saiduti`, `suport_ven`, `raiox_res`, `raiox_out`, `dt_raiox`, `amostra`, `dt_coleta`, `tp_amostra`, `out_amost`, `pcr_resul`, `dt_pcr`, `pos_pcrflu`, `tp_flu_pcr`, `pcr_fluasu`, `fluasu_out`, `pcr_flubli`, `flubli_out`, `pos_pcrout`, `pcr_vsr`, `pcr_para1`, `pcr_para2`, `pcr_para3`, `pcr_para4`, `pcr_adeno`, `pcr_metap`, `pcr_boca`, `pcr_rino`, `pcr_outro`, `ds_pcr_out`, `classi_fin`, `classi_out`, `criterio`, `evolucao`, `dt_evoluca`, `dt_encerra`, `dt_digita`, `histo_vgm`, `pais_vgm`, `co_ps_vgm`, `lo_ps_vgm`, `dt_vgm`, `dt_rt_vgm`, `pcr_sars2`, `pac_cocbo`, `pac_dscbo`, `out_anim`, `dor_abd`, `fadiga`, `perd_olft`, `perd_pala`, `tomo_res`, `tomo_out`, `dt_tomo`, `tp_tes_an`, `dt_res_an`, `res_an`, `pos_an_flu`, `tp_flu_an`, `pos_an_out`, `an_sars2`, `an_vsr`, `an_para1`, `an_para2`, `an_para3`, `an_adeno`, `an_outro`, `ds_an_out`, `tp_am_sor`, `sor_out`, `dt_co_sor`, `tp_sor`, `out_sor`, `dt_res`, `res_igg`, `res_igm`, `res_iga`, `pov_ct`, `tp_pov_ct`, `tem_cpf`, `estrang`, `vacina_cov`, `dose_1_cov`, `dose_2_cov`, `dose_ref`, `dose_2ref`, `dose_adic`, `dos_re_bi`, `fab_cov_1`, `fab_cov_2`, `fab_covrf`, `fab_covrf2`, `fab_adic`, `fab_re_bi`, `lote_1_cov`, `lote_2_cov`, `lote_ref`, `lote_ref2`, `lote_adic`, `lot_re_bi`, `fnt_in_cov`, `trat_cov`, `tipo_trat`, `dt_trt_cov`, `out_trat`, `surto_sg`, `co_detec`, `vg_oms`, `vg_omsout`, `vg_lin`, `vg_met`, `vg_metout`, `vg_dtres`, `vg_enc`, `vg_reinf`, `vg_codest`, `reinf`
+
+## ssp_sp_dados_criminais
+
+- **Status:** empty
+- **Filters:** `anos`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** SSP-SP criminal records, one xlsx of about 200 MB per year from 2022, with a dictionary sheet and one sheet per semester (about 585 thousand rows each, about 5 minutes of conversion per semester); anos is required. Not sampled here.
 
 ## transferegov_fundo_a_fundo
 

@@ -85,6 +85,14 @@ FTP_LEGACY_SOURCES = frozenset(
         "obrasgov_projetos_investimento", "ipeadata_series", "ipeadata_metadados",
         "cvesp_sifilis_congenita", "cvesp_sifilis_gestante", "cvesp_sifilis_adquirida",
         "cvesp_hiv_gestante", "cvesp_aids_adulto", "cvesp_hiv", "rio_iqar_diario",
+        # Leva 6 (onda 2): CGU, Compras.gov.br, PNCP, IBGE por arquivo, IDEB, MapBiomas,
+        # Ligue 180 e SSP-SP.
+        "cgu_bpc", "cgu_despesas_execucao", "cgu_emendas_parlamentares",
+        "cgu_novo_bolsa_familia", "cgu_transferencias", "compras_gov_catmat_saude",
+        "ibge_censo2022_setores", "ibge_censo2022_renda_responsavel", "ibge_munic",
+        "ibge_projecoes_populacao_2024", "inep_ideb_municipios",
+        "mapbiomas_cobertura_municipios", "mapbiomas_vegetacao_secundaria_municipios",
+        "mdhc_ligue180", "pncp_contratacoes", "ssp_sp_dados_criminais",
     }
 )
 

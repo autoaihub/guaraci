@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### Added: leva 6 (onda 2), CGU, compras públicas, IBGE por arquivo, IDEB, MapBiomas, Ligue 180 e SSP-SP
+Dezesseis fontes que já existiam no código entram no catálogo do site. O catálogo passa a 271 entradas e 259 bases distintas.
+- **Portal da Transparência (CGU).** Novo Bolsa Família e BPC (um zip mensal de
+  centenas de MB, com CPF mascarado e NIS), despesas executadas e transferências
+  da União (zips de poucos MB por mês, desde 2014) e emendas parlamentares, em
+  três arquivos.
+- **Compras públicas.** O catálogo CATMAT do grupo 65 (materiais de saúde) e as
+  contratações do PNCP, que pedem recorte por data.
+- **IBGE por arquivo.** Agregados do Censo 2022 por setor e o rendimento do
+  responsável, a MUNIC 2024 (dez abas) e as projeções da população, revisão 2024.
+- **Educação, território e segurança.** IDEB por município (bienal, 2019 a 2025),
+  cobertura e vegetação secundária do MapBiomas (fonte secundária, CC BY 4.0),
+  Ligue 180 (1S2020 a 1S2024) e os dados criminais da SSP-SP.
+- Novo Bolsa Família, BPC, PNCP, Ligue 180, SSP-SP e os agregados do Censo 2022
+  ficam fora da varredura automática, porque pedem recorte por ano, por data ou
+  por nível e passam de centenas de MB por recorte.
+- Dicionário de campos amostrado ao vivo em recorte pequeno para onze fontes. Novo
+  Bolsa Família, BPC e Ligue 180 têm o cabeçalho lido por requisição de faixa, sem
+  baixar o arquivo. A SSP-SP não foi amostrada (xlsx de 200 MB por ano), e as duas
+  planilhas do MapBiomas responderam HTTP 403 em 2026-11-03, duas tentativas cada,
+  e ficam com status de erro.
+- Volume medido para a MUNIC, as projeções, o IDEB e as emendas; estimado para
+  CGU (transferências, despesas, Novo Bolsa Família e BPC) e CATMAT; limite
+  inferior para o Ligue 180. Sem volume: PNCP, SSP-SP, MapBiomas e o Censo 2022.
+
+Estas bases chegam como o órgão as publica: Novo Bolsa Família e BPC trazem NIS,
+CPF mascarado e nome do favorecido, despesas, transferências e emendas trazem
+código e nome do favorecido (CPF ou CNPJ). O tratamento fica para as camadas
+prata e ouro do Sabiá.
+
 ### Added: leva 6 (onda 1), agropecuária, trabalho, segurança, trânsito, investimento público e frente estadual
 O catálogo passa a 255 entradas e 243 bases distintas.
 - **IBGE.** Entram seis tabelas anuais do SIDRA por município: lavouras da PAM

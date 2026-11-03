@@ -412,6 +412,23 @@ _EXPLICIT: Mapping[str, Tuple[str, ...]] = {
     "cvesp_aids_adulto": ("vigilancia_epidemiologica",),
     "cvesp_hiv": ("vigilancia_epidemiologica",),
     "rio_iqar_diario": ("qualidade_ar", "ambiente_clima"),
+    # Leva 6 (onda 2) de novembro/2026.
+    "cgu_novo_bolsa_familia": ("socioeconomico", "investimento_publico"),
+    "cgu_bpc": ("socioeconomico", "investimento_publico"),
+    "cgu_despesas_execucao": ("investimento_publico", "gestao"),
+    "cgu_emendas_parlamentares": ("investimento_publico", "gestao"),
+    "cgu_transferencias": ("investimento_publico", "gestao"),
+    "compras_gov_catmat_saude": ("economia_saude", "gestao"),
+    "pncp_contratacoes": ("investimento_publico", "gestao"),
+    "ibge_censo2022_setores": ("socioeconomico",),
+    "ibge_censo2022_renda_responsavel": ("socioeconomico", "trabalho_renda"),
+    "ibge_munic": ("socioeconomico", "gestao"),
+    "ibge_projecoes_populacao_2024": ("socioeconomico", "natalidade", "mortalidade"),
+    "inep_ideb_municipios": ("socioeconomico",),
+    "mapbiomas_cobertura_municipios": ("conservacao_territorio", "ambiente_clima", "agropecuaria"),
+    "mapbiomas_vegetacao_secundaria_municipios": ("conservacao_territorio", "ambiente_clima"),
+    "mdhc_ligue180": ("seguranca_publica",),
+    "ssp_sp_dados_criminais": ("seguranca_publica",),
 }
 
 

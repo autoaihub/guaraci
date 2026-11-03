@@ -128,6 +128,15 @@ _NOVAS_FONTES_2026_10: Dict[str, tuple] = {
     "cvesp_aids_adulto": (Kind.API_WINDOW, Cadence.ANNUAL, 1980),
     "cvesp_hiv": (Kind.API_WINDOW, Cadence.ANNUAL, 2000),
     "rio_iqar_diario": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
+    # Leva 6 (onda 2): transferências e despesas da CGU têm zips de poucos MB por mês; as
+    # demais fontes da onda com coleta sob pedido estão na cadeia própria de ``profile_for``.
+    "cgu_transferencias": (Kind.API_WINDOW, Cadence.MONTHLY, 2014),
+    "cgu_despesas_execucao": (Kind.API_WINDOW, Cadence.MONTHLY, 2014),
+    "cgu_emendas_parlamentares": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "compras_gov_catmat_saude": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "inep_ideb_municipios": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
+    "mapbiomas_cobertura_municipios": (Kind.SNAPSHOT, Cadence.ANNUAL, None),
+    "mapbiomas_vegetacao_secundaria_municipios": (Kind.SNAPSHOT, Cadence.ANNUAL, None),
 }
 
 # Edit here to re-tune how often a source is re-checked for new data.
@@ -285,6 +294,61 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
             auto=False,
             note="layers over 400 thousand features - collect on demand, not swept",
         )
+    elif name in ("cgu_novo_bolsa_familia", "cgu_bpc"):
+        # Um zip de 130 a 365 MB por mês (até 2 GB de CSV): coleta sob pedido, por ano e mês.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.MONTHLY,
+            2023 if name == "cgu_novo_bolsa_familia" else 2019,
+            auto=False,
+            note="130 to 365 MB per month, needs anos - collect on demand, not swept",
+        )
+    elif name == "pncp_contratacoes":
+        # start_date obrigatório e centenas de milhares de contratações por mês.
+        profile = SourceProfile(
+            name,
+            Kind.API_MONTHLY,
+            Cadence.MONTHLY,
+            2021,
+            auto=False,
+            note="start_date required, hundreds of thousands of procurements per month - collect on demand, not swept",
+        )
+    elif name == "mdhc_ligue180":
+        # De 50 a 270 MB por semestre; a série terminou em 1S2024 (o serviço passou ao
+        # Ministério das Mulheres).
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.IRREGULAR,
+            2020,
+            auto=False,
+            note="50 to 270 MB per semester, needs anos; series ended in 1S2024 - collect on demand, not swept",
+            max_year=2024,
+        )
+    elif name == "ssp_sp_dados_criminais":
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.ANNUAL,
+            2022,
+            auto=False,
+            note="about 200 MB per year and 5 minutes of conversion per semester, needs anos - collect on demand, not swept",
+        )
+    elif name in ("ibge_censo2022_setores", "ibge_censo2022_renda_responsavel"):
+        # Edição única do Censo 2022; o nível padrão (setor) tem centenas de milhares de
+        # linhas por tema: coleta sob pedido.
+        profile = SourceProfile(
+            name,
+            Kind.SNAPSHOT,
+            Cadence.IRREGULAR,
+            None,
+            auto=False,
+            note="single 2022 edition, sector level by default - collect on demand, not swept",
+        )
+    elif name in ("ibge_munic", "ibge_projecoes_populacao_2024"):
+        # Um arquivo por edição, sem parâmetro obrigatório.
+        profile = SourceProfile(name, Kind.SNAPSHOT, Cadence.IRREGULAR, None)
     elif name.startswith("ana"):
         profile = SourceProfile(
             name,

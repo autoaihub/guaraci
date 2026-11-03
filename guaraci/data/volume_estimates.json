@@ -164,6 +164,31 @@
   "method": "sob demanda",
   "measured_on": "2026-10-15"
  },
+ "cgu_bpc": {
+  "csv_bytes": 109000000000,
+  "method": "estimado",
+  "measured_on": "2026-11-03"
+ },
+ "cgu_despesas_execucao": {
+  "csv_bytes": 5700000000,
+  "method": "estimado",
+  "measured_on": "2026-11-03"
+ },
+ "cgu_emendas_parlamentares": {
+  "csv_bytes": 233632500,
+  "method": "medido",
+  "measured_on": "2026-11-03"
+ },
+ "cgu_novo_bolsa_familia": {
+  "csv_bytes": 84000000000,
+  "method": "estimado",
+  "measured_on": "2026-11-03"
+ },
+ "cgu_transferencias": {
+  "csv_bytes": 11000000000,
+  "method": "estimado",
+  "measured_on": "2026-11-03"
+ },
  "ciencia_tecnologia_dgits_contribuicoes_consultas_publicas": {
   "csv_bytes": 57415,
   "rows": 921,
@@ -214,6 +239,11 @@
   "rows": 39,
   "method": "estimado",
   "measured_on": "2026-10-15"
+ },
+ "compras_gov_catmat_saude": {
+  "csv_bytes": 44000000,
+  "method": "estimado",
+  "measured_on": "2026-11-03"
  },
  "daf_estoque_medicamentos_bnafar_horus": {
   "csv_bytes": 1285779181,
@@ -378,6 +408,11 @@
   "method": "estimado",
   "measured_on": "2026-10-15"
  },
+ "ibge_munic": {
+  "csv_bytes": 28383797,
+  "method": "medido",
+  "measured_on": "2026-11-03"
+ },
  "ibge_nascidos_vivos_rc": {
   "csv_bytes": 23028038,
   "rows": 245124,
@@ -474,6 +509,11 @@
   "method": "estimado",
   "measured_on": "2026-10-15"
  },
+ "ibge_projecoes_populacao_2024": {
+  "csv_bytes": 35822002,
+  "method": "medido",
+  "measured_on": "2026-11-03"
+ },
  "ibge_saneamento_agua": {
   "csv_bytes": 748909,
   "rows": 5571,
@@ -503,6 +543,11 @@
   "rows": 4293563,
   "method": "medido",
   "measured_on": "2026-10-15"
+ },
+ "inep_ideb_municipios": {
+  "csv_bytes": 63715645,
+  "method": "medido",
+  "measured_on": "2026-11-03"
  },
  "inmet_estacoes": {
   "csv_bytes": 8101235001,
@@ -554,6 +599,11 @@
   "rows": 5570,
   "method": "estimado",
   "measured_on": "2026-10-15"
+ },
+ "mdhc_ligue180": {
+  "csv_bytes": 450000000,
+  "method": "pelo menos",
+  "measured_on": "2026-11-03"
  },
  "mds_misocial": {
   "csv_bytes": 3000000000,
