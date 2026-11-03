@@ -70,6 +70,12 @@ jobs:
         run: |
           status=0
           mkdir -p reports
+          # Diagnóstico: a cada minuto uma linha com memória e disco do runner (e os
+          # três maiores processos). Se o runner cair ("shutdown signal", código 143),
+          # a última linha antes da queda no log mostra se foi memória ou disco.
+          ( while sleep 60; do
+              echo "[runner] $(date +%H:%M:%S) $(free -m | awk '/^Mem/ {print "mem_usada="$3"MB disponivel="$7"MB"}') $(df -h / | awk 'NR==2 {print "disco_livre="$4" ("$5" usado)"}') top: $(ps -eo rss,comm --sort=-rss | awk 'NR>1 && NR<=4 {printf "%s=%dMB ", $2, $1/1024}')"
+            done ) &
           # pipefail: sem ele o código de saída é o do tee e a falha passa verde.
           set -o pipefail
           roda() { python "$@" 2>&1 | tee -a saida.log || status=1; }
@@ -105,6 +111,14 @@ jobs:
           } > resumo.md
           cat resumo.md >> "$GITHUB_STEP_SUMMARY"
           exit $status
+
+      # Se o kernel matou o processo por falta de memória, o registro fica aqui.
+      - name: Diagnóstico do runner
+        if: always()
+        run: |
+          free -m
+          df -h /
+          sudo dmesg 2>/dev/null | grep -i -E "out of memory|oom-kill|killed process" | tail -5 || true
 
       - name: Guardar relatórios
         if: always()

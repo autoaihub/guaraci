@@ -35,6 +35,7 @@ import polars as pl  # noqa: E402
 from loguru import logger  # noqa: E402
 
 from _origens import ALCANCE  # noqa: E402
+from _recursos import Vigia, agora, registra  # noqa: E402
 from guaraci.opendatasus.datasource import _UF_BY_NAME as _UF_POR_NOME, _fold  # noqa: E402
 from guaraci.services.downloads import DownloadService  # noqa: E402
 
@@ -47,6 +48,17 @@ _NAO_FILTRO = {
     "codigo_cnes", "codigo_tipo_unidade", "station_ids", "stations",
     # NASA: a comunidade muda a unidade de algumas grandezas, não o recorte.
     "community",
+}
+# Fontes cujo menor recorte já passa do que o runner aguenta em memória: um mês
+# do BPC tem 1,2 GB de CSV e ocupou 5,5 GB de memória ao ler (medido em
+# 2026-11-03), e um do Novo Bolsa Família tem 2 GB. Com quatro coletas em
+# paralelo isso derrubava o runner ("shutdown signal", código 143). Os filtros
+# dessas fontes são só os seletores de período (anos, meses), os mesmos do
+# código _mensal do cgu_despesas_execucao e do cgu_transferencias, que a
+# verificação confere com zips de 1 a 10 MB.
+_PESADAS = {
+    "cgu_bpc": "um mês tem 1,2 GB de CSV e 5,5 GB de memória ao ler; filtros de período, conferidos nas outras fontes cgu",
+    "cgu_novo_bolsa_familia": "um mês tem 2 GB de CSV; filtros de período, conferidos nas outras fontes cgu",
 }
 # Valores que pedem todas as categorias: a coluna traz várias, e está certo.
 _TODAS = {"AMBOS", "ALL", "TODOS", "TOTAL"}
@@ -75,9 +87,12 @@ def _coleta(service: DownloadService, s: str, params: Dict[str, Any]) -> Optiona
 
 
 def _assinatura(frame: Optional[pl.DataFrame]) -> str:
+    """Impressão digital do conteúdo, sem copiar o quadro: reescrever o CSV
+    inteiro em texto dobrava o pico de memória (2 GB de CSV viravam 6 GB)."""
     if frame is None:
         return "vazio"
-    return hashlib.sha1(frame.write_csv().encode("utf-8")).hexdigest()
+    soma = int(frame.hash_rows().sum() or 0)
+    return hashlib.sha1(f"{frame.height}|{frame.columns}|{soma}".encode("utf-8")).hexdigest()
 
 
 def _valores_de_filtro(
@@ -146,6 +161,8 @@ def confere_fonte(service: DownloadService, s: str, pasta: Path) -> Dict[str, An
         return {"pulada": "sem filtro de conteúdo"}
     if s in vr._SO_CABECALHO:
         return {"pulada": "arquivos de vários GB sem recorte pequeno; a rota confere só o cabeçalho"}
+    if s in _PESADAS:
+        return {"pulada": _PESADAS[s]}
     base_params = vr.params_pequenos(schema, s, pasta / "base")
     base_params["output_format"] = "csv"
     # Nas APIs a base vai sem recorte de UF. No FTP fica o AC do verificador:
@@ -231,15 +248,25 @@ def main() -> int:
         fontes = [f for f in fontes if f in set(args.fontes.split(","))]
     base = vr.pasta_temporaria("guaraci_filtros_")
 
+    vigia = Vigia(base)
+
     def um(s: str) -> Tuple[str, Dict[str, Any]]:
+        # Com flush: se o runner cair, a última fonte iniciada sem "fim" é a culpada.
+        registra(f"inicio {s}")
+        vigia.entra(s)
+        t_fonte = time.monotonic()
         try:
             return s, confere_fonte(service, s, base / s)
         except Exception as exc:  # noqa: BLE001
             return s, {"problemas": [f"verificador quebrou: {type(exc).__name__}: {str(exc)[:300]}"], "avisos": []}
+        finally:
+            vigia.sai(s)
+            m = agora(base)
+            registra(f"fim {s} {time.monotonic() - t_fonte:.0f}s pico={m['pico'] or 0:.0f}MB")
 
     t0 = time.monotonic()
     ALCANCE.sondar()
-    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+    with vigia, ThreadPoolExecutor(max_workers=args.workers) as pool:
         resultados = dict(pool.map(um, fontes))
 
     # Segunda tentativa só para o que falhou: a origem oscila, e a

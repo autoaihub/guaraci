@@ -60,6 +60,9 @@ _SMALL = {
     "max_pages": 2, "batch_size": 100, "page_size": 50, "limit": 50, "max_files": 1,
 }
 
+# Um mês só dos zips mensais da CGU (ver o comentário nas quatro fontes abaixo).
+_CGU_UM_MES: Dict[str, Any] = {"anos": ["2026"], "meses": ["01"], "start_year": None, "end_year": None}
+
 # Campos que o usuário teria de preencher, ou recortes que evitam trazer
 # centenas de MB (SINAN nacional por agravo, dengue incluída).
 _OVERRIDES: Dict[str, Dict[str, Any]] = {
@@ -97,6 +100,16 @@ _OVERRIDES: Dict[str, Dict[str, Any]] = {
     "ibge_pnad_covid19": {"meses": ["05"]},
     "ibge_pnad_saude": {"start_year": 1998, "end_year": 1998, "tabelas": ["domicilios"]},
     "mds_misocial": {"start_year": 2024, "end_year": 2024, "grupos": ["bpc"]},
+    # Zips mensais da CGU. Sem "meses" o pedido traz o ano inteiro: no BPC (130 a 190 MB
+    # por zip) e no Novo Bolsa Família (330 MB) eram 9 GB de CSV em disco e até 9 GB de
+    # memória ao ler (medido em 2026-11-03; derrubava o runner da verificação semanal),
+    # e o WAF da origem recusa (405) quem pede uma dúzia de zips em poucos minutos.
+    # start_year/end_year nulos: a janela de anos do verificador (2023) valia mais que
+    # "anos" e anulava o filtro de ano.
+    "cgu_bpc": _CGU_UM_MES,
+    "cgu_novo_bolsa_familia": _CGU_UM_MES,
+    "cgu_despesas_execucao": _CGU_UM_MES,
+    "cgu_transferencias": _CGU_UM_MES,
 }
 
 # Endpoints do DEMAS que respondem 200 com lista vazia sem filtro algum
