@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Fixed: Censo Escolar (INEP) no Linux e INCA RHC no RHCWeb
+- **`inep_censo_escolar` e `inep_ideb`.** O servidor `download.inep.gov.br` envia só o
+  certificado folha (`*.inep.gov.br`) e omite o intermediário `RNP ICPEdu GR46 OV TLS CA
+  2025`. O Windows completa a cadeia pela extensão AIA, mas o OpenSSL do Linux não, e a
+  verificação semanal falhava com `CERTIFICATE_VERIFY_FAILED`. O intermediário público
+  agora vem em `guaraci/data/ca_intermediarios.crt` (válido até 2030-11-19) e o cliente de
+  arquivos o soma às raízes só para hosts `*.inep.gov.br`, em `guaraci/arquivos/tls.py`. A
+  verificação de certificado continua ligada, e os demais hosts não mudam.
+- **`inca_rhc`.** O Integrador RHC antigo (`irhc.inca.gov.br/RHCNet`) passou a responder 301
+  para o RHCWeb (`app.inca.gov.br/RHCWeb`), e o cliente recebia a página HTML de login no
+  lugar do JSON de status. O cliente foi reescrito para o download público do Tabulador
+  Hospitalar do RHCWeb (JSF/PrimeFaces, sem login): escolhe "TODOS OS ESTADOS", pede o ano em
+  DBF, espera o arquivo ficar pronto e baixa o zip. Os anos publicados passam a vir da
+  própria página. O RHCWeb ainda está em carga pelo INCA: na conferência de 03/11/2026, 2020
+  e 2023 vinham com poucas centenas de casos, bem abaixo do Integrador antigo.
+
 ### Added: leva 6 (onda 2), CGU, compras públicas, IBGE por arquivo, IDEB, MapBiomas, Ligue 180 e SSP-SP
 Dezesseis fontes que já existiam no código entram no catálogo do site. O catálogo passa a 271 entradas e 259 bases distintas.
 - **Portal da Transparência (CGU).** Novo Bolsa Família e BPC (um zip mensal de
