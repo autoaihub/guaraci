@@ -550,11 +550,78 @@ def main() -> None:
         f"const GUARACI_DISTINCT = {len(catalog) - len(SAME_AS)};\n",
         encoding="utf-8",
     )
+    n_jsonld = write_docs_jsonld(catalog)
     n_fields = sum(1 for c in catalog.values() if c["fields"])
     n_disc = sum(1 for c in catalog.values() if c["discover"])
     print(f"ok: {len(catalog)} fontes ({len(catalog) - len(SAME_AS)} distintas) -> {OUT}")
     n_vol = sum(1 for c in catalog.values() if c.get("volume"))
     print(f"    {n_fields} com campos amostrados, {n_disc} com discover ao vivo, {n_vol} com selo de volume")
+    print(f"    {n_jsonld} bases na marcação DataCatalog de {DOCS.name}")
+
+
+DOCS = ROOT / "site" / "docs.html"
+SITE_URL = "https://sabiadatalake.com.br/guaraci/"
+JSONLD_START = "<!-- jsonld:catalogo:inicio (gerado por scripts/build_site_catalog.py) -->"
+JSONLD_END = "<!-- jsonld:catalogo:fim -->"
+
+
+def write_docs_jsonld(catalog: dict) -> int:
+    """Escreve no docs.html a marcação schema.org DataCatalog das bases distintas.
+
+    É o que o Google Dataset Search lê. As entradas de SAME_AS ficam de fora,
+    porque repetiriam a mesma base. O id da âncora segue o slug() de docs.js.
+    """
+    import re
+
+    def plain(s: str) -> str:
+        # O texto editorial usa travessão como aposto e traço em intervalo de anos;
+        # no que vai para o buscador, viram vírgula e hífen.
+        s = re.sub(r"(\d)\u2013(\d)", r"\1-\2", s)
+        return re.sub(r"\s*[\u2013\u2014]\s*", ", ", s)
+
+    datasets = []
+    for key, c in catalog.items():
+        if c.get("sameAs"):
+            continue
+        n, d, creator = plain(c["n"]), plain(c["d"]), plain(c["m"])
+        desc = f"{d}. Mantenedor: {creator}. Atualização {c['cadence']}"
+        if c["minYear"]:
+            desc += f", com dados desde {c['minYear']}"
+        desc += f". O Guaraci baixa direto da fonte oficial, por {c['modeLabel']}."
+        ds = {
+            "@type": "Dataset",
+            "name": f"{n}: {d}",
+            "description": desc,
+            "url": SITE_URL + "docs.html#src-" + re.sub(r"[^a-z0-9]+", "-", key, flags=re.I).strip("-"),
+            "creator": {"@type": "Organization", "name": creator},
+            "keywords": [plain(c["g"]), "dados públicos", "Brasil"],
+            "isAccessibleForFree": True,
+            "inLanguage": "pt-BR",
+        }
+        if c["minYear"]:
+            ds["temporalCoverage"] = f"{c['minYear']}/.."
+        datasets.append(ds)
+
+    doc = {
+        "@context": "https://schema.org",
+        "@type": "DataCatalog",
+        "name": "Catálogo de bases do Guaraci",
+        "description": "Bases de dados públicos brasileiros (saúde, população, clima, saneamento "
+                       "e território) que o Guaraci obtém direto das fontes oficiais.",
+        "url": SITE_URL + "docs.html",
+        "inLanguage": "pt-BR",
+        "publisher": {"@type": "Organization", "name": "AutoAI-Pandemics (ICMC-USP)",
+                      "url": "https://autoaipandemics.icmc.usp.br/"},
+        "dataset": datasets,
+    }
+    body = json.dumps(doc, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    html = DOCS.read_text(encoding="utf-8")
+    i, j = html.find(JSONLD_START), html.find(JSONLD_END)
+    if i < 0 or j < i:
+        raise SystemExit(f"marcadores do JSON-LD não encontrados em {DOCS}")
+    block = f'{JSONLD_START}\n  <script type="application/ld+json">{body}</script>\n  '
+    DOCS.write_text(html[:i] + block + html[j:], encoding="utf-8", newline="")
+    return len(datasets)
 
 
 # Anos candidatos por fonte (fontes legadas não têm dados recentes). O default
