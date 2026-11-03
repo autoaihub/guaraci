@@ -41,6 +41,7 @@ import verificar_rotas as vr  # noqa: E402  (define GUARACI_DATA_ROOT antes do i
 import polars as pl  # noqa: E402
 from loguru import logger  # noqa: E402
 
+from _origens import ALCANCE  # noqa: E402
 from guaraci.services.downloads import DownloadService  # noqa: E402
 
 ROOT = vr.ROOT
@@ -192,6 +193,9 @@ def confere_fonte(service: DownloadService, s: str, base: Path, dicionario: Dict
     nomes = {p["name"] for p in schema["params"]}
     if "output_format" not in nomes:
         return {"pulada": "fonte sem exportação (crawler de arquivos brutos)"}
+    if s in vr._SO_CABECALHO:
+        # Sem recorte pequeno e três formatos: encheu o disco do runner em 02/11.
+        return {"pulada": "arquivos de vários GB sem recorte pequeno; a rota confere só o cabeçalho"}
     pasta = base / s
     params = vr.params_pequenos(schema, s, pasta)
     if "keep_raw" in nomes:
@@ -210,6 +214,9 @@ def confere_fonte(service: DownloadService, s: str, base: Path, dicionario: Dict
             texto = f"{type(exc).__name__}: {exc}"
             if any(c in texto for c in vr._CREDENCIAIS) or "is required" in texto or "é obrigatório" in texto:
                 return {"pulada": texto[:200]}
+            host = ALCANCE.afetado(texto)
+            if host:
+                return {"pulada": f"{vr.MOTIVO_ORIGEM}: {host}", "aviso_origem": True}
             problemas.append(f"{formato}: coleta falhou: {texto[:300]}")
             continue
         arquivos = [Path(p) for p in (resultado.get("exported_files") or [])]
@@ -364,6 +371,7 @@ def main() -> int:
             shutil.rmtree(base / s, ignore_errors=True)
 
     t0 = time.monotonic()
+    ALCANCE.sondar()
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         resultados = dict(pool.map(um, fontes))
 
@@ -377,7 +385,8 @@ def main() -> int:
 
     saida = ROOT / "reports" / f"verificacao_conteudo_{time.strftime('%Y%m%d_%H%M')}.json"
     saida.parent.mkdir(parents=True, exist_ok=True)
-    saida.write_text(json.dumps(resultados, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    saida.write_text(json.dumps({"_origens": ALCANCE.relatorio(), **resultados},
+                                ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     vistas = {s: r.get("colunas") for s, r in resultados.items() if r.get("colunas")}
     anteriores = json.loads(COLUNAS_VISTAS.read_text(encoding="utf-8")) if COLUNAS_VISTAS.exists() else {}
     anteriores.update(vistas)
@@ -392,7 +401,8 @@ def main() -> int:
         for p in r["problemas"]:
             print(f"PROBLEMA {s:<45} {p}")
     for s, motivo in sorted(puladas.items()):
-        print(f"PULADA   {s:<45} {motivo}")
+        rotulo = "AVISO " if resultados[s].get("aviso_origem") else "PULADA"
+        print(f"{rotulo}   {s:<45} {motivo}")
     return 1 if falhas else 0
 
 

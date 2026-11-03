@@ -34,6 +34,7 @@ import verificar_rotas as vr  # noqa: E402
 import polars as pl  # noqa: E402
 from loguru import logger  # noqa: E402
 
+from _origens import ALCANCE  # noqa: E402
 from guaraci.opendatasus.datasource import _UF_BY_NAME as _UF_POR_NOME, _fold  # noqa: E402
 from guaraci.services.downloads import DownloadService  # noqa: E402
 
@@ -143,6 +144,8 @@ def confere_fonte(service: DownloadService, s: str, pasta: Path) -> Dict[str, An
              and p["type"] != "integer"]
     if not specs or "output_format" not in {p["name"] for p in schema["params"]}:
         return {"pulada": "sem filtro de conteúdo"}
+    if s in vr._SO_CABECALHO:
+        return {"pulada": "arquivos de vários GB sem recorte pequeno; a rota confere só o cabeçalho"}
     base_params = vr.params_pequenos(schema, s, pasta / "base")
     base_params["output_format"] = "csv"
     # Nas APIs a base vai sem recorte de UF. No FTP fica o AC do verificador:
@@ -157,6 +160,9 @@ def confere_fonte(service: DownloadService, s: str, pasta: Path) -> Dict[str, An
         texto = f"{type(exc).__name__}: {exc}"
         if any(c in texto for c in vr._CREDENCIAIS) or "is required" in texto or "é obrigatório" in texto:
             return {"pulada": texto[:160]}
+        host = ALCANCE.afetado(texto)
+        if host:
+            return {"pulada": f"{vr.MOTIVO_ORIGEM}: {host}", "aviso_origem": True}
         return {"problemas": [f"linha de base falhou: {texto[:250]}"], "avisos": [], "filtros": {}}
     assinatura_base = _assinatura(base)
 
@@ -232,6 +238,7 @@ def main() -> int:
             return s, {"problemas": [f"verificador quebrou: {type(exc).__name__}: {str(exc)[:300]}"], "avisos": []}
 
     t0 = time.monotonic()
+    ALCANCE.sondar()
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         resultados = dict(pool.map(um, fontes))
 
@@ -244,7 +251,8 @@ def main() -> int:
             resultados.update(dict(pool.map(um, repetir)))
     saida = vr.ROOT / "reports" / f"verificacao_filtros_{time.strftime('%Y%m%d_%H%M')}.json"
     saida.parent.mkdir(parents=True, exist_ok=True)  # reports/ não vem no checkout
-    saida.write_text(json.dumps(resultados, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    saida.write_text(json.dumps({"_origens": ALCANCE.relatorio(), **resultados},
+                                ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     testados = sum(1 for r in resultados.values() for v in (r.get("filtros") or {}).values() if str(v).startswith("ok"))
     falhas = {s: r for s, r in resultados.items() if r.get("problemas")}
     print(f"{len(fontes)} fontes, {testados} filtros confirmados, {len(falhas)} fontes com problema, "
@@ -252,6 +260,9 @@ def main() -> int:
     for s, r in sorted(falhas.items()):
         for p in r["problemas"]:
             print(f"PROBLEMA {s:<45} {p}")
+    for s, r in sorted(resultados.items()):
+        if r.get("aviso_origem"):
+            print(f"AVISO    {s:<45} {r['pulada']}")
     return 1 if falhas else 0
 
 

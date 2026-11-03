@@ -117,8 +117,12 @@ def main() -> int:
     # 1. simultâneos -----------------------------------------------------------
     def simultaneos(cli: httpx.Client) -> str:
         pedidos = {
-            "ibge_area_territorial": {"output_format": "csv"},
-            "ibge_casamentos": {"output_format": "parquet"},
+            # Eram duas fontes do IBGE; o servicodados.ibge.gov.br não responde
+            # do runner do GitHub (EUA). Estas duas são do DEMAS, que responde.
+            "cnes_tipounidades_por_codigo_tipo_unidade": {
+                "output_format": "csv", "codigo_tipo_unidade": "5", "max_pages": 2},
+            "economia_da_saude_bps": {
+                "output_format": "parquet", "codigoCatmat": "BR0267614", "max_pages": 2},
             "mpox": {"output_format": "csv", "max_pages": 2},
             "esavi": {"output_format": "sqlite", "max_pages": 2},
             "anvisa_cmed_precos": {"output_format": "parquet"},
