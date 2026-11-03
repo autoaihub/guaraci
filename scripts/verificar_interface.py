@@ -30,6 +30,8 @@ except ImportError:  # --validar roda no venv do projeto, sem Playwright
     sync_playwright = None
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _origens import ALCANCE, MOTIVO  # noqa: E402
 
 
 def main() -> int:
@@ -37,6 +39,8 @@ def main() -> int:
     parser.add_argument("--url", default="http://127.0.0.1:8766")
     parser.add_argument("--fontes", default="")
     parser.add_argument("--coleta-real", default="ibge_area_territorial")
+    parser.add_argument("--coleta-real-host", default="servicodados.ibge.gov.br",
+                        help="host de origem da coleta real; inalcançável do runner vira aviso")
     parser.add_argument("--saida", default=str(ROOT / "reports" / "verificacao_interface"))
     parser.add_argument("--validar", action="store_true",
                         help="Só valida os corpos já capturados (venv do projeto).")
@@ -45,6 +49,8 @@ def main() -> int:
     if args.validar:
         return validar(shots)
     shots.mkdir(parents=True, exist_ok=True)
+    ALCANCE.sondar([args.coleta_real_host])
+    avisos: List[Dict[str, Any]] = []
 
     problemas: List[Dict[str, Any]] = []
     capturados: Dict[str, Any] = {}
@@ -154,10 +160,13 @@ def main() -> int:
         page.screenshot(path=str(shots / "03_gaveta_job.png"))
         log = page.inner_text("#log-box")
         exportados = page.inner_text("#d-exported")
+        # Origem fora do alcance do runner: o job não conclui por causa dela,
+        # não do Guaraci. O formulário e o envio já foram conferidos acima.
+        destino = avisos if args.coleta_real_host in ALCANCE.inalcancaveis else problemas
         if not any(k in status for k in ("conclu", "complet")):
-            problemas.append({"fonte": s, "tipo": "coleta", "msg": f"estado final {status!r}; log: {log[-300:]}"})
+            destino.append({"fonte": s, "tipo": "coleta", "msg": f"estado final {status!r}; log: {log[-300:]}"})
         if not exportados.strip() or exportados.strip() in ("-", "--"):
-            problemas.append({"fonte": s, "tipo": "coleta", "msg": "gaveta sem arquivos exportados"})
+            destino.append({"fonte": s, "tipo": "coleta", "msg": "gaveta sem arquivos exportados"})
 
         # Outras telas e alternâncias.
         contexto["fonte"] = "(telas)"
@@ -193,12 +202,15 @@ def main() -> int:
     # fica num venv à parte): python scripts/verificar_interface.py --validar.
 
     (shots / "resultado.json").write_text(json.dumps(
-        {"problemas": problemas, "payloads": capturados, "estimativas": estimativas},
+        {"problemas": problemas, "avisos": avisos, "origens": ALCANCE.relatorio(),
+         "payloads": capturados, "estimativas": estimativas},
         ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{len(fontes)} fontes na interface, {len(capturados)} envios capturados, "
           f"{len(estimativas)} estimativas, {len(problemas)} problemas -> {shots}")
     for p in problemas:
         print(f"PROBLEMA {p['tipo']:<10} {p['fonte']:<40} {p['msg']}")
+    for a in avisos:
+        print(f"AVISO    {a['tipo']:<10} {a['fonte']:<40} {MOTIVO}: {a['msg']}")
     return 1 if problemas else 0
 
 

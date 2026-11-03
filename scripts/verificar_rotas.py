@@ -36,6 +36,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from _origens import ALCANCE, MOTIVO as MOTIVO_ORIGEM  # noqa: E402
 from _temporarios import pasta_temporaria  # noqa: E402
 
 # Os jobs de teste não podem cair no histórico real (data/jobs): a raiz de
@@ -201,10 +202,19 @@ class Relatorio:
             self.registra(fonte, verificacao, True, detalhe)
             return resultado
         except AssertionError as exc:
-            self.registra(fonte, verificacao, False, str(exc) or "assert")
+            self.falha(fonte, verificacao, str(exc) or "assert")
         except Exception as exc:  # noqa: BLE001
-            self.registra(fonte, verificacao, False, f"{type(exc).__name__}: {exc}"[:600])
+            self.falha(fonte, verificacao, f"{type(exc).__name__}: {exc}"[:600])
         return None
+
+    def falha(self, fonte: str, verificacao: str, texto: str) -> None:
+        """Falha que cita host sondado e inalcançável do runner vira aviso."""
+        host = ALCANCE.afetado(texto)
+        if host:
+            self.registra(fonte, verificacao, True,
+                          {"aviso_origem": f"{MOTIVO_ORIGEM}: {host}", "erro": texto[:300]})
+        else:
+            self.registra(fonte, verificacao, False, texto)
 
     @property
     def falhas(self) -> List[Dict[str, Any]]:
@@ -513,6 +523,9 @@ def main() -> int:
 
     rel = Relatorio()
     t0 = time.monotonic()
+    if args.camada == "jobs":
+        ALCANCE.sondar()
+        rel.registra("(origens)", "sonda de alcance", True, ALCANCE.relatorio())
     if args.camada == "offline":
         camada_offline(api, fontes, rel)
     elif args.camada == "discovery":
@@ -531,6 +544,8 @@ def main() -> int:
         print(f"FALHA  {linha['fonte']:<40} {linha['verificacao']}: {linha['detalhe']}")
     for linha in rel.linhas:
         detalhe = linha["detalhe"]
+        if linha["ok"] and isinstance(detalhe, dict) and detalhe.get("aviso_origem"):
+            print(f"AVISO  {linha['fonte']:<40} {detalhe['aviso_origem']}")
         if linha["ok"] and isinstance(detalhe, dict) and detalhe.get("segunda_tentativa"):
             print(f"2a     {linha['fonte']:<40} passou na segunda; a primeira: {detalhe.get('primeira_falha')}")
     return 1 if rel.falhas else 0
