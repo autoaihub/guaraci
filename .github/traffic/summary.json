@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-11-03T12:54:44+00:00",
-  "repo_count": 60,
-  "total_clones": 3001,
-  "total_uniques": 1223,
+  "updated_at": "2026-11-04T13:07:52+00:00",
+  "repo_count": 61,
+  "total_clones": 3052,
+  "total_uniques": 1239,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1968,
-      "total_uniques": 730,
-      "uniques_14d": 75,
+      "total_clones": 1990,
+      "total_uniques": 739,
+      "uniques_14d": 78,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 668,
-      "total_uniques": 239,
-      "uniques_14d": 45,
+      "total_clones": 697,
+      "total_uniques": 241,
+      "uniques_14d": 42,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 23,
+      "total_uniques": 24,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
@@ -50,7 +50,7 @@
       "repo": "LuisVogelDS/churnlab",
       "total_clones": 25,
       "total_uniques": 25,
-      "uniques_14d": 4,
+      "uniques_14d": 3,
       "tracking_since": "2026-08-20"
     },
     {
@@ -63,14 +63,14 @@
     {
       "repo": "LuisVogelDS/MemoriaRam",
       "total_clones": 24,
-      "total_uniques": 9,
+      "total_uniques": 10,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
     {
       "repo": "LuisVogelDS/vitrine",
       "total_clones": 23,
-      "total_uniques": 19,
+      "total_uniques": 20,
       "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 16,
+      "total_uniques": 17,
       "uniques_14d": 1,
       "tracking_since": "2026-09-19"
     },
@@ -92,13 +92,13 @@
       "repo": "cajuice/cajuzinho",
       "total_clones": 6,
       "total_uniques": 5,
-      "uniques_14d": 1,
+      "uniques_14d": 0,
       "tracking_since": "2026-09-22"
     },
     {
       "repo": "LuisVogelDS/GolDePlaca",
       "total_clones": 5,
-      "total_uniques": 6,
+      "total_uniques": 7,
       "uniques_14d": 1,
       "tracking_since": "2026-09-13"
     },
@@ -353,6 +353,13 @@
       "total_uniques": 0,
       "uniques_14d": 0,
       "tracking_since": "2026-08-20"
+    },
+    {
+      "repo": "LuisVogelDS/exposicao",
+      "total_clones": 0,
+      "total_uniques": 0,
+      "uniques_14d": 0,
+      "tracking_since": "2026-10-22"
     },
     {
       "repo": "autoaihub/guaraci-docs",
