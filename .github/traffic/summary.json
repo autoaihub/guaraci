@@ -1,14 +1,14 @@
 {
-  "updated_at": "2026-11-06T13:03:28+00:00",
+  "updated_at": "2026-11-07T11:49:35+00:00",
   "repo_count": 61,
-  "total_clones": 3067,
-  "total_uniques": 1255,
+  "total_clones": 3084,
+  "total_uniques": 1265,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 1999,
-      "total_uniques": 746,
-      "uniques_14d": 78,
+      "total_clones": 2014,
+      "total_uniques": 755,
+      "uniques_14d": 80,
       "tracking_since": "2026-08-12"
     },
     {
@@ -50,7 +50,7 @@
       "repo": "LuisVogelDS/churnlab",
       "total_clones": 25,
       "total_uniques": 25,
-      "uniques_14d": 2,
+      "uniques_14d": 1,
       "tracking_since": "2026-08-20"
     },
     {
@@ -61,18 +61,18 @@
       "tracking_since": "2026-08-20"
     },
     {
+      "repo": "LuisVogelDS/vitrine",
+      "total_clones": 25,
+      "total_uniques": 21,
+      "uniques_14d": 2,
+      "tracking_since": "2026-08-20"
+    },
+    {
       "repo": "LuisVogelDS/MemoriaRam",
       "total_clones": 24,
       "total_uniques": 10,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
-    },
-    {
-      "repo": "LuisVogelDS/vitrine",
-      "total_clones": 23,
-      "total_uniques": 20,
-      "uniques_14d": 2,
-      "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/Alquimia",
