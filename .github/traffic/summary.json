@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-11-07T11:49:35+00:00",
+  "updated_at": "2026-11-08T12:01:18+00:00",
   "repo_count": 61,
-  "total_clones": 3084,
-  "total_uniques": 1265,
+  "total_clones": 3094,
+  "total_uniques": 1273,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 2014,
-      "total_uniques": 755,
-      "uniques_14d": 80,
+      "total_clones": 2023,
+      "total_uniques": 762,
+      "uniques_14d": 83,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 701,
-      "total_uniques": 243,
-      "uniques_14d": 36,
+      "total_clones": 702,
+      "total_uniques": 244,
+      "uniques_14d": 35,
       "tracking_since": "2026-08-20"
     },
     {
@@ -36,14 +36,14 @@
       "repo": "LuisVogelDS/LuisVogelDS",
       "total_clones": 30,
       "total_uniques": 30,
-      "uniques_14d": 3,
+      "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
       "total_clones": 27,
       "total_uniques": 27,
-      "uniques_14d": 2,
+      "uniques_14d": 1,
       "tracking_since": "2026-08-20"
     },
     {

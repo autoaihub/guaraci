@@ -1,15 +1,15 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-11-07T11:49:35+00:00. 3084 clonagens (1265 únicas) em 61 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-11-08T12:01:18+00:00. 3094 clonagens (1273 únicas) em 61 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 2014 | 755 | 80 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 701 | 243 | 36 | 2026-08-20 |
+| autoaihub/guaraci | 2023 | 762 | 83 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 702 | 244 | 35 | 2026-08-20 |
 | LuisVogelDS/IntraAct | 76 | 25 | 1 | 2026-08-21 |
 | cajuice/shop-list | 63 | 9 | 0 | 2026-09-20 |
-| LuisVogelDS/LuisVogelDS | 30 | 30 | 3 | 2026-08-20 |
-| LuisVogelDS/retail-pulse | 27 | 27 | 2 | 2026-08-20 |
+| LuisVogelDS/LuisVogelDS | 30 | 30 | 2 | 2026-08-20 |
+| LuisVogelDS/retail-pulse | 27 | 27 | 1 | 2026-08-20 |
 | LuisVogelDS/churnlab | 25 | 25 | 1 | 2026-08-20 |
 | LuisVogelDS/loadbay | 25 | 25 | 1 | 2026-08-20 |
 | LuisVogelDS/vitrine | 25 | 21 | 2 | 2026-08-20 |
