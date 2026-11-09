@@ -1,14 +1,14 @@
 {
-  "updated_at": "2026-11-08T12:01:18+00:00",
+  "updated_at": "2026-11-09T14:03:26+00:00",
   "repo_count": 61,
-  "total_clones": 3094,
-  "total_uniques": 1273,
+  "total_clones": 3111,
+  "total_uniques": 1284,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 2023,
-      "total_uniques": 762,
-      "uniques_14d": 83,
+      "total_clones": 2040,
+      "total_uniques": 772,
+      "uniques_14d": 81,
       "tracking_since": "2026-08-12"
     },
     {
@@ -36,7 +36,7 @@
       "repo": "LuisVogelDS/LuisVogelDS",
       "total_clones": 30,
       "total_uniques": 30,
-      "uniques_14d": 2,
+      "uniques_14d": 1,
       "tracking_since": "2026-08-20"
     },
     {
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 18,
+      "total_uniques": 19,
       "uniques_14d": 1,
       "tracking_since": "2026-09-19"
     },
