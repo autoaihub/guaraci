@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-11-09T14:03:26+00:00",
+  "updated_at": "2026-11-10T13:36:56+00:00",
   "repo_count": 61,
-  "total_clones": 3111,
-  "total_uniques": 1284,
+  "total_clones": 3138,
+  "total_uniques": 1303,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 2040,
-      "total_uniques": 772,
-      "uniques_14d": 81,
+      "total_clones": 2043,
+      "total_uniques": 774,
+      "uniques_14d": 78,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 702,
-      "total_uniques": 244,
-      "uniques_14d": 35,
+      "total_clones": 722,
+      "total_uniques": 256,
+      "uniques_14d": 44,
       "tracking_since": "2026-08-20"
     },
     {
@@ -41,23 +41,23 @@
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 27,
-      "total_uniques": 27,
-      "uniques_14d": 1,
+      "total_clones": 28,
+      "total_uniques": 28,
+      "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/churnlab",
-      "total_clones": 25,
-      "total_uniques": 25,
-      "uniques_14d": 1,
+      "total_clones": 26,
+      "total_uniques": 26,
+      "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/loadbay",
-      "total_clones": 25,
-      "total_uniques": 25,
-      "uniques_14d": 1,
+      "total_clones": 26,
+      "total_uniques": 26,
+      "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
     {
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 19,
+      "total_uniques": 20,
       "uniques_14d": 1,
       "tracking_since": "2026-09-19"
     },
@@ -103,6 +103,13 @@
       "tracking_since": "2026-09-13"
     },
     {
+      "repo": "LuisVogelDS/Volvo",
+      "total_clones": 4,
+      "total_uniques": 4,
+      "uniques_14d": 1,
+      "tracking_since": "2026-08-20"
+    },
+    {
       "repo": "cajuice/clinica",
       "total_clones": 4,
       "total_uniques": 13,
@@ -115,13 +122,6 @@
       "total_uniques": 13,
       "uniques_14d": 2,
       "tracking_since": "2026-09-29"
-    },
-    {
-      "repo": "LuisVogelDS/Volvo",
-      "total_clones": 3,
-      "total_uniques": 3,
-      "uniques_14d": 0,
-      "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/presto",
