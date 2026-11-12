@@ -1,11 +1,11 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-11-11T12:49:39+00:00. 3164 clonagens (1320 únicas) em 61 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-11-12T13:52:45+00:00. 3187 clonagens (1334 únicas) em 61 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 2058 | 782 | 75 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 731 | 259 | 45 | 2026-08-20 |
+| autoaihub/guaraci | 2070 | 789 | 76 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 742 | 265 | 48 | 2026-08-20 |
 | LuisVogelDS/IntraAct | 76 | 26 | 1 | 2026-08-21 |
 | cajuice/shop-list | 63 | 9 | 0 | 2026-09-20 |
 | LuisVogelDS/LuisVogelDS | 30 | 30 | 1 | 2026-08-20 |
@@ -15,7 +15,7 @@ Atualizado em 2026-11-11T12:49:39+00:00. 3164 clonagens (1320 únicas) em 61 rep
 | LuisVogelDS/vitrine | 26 | 22 | 2 | 2026-08-20 |
 | LuisVogelDS/MemoriaRam | 24 | 11 | 1 | 2026-08-21 |
 | LuisVogelDS/Alquimia | 8 | 2 | 0 | 2026-08-21 |
-| LuisVogelDS/HarpyNest | 8 | 21 | 1 | 2026-09-19 |
+| LuisVogelDS/HarpyNest | 8 | 22 | 1 | 2026-09-19 |
 | cajuice/cajuzinho | 6 | 5 | 0 | 2026-09-22 |
 | LuisVogelDS/GolDePlaca | 5 | 8 | 1 | 2026-09-13 |
 | LuisVogelDS/Volvo | 4 | 4 | 1 | 2026-08-20 |
@@ -26,7 +26,7 @@ Atualizado em 2026-11-11T12:49:39+00:00. 3164 clonagens (1320 únicas) em 61 rep
 | LuisVogelDS/Cajuice | 2 | 2 | 0 | 2026-09-19 |
 | LuisVogelDS/GobbleGoblin | 2 | 1 | 0 | 2026-08-21 |
 | LuisVogelDS/LilianeVogelAtelier | 2 | 2 | 0 | 2026-08-21 |
-| LuisVogelDS/Vestiario | 2 | 2 | 2 | 2026-10-15 |
+| LuisVogelDS/Vestiario | 2 | 2 | 1 | 2026-10-15 |
 | LuisVogelDS/prospero-dados | 2 | 1 | 1 | 2026-09-22 |
 | cajuice/Cajuice | 2 | 2 | 0 | 2026-09-20 |
 | cajuice/conteudo | 2 | 2 | 0 | 2026-09-22 |
