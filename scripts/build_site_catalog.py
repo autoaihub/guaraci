@@ -75,8 +75,23 @@ G_SEG = "Segurança pública e direitos humanos"
 G_INV = "Investimento público e séries econômicas"
 G_EST = "Frente estadual · SP e RJ"
 G_TER = "Território e fiscalização ambiental"
+G_PREV = "Previdência social · INSS"
+G_TRN = "Trânsito · Senatran"
+G_ECOA = "Atividade econômica · CNPJ e BNDES"
+G_AGM = "Agropecuária · MAPA e crédito rural"
+G_EST2 = "Frente municipal e estadual · PE, RS e MG"
 IBAMA = "IBAMA, Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renováveis"
 MTE = "MTE, Ministério do Trabalho e Emprego"
+INSS = "INSS, Instituto Nacional do Seguro Social"
+SENATRAN = "Senatran, Secretaria Nacional de Trânsito"
+RFB = "Receita Federal do Brasil"
+BNDES = "BNDES, Banco Nacional de Desenvolvimento Econômico e Social"
+MAPA = "MAPA, Ministério da Agricultura e Pecuária"
+BCB = "Banco Central do Brasil"
+PREF_RECIFE = "Prefeitura do Recife"
+PREF_POA = "Prefeitura de Porto Alegre"
+FHEMIG = "FHEMIG, Fundação Hospitalar do Estado de Minas Gerais"
+SES_MG = "SES-MG, Secretaria de Estado de Saúde de Minas Gerais"
 
 # key → (nome exibição, descrição, grupo, mantenedor, área)
 CURATED = {
@@ -390,6 +405,37 @@ CURATED = {
     "mapbiomas_vegetacao_secundaria_municipios": ("MapBiomas · vegetação secundária", "Área de vegetação secundária por município e ano, coleção 10 (fonte secundária, CC BY 4.0)", G_TER, "MapBiomas", "clima"),
     "mdhc_ligue180": ("Ligue 180", "Atendimentos da Central de Atendimento à Mulher por semestre, de 2020 a 1S2024, com perfil de vítima e suspeito", G_SEG, "MDHC, Ministério dos Direitos Humanos e da Cidadania", "pop"),
     "ssp_sp_dados_criminais": ("SSP-SP · dados criminais", "Boletins de ocorrência do estado de São Paulo, por ano desde 2022, com local, natureza e município", G_EST, "SSP-SP, Secretaria da Segurança Pública de São Paulo", "pop"),
+    # Registro em novembro/2026: CKAN federal e estadual, CNPJ e SICOR (leva 6, onda 2)
+    "mma_unidades_conservacao": ("CNUC · unidades de conservação", "Cadastro das unidades de conservação federais, estaduais e municipais, com categoria, área por bioma e órgão gestor, uma edição por semestre desde 2018", G_TER, "MMA, Ministério do Meio Ambiente e Mudança do Clima", "clima"),
+    "mma_especies_ameacadas": ("MMA · espécies ameaçadas", "Listas nacionais oficiais de espécies da fauna e da flora ameaçadas de extinção, a partir da edição de 2014, uma por arquivo", G_TER, "MMA, Ministério do Meio Ambiente e Mudança do Clima", "clima"),
+    "inss_cat": ("INSS · comunicações de acidente de trabalho", "Acidentes de trabalho comunicados por mês, com agente causador, CID-10, CBO, CNAE, parte do corpo e município, desde junho de 2023 (traz data de nascimento do acidentado e, para empregador pessoa física, o CPF)", G_PREV, INSS, "saude"),
+    "inss_beneficios_concedidos": ("INSS · benefícios concedidos", "Benefícios previdenciários e assistenciais concedidos por mês, com espécie, CID, município de residência e ramo de atividade, desde junho de 2023 (traz data de nascimento)", G_PREV, INSS, "pop"),
+    "inss_beneficios_mantidos": ("INSS · benefícios mantidos", "Estoque mensal de benefícios ativos e suspensos, com espécie, CID-10, município do titular e renda mensal, desde 2023 (um zip de centenas de MB por mês; traz data de nascimento)", G_PREV, INSS, "pop"),
+    "inss_beneficios_cessados": ("INSS · benefícios cessados", "Benefícios cessados até cada mês, com motivo da cessação, espécie, CID-10 e município do titular, desde 2023 (zip de mais de 3 GB por mês; traz data de nascimento)", G_PREV, INSS, "pop"),
+    "inss_beneficios_indeferidos": ("INSS · benefícios indeferidos", "Requerimentos indeferidos por mês, com espécie, motivo do indeferimento, UF e ramo de atividade, desde junho de 2023 (traz data de nascimento)", G_PREV, INSS, "pop"),
+    "senatran_renaest": ("RENAEST · acidentes de trânsito", "Acidentes, vítimas e tipos de veículo registrados pelas UFs, desde 2018, em um zip mensal acumulado de cerca de 500 MB com quatro tabelas", G_TRN, SENATRAN, "saude"),
+    "bndes_operacoes_financiamento": ("BNDES · operações de financiamento", "Operações indiretas automáticas (CSV de 1,2 GB) e não automáticas, com cliente, município, valor, produto e setor CNAE (traz o nome do cliente)", G_ECOA, BNDES, "pop"),
+    "bndes_desembolsos_mensais": ("BNDES · desembolsos mensais", "Desembolsos por mês desde 2002, por forma de apoio, município, setor e porte da empresa, em dado agregado", G_ECOA, BNDES, "pop"),
+    "mapa_agrofit": ("MAPA · AGROFIT, agrotóxicos registrados", "Produtos formulados e técnicos registrados, por marca, cultura e praga, com ingrediente ativo, classe toxicológica e titular do registro", G_AGM, MAPA, "saude"),
+    "mapa_sif": ("MAPA · Serviço de Inspeção Federal", "Abates, condenações de carcaças, doenças por procedência e estabelecimentos habilitados no SIF, em onze arquivos", G_AGM, MAPA, "saude"),
+    "mapa_sipeagro": ("MAPA · SIPEAGRO", "Estabelecimentos registrados por área de atuação (fertilizantes, produto veterinário, alimentação animal, vinhos e bebidas e outras), em dez arquivos", G_AGM, MAPA, "pop"),
+    "receita_cnpj_estabelecimentos": ("CNPJ · estabelecimentos", "Cadastro de matrizes e filiais com situação cadastral, CNAE, endereço, telefone e e-mail, por competência mensal desde maio de 2023 (traz dado de contato)", G_ECOA, RFB, "pop"),
+    "receita_cnpj_empresas": ("CNPJ · empresas", "Razão social, natureza jurídica, capital social e porte por CNPJ básico, por competência mensal desde maio de 2023", G_ECOA, RFB, "pop"),
+    "receita_cnpj_socios": ("CNPJ · sócios", "Quadro societário com nome do sócio, CPF parcial, qualificação e representante legal, por competência mensal desde maio de 2023", G_ECOA, RFB, "pop"),
+    "receita_cnpj_simples": ("CNPJ · Simples Nacional e MEI", "Opção pelo Simples Nacional e pelo MEI por CNPJ básico, com datas de opção e de exclusão, por competência mensal desde maio de 2023", G_ECOA, RFB, "pop"),
+    "receita_cnpj_tabelas": ("CNPJ · tabelas de domínio", "CNAE, municípios pelo código da Receita, naturezas jurídicas, qualificações, países e motivos de situação cadastral", G_ECOA, RFB, "pop"),
+    "recife_dengue": ("Recife · dengue", "Casos notificados em registro individual (leiaute SINAN), com bairro, logradouro e CEP de residência, de 2013 a 2025", G_EST2, PREF_RECIFE, "saude"),
+    "recife_chikungunya": ("Recife · chikungunya", "Casos confirmados em registro individual (leiaute SINAN), com bairro, logradouro e CEP de residência, de 2015 a 2025", G_EST2, PREF_RECIFE, "saude"),
+    "recife_zika": ("Recife · zika", "Casos confirmados em registro individual (leiaute SINAN), com bairro, logradouro e CEP de residência, de 2015 a 2025", G_EST2, PREF_RECIFE, "saude"),
+    "poa_gercon_consultas": ("Porto Alegre · GERCON, consultas especializadas", "Fila de consultas especializadas, uma linha por solicitação, de 2017 a 2026, com especialidade, CID, dias de espera e situação da agenda (paciente pseudonimizado; cerca de 3,3 GB no total)", G_EST2, PREF_POA, "saude"),
+    "fhemig_indicadores_hospitalares": ("FHEMIG · indicadores hospitalares", "Indicadores por unidade e mês dos hospitais da fundação (internações, óbitos, partos, giro de leitos, permanência), em 27 conjuntos", G_EST2, FHEMIG, "saude"),
+    "mg_hanseniase": ("Minas Gerais · hanseníase", "Casos notificados de residentes em Minas Gerais (espelho do SINAN), com município e data de nascimento, atualização semanal", G_EST2, SES_MG, "saude"),
+    "mg_aids_hiv": ("Minas Gerais · aids e HIV", "Casos notificados de residentes em Minas Gerais (espelho do SINAN), com município e data de nascimento, atualização semanal", G_EST2, SES_MG, "saude"),
+    "mg_tuberculose": ("Minas Gerais · tuberculose", "Casos notificados de residentes em Minas Gerais (espelho do SINAN), com município e data de nascimento, atualização semanal", G_EST2, SES_MG, "saude"),
+    "mg_acidentes_transporte": ("Minas Gerais · óbitos por acidentes de transporte", "Óbitos por acidentes de transporte terrestre (SIM) com município, CID-10 da causa básica, sexo, raça ou cor e idade, atualização semanal", G_EST2, SES_MG, "saude"),
+    "bcb_sicor_custeio_municipio": ("SICOR · crédito rural de custeio", "Contratos de custeio por município e produto, por mês de emissão desde 2013", G_AGM, BCB, "pop"),
+    "bcb_sicor_investimento_municipio": ("SICOR · crédito rural de investimento", "Contratos de investimento por município e produto, por mês de emissão desde 2013", G_AGM, BCB, "pop"),
+    "bcb_sicor_comercializacao_uf": ("SICOR · crédito rural de comercialização", "Contratos de comercialização por UF e produto, por mês de emissão desde 2013", G_AGM, BCB, "pop"),
 }
 
 MODE_LABEL = {
@@ -436,6 +482,9 @@ MODE_LABEL = {
     "ibge files": "Arquivos do FTP do IBGE",
     "mapbiomas files": "Planilhas públicas do MapBiomas",
     "ssp sp files": "Planilhas anuais da SSP-SP",
+    "ckan files": "Portais CKAN de dados abertos",
+    "receita webdav files": "WebDAV público da Receita Federal",
+    "sicor odata": "API SICOR (Banco Central, OData)",
 }
 
 CADENCE_PT = {
@@ -498,6 +547,9 @@ MODE_I18N = {
         "Arquivos do FTP do IBGE": "IBGE FTP files",
         "Planilhas públicas do MapBiomas": "MapBiomas public spreadsheets",
         "Planilhas anuais da SSP-SP": "SSP-SP annual spreadsheets",
+        "Portais CKAN de dados abertos": "CKAN open data portals",
+        "WebDAV público da Receita Federal": "Federal Revenue Service public WebDAV",
+        "API SICOR (Banco Central, OData)": "SICOR API (Central Bank, OData)",
         "API IBGE SIDRA": "IBGE SIDRA API",
         "API NASA POWER": "NASA POWER API",
         "API NASA GPM": "NASA GPM API",
@@ -540,6 +592,9 @@ MODE_I18N = {
         "Arquivos do FTP do IBGE": "Archivos del FTP del IBGE",
         "Planilhas públicas do MapBiomas": "Hojas de cálculo públicas de MapBiomas",
         "Planilhas anuais da SSP-SP": "Hojas de cálculo anuales de la SSP-SP",
+        "Portais CKAN de dados abertos": "Portales CKAN de datos abiertos",
+        "WebDAV público da Receita Federal": "WebDAV público de la Receita Federal",
+        "API SICOR (Banco Central, OData)": "API SICOR (Banco Central, OData)",
         "API IBGE SIDRA": "API IBGE SIDRA",
         "API NASA POWER": "API NASA POWER",
         "API NASA GPM": "API NASA GPM",

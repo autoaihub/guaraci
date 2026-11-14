@@ -156,6 +156,34 @@
   "method": "estimado",
   "measured_on": "2026-10-15"
  },
+ "bcb_sicor_comercializacao_uf": {
+  "csv_bytes": 2891886,
+  "rows": 45152,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "bcb_sicor_custeio_municipio": {
+  "csv_bytes": 351806788,
+  "rows": 3851366,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "bcb_sicor_investimento_municipio": {
+  "csv_bytes": 681247566,
+  "rows": 6056344,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "bndes_desembolsos_mensais": {
+  "csv_bytes": 754625363,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "bndes_operacoes_financiamento": {
+  "csv_bytes": 1231215621,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
  "cetesb_estacoes": {
   "method": "sob demanda",
   "measured_on": "2026-10-15"
@@ -315,6 +343,11 @@
   "rows": 2913,
   "method": "estimado",
   "measured_on": "2026-10-15"
+ },
+ "fhemig_indicadores_hospitalares": {
+  "csv_bytes": 25791102,
+  "method": "medido",
+  "measured_on": "2026-11-14"
  },
  "fns_repasses_fundo_a_fundo": {
   "csv_bytes": 945269572,
@@ -589,6 +622,31 @@
   "method": "estimado",
   "measured_on": "2026-10-20"
  },
+ "inss_beneficios_cessados": {
+  "csv_bytes": 1194368644365,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "inss_beneficios_concedidos": {
+  "csv_bytes": 1404697880,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "inss_beneficios_indeferidos": {
+  "csv_bytes": 7452607720,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "inss_beneficios_mantidos": {
+  "csv_bytes": 307284169998,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "inss_cat": {
+  "csv_bytes": 1238138400,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
  "ipeadata_metadados": {
   "csv_bytes": 11000000,
   "method": "estimado",
@@ -600,6 +658,21 @@
   "method": "estimado",
   "measured_on": "2026-10-15"
  },
+ "mapa_agrofit": {
+  "csv_bytes": 396996279,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "mapa_sif": {
+  "csv_bytes": 623952276,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "mapa_sipeagro": {
+  "csv_bytes": 199504301,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
  "mdhc_ligue180": {
   "csv_bytes": 450000000,
   "method": "pelo menos",
@@ -609,6 +682,27 @@
   "csv_bytes": 3000000000,
   "method": "estimado",
   "measured_on": "2026-10-20"
+ },
+ "mg_acidentes_transporte": {
+  "csv_bytes": 5915204,
+  "rows": 62452,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "mg_aids_hiv": {
+  "csv_bytes": 25529759,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "mg_hanseniase": {
+  "csv_bytes": 8223936,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "mg_tuberculose": {
+  "csv_bytes": 29593416,
+  "method": "medido",
+  "measured_on": "2026-11-14"
  },
  "mgdi_academia_saude": {
   "csv_bytes": 34318741,
@@ -688,11 +782,21 @@
   "method": "medido",
   "measured_on": "2026-10-15"
  },
+ "mma_especies_ameacadas": {
+  "csv_bytes": 1975718,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
  "mma_monitorar": {
   "csv_bytes": 3333179914,
   "rows": 14840381,
   "method": "medido",
   "measured_on": "2026-10-15"
+ },
+ "mma_unidades_conservacao": {
+  "csv_bytes": 14606488,
+  "method": "medido",
+  "measured_on": "2026-11-14"
  },
  "mpox": {
   "csv_bytes": 13582601,
@@ -749,6 +853,11 @@
   "method": "pelo menos",
   "measured_on": "2026-10-19"
  },
+ "poa_gercon_consultas": {
+  "csv_bytes": 3300000000,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
  "prevencao_e_promocao_distribuicao_epi_insumo": {
   "csv_bytes": 385132,
   "rows": 7055,
@@ -766,6 +875,46 @@
   "rows": 4836256,
   "method": "medido",
   "measured_on": "2026-10-15"
+ },
+ "receita_cnpj_empresas": {
+  "csv_bytes": 3259027900,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "receita_cnpj_estabelecimentos": {
+  "csv_bytes": 10785287840,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "receita_cnpj_simples": {
+  "csv_bytes": 3200784426,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "receita_cnpj_socios": {
+  "csv_bytes": 2061509330,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
+ },
+ "receita_cnpj_tabelas": {
+  "csv_bytes": 198772,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "recife_chikungunya": {
+  "csv_bytes": 20053562,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "recife_dengue": {
+  "csv_bytes": 51581386,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "recife_zika": {
+  "csv_bytes": 11981693,
+  "method": "medido",
+  "measured_on": "2026-11-14"
  },
  "resp": {
   "csv_bytes": 21132570,
@@ -909,6 +1058,11 @@
   "rows": 3882387,
   "method": "estimado",
   "measured_on": "2026-10-15"
+ },
+ "senatran_renaest": {
+  "csv_bytes": 278227323752,
+  "method": "estimado",
+  "measured_on": "2026-11-14"
  },
  "sesai_tuberculose": {
   "csv_bytes": 133301,

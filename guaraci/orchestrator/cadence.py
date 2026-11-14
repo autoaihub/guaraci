@@ -137,6 +137,33 @@ _NOVAS_FONTES_2026_10: Dict[str, tuple] = {
     "inep_ideb_municipios": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
     "mapbiomas_cobertura_municipios": (Kind.SNAPSHOT, Cadence.ANNUAL, None),
     "mapbiomas_vegetacao_secundaria_municipios": (Kind.SNAPSHOT, Cadence.ANNUAL, None),
+    # Leva 6 (onda 2, registro em novembro/2026): CKAN federal e estadual, CNPJ e SICOR. As de
+    # coleta sob pedido (arquivos de GB) estão na cadeia própria de ``profile_for``.
+    "mma_unidades_conservacao": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2018),
+    "mma_especies_ameacadas": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2014),
+    "inss_cat": (Kind.API_WINDOW, Cadence.MONTHLY, 2023),
+    "inss_beneficios_concedidos": (Kind.API_WINDOW, Cadence.MONTHLY, 2023),
+    "inss_beneficios_mantidos": (Kind.API_WINDOW, Cadence.MONTHLY, 2023),
+    "inss_beneficios_indeferidos": (Kind.API_WINDOW, Cadence.MONTHLY, 2023),
+    "senatran_renaest": (Kind.SNAPSHOT, Cadence.MONTHLY, 2018),
+    "bndes_desembolsos_mensais": (Kind.SNAPSHOT, Cadence.MONTHLY, 2002),
+    "mapa_agrofit": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mapa_sif": (Kind.SNAPSHOT, Cadence.MONTHLY, 2002),
+    "mapa_sipeagro": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    # O CNPJ é republicado por competência com o cadastro inteiro: um instantâneo por mês.
+    "receita_cnpj_simples": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "receita_cnpj_tabelas": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "recife_dengue": (Kind.API_WINDOW, Cadence.ANNUAL, 2013),
+    "recife_chikungunya": (Kind.API_WINDOW, Cadence.ANNUAL, 2015),
+    "recife_zika": (Kind.API_WINDOW, Cadence.ANNUAL, 2015),
+    "fhemig_indicadores_hospitalares": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mg_hanseniase": (Kind.SNAPSHOT, Cadence.WEEKLY, None),
+    "mg_aids_hiv": (Kind.SNAPSHOT, Cadence.WEEKLY, None),
+    "mg_tuberculose": (Kind.SNAPSHOT, Cadence.WEEKLY, None),
+    "mg_acidentes_transporte": (Kind.SNAPSHOT, Cadence.WEEKLY, 2010),
+    "bcb_sicor_custeio_municipio": (Kind.API_WINDOW, Cadence.MONTHLY, 2013),
+    "bcb_sicor_investimento_municipio": (Kind.API_WINDOW, Cadence.MONTHLY, 2013),
+    "bcb_sicor_comercializacao_uf": (Kind.API_WINDOW, Cadence.MONTHLY, 2013),
 }
 
 # Edit here to re-tune how often a source is re-checked for new data.
@@ -349,6 +376,51 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
     elif name in ("ibge_munic", "ibge_projecoes_populacao_2024"):
         # Um arquivo por edição, sem parâmetro obrigatório.
         profile = SourceProfile(name, Kind.SNAPSHOT, Cadence.IRREGULAR, None)
+    elif name == "inss_beneficios_cessados":
+        # Um zip de até 3 GB por mês (17 colunas, um benefício cessado por linha): coleta sob
+        # pedido, por ano e mês.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.MONTHLY,
+            2023,
+            auto=False,
+            note="zip of up to 3 GB per month, needs anos and meses - collect on demand, not swept",
+        )
+    elif name in (
+        "receita_cnpj_estabelecimentos",
+        "receita_cnpj_empresas",
+        "receita_cnpj_socios",
+    ):
+        # Cerca de 7,8 GB comprimidos por competência no conjunto, em até dez partes por arquivo.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.MONTHLY,
+            2023,
+            auto=False,
+            note="about 7.8 GB per competencia across the three files, up to ten parts each - collect on demand, not swept",
+        )
+    elif name == "bndes_operacoes_financiamento":
+        # CSV de 1,2 GB das operações indiretas automáticas, republicado por cima.
+        profile = SourceProfile(
+            name,
+            Kind.SNAPSHOT,
+            Cadence.MONTHLY,
+            2002,
+            auto=False,
+            note="1.2 GB CSV republished in place - collect on demand, not swept",
+        )
+    elif name == "poa_gercon_consultas":
+        # Um CSV por ano, de centenas de MB (o conjunto passa de 3 GB); anos obrigatório.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.DAILY,
+            2017,
+            auto=False,
+            note="one CSV per year, about 3.3 GB in all, needs anos - collect on demand, not swept",
+        )
     elif name.startswith("ana"):
         profile = SourceProfile(
             name,

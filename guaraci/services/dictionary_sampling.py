@@ -93,6 +93,17 @@ FTP_LEGACY_SOURCES = frozenset(
         "ibge_projecoes_populacao_2024", "inep_ideb_municipios",
         "mapbiomas_cobertura_municipios", "mapbiomas_vegetacao_secundaria_municipios",
         "mdhc_ligue180", "pncp_contratacoes", "ssp_sp_dados_criminais",
+        # Leva 6 (onda 2, registro em novembro/2026): CKAN federal e estadual, CNPJ e SICOR.
+        "mma_unidades_conservacao", "mma_especies_ameacadas", "inss_cat",
+        "inss_beneficios_concedidos", "inss_beneficios_mantidos", "inss_beneficios_cessados",
+        "inss_beneficios_indeferidos", "senatran_renaest", "bndes_operacoes_financiamento",
+        "bndes_desembolsos_mensais", "mapa_agrofit", "mapa_sif", "mapa_sipeagro",
+        "receita_cnpj_estabelecimentos", "receita_cnpj_empresas", "receita_cnpj_socios",
+        "receita_cnpj_simples", "receita_cnpj_tabelas", "recife_dengue", "recife_chikungunya",
+        "recife_zika", "poa_gercon_consultas", "fhemig_indicadores_hospitalares",
+        "mg_hanseniase", "mg_aids_hiv", "mg_tuberculose", "mg_acidentes_transporte",
+        "bcb_sicor_custeio_municipio", "bcb_sicor_investimento_municipio",
+        "bcb_sicor_comercializacao_uf",
     }
 )
 
