@@ -1,0 +1,24 @@
+# Unidade de usuário do systemd (não precisa de sudo):
+#   mkdir -p ~/.config/systemd/user
+#   cp deploy/hospedado/guaraci.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now guaraci
+# Para continuar no ar sem sessão aberta, o administrador da máquina precisa
+# rodar uma vez: sudo loginctl enable-linger sabia
+# Sem isso, use a linha @reboot do crontab descrita em docs/hospedado.md.
+
+[Unit]
+Description=Guaraci hospedado (API e interface web)
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/guaraci/deploy/hospedado/iniciar.sh
+Restart=on-failure
+RestartSec=5
+# Dá tempo às coletas em andamento de gravar o estado antes de sair.
+TimeoutStopSec=30
+# Teto de memória: protege o SSH e o resto da máquina se uma coleta inchar.
+MemoryMax=3G
+
+[Install]
+WantedBy=default.target

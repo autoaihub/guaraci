@@ -11,6 +11,7 @@
 - [`SOURCES_AND_FILTERS.md`](SOURCES_AND_FILTERS.md): matriz de fontes, filtros e fases de execução.
 - [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md): dicionário por fonte — filtros + nomes de campo (amostragem real).
 - [`operacao.md`](operacao.md): modelo operacional, guardrails e diagnóstico.
+- [`hospedado.md`](hospedado.md): Guaraci num servidor compartilhado, com contas, fila multiusuário e registro de uso.
 
 ## UI e UX
 

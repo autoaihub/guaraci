@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Política de privacidade · Guaraci</title>
+<style>
+  body { margin: 0; background: #04120f; color: #e6f2ee; font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 24px 72px; }
+  h1 { font-size: 1.9rem; margin: 0 0 4px; color: #f7a41d; }
+  h2 { font-size: 1.15rem; margin: 2.2em 0 .4em; color: #14b8a6; }
+  p, li { color: #cfe3dc; }
+  a { color: #f7a41d; }
+  .versao { color: #8fb3a8; font-size: .9rem; margin-bottom: 2em; }
+  table { border-collapse: collapse; width: 100%; margin: .6em 0; font-size: .95rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #1d3a33; vertical-align: top; }
+  th { color: #8fb3a8; font-weight: 600; }
+  .voltar { display: inline-block; margin-top: 2.5em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Política de privacidade</h1>
+  <p class="versao">Versão {{PRIVACY_VERSION}}. Vale para o Guaraci hospedado, em que a coleta roda no servidor e exige conta.</p>
+
+  <p>O Guaraci reúne bases públicas de saúde e afins do Brasil. Para oferecer a coleta sem que cada pessoa precise instalar nada, o serviço roda num servidor compartilhado e, por isso, pede cadastro. Esta página explica quais dados pessoais guardamos, para quê e por quanto tempo, nos termos da Lei Geral de Proteção de Dados (Lei 13.709/2018).</p>
+
+  <h2>O que guardamos</h2>
+  <table>
+    <tr><th>Dado</th><th>Para quê</th><th>Por quanto tempo</th></tr>
+    <tr><td>Nome, e-mail, instituição e finalidade de uso, informados no cadastro</td><td>Avaliar o pedido de acesso, identificar a conta e entrar em contato sobre o serviço</td><td>Enquanto a conta existir</td></tr>
+    <tr><td>Senha</td><td>Entrar na conta. Guardamos só o resultado de um hash Argon2, nunca a senha em si</td><td>Enquanto a conta existir</td></tr>
+    <tr><td>Registro de uso: entradas e saídas da conta, telas visitadas, coletas pedidas, downloads, com data, endereço IP e navegador</td><td>Segurança (detectar abuso e tentativas de invasão) e melhoria do serviço (entender que fontes e telas são mais usadas e onde as pessoas travam)</td><td>O IP completo e o navegador detalhado ficam {{IP_DAYS}} dias; depois o IP é reduzido à rede (os últimos dígitos são apagados) e o navegador vira só a família (Chrome, Firefox...). O registro é apagado após {{EVENT_DAYS}} dias</td></tr>
+    <tr><td>Arquivos gerados pelas suas coletas</td><td>Permitir o download</td><td>Apagados {{OUTPUT_HOURS}} horas depois de a coleta terminar</td></tr>
+  </table>
+
+  <h2>O que não fazemos</h2>
+  <p>Não vendemos nem cedemos dados a terceiros e não usamos ferramentas de análise de terceiros nem publicidade. O único cookie é o da sessão, necessário para manter você conectado; ele expira em {{SESSION_HOURS}} horas sem uso. As fontes tipográficas da interface vêm do Google Fonts, de modo que o navegador faz uma requisição aos servidores do Google ao abrir a página.</p>
+
+  <h2>Base legal</h2>
+  <p>Os dados do cadastro são tratados com o consentimento dado ao criar a conta e para executar o serviço pedido (art. 7º, I e V). O registro de uso se apoia no legítimo interesse de manter o serviço seguro e melhorá-lo (art. 7º, IX), com a redução do IP descrita acima para limitar o tratamento ao necessário.</p>
+
+  <h2>Seus direitos</h2>
+  <p>Você pode pedir a confirmação de que tratamos seus dados, o acesso a eles, a correção e a exclusão da conta (art. 18). Na exclusão, a conta é apagada e os registros de uso que restarem perdem o vínculo com você, o IP e o navegador. Os pedidos vão para a equipe do Guaraci pelo contato {{CONTACT}}.</p>
+
+  <h2>Os dados que você coleta</h2>
+  <p>As bases trazidas pelo Guaraci são publicadas pelos próprios órgãos (DATASUS, IBGE, INEP e outros) e chegam como foram publicadas. Algumas trazem dado pessoal; o uso que se faz delas, inclusive o cuidado com a LGPD na análise e na divulgação, é responsabilidade de quem coleta.</p>
+
+  <a class="voltar" href="/">Voltar ao Guaraci</a>
+</main>
+</body>
+</html>

@@ -121,6 +121,14 @@ def test_public_and_private_paths(hosted) -> None:
     assert me == {"mode": "hosted", "authenticated": False, "privacy_version": "2026-11"}
 
 
+def test_privacy_page_uses_configured_deadlines(hosted) -> None:
+    page = TestClient(hosted.module.app).get("/privacidade")
+    assert page.status_code == 200
+    assert "{{" not in page.text
+    assert "ficam 30 dias" in page.text and "após 365 dias" in page.text
+    assert "48 horas" in page.text
+
+
 def test_security_headers(hosted) -> None:
     response = TestClient(hosted.module.app).get("/")
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]

@@ -110,6 +110,21 @@ def promote(email: str) -> None:
     console.print(f"Agora é administrador: {user.email}")
 
 
+@admin.command("backup")
+@click.argument("destino", type=click.Path(dir_okay=False))
+def backup(destino: str) -> None:
+    """Copia o banco de contas e registros com o serviço no ar (backup online do SQLite)."""
+    from guaraci.hosted.db import Database
+    from guaraci.hosted.settings import HostedSettings
+
+    db = Database(HostedSettings.from_env().db_path)
+    try:
+        db.backup_to(destino)
+    finally:
+        db.close()
+    console.print(f"Backup gravado em {destino}")
+
+
 @admin.command("set-password")
 @click.argument("email")
 @click.password_option()

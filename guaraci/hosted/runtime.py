@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import threading
+from html import escape
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -29,6 +30,8 @@ from guaraci.services.jobs import DownloadJobService
 
 ZIP_NAME = "__todos__.zip"
 DOWNLOAD_LINK_SECONDS = 6 * 3600
+# Corpo máximo de POST/DELETE: formulários e parâmetros de coleta cabem folgados.
+MAX_BODY_BYTES = 64 * 1024
 _STATIC_DIR = Path(__file__).resolve().parent.parent / "api" / "static"
 
 # Caminhos que não exigem login.
@@ -235,6 +238,15 @@ class HostedRuntime:
 
         if _BLOCKED.match(path):
             return self._headers(JSONResponse({"detail": "Not Found"}, status_code=404))
+        if request.method in _UNSAFE:
+            try:
+                length = int(request.headers.get("content-length") or 0)
+            except ValueError:
+                length = MAX_BODY_BYTES + 1
+            if length > MAX_BODY_BYTES:
+                return self._headers(
+                    JSONResponse({"detail": "Requisição grande demais."}, status_code=413)
+                )
 
         wait = self.limiter.hit("ip", ip, capacity=settings.rate_ip_per_minute, period=60)
         if not wait and path in {"/auth/login", "/auth/signup"} and request.method == "POST":
@@ -386,8 +398,7 @@ class HostedRuntime:
 
         @router.get("/privacidade", response_class=HTMLResponse, include_in_schema=False)
         def privacy() -> HTMLResponse:
-            page = _STATIC_DIR / "privacidade.html"
-            return HTMLResponse(page.read_text(encoding="utf-8"))
+            return HTMLResponse(rt.privacy_html())
 
         @router.get("/jobs/{job_id}/files")
         def job_files(job_id: str, request: Request) -> Dict[str, Any]:
@@ -566,6 +577,23 @@ class HostedRuntime:
             "privacy_version": self.settings.privacy_version,
             **self.limits_payload(session),
         }
+
+    def privacy_html(self) -> str:
+        """Política de privacidade com os prazos da configuração em vigor."""
+        settings = self.settings
+        contact = escape(settings.contact) if settings.contact else "indicado no site do Guaraci"
+        values = {
+            "PRIVACY_VERSION": settings.privacy_version,
+            "IP_DAYS": str(settings.ip_retention_days),
+            "EVENT_DAYS": str(settings.event_retention_days),
+            "OUTPUT_HOURS": f"{settings.output_ttl_hours:g}",
+            "SESSION_HOURS": f"{settings.session_ttl_hours:g}",
+            "CONTACT": contact,
+        }
+        text = (_STATIC_DIR / "privacidade.html").read_text(encoding="utf-8")
+        for key, value in values.items():
+            text = text.replace("{{" + key + "}}", value)
+        return text
 
     def download_url(self, job_id: str, user_id: int, name: str, expires: int) -> str:
         query = urlencode(

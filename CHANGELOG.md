@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Added: Guaraci hospedado (`GUARACI_MODE=hosted`)
+O Guaraci passa a poder rodar num servidor compartilhado, com a mesma interface web, para
+quem não quer instalar nada. Sem a variável, a API segue local e sem login.
+- **Contas.** Cadastro pela interface com aceite da política de privacidade e aprovação de
+  um administrador. Senha em Argon2, sessão por cookie HttpOnly com token CSRF, bloqueio
+  progressivo após falhas de login e comando `guaraci admin` para criar, aprovar, bloquear
+  e copiar o banco.
+- **Fila multiusuário.** Pasta de saída imposta pelo servidor por usuário e por coleta,
+  rodízio das vagas entre usuários, cotas (ativas e por dia, com cota própria por usuário),
+  teto de volume estimado antes de enfileirar e corte por volume e por tempo durante a
+  coleta. Os arquivos saem por links assinados, em separado ou num ZIP gerado em fluxo, e
+  são apagados 48 horas depois.
+- **Registro de uso.** Login, telas, coletas e downloads com usuário, IP e navegador, num
+  painel de administração com usuários ativos, IPs distintos, fontes e telas mais usadas e
+  a jornada de cada pessoa. O IP é reduzido à rede após 30 dias e o registro some após 365,
+  como descreve `/privacidade`.
+- **Implantação sem Docker nem sudo** em `deploy/hospedado/` (instalação, arquivo de
+  ambiente, unidade de usuário do systemd), com o guia em `docs/hospedado.md`.
+
 ### Fixed: Censo Escolar (INEP) no Linux e INCA RHC no RHCWeb
 - **`inep_censo_escolar` e `inep_ideb`.** O servidor `download.inep.gov.br` envia só o
   certificado folha (`*.inep.gov.br`) e omite o intermediário `RNP ICPEdu GR46 OV TLS CA

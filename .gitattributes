@@ -25,3 +25,6 @@ dockerfile text eol=lf
 *.db binary
 *.sqlite binary
 *.sqlite3 binary
+*.sh text eol=lf
+*.service text eol=lf
+*.example text eol=lf

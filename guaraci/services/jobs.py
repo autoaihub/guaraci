@@ -1182,6 +1182,9 @@ class DownloadJobService:
                     message="Job interrupted by process restart.",
                     event="interrupted",
                 )
+                if job.expires_at is None:
+                    # Sem prazo, a saída parcial nunca entraria na faxina.
+                    self._set_expiry_locked(job)
                 changed = True
             if not job.output_dir:
                 job.output_dir = self._detect_output_dir(job)

@@ -66,6 +66,8 @@ class HostedSettings:
     privacy_version: str = "2026-11"
     # Origem pública, usada na checagem de Origin (ex.: https://guaraci.sabiadatalake.com.br)
     public_origin: Optional[str] = None
+    # Contato para pedidos de titulares (LGPD), mostrado na política de privacidade.
+    contact: Optional[str] = None
     # Rate limit (requisições por minuto, por IP) e por hora em rotas caras
     rate_ip_per_minute: int = 120
     rate_auth_per_minute: int = 10
@@ -105,6 +107,7 @@ class HostedSettings:
             ip_retention_days=_env_int("GUARACI_IP_RETENTION_DAYS", 30),
             event_retention_days=_env_int("GUARACI_EVENT_RETENTION_DAYS", 365),
             public_origin=_env("GUARACI_PUBLIC_ORIGIN"),
+            contact=_env("GUARACI_CONTACT"),
             rate_ip_per_minute=_env_int("GUARACI_RATE_IP_PER_MINUTE", 120),
             rate_auth_per_minute=_env_int("GUARACI_RATE_AUTH_PER_MINUTE", 10),
             rate_signup_per_hour=_env_int("GUARACI_RATE_SIGNUP_PER_HOUR", 5),
