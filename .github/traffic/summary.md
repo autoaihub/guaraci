@@ -1,27 +1,27 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-11-13T13:14:04+00:00. 3218 clonagens (1352 únicas) em 61 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-11-14T12:18:37+00:00. 3244 clonagens (1372 únicas) em 61 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 2075 | 795 | 76 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 767 | 274 | 47 | 2026-08-20 |
+| autoaihub/guaraci | 2087 | 807 | 83 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 779 | 279 | 41 | 2026-08-20 |
 | LuisVogelDS/IntraAct | 76 | 27 | 1 | 2026-08-21 |
 | cajuice/shop-list | 63 | 9 | 0 | 2026-09-20 |
-| LuisVogelDS/LuisVogelDS | 30 | 30 | 1 | 2026-08-20 |
+| LuisVogelDS/LuisVogelDS | 30 | 30 | 0 | 2026-08-20 |
 | LuisVogelDS/retail-pulse | 29 | 29 | 2 | 2026-08-20 |
 | LuisVogelDS/loadbay | 27 | 27 | 2 | 2026-08-20 |
 | LuisVogelDS/churnlab | 26 | 26 | 1 | 2026-08-20 |
 | LuisVogelDS/vitrine | 26 | 22 | 2 | 2026-08-20 |
-| LuisVogelDS/MemoriaRam | 24 | 11 | 1 | 2026-08-21 |
+| LuisVogelDS/MemoriaRam | 24 | 12 | 1 | 2026-08-21 |
 | LuisVogelDS/Alquimia | 8 | 2 | 0 | 2026-08-21 |
-| LuisVogelDS/HarpyNest | 8 | 23 | 1 | 2026-09-19 |
+| LuisVogelDS/HarpyNest | 8 | 24 | 1 | 2026-09-19 |
 | cajuice/cajuzinho | 6 | 5 | 0 | 2026-09-22 |
 | LuisVogelDS/GolDePlaca | 5 | 8 | 1 | 2026-09-13 |
+| LuisVogelDS/presto | 5 | 4 | 2 | 2026-10-18 |
 | LuisVogelDS/Volvo | 4 | 4 | 1 | 2026-08-20 |
 | cajuice/clinica | 4 | 13 | 2 | 2026-09-23 |
 | cajuice/presto | 4 | 13 | 2 | 2026-09-29 |
-| LuisVogelDS/presto | 3 | 3 | 2 | 2026-10-18 |
 | cajuice/game-duct-tape | 3 | 2 | 0 | 2026-09-24 |
 | LuisVogelDS/Cajuice | 2 | 2 | 0 | 2026-09-19 |
 | LuisVogelDS/GobbleGoblin | 2 | 1 | 0 | 2026-08-21 |
@@ -40,7 +40,7 @@ Atualizado em 2026-11-13T13:14:04+00:00. 3218 clonagens (1352 únicas) em 61 rep
 | LuisVogelDS/hub-pessoal | 1 | 1 | 0 | 2026-09-22 |
 | cajuice/FangYouVeryMuch | 1 | 1 | 0 | 2026-09-30 |
 | cajuice/acervo | 1 | 1 | 0 | 2026-09-30 |
-| cajuice/bus-tracker | 1 | 3 | 1 | 2026-09-27 |
+| cajuice/bus-tracker | 1 | 3 | 0 | 2026-09-27 |
 | cajuice/music-channels | 1 | 1 | 0 | 2026-09-26 |
 | cajuice/prospero | 1 | 1 | 1 | 2026-09-22 |
 | LuisVogelDS/Bem-te-vi | 0 | 0 | 0 | 2026-08-21 |
