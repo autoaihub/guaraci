@@ -3,16 +3,93 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Guaraci — coleta de dados públicos</title>
+  <title>Guaraci: coleta de dados públicos</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2304120f'/%3E%3Cpath d='M16 14V8M22 17l4-4M10 17l-4-4' stroke='%2314b8a6' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M8 22a8 8 0 0 1 16 0Z' fill='%23f7a41d'/%3E%3Crect x='4' y='22' width='24' height='1.4' fill='%2314b8a6' opacity='.5'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/theme.css">
   <script src="/static/app.js" defer></script>
+  <script src="/static/hosted.js" defer></script>
 </head>
 <body>
 <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<!-- ═══ Tela de entrada (modo hospedado, deslogado) ═══ -->
+<div class="auth-screen" id="auth-screen" hidden>
+  <div class="auth-card">
+    <div class="auth-head">
+      <div class="auth-brand">
+        <svg viewBox="0 0 128 128" aria-hidden="true">
+          <rect width="128" height="128" rx="28" fill="#071a16"/>
+          <g stroke="#14b8a6" stroke-width="3.2" stroke-linecap="round" fill="none">
+            <path d="M64 55 V33"/><path d="M82.4 68.6 L94 57 V42"/><path d="M45.6 68.6 L34 57 V42"/>
+          </g>
+          <path d="M38 87a26 26 0 0 1 52 0Z" fill="#f7a41d"/>
+          <rect x="0" y="86.4" width="128" height="1.6" fill="rgba(20,184,166,.4)"/>
+        </svg>
+        <div><strong>Guaraci</strong><span data-i18n="brand_sub">dados públicos de saúde</span></div>
+      </div>
+      <button id="auth-lang" class="btn btn-sm btn-sq lang-btn" type="button" aria-label="Switch to English">EN</button>
+    </div>
+
+    <div class="auth-tabs" role="tablist">
+      <button type="button" role="tab" id="tab-login" data-auth-tab="login" aria-selected="true" data-i18n="auth_tab_login">Entrar</button>
+      <button type="button" role="tab" id="tab-signup" data-auth-tab="signup" aria-selected="false" data-i18n="auth_tab_signup">Pedir acesso</button>
+    </div>
+
+    <div class="auth-notice" id="auth-notice" role="status" hidden></div>
+
+    <form class="auth-form" id="form-login" novalidate>
+      <div class="field">
+        <label for="login-email" data-i18n="f_email">E-mail</label>
+        <input id="login-email" type="email" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="login-password" data-i18n="f_password">Senha</label>
+        <input id="login-password" type="password" autocomplete="current-password" required>
+      </div>
+      <div class="auth-msg" id="login-msg" role="alert" hidden></div>
+      <button class="btn btn-primary btn-sq auth-submit" id="login-submit" type="submit" data-i18n="auth_login_btn">Entrar</button>
+    </form>
+
+    <form class="auth-form" id="form-signup" novalidate hidden>
+      <div class="field">
+        <label for="su-name" data-i18n="f_name">Nome completo</label>
+        <input id="su-name" type="text" autocomplete="name" maxlength="120" required>
+      </div>
+      <div class="field">
+        <label for="su-email" data-i18n="f_email">E-mail</label>
+        <input id="su-email" type="email" autocomplete="email" maxlength="200" required>
+      </div>
+      <div class="field">
+        <label for="su-institution" data-i18n="f_institution">Instituição</label>
+        <input id="su-institution" type="text" autocomplete="organization" maxlength="160" required>
+      </div>
+      <div class="field">
+        <label for="su-purpose" data-i18n="f_purpose">Finalidade do uso</label>
+        <textarea id="su-purpose" rows="3" maxlength="1000" required></textarea>
+      </div>
+      <div class="field">
+        <label for="su-password" data-i18n="f_password_new">Senha (mínimo de 10 caracteres)</label>
+        <input id="su-password" type="password" autocomplete="new-password" minlength="10" maxlength="256" required>
+      </div>
+      <div class="field">
+        <label for="su-password2" data-i18n="f_password_confirm">Confirmação da senha</label>
+        <input id="su-password2" type="password" autocomplete="new-password" minlength="10" maxlength="256" required>
+      </div>
+      <label class="check-row auth-consent">
+        <input id="su-consent" type="checkbox" required>
+        <span><span data-i18n="consent_pre">Li e aceito a</span> <a href="/privacidade" target="_blank" rel="noopener" data-i18n="consent_link">política de privacidade</a>.</span>
+      </label>
+      <p class="auth-privacy" data-i18n="auth_logging_note">Para melhorar o serviço, registramos seus acessos, as telas visitadas e o endereço IP. Os detalhes estão na política de privacidade.</p>
+      <div class="auth-msg" id="signup-msg" role="alert" hidden></div>
+      <button class="btn btn-primary btn-sq auth-submit" id="signup-submit" type="submit" data-i18n="auth_signup_btn">Enviar pedido de acesso</button>
+    </form>
+
+    <p class="auth-foot"><a href="/privacidade" target="_blank" rel="noopener" data-i18n="nav_privacy">Privacidade</a></p>
+  </div>
+</div>
 
 <div class="shell">
   <!-- ═══ Sidebar ═══ -->
@@ -53,13 +130,39 @@
       <span data-i18n="nav_sources">Fontes</span>
     </button>
 
+    <div id="nav-admin-wrap" hidden>
+      <div class="nav-label" data-i18n="nav_admin_label">Administração</div>
+      <button class="nav-item" data-view="admin" id="nav-admin" type="button">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.8l5.2 2v3.9c0 3-2.2 5.2-5.2 6.5-3-1.3-5.2-3.5-5.2-6.5V3.8z"/><path d="M5.8 8l1.6 1.6L10.4 6.4"/></svg>
+        <span data-i18n="nav_admin">Administração</span>
+      </button>
+    </div>
+
     <div class="nav-label" data-i18n="nav_help">Ajuda</div>
     <a class="nav-item" href="https://github.com/autoaihub/guaraci#readme" target="_blank" rel="noopener">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2" width="11" height="12" rx="1.5"/><path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3"/></svg>
       <span data-i18n="nav_docs">Documentação</span>
     </a>
+    <a class="nav-item" id="nav-privacy" href="/privacidade" target="_blank" rel="noopener" hidden>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>
+      <span data-i18n="nav_privacy">Privacidade</span>
+    </a>
 
     <div class="sidebar-foot">
+      <div class="user-box" id="user-box" hidden>
+        <div class="user-name" id="user-name"></div>
+        <div class="user-meta" id="user-inst"></div>
+        <div class="quota" id="quota-box">
+          <div class="quota-line" id="quota-jobs"></div>
+          <div class="meter-track"><div class="meter-fill" id="quota-jobs-bar" style="width:0%"></div></div>
+          <div class="quota-line" id="quota-active"></div>
+          <div class="meter-track"><div class="meter-fill" id="quota-active-bar" style="width:0%"></div></div>
+        </div>
+        <button class="side-btn" id="btn-logout" type="button">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path d="M6 2.5H3.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H6M10 5l3 3-3 3M13 8H6"/></svg>
+          <span data-i18n="logout">Sair</span>
+        </button>
+      </div>
       <div class="api-status">
         <span class="api-dot" id="api-dot" aria-hidden="true"></span>
         <span id="api-label" data-i18n="api_connecting">API: conectando…</span>
@@ -88,10 +191,10 @@
       <!-- ═══════════ VIEW: Coletas ═══════════ -->
       <section class="view active" id="view-jobs">
         <div class="kpi-row">
-          <div class="tile reveal"><div class="t-label" data-i18n="kpi_running">Em execução</div><div class="t-value" id="kpi-running">–</div><div class="t-delta" id="kpi-queued-note"></div></div>
-          <div class="tile reveal"><div class="t-label" data-i18n="kpi_done">Concluídas</div><div class="t-value" id="kpi-done">–</div><div class="t-delta" data-i18n="kpi_window">entre as últimas 40 coletas</div></div>
-          <div class="tile reveal"><div class="t-label" data-i18n="kpi_failed">Falhas</div><div class="t-value" id="kpi-failed">–</div><div class="t-delta" data-i18n="kpi_window">entre as últimas 40 coletas</div></div>
-          <div class="tile reveal"><div class="t-label" data-i18n="kpi_volume">Volume transferido</div><div class="t-value" id="kpi-volume">–</div><div class="t-delta" id="kpi-files-note"></div></div>
+          <div class="tile reveal"><div class="t-label" data-i18n="kpi_running">Em execução</div><div class="t-value" id="kpi-running">--</div><div class="t-delta" id="kpi-queued-note"></div></div>
+          <div class="tile reveal"><div class="t-label" data-i18n="kpi_done">Concluídas</div><div class="t-value" id="kpi-done">--</div><div class="t-delta" data-i18n="kpi_window">entre as últimas 40 coletas</div></div>
+          <div class="tile reveal"><div class="t-label" data-i18n="kpi_failed">Falhas</div><div class="t-value" id="kpi-failed">--</div><div class="t-delta" data-i18n="kpi_window">entre as últimas 40 coletas</div></div>
+          <div class="tile reveal"><div class="t-label" data-i18n="kpi_volume">Volume transferido</div><div class="t-value" id="kpi-volume">--</div><div class="t-delta" id="kpi-files-note"></div></div>
         </div>
 
         <div class="filter-bar reveal">
@@ -149,8 +252,8 @@
         <div id="nc-step2" hidden>
           <div class="nc-layout">
             <form class="form-card" id="job-form">
-              <h2 id="form-title">—</h2>
-              <p class="fc-sub" id="form-sub">—</p>
+              <h2 id="form-title">--</h2>
+              <p class="fc-sub" id="form-sub">--</p>
               <div class="fields-grid" id="dynamic-fields-basic"></div>
               <div class="disclosure" id="adv" hidden>
                 <button type="button" id="advanced-toggle">
@@ -188,6 +291,17 @@
         </div>
         <div id="sources-catalog"></div>
       </section>
+
+      <!-- ═══════════ VIEW: Administração (só modo hospedado, só admin) ═══════════ -->
+      <section class="view" id="view-admin">
+        <div class="admin-tabs" id="admin-tabs" role="tablist">
+          <button type="button" role="tab" data-tab="overview" aria-selected="true" data-i18n="adm_tab_overview">Visão geral</button>
+          <button type="button" role="tab" data-tab="users" aria-selected="false" data-i18n="adm_tab_users">Usuários</button>
+          <button type="button" role="tab" data-tab="jobs" aria-selected="false" data-i18n="adm_tab_jobs">Coletas</button>
+          <button type="button" role="tab" data-tab="events" aria-selected="false" data-i18n="adm_tab_events">Eventos</button>
+        </div>
+        <div id="admin-body"></div>
+      </section>
     </main>
   </div>
 </div>
@@ -197,8 +311,8 @@
 <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
   <div class="drawer-head">
     <div>
-      <h2 id="drawer-title">—</h2>
-      <div class="sub" id="drawer-id">—</div>
+      <h2 id="drawer-title">--</h2>
+      <div class="sub" id="drawer-id">--</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
       <span id="drawer-badge"></span>
@@ -211,27 +325,36 @@
       <div class="meter-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso do download" id="d-progressbar">
         <div class="meter-fill" id="d-fill" style="width:0%"></div>
       </div>
-      <div class="d-sub"><span id="d-files-bytes">—</span><span id="d-time">—</span></div>
+      <div class="d-sub"><span id="d-files-bytes">--</span><span id="d-time">--</span></div>
     </div>
 
     <div class="d-actions">
       <button class="btn btn-danger btn-sm" id="d-cancel" type="button" data-i18n="btn_cancel">Cancelar</button>
       <button class="btn btn-warn btn-sm" id="d-retry" type="button" data-i18n="btn_retry">Repetir</button>
-      <button class="btn btn-sm" id="d-open" type="button" data-i18n="open_folder">Abrir pasta</button>
-      <button class="btn btn-sm" id="d-copy" type="button" data-i18n="copy_path">Copiar caminho</button>
+      <button class="btn btn-sm local-only" id="d-open" type="button" data-i18n="open_folder">Abrir pasta</button>
+      <button class="btn btn-sm local-only" id="d-copy" type="button" data-i18n="copy_path">Copiar caminho</button>
     </div>
 
     <div class="d-error" id="d-error" hidden></div>
 
     <dl class="d-meta">
-      <div><dt data-i18n="lbl_source">Fonte</dt><dd id="d-source">—</dd></div>
-      <div><dt data-i18n="lbl_created">Criada</dt><dd id="d-created">—</dd></div>
-      <div><dt data-i18n="lbl_params">Filtros</dt><dd id="d-params">—</dd></div>
-      <div><dt data-i18n="lbl_current_file">Arquivo atual</dt><dd class="mono" id="d-current">—</dd></div>
-      <div class="full"><dt data-i18n="lbl_output_folder">Destino</dt><dd class="mono" id="d-dest">—</dd></div>
+      <div><dt data-i18n="lbl_source">Fonte</dt><dd id="d-source">--</dd></div>
+      <div><dt data-i18n="lbl_created">Criada</dt><dd id="d-created">--</dd></div>
+      <div><dt data-i18n="lbl_params">Filtros</dt><dd id="d-params">--</dd></div>
+      <div><dt data-i18n="lbl_current_file">Arquivo atual</dt><dd class="mono" id="d-current">--</dd></div>
+      <div class="full local-only"><dt data-i18n="lbl_output_folder">Destino</dt><dd class="mono" id="d-dest">--</dd></div>
     </dl>
 
-    <div class="d-files" id="d-exported" hidden></div>
+    <div class="d-files local-only" id="d-exported" hidden></div>
+
+    <div class="d-downloads" id="d-downloads" hidden>
+      <div class="d-dl-head">
+        <div class="d-dl-title" data-i18n="dl_title">Arquivos da coleta</div>
+        <a class="btn btn-primary btn-sm btn-sq" id="d-zip" href="#" download hidden data-i18n="dl_zip">Baixar tudo (.zip)</a>
+      </div>
+      <div class="d-dl-note" id="d-dl-note"></div>
+      <ul class="d-dl-list" id="d-dl-list"></ul>
+    </div>
 
     <div>
       <div style="font-family:var(--font-display);font-size:12.5px;font-weight:600;margin-bottom:8px" data-i18n="log_title">Log da execução</div>

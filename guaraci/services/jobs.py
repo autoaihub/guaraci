@@ -437,7 +437,8 @@ class DownloadJobService:
                 f"(limite {policy.max_active_per_owner}). Aguarde terminar ou cancele uma."
             )
         if per_day is not None and usage["last_24h"] >= per_day:
-            raise JobLimitError(f"Limite de {per_day} coletas em 24 horas atingido.")
+            noun = "coleta" if per_day == 1 else "coletas"
+            raise JobLimitError(f"Limite de {per_day} {noun} em 24 horas atingido.")
 
     def _precheck_volume(self, source: str, params: Dict[str, object]) -> None:
         """Recusa antes da fila a coleta cujo volume estimado passa do teto.

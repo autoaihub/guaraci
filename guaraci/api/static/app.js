@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   Guaraci UI — app shell (Coletas / Nova coleta / Fontes)
+   Guaraci UI, app shell (Coletas / Nova coleta / Fontes)
    Vanilla JS, sem build step. Identidade "amanhecer de dados".
    ═══════════════════════════════════════════════════════════════ */
 "use strict";
@@ -20,6 +20,12 @@ let jobsQuery = "";
 let selectedJobId = null;
 let selectedJobStatus = null;
 let refreshInFlight = false;
+// Modo hospedado (login no servidor). hosted.js preenche estes valores a
+// partir de /auth/me; no modo local ficam como estão e a UI não muda.
+let hostedMode = false;
+let csrfToken = null;
+let appStarted = false;
+let pollStarted = false;
 
 /* ═══ i18n pt/en ═══ */
 const I18N = {
@@ -63,17 +69,17 @@ const I18N = {
     sources_hint: "Clique numa fonte para iniciar uma coleta com ela.",
     catalog_empty: "Nenhuma fonte encontrada com esse termo.",
     same_as: "Outro caminho para {name}",
-    fam_datasus: "DATASUS — FTP oficial",
-    fam_opendatasus: "OpenDataSUS — catálogo aberto",
+    fam_datasus: "DATASUS: FTP oficial",
+    fam_opendatasus: "OpenDataSUS: catálogo aberto",
     fam_ibge: "IBGE",
-    fam_nasa: "NASA — clima e ambiente",
-    fam_govbr: "Saneamento — gov.br",
+    fam_nasa: "NASA: clima e ambiente",
+    fam_govbr: "Saneamento (gov.br)",
     fam_other: "Outras fontes",
     advanced: "Filtros avançados",
     summary_title: "Resumo da coleta",
     sum_source: "Fonte",
     sum_mode: "Modo",
-    sum_none: "Nenhum filtro definido — a coleta usa os padrões da fonte.",
+    sum_none: "Nenhum filtro definido: a coleta usa os padrões da fonte.",
     btn_estimate: "Estimar volume",
     estimating: "Consultando a fonte…",
     estimate_result: "<strong>{docs} arquivos{size}</strong> estimados na fonte para esses filtros.",
@@ -180,17 +186,17 @@ const I18N = {
     sources_hint: "Click a source to start a download with it.",
     catalog_empty: "No source matches that term.",
     same_as: "Another path to {name}",
-    fam_datasus: "DATASUS — official FTP",
-    fam_opendatasus: "OpenDataSUS — open catalog",
+    fam_datasus: "DATASUS: official FTP",
+    fam_opendatasus: "OpenDataSUS: open catalog",
     fam_ibge: "IBGE",
-    fam_nasa: "NASA — climate & environment",
-    fam_govbr: "Sanitation — gov.br",
+    fam_nasa: "NASA: climate & environment",
+    fam_govbr: "Sanitation (gov.br)",
     fam_other: "Other sources",
     advanced: "Advanced filters",
     summary_title: "Download summary",
     sum_source: "Source",
     sum_mode: "Mode",
-    sum_none: "No filter set — the download uses the source defaults.",
+    sum_none: "No filter set: the download uses the source defaults.",
     btn_estimate: "Estimate volume",
     estimating: "Querying the source…",
     estimate_result: "<strong>{docs} files{size}</strong> estimated at the source for these filters.",
@@ -316,6 +322,7 @@ function setLang(lang) {
     const job = lastJobs.find((item) => item.job_id === selectedJobId);
     if (job) renderDrawer(job);
   }
+  if (hostedMode) onHostedLang();
 }
 
 /* ═══ tema ═══ */
@@ -418,6 +425,47 @@ function paramsSummaryText(params) {
     .join(" · ");
 }
 
+/* Único ponto de saída para a rede: injeta o token CSRF nos métodos que
+   alteram estado e trata a sessão expirada (401) no modo hospedado. */
+async function api(path, opts) {
+  const options = Object.assign({}, opts || {});
+  const keepOn401 = Boolean(options.keepOn401);
+  delete options.keepOn401;
+  const method = String(options.method || "GET").toUpperCase();
+  const headers = Object.assign({}, options.headers || {});
+  if (csrfToken && method !== "GET" && method !== "HEAD") headers["X-CSRF-Token"] = csrfToken;
+  options.headers = headers;
+  options.credentials = "same-origin";
+  const response = await fetch(path, options);
+  if (response.status === 401 && hostedMode && !keepOn401) onSessionExpired();
+  return response;
+}
+
+async function readJson(response) {
+  try {
+    return await response.json();
+  } catch (error) {
+    return {};
+  }
+}
+
+function detailOf(raw, fallback) {
+  const detail = raw && raw.detail;
+  if (typeof detail === "string" && detail) return detail;
+  if (Array.isArray(detail) && detail.length > 0) {
+    return detail.map((item) => (item && item.msg) || String(item)).join("; ");
+  }
+  return fallback;
+}
+
+let lastRateToast = 0;
+function notifyRateLimit(detail) {
+  const now = Date.now();
+  if (now - lastRateToast < 20000) return;
+  lastRateToast = now;
+  toast(detail || t("rate_limited"), "fail");
+}
+
 let toastTimer = null;
 function toast(message, kind) {
   const el = document.getElementById("toast");
@@ -435,7 +483,7 @@ function setApiStatus(ok) {
   label.textContent = ok ? t("api_online") : t("api_offline");
 }
 
-/* ═══ fundo animado — rede de dados ═══ */
+/* ═══ fundo animado, rede de dados ═══ */
 (function initCanvas() {
   const canvas = document.getElementById("bg-canvas");
   if (!canvas || REDUCED_MOTION) return;
@@ -494,7 +542,8 @@ function setApiStatus(ok) {
 
 /* ═══ navegação ═══ */
 function updateTopbarTitle() {
-  const key = currentView === "jobs" ? "nav_jobs" : currentView === "new" ? "nav_new" : "nav_sources";
+  const keys = { jobs: "nav_jobs", new: "nav_new", sources: "nav_sources", admin: "nav_admin" };
+  const key = keys[currentView] || "nav_sources";
   document.getElementById("topbar-title").textContent = t(key);
 }
 
@@ -517,6 +566,7 @@ function go(view) {
   document.getElementById("topbar-new").style.visibility = view === "new" ? "hidden" : "visible";
   closeDrawer();
   playReveals(view);
+  if (hostedMode) onHostedView(view);
 }
 
 /* ═══ fontes / catálogo ═══ */
@@ -538,7 +588,7 @@ let themesBySlug = {};
 
 async function loadThemes() {
   try {
-    const response = await fetch("/themes");
+    const response = await api("/themes");
     if (!response.ok) return;
     const payload = await response.json();
     themesBySlug = {};
@@ -564,7 +614,7 @@ function themeSearchText(slug) {
 
 async function loadSources() {
   await loadThemes();
-  const response = await fetch("/sources");
+  const response = await api("/sources");
   if (!response.ok) throw new Error(t("fail_sources"));
   sourcesList = (await response.json()).slice().sort((a, b) =>
     String(a.title || a.source).localeCompare(String(b.title || b.source))
@@ -655,7 +705,7 @@ function renderCatalogs() {
 /* ═══ schema / formulário dinâmico ═══ */
 async function loadSourceSchema(source) {
   if (schemasBySource[source]) return schemasBySource[source];
-  const response = await fetch("/sources/" + encodeURIComponent(source) + "/schema");
+  const response = await api("/sources/" + encodeURIComponent(source) + "/schema");
   if (!response.ok) return null;
   const schema = await response.json();
   schemasBySource[source] = schema;
@@ -679,6 +729,7 @@ async function selectSource(source) {
   document.getElementById("stp-1").className = "st is-done";
   document.getElementById("stp-2").className = "st is-active";
   window.scrollTo({ top: 0 });
+  trackView("new", source);
 }
 
 function backToCatalog() {
@@ -1059,6 +1110,8 @@ function renderDynamicFields(schema) {
   const orderedSpecs = orderSchemaParams(schema.params);
   let advancedCount = 0;
   orderedSpecs.forEach((spec) => {
+    // No modo hospedado o servidor decide a pasta de saída.
+    if (hostedMode && spec.name === "output_dir") return;
     const card = createFieldCard(spec);
     if (isAdvancedField(spec)) {
       advanced.appendChild(card);
@@ -1149,14 +1202,14 @@ async function estimateVolume() {
   box.textContent = t("estimating");
   const payload = buildPayload();
   try {
-    const response = await fetch("/sources/" + encodeURIComponent(currentSource) + "/discovery", {
+    const response = await api("/sources/" + encodeURIComponent(currentSource) + "/discovery", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ params: payload.params })
     });
-    const raw = await response.json();
+    const raw = await readJson(response);
     if (!response.ok) {
-      box.textContent = tf("estimate_fail", { err: raw.detail || response.status });
+      box.textContent = tf("estimate_fail", { err: detailOf(raw, response.status) });
       return;
     }
     const size = Number(raw.total_size_bytes || 0);
@@ -1249,13 +1302,19 @@ function renderJobs() {
 }
 
 async function fetchJobs() {
-  const response = await fetch("/jobs?limit=" + JOBS_LIMIT);
-  if (!response.ok) throw new Error("HTTP " + response.status);
+  const response = await api("/jobs?limit=" + JOBS_LIMIT);
+  if (!response.ok) {
+    const error = new Error("HTTP " + response.status);
+    error.status = response.status;
+    error.detail = detailOf(await readJson(response), "");
+    throw error;
+  }
   return await response.json();
 }
 
 async function refreshJobs() {
   if (refreshInFlight) return;
+  if (hostedMode && !csrfToken) return;
   refreshInFlight = true;
   try {
     lastJobs = await fetchJobs();
@@ -1274,7 +1333,8 @@ async function refreshJobs() {
       }
     }
   } catch (error) {
-    setApiStatus(false);
+    if (error.status === 429) notifyRateLimit(error.detail);
+    else if (error.status !== 401) setApiStatus(false);
   } finally {
     refreshInFlight = false;
   }
@@ -1288,12 +1348,13 @@ function closeDrawer() {
 
 async function openDrawer(jobId) {
   selectedJobId = jobId;
+  trackView("job");
   document.body.classList.add("drawer-open");
   renderJobs();
   let job = lastJobs.find((item) => item.job_id === jobId);
   if (!job) {
     try {
-      const response = await fetch("/jobs/" + encodeURIComponent(jobId));
+      const response = await api("/jobs/" + encodeURIComponent(jobId));
       if (response.ok) job = await response.json();
     } catch (error) { /* offline */ }
   }
@@ -1307,7 +1368,7 @@ function renderDrawer(job) {
   document.getElementById("drawer-id").textContent =
     job.job_id + " · " + t("lbl_attempt") + " " + String(job.attempt || 1);
   document.getElementById("drawer-badge").innerHTML = badgeHtml(job.status);
-  document.getElementById("term-title").textContent = "guaraci — " + String(job.job_id).slice(0, 14);
+  document.getElementById("term-title").textContent = "guaraci · " + String(job.job_id).slice(0, 14);
 
   const pct = Math.max(0, Math.min(100, Number(job.progress || 0)));
   document.getElementById("d-pct").textContent =
@@ -1388,9 +1449,21 @@ function renderOutputInfo(payload) {
 async function refreshDrawerDetails(jobId) {
   if (!jobId) return;
   try {
+    const base = "/jobs/" + encodeURIComponent(jobId);
+    if (hostedMode) {
+      const wantsFiles = isTerminalStatus(selectedJobStatus);
+      const [logsResp, filesResp] = await Promise.all([
+        api(base + "/logs?limit=120"),
+        wantsFiles ? api(base + "/files") : Promise.resolve(null)
+      ]);
+      if (logsResp.ok) renderLogs(await logsResp.json());
+      if (filesResp && filesResp.ok) renderHostedFiles(await filesResp.json());
+      else if (!filesResp) renderHostedFiles(null);
+      return;
+    }
     const [logsResp, outputResp] = await Promise.all([
-      fetch("/jobs/" + encodeURIComponent(jobId) + "/logs?limit=120"),
-      fetch("/jobs/" + encodeURIComponent(jobId) + "/output")
+      api(base + "/logs?limit=120"),
+      api(base + "/output")
     ]);
     if (logsResp.ok) renderLogs(await logsResp.json());
     if (outputResp.ok) renderOutputInfo(await outputResp.json());
@@ -1404,17 +1477,20 @@ async function submitJob() {
   const btn = document.getElementById("btn-submit");
   btn.disabled = true;
   try {
-    const response = await fetch("/jobs", {
+    const response = await api("/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    const raw = await response.json();
+    const raw = await readJson(response);
     if (!response.ok) {
-      toast((raw.detail || t("fail_create")), "fail");
+      // 429 (cota), 503 (servidor cheio) e 413 (coleta grande demais) trazem
+      // a explicação em "detail"; ela vale mais que a mensagem genérica.
+      if (response.status !== 401) toast(detailOf(raw, t("fail_create")), "fail");
       return;
     }
     toast(t("job_created") + raw.job_id, "ok");
+    if (hostedMode) refreshMe();
     backToCatalog();
     go("jobs");
     await refreshJobs();
@@ -1429,10 +1505,10 @@ async function submitJob() {
 async function cancelJob(jobId) {
   if (!jobId) return;
   try {
-    const response = await fetch("/jobs/" + encodeURIComponent(jobId) + "/cancel", { method: "POST" });
-    const raw = await response.json();
+    const response = await api("/jobs/" + encodeURIComponent(jobId) + "/cancel", { method: "POST" });
+    const raw = await readJson(response);
     if (!response.ok) {
-      toast(raw.detail || t("fail_cancel"), "fail");
+      if (response.status !== 401) toast(detailOf(raw, t("fail_cancel")), "fail");
       return;
     }
     toast(t("cancel_requested_for") + jobId);
@@ -1445,13 +1521,14 @@ async function cancelJob(jobId) {
 async function retryJob(jobId) {
   if (!jobId) return;
   try {
-    const response = await fetch("/jobs/" + encodeURIComponent(jobId) + "/retry", { method: "POST" });
-    const raw = await response.json();
+    const response = await api("/jobs/" + encodeURIComponent(jobId) + "/retry", { method: "POST" });
+    const raw = await readJson(response);
     if (!response.ok) {
-      toast(raw.detail || t("fail_retry"), "fail");
+      if (response.status !== 401) toast(detailOf(raw, t("fail_retry")), "fail");
       return;
     }
     toast(t("retry_created") + raw.job_id, "ok");
+    if (hostedMode) refreshMe();
     await refreshJobs();
     await openDrawer(raw.job_id);
   } catch (error) {
@@ -1476,10 +1553,10 @@ async function copyOutputPath() {
 async function openOutputFolder(jobId) {
   if (!jobId) return;
   try {
-    const response = await fetch("/jobs/" + encodeURIComponent(jobId) + "/open-output", { method: "POST" });
-    const payload = await response.json();
+    const response = await api("/jobs/" + encodeURIComponent(jobId) + "/open-output", { method: "POST" });
+    const payload = await readJson(response);
     if (!response.ok) {
-      toast(payload.detail || t("open_fail"), "fail");
+      toast(detailOf(payload, t("open_fail")), "fail");
       return;
     }
     if (payload.opened) {
@@ -1559,29 +1636,54 @@ async function bootstrap() {
   document.getElementById("d-copy").addEventListener("click", copyOutputPath);
   document.getElementById("d-open").addEventListener("click", () => openOutputFolder(selectedJobId));
 
+  await detectMode();
+  if (hostedMode) initHosted();
+  if (hostedMode && !csrfToken) {
+    showAuth("login");
+    return;
+  }
+  await enterApp();
+}
+
+/* Carrega o catálogo e as coletas e abre a tela pedida no hash. No modo
+   hospedado roda depois do login; no local, direto ao abrir a página. */
+async function enterApp() {
+  if (hostedMode) applyHostedChrome();
   try {
     await loadSources();
     await refreshJobs();
     setApiStatus(true);
   } catch (error) {
+    if (hostedMode && !csrfToken) return;
     setApiStatus(false);
     toast(t("boot_error") + String(error), "fail");
   }
 
-  /* deep-links: #new · #sources · #new=<fonte> · #job=<id> */
-  const hash = location.hash.replace("#", "");
-  if (hash === "new" || hash === "sources") {
-    go(hash);
-  } else if (hash.startsWith("new=")) {
-    const source = decodeURIComponent(hash.slice(4));
-    if (sourcesBySource[source]) await selectSource(source);
-    else go("new");
-  } else if (hash.startsWith("job=")) {
-    await openDrawer(decodeURIComponent(hash.slice(4)));
+  if (!appStarted) {
+    appStarted = true;
+    /* deep-links: #new, #sources, #new=<fonte>, #job=<id>, #admin */
+    const hash = location.hash.replace("#", "");
+    if (hash === "new" || hash === "sources") {
+      go(hash);
+    } else if (hash === "admin" && hostedMode && isAdmin()) {
+      go("admin");
+    } else if (hash.startsWith("new=")) {
+      const source = decodeURIComponent(hash.slice(4));
+      if (sourcesBySource[source]) await selectSource(source);
+      else go("new");
+    } else if (hash.startsWith("job=")) {
+      await openDrawer(decodeURIComponent(hash.slice(4)));
+    } else {
+      playReveals("jobs");
+      trackView("jobs");
+    }
   } else {
-    playReveals("jobs");
+    go("jobs");
   }
-  setInterval(refreshJobs, 5000);
+  if (!pollStarted) {
+    pollStarted = true;
+    setInterval(refreshJobs, 5000);
+  }
 }
 
-bootstrap();
+document.addEventListener("DOMContentLoaded", bootstrap);
