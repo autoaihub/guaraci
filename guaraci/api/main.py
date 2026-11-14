@@ -3,23 +3,47 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from guaraci import __version__
 from guaraci.core.config import config
+from guaraci.hosted.settings import HostedSettings
 from guaraci.services import DownloadJobService, DownloadService
+from guaraci.services.job_policy import JobLimitError
 
-app = FastAPI(title="Guaraci API", version=__version__)
+# GUARACI_MODE=hosted liga login, fila multiusuário e rastreamento. Sem a
+# variável, a API segue local, sem login, como sempre foi.
+hosted_settings = HostedSettings.from_env()
+HOSTED = hosted_settings.hosted
+
+if HOSTED:
+    hosted_settings.validate()
+    app = FastAPI(
+        title="Guaraci API", version=__version__, docs_url=None, redoc_url=None, openapi_url=None
+    )
+else:
+    app = FastAPI(title="Guaraci API", version=__version__)
 download_service = DownloadService()
 job_service = DownloadJobService(
     download_service=download_service,
-    storage_path=config.data_root / "jobs" / "download_jobs.json",
+    # No modo hospedado o estado dos jobs fica junto do banco de contas.
+    storage_path=(
+        hosted_settings.db_path.parent / "download_jobs.json"
+        if HOSTED
+        else config.data_root / "jobs" / "download_jobs.json"
+    ),
+    **(
+        {"policy": hosted_settings.job_policy(), "max_workers": hosted_settings.max_running}
+        if HOSTED
+        else {}
+    ),
 )
+runtime = None  # preenchido no fim do módulo quando HOSTED
 _UI_INDEX_PATH = Path(__file__).with_name("static") / "index.html"
 app.mount(
     "/static",
@@ -141,6 +165,8 @@ class JobStatusResponse(BaseModel):
     elapsed_seconds: float = 0.0
     eta_seconds: Optional[float] = None
     output_dir: Optional[str] = None
+    expires_at: Optional[str] = None
+    purged_at: Optional[str] = None
     events: List[Dict[str, object]] = Field(default_factory=list)
 
 
@@ -162,6 +188,8 @@ class JobOutputResponse(BaseModel):
     exported_files: List[str] = Field(default_factory=list)
     materialized_paths: List[str] = Field(default_factory=list)
     available: bool = False
+    expires_at: Optional[str] = None
+    purged_at: Optional[str] = None
 
 
 class OpenOutputResponse(BaseModel):
@@ -169,6 +197,31 @@ class OpenOutputResponse(BaseModel):
     output_dir: str
     host_output_dir: Optional[str] = None
     message: str
+
+
+def _scope(request: Request, *, with_quota: bool = False) -> Dict[str, Any]:
+    """Argumentos de dono (e cota) para o serviço de jobs; vazio no modo local."""
+    if runtime is None:
+        return {}
+    session = runtime.session_of(request)
+    kwargs: Dict[str, Any] = {"owner_id": runtime.owner_id(request)}
+    if with_quota:
+        kwargs["daily_limit"] = session.user.quota_jobs_day if session is not None else None
+    return kwargs
+
+
+def _job_payload(job: Any) -> Dict[str, Any]:
+    data = job.to_dict()
+    return runtime.public_job(data) if runtime is not None else data
+
+
+def _track(request: Request, kind: str, job: Any = None, **fields: Any) -> None:
+    if runtime is None:
+        return
+    if job is not None:
+        fields.setdefault("source", job.source)
+        fields.setdefault("job_id", job.job_id)
+    runtime.track(request, kind, **fields)
 
 
 def _load_ui_html() -> str:
@@ -250,7 +303,10 @@ def get_source_schema(source: str) -> SourceSchemaResponse:
 
 
 @app.post("/sources/{source}/discovery", response_model=SourceDiscoveryResponse)
-def discover_source(source: str, payload: SourceDiscoveryRequest) -> SourceDiscoveryResponse:
+def discover_source(
+    source: str, payload: SourceDiscoveryRequest, request: Request
+) -> SourceDiscoveryResponse:
+    _track(request, "discovery", source=source.strip().lower()[:80])
     try:
         discovery = download_service.discover(source, **payload.params)
     except ValueError as exc:
@@ -269,6 +325,8 @@ def discover_source(source: str, payload: SourceDiscoveryRequest) -> SourceDisco
     discovery["total_size_bytes"] = int(discovery.get("total_size_bytes") or 0)
     if not discovery.get("sample") and isinstance(discovery.get("resources"), list):
         discovery["sample"] = discovery["resources"][:10]
+    if runtime is not None:
+        discovery = runtime.redact(discovery)
     return SourceDiscoveryResponse(**discovery)
 
 
@@ -285,64 +343,89 @@ def download_sinisa(payload: SnisDownloadRequest) -> DownloadResponse:
 
 
 @app.post("/jobs", response_model=JobStatusResponse, status_code=202)
-def create_job(payload: JobCreateRequest) -> JobStatusResponse:
+def create_job(payload: JobCreateRequest, request: Request) -> JobStatusResponse:
+    source = payload.source.strip().lower()[:80]
     try:
-        job = job_service.create_job(source=payload.source, params=payload.params)
+        job = job_service.create_job(
+            source=payload.source,
+            params=payload.params,
+            **_scope(request, with_quota=True),
+        )
+    except JobLimitError as exc:
+        _track(
+            request, "job_rejected", source=source, meta={"status": exc.status_code, "reason": str(exc)}
+        )
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
     except ValueError as exc:
+        _track(request, "job_rejected", source=source, meta={"status": 400})
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return JobStatusResponse(**job.to_dict())
+    _track(request, "job_create", job)
+    return JobStatusResponse(**_job_payload(job))
 
 
 @app.get("/jobs", response_model=List[JobStatusResponse])
-def list_jobs(limit: int = Query(50, ge=1, le=500)) -> List[JobStatusResponse]:
-    jobs = job_service.list_jobs(limit=limit)
-    return [JobStatusResponse(**job.to_dict()) for job in jobs]
+def list_jobs(request: Request, limit: int = Query(50, ge=1, le=500)) -> List[JobStatusResponse]:
+    jobs = job_service.list_jobs(limit=limit, **_scope(request))
+    return [JobStatusResponse(**_job_payload(job)) for job in jobs]
 
 
 @app.get("/jobs/{job_id}", response_model=JobStatusResponse)
-def get_job(job_id: str) -> JobStatusResponse:
+def get_job(job_id: str, request: Request) -> JobStatusResponse:
     try:
-        job = job_service.get_job(job_id=job_id)
+        job = job_service.get_job(job_id=job_id, **_scope(request))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found") from exc
-    return JobStatusResponse(**job.to_dict())
+    return JobStatusResponse(**_job_payload(job))
 
 
 @app.post("/jobs/{job_id}/cancel", response_model=JobStatusResponse)
-def cancel_job(job_id: str) -> JobStatusResponse:
+def cancel_job(job_id: str, request: Request) -> JobStatusResponse:
     try:
-        job = job_service.cancel_job(job_id=job_id)
+        job = job_service.cancel_job(job_id=job_id, **_scope(request))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found") from exc
-    return JobStatusResponse(**job.to_dict())
+    _track(request, "job_cancel", job)
+    return JobStatusResponse(**_job_payload(job))
 
 
 @app.post("/jobs/{job_id}/retry", response_model=JobStatusResponse, status_code=202)
-def retry_job(job_id: str) -> JobStatusResponse:
+def retry_job(job_id: str, request: Request) -> JobStatusResponse:
     try:
-        job = job_service.retry_job(job_id=job_id)
+        job = job_service.retry_job(job_id=job_id, **_scope(request, with_quota=True))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found") from exc
+    except JobLimitError as exc:
+        _track(
+            request, "job_rejected", job_id=job_id, meta={"status": exc.status_code, "reason": str(exc)}
+        )
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return JobStatusResponse(**job.to_dict())
+    _track(request, "job_retry", job, meta={"retry_of": job_id})
+    return JobStatusResponse(**_job_payload(job))
 
 
 @app.get("/jobs/{job_id}/logs", response_model=List[JobLogResponse])
-def get_job_logs(job_id: str, limit: int = Query(200, ge=1, le=2000)) -> List[JobLogResponse]:
+def get_job_logs(
+    job_id: str, request: Request, limit: int = Query(200, ge=1, le=2000)
+) -> List[JobLogResponse]:
     try:
-        logs = job_service.get_job_logs(job_id=job_id, limit=limit)
+        logs = job_service.get_job_logs(job_id=job_id, limit=limit, **_scope(request))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found") from exc
+    if runtime is not None:
+        logs = runtime.redact(logs)
     return [JobLogResponse(**item) for item in logs]
 
 
 @app.get("/jobs/{job_id}/output", response_model=JobOutputResponse)
-def get_job_output(job_id: str) -> JobOutputResponse:
+def get_job_output(job_id: str, request: Request) -> JobOutputResponse:
     try:
-        payload = job_service.get_job_output_info(job_id=job_id)
+        payload = job_service.get_job_output_info(job_id=job_id, **_scope(request))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found") from exc
+    if runtime is not None:
+        payload = runtime.redact({**payload, "output_dir": None, "host_output_dir": None})
     return JobOutputResponse(**payload)
 
 
@@ -355,3 +438,9 @@ def open_job_output(job_id: str) -> OpenOutputResponse:
     except (ValueError, FileNotFoundError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return OpenOutputResponse(**payload)
+
+
+if HOSTED:
+    from guaraci.hosted.runtime import install
+
+    runtime = install(app, job_service, hosted_settings)

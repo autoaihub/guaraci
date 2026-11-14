@@ -79,7 +79,9 @@ api = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "httpx>=0.25.0",
-    "aiofiles>=23.2.0"
+    "aiofiles>=23.2.0",
+    # Hash de senha do modo hospedado (GUARACI_MODE=hosted).
+    "argon2-cffi>=23.1.0"
 ]
 # Extrator 7z em Python puro para o Novo CAGED e a RAIS (MTE). Opcional: com o
 # binário 7z/7za/7zz no PATH (ou o 7-Zip no Windows) o pacote não é necessário.

@@ -5,12 +5,13 @@ from __future__ import annotations
 import json
 import os
 import platform
+import shutil
 import subprocess
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Mapping, Optional
 from uuid import uuid4
@@ -18,6 +19,7 @@ from uuid import uuid4
 from guaraci.core.results import JobResult
 from guaraci.core.security import ensure_allowed_output_dir
 from guaraci.services.downloads import DownloadService
+from guaraci.services.job_policy import JobLimitError, JobLimitExceeded, JobPolicy
 from guaraci.utils.atomic_io import replace_with_retry
 
 
@@ -56,6 +58,9 @@ class DownloadJob:
     eta_seconds: Optional[float] = None
     output_dir: Optional[str] = None
     events: List[Dict[str, object]] = field(default_factory=list)
+    owner_id: Optional[str] = None
+    expires_at: Optional[str] = None
+    purged_at: Optional[str] = None
 
     def to_dict(self) -> Dict[str, object]:
         return {
@@ -82,6 +87,9 @@ class DownloadJob:
             "eta_seconds": None if self.eta_seconds is None else round(self.eta_seconds, 2),
             "output_dir": self.output_dir,
             "events": list(self.events),
+            "owner_id": self.owner_id,
+            "expires_at": self.expires_at,
+            "purged_at": self.purged_at,
         }
 
 
@@ -100,7 +108,17 @@ class DownloadJobService:
         storage_path: Optional[str | Path] = None,
         source_concurrency_limits: Optional[Mapping[str, int]] = None,
         default_source_concurrency: Optional[int] = None,
+        policy: Optional[JobPolicy] = None,
     ):
+        self._policy = policy or JobPolicy()
+        self._max_workers = max(1, int(max_workers))
+        # Revezamento (só com política): fila própria, despachada por dono.
+        self._pending: List[str] = []
+        self._running_total = 0
+        self._running_by_owner: Dict[str, int] = {}
+        # Ordem do último despacho por dono, para o rodízio.
+        self._dispatch_seq = 0
+        self._last_dispatch: Dict[str, int] = {}
         self._download_service = download_service or DownloadService()
         self._jobs: Dict[str, DownloadJob] = {}
         self._lock = threading.RLock()
@@ -121,13 +139,26 @@ class DownloadJobService:
             thread_name_prefix="guaraci-job",
         )
 
-    def create_job(self, source: str, params: Optional[Dict[str, object]] = None) -> DownloadJob:
+    def create_job(
+        self,
+        source: str,
+        params: Optional[Dict[str, object]] = None,
+        *,
+        owner_id: Optional[str] = None,
+        daily_limit: Optional[int] = None,
+    ) -> DownloadJob:
         parsed_params = dict(params or {})
         normalized_source = source.strip().lower()
+        job_id = uuid4().hex
+        self._confine_output_dir(parsed_params, owner_id, job_id)
         self._download_service.validate_source_params(normalized_source, parsed_params)
+        with self._lock:
+            # Checagem barata antes da estimativa de volume, que consulta a fonte.
+            self._check_limits_locked(owner_id, daily_limit)
+        self._precheck_volume(normalized_source, parsed_params)
 
         job = DownloadJob(
-            job_id=uuid4().hex,
+            job_id=job_id,
             source=normalized_source,
             params=parsed_params,
             status="queued",
@@ -135,26 +166,28 @@ class DownloadJobService:
             created_at=self._utcnow(),
             attempt=1,
             retry_of=None,
+            owner_id=owner_id,
         )
 
         with self._lock:
+            self._check_limits_locked(owner_id, daily_limit)
             self._jobs[job.job_id] = job
             self._append_event_locked(job, level="info", message="Job queued.", event="queued")
             self._persist_jobs_locked()
+            self._enqueue_locked(job.job_id)
 
-        self._executor.submit(self._run_job, job.job_id)
         return self.get_job(job.job_id)
 
-    def cancel_job(self, job_id: str) -> DownloadJob:
+    def cancel_job(self, job_id: str, *, owner_id: Optional[str] = None) -> DownloadJob:
         with self._lock:
-            if job_id not in self._jobs:
-                raise KeyError(job_id)
-            job = self._jobs[job_id]
+            job = self._owned_job_locked(job_id, owner_id)
 
             if job.status in self.TERMINAL_STATES:
                 return self._clone(job)
 
             if job.status == "queued":
+                if job_id in self._pending:
+                    self._pending.remove(job_id)
                 self._mark_canceled_locked(job, message="Canceled by user.")
                 self._append_event_locked(
                     job,
@@ -178,11 +211,11 @@ class DownloadJobService:
             self._persist_jobs_locked()
             return self._clone(job)
 
-    def retry_job(self, job_id: str) -> DownloadJob:
+    def retry_job(
+        self, job_id: str, *, owner_id: Optional[str] = None, daily_limit: Optional[int] = None
+    ) -> DownloadJob:
         with self._lock:
-            if job_id not in self._jobs:
-                raise KeyError(job_id)
-            previous = self._jobs[job_id]
+            previous = self._owned_job_locked(job_id, owner_id)
 
         if previous.status not in self.RETRYABLE_STATES:
             raise ValueError(
@@ -196,10 +229,12 @@ class DownloadJobService:
             )
 
         params = dict(previous.params)
+        retried_id = uuid4().hex
+        self._confine_output_dir(params, previous.owner_id, retried_id)
         self._download_service.validate_source_params(previous.source, params)
 
         retried = DownloadJob(
-            job_id=uuid4().hex,
+            job_id=retried_id,
             source=previous.source,
             params=params,
             status="queued",
@@ -207,8 +242,10 @@ class DownloadJobService:
             created_at=self._utcnow(),
             attempt=previous.attempt + 1,
             retry_of=previous.job_id,
+            owner_id=previous.owner_id,
         )
         with self._lock:
+            self._check_limits_locked(previous.owner_id, daily_limit)
             self._jobs[retried.job_id] = retried
             self._append_event_locked(
                 retried,
@@ -217,32 +254,37 @@ class DownloadJobService:
                 event="retry_created",
             )
             self._persist_jobs_locked()
+            self._enqueue_locked(retried.job_id)
 
-        self._executor.submit(self._run_job, retried.job_id)
         return self.get_job(retried.job_id)
 
-    def get_job(self, job_id: str) -> DownloadJob:
+    def get_job(self, job_id: str, *, owner_id: Optional[str] = None) -> DownloadJob:
         with self._lock:
-            if job_id not in self._jobs:
-                raise KeyError(job_id)
-            return self._clone(self._jobs[job_id])
+            return self._clone(self._owned_job_locked(job_id, owner_id))
 
-    def list_jobs(self, limit: int = 50) -> List[DownloadJob]:
+    def list_jobs(self, limit: int = 50, *, owner_id: Optional[str] = None) -> List[DownloadJob]:
         with self._lock:
-            items = sorted(self._jobs.values(), key=lambda item: item.created_at, reverse=True)
+            items = [
+                item
+                for item in self._jobs.values()
+                if owner_id is None or item.owner_id == owner_id
+            ]
+            items.sort(key=lambda item: item.created_at, reverse=True)
             return [self._clone(item) for item in items[: max(limit, 0)]]
 
-    def get_job_logs(self, job_id: str, limit: int = 200) -> List[Dict[str, object]]:
+    def get_job_logs(
+        self, job_id: str, limit: int = 200, *, owner_id: Optional[str] = None
+    ) -> List[Dict[str, object]]:
         with self._lock:
-            if job_id not in self._jobs:
-                raise KeyError(job_id)
-            events = self._jobs[job_id].events
+            events = self._owned_job_locked(job_id, owner_id).events
             if limit <= 0:
                 return []
             return [dict(item) for item in events[-limit:]]
 
-    def get_job_output_info(self, job_id: str) -> Dict[str, object]:
-        job = self.get_job(job_id)
+    def get_job_output_info(
+        self, job_id: str, *, owner_id: Optional[str] = None
+    ) -> Dict[str, object]:
+        job = self.get_job(job_id, owner_id=owner_id)
         output_dir = self._detect_output_dir(job)
         host_output_dir = self._detect_host_output_dir(output_dir)
         result_payload = job.result.to_dict() if job.result else {}
@@ -262,7 +304,9 @@ class DownloadJobService:
             "materialized_paths": (
                 list(materialized_paths) if isinstance(materialized_paths, list) else []
             ),
-            "available": output_dir is not None,
+            "available": output_dir is not None and job.purged_at is None,
+            "expires_at": job.expires_at,
+            "purged_at": job.purged_at,
         }
 
     def open_job_output_dir(self, job_id: str) -> Dict[str, object]:
@@ -319,6 +363,235 @@ class DownloadJobService:
             "host_output_dir": output.get("host_output_dir"),
             "message": "Folder open command executed.",
         }
+
+    # ------------------------------------------------------------------
+    # Modo hospedado: dono, cotas, revezamento e expiração das saídas.
+    # Sem política (modo local) todos estes pontos são neutros.
+    # ------------------------------------------------------------------
+
+    @property
+    def policy(self) -> JobPolicy:
+        return self._policy
+
+    def _owned_job_locked(self, job_id: str, owner_id: Optional[str]) -> DownloadJob:
+        job = self._jobs.get(job_id)
+        # Job de outra pessoa responde como inexistente: não revela que existe.
+        if job is None or (owner_id is not None and job.owner_id != owner_id):
+            raise KeyError(job_id)
+        return job
+
+    def _confine_output_dir(
+        self, params: Dict[str, object], owner_id: Optional[str], job_id: str
+    ) -> None:
+        root = self._policy.output_root
+        if root is None or owner_id is None:
+            return
+        # A pasta vem do servidor, nunca do usuário.
+        params["output_dir"] = str(Path(root) / "users" / str(owner_id) / job_id)
+
+    def owner_usage(self, owner_id: str) -> Dict[str, int]:
+        with self._lock:
+            return self._owner_usage_locked(owner_id)
+
+    def _owner_usage_locked(self, owner_id: Optional[str]) -> Dict[str, int]:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=1)
+        active = 0
+        last_day = 0
+        for job in self._jobs.values():
+            if job.owner_id != owner_id:
+                continue
+            if job.status not in self.TERMINAL_STATES:
+                active += 1
+            created = self._parse_ts(job.created_at)
+            if created is not None and created >= cutoff:
+                last_day += 1
+        return {"active": active, "last_24h": last_day}
+
+    def _check_limits_locked(self, owner_id: Optional[str], daily_limit: Optional[int] = None) -> None:
+        """``daily_limit`` substitui o teto diário da política (cota própria do usuário)."""
+        policy = self._policy
+        per_day = daily_limit if daily_limit is not None else policy.max_jobs_per_day
+        if policy.max_active_global is not None:
+            active_total = sum(
+                1 for job in self._jobs.values() if job.status not in self.TERMINAL_STATES
+            )
+            if active_total >= policy.max_active_global:
+                raise JobLimitError(
+                    "A fila do servidor está cheia. Tente de novo em alguns minutos.",
+                    status_code=503,
+                )
+        if policy.min_free_disk_bytes is not None and policy.output_root is not None:
+            root = Path(policy.output_root)
+            root.mkdir(parents=True, exist_ok=True)
+            if shutil.disk_usage(root).free < policy.min_free_disk_bytes:
+                raise JobLimitError(
+                    "O servidor está sem espaço livre para novas coletas no momento.",
+                    status_code=503,
+                )
+        if owner_id is None:
+            return
+        usage = self._owner_usage_locked(owner_id)
+        if policy.max_active_per_owner is not None and usage["active"] >= policy.max_active_per_owner:
+            raise JobLimitError(
+                f"Você já tem {usage['active']} coleta(s) em andamento ou na fila "
+                f"(limite {policy.max_active_per_owner}). Aguarde terminar ou cancele uma."
+            )
+        if per_day is not None and usage["last_24h"] >= per_day:
+            raise JobLimitError(f"Limite de {per_day} coletas em 24 horas atingido.")
+
+    def _precheck_volume(self, source: str, params: Dict[str, object]) -> None:
+        """Recusa antes da fila a coleta cujo volume estimado passa do teto.
+
+        Só vale para fontes com estimativa (``supports_discovery``). Falha da
+        estimativa não bloqueia: o corte em execução cobre esse caso.
+        """
+        cap = self._policy.max_job_bytes
+        if cap is None:
+            return
+        service = self._download_service
+        try:
+            if not service.supports_discovery(source):
+                return
+            estimate = service.discover(source, fetch_sizes=True, **params)
+        except Exception:  # noqa: BLE001 - a estimativa é melhor esforço
+            return
+        total = int(estimate.get("total_size_bytes") or 0) if isinstance(estimate, dict) else 0
+        if total > cap:
+            raise JobLimitError(
+                f"A coleta pedida soma cerca de {total / 1e9:.1f} GB, acima do limite de "
+                f"{cap / 1e9:.1f} GB por coleta. Reduza o período, as UFs ou os grupos.",
+                status_code=413,
+            )
+
+    def _runtime_limit_message(self, job: DownloadJob, elapsed: float) -> Optional[str]:
+        policy = self._policy
+        if policy.max_job_bytes is not None and job.bytes_downloaded > policy.max_job_bytes:
+            return (
+                f"A coleta passou do limite de {policy.max_job_bytes / 1e9:.1f} GB por coleta."
+            )
+        if policy.max_job_seconds is not None and elapsed > policy.max_job_seconds:
+            return (
+                f"A coleta passou do limite de {policy.max_job_seconds / 60:.0f} minutos por coleta."
+            )
+        return None
+
+    def _set_expiry_locked(self, job: DownloadJob) -> None:
+        ttl = self._policy.output_ttl_hours
+        if ttl is None:
+            return
+        job.expires_at = (datetime.now(timezone.utc) + timedelta(hours=ttl)).isoformat()
+
+    def _enqueue_locked(self, job_id: str) -> None:
+        if not self._policy.fair_scheduling:
+            self._executor.submit(self._run_job, job_id)
+            return
+        self._pending.append(job_id)
+        self._dispatch_locked()
+
+    def _dispatch_locked(self) -> None:
+        """Despacha jobs da fila própria em rodízio entre os donos.
+
+        Vaga global = ``max_workers``. Entre os jobs elegíveis (dono abaixo do
+        teto por usuário), vence o dono com menos jobs rodando; no empate, o
+        dono atendido há mais tempo e, por fim, o pedido mais antigo.
+        """
+        per_owner = self._policy.max_running_per_owner or self._max_workers
+        while self._running_total < self._max_workers and self._pending:
+            self._pending = [
+                jid
+                for jid in self._pending
+                if jid in self._jobs and self._jobs[jid].status == "queued"
+            ]
+            best: Optional[str] = None
+            best_key: Optional[tuple] = None
+            for index, jid in enumerate(self._pending):
+                owner = self._jobs[jid].owner_id or ""
+                running = self._running_by_owner.get(owner, 0)
+                if running >= per_owner:
+                    continue
+                key = (running, self._last_dispatch.get(owner, -1), index)
+                if best_key is None or key < best_key:
+                    best, best_key = jid, key
+            if best is None:
+                return
+            self._pending.remove(best)
+            owner = self._jobs[best].owner_id or ""
+            self._running_total += 1
+            self._running_by_owner[owner] = self._running_by_owner.get(owner, 0) + 1
+            self._dispatch_seq += 1
+            self._last_dispatch[owner] = self._dispatch_seq
+            self._executor.submit(self._run_dispatched, best, owner)
+
+    def _run_dispatched(self, job_id: str, owner: str) -> None:
+        try:
+            self._run_job(job_id)
+        finally:
+            with self._lock:
+                self._running_total = max(0, self._running_total - 1)
+                remaining = self._running_by_owner.get(owner, 1) - 1
+                if remaining > 0:
+                    self._running_by_owner[owner] = remaining
+                else:
+                    self._running_by_owner.pop(owner, None)
+                self._dispatch_locked()
+
+    def purge_expired_outputs(self, now: Optional[datetime] = None) -> List[str]:
+        """Apaga as saídas vencidas dentro da raiz de saídas. Devolve os job_ids."""
+        root = self._policy.output_root
+        if root is None:
+            return []
+        root_resolved = Path(root).resolve()
+        moment = now or datetime.now(timezone.utc)
+        purged: List[str] = []
+        with self._lock:
+            candidates = [
+                job
+                for job in self._jobs.values()
+                if job.purged_at is None
+                and job.expires_at is not None
+                and job.status in self.TERMINAL_STATES
+                and (self._parse_ts(job.expires_at) or moment) <= moment
+            ]
+            targets = [(job.job_id, self._job_output_folder(job)) for job in candidates]
+        for job_id, folder in targets:
+            if folder is not None:
+                resolved = folder.resolve()
+                # Só apaga o que está dentro da raiz e não é a própria raiz.
+                if resolved != root_resolved and resolved.is_relative_to(root_resolved):
+                    shutil.rmtree(resolved, ignore_errors=True)
+            purged.append(job_id)
+        if purged:
+            with self._lock:
+                stamp = moment.isoformat()
+                for job_id in purged:
+                    if job_id in self._jobs:
+                        self._jobs[job_id].purged_at = stamp
+                self._persist_jobs_locked()
+        return purged
+
+    def job_output_folder(self, job_id: str, *, owner_id: Optional[str] = None) -> Optional[Path]:
+        with self._lock:
+            job = self._owned_job_locked(job_id, owner_id)
+            if job.purged_at is not None:
+                return None
+            return self._job_output_folder(job)
+
+    def _job_output_folder(self, job: DownloadJob) -> Optional[Path]:
+        confined = job.params.get("output_dir") if self._policy.output_root else None
+        raw = confined or self._detect_output_dir(job)
+        return Path(str(raw)) if raw else None
+
+    @staticmethod
+    def _parse_ts(value: Optional[str]) -> Optional[datetime]:
+        if not value:
+            return None
+        try:
+            parsed = datetime.fromisoformat(value)
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed
 
     def wait_for_job(self, job_id: str, timeout_seconds: float = 10.0) -> DownloadJob:
         deadline = time.time() + timeout_seconds
@@ -386,6 +659,9 @@ class DownloadJobService:
                     self._persist_jobs_locked()
                     progress_log_state["last_persist_ts"] = now
                 cancel_now = running_job.cancel_requested
+                limit_message = self._runtime_limit_message(running_job, now - started_monotonic)
+            if limit_message is not None:
+                raise JobLimitExceeded(limit_message)
             if cancel_now:
                 # Aborta o download em andamento de verdade: a exceção sobe
                 # pela pilha da datasource até o handler de cancelamento.
@@ -411,6 +687,22 @@ class DownloadJobService:
                     progress_callback=progress_callback,
                     **params,
                 )
+            except JobLimitExceeded as exc:
+                with self._lock:
+                    job = self._jobs[job_id]
+                    job.status = "failed"
+                    job.finished_at = self._utcnow()
+                    job.progress = 100.0
+                    job.error = str(exc)
+                    job.error_retryable = False
+                    self._append_event_locked(
+                        job, level="error", message=f"Job stopped: {exc}", event="limit_exceeded"
+                    )
+                    job.elapsed_seconds = max(0.0, time.monotonic() - started_monotonic)
+                    job.eta_seconds = None
+                    self._set_expiry_locked(job)
+                    self._persist_jobs_locked()
+                return
             except JobCancelledError:
                 with self._lock:
                     job = self._jobs[job_id]
@@ -471,6 +763,7 @@ class DownloadJobService:
                     job.progress = 100.0
                     job.result = result
                     job.output_dir = self._detect_output_dir(job)
+                    self._set_expiry_locked(job)
                     if result.status == "failed":
                         job.status = "failed"
                         job.error = (
@@ -805,6 +1098,9 @@ class DownloadJobService:
             eta_seconds=job.eta_seconds,
             output_dir=job.output_dir,
             events=[dict(item) for item in job.events],
+            owner_id=job.owner_id,
+            expires_at=job.expires_at,
+            purged_at=job.purged_at,
         )
 
     def _append_event_locked(
@@ -941,6 +1237,9 @@ class DownloadJobService:
             eta_seconds=self._optional_float(payload.get("eta_seconds")),
             output_dir=self._optional_str(payload.get("output_dir")),
             events=parsed_events,
+            owner_id=self._optional_str(payload.get("owner_id")),
+            expires_at=self._optional_str(payload.get("expires_at")),
+            purged_at=self._optional_str(payload.get("purged_at")),
         )
 
     @staticmethod

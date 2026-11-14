@@ -47,6 +47,7 @@ from guaraci.cli.snis_cli import snis
 from guaraci.cli.datasus_cli import datasus
 from guaraci.cli.fetch_cli import fetch
 from guaraci.cli.orchestrate_cli import orchestrate
+from guaraci.cli.admin_cli import admin
 
 console = Console()
 
@@ -76,6 +77,7 @@ app.add_command(snis)
 app.add_command(datasus)
 app.add_command(fetch)
 app.add_command(orchestrate)
+app.add_command(admin)
 
 
 @app.command()
