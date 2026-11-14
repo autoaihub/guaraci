@@ -24,7 +24,7 @@
 - O coletor de arquivos nomeava o arquivo local pelo último trecho da URL, consulta incluída, o que quebrava no Windows com o endereço do Drive (`?` não vale em nome de arquivo). Passa a usar só o caminho da URL.
 - Dicionário de campos e volume agora medidos (65 MB e 49 MB de CSV exportado), e a descrição, a legenda e o período (1985 a 2025) do catálogo apontam a coleção 11.
 
-### Added: leva 6 (onda 2), CKAN federal e estadual, CNPJ da Receita e SICOR
+### Added: complemento da onda 2, CKAN federal e estadual, CNPJ da Receita e SICOR
 Trinta fontes que já existiam no código entram no catálogo do site. O catálogo passa a 301 entradas e 289 bases distintas, com um tema novo (atividade econômica).
 - **Previdência (INSS).** Comunicações de acidente de trabalho (CAT) e benefícios concedidos, mantidos, cessados e indeferidos, um arquivo por mês desde 2023-06. O CAT de 2026-09 está anunciado pelo portal mas responde HTTP 403, e a coleta pula o mês e baixa 2026-08.
 - **Trânsito, território e agropecuária.** RENAEST da Senatran (acidentes, vítimas, tipo de veículo e localidade), unidades de conservação e espécies ameaçadas do MMA, e do MAPA o AGROFIT, o SIF e o SIPEAGRO.
