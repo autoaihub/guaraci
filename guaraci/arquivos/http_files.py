@@ -1310,7 +1310,8 @@ class HttpFileDataSource(DataSource):
         unpublished: List[str] = []
 
         for index, resource in enumerate(resources, start=1):
-            suffix = Path(resource.url).name
+            # Só o caminho da URL: a consulta (``?id=...``) não é nome de arquivo válido no Windows.
+            suffix = Path(urlsplit(resource.url).path).name
             raw_path = base_dir / (f"{self.name}__{suffix}" if multi else suffix)
             try:
                 try:

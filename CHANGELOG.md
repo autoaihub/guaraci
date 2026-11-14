@@ -18,6 +18,12 @@
   própria página. O RHCWeb ainda está em carga pelo INCA: na conferência de 03/11/2026, 2020
   e 2023 vinham com poucas centenas de casos, bem abaixo do Integrador antigo.
 
+### Fixed: MapBiomas migra para a coleção 11
+- **`mapbiomas_cobertura_municipios` e `mapbiomas_vegetacao_secundaria_municipios`.** As planilhas da coleção 10 saíram do bucket público `mapbiomas-public` (HTTP 403 desde 2026-11-03). As da coleção 11 (agosto e outubro de 2026), listadas em `brasil.mapbiomas.org/downloads/estatisticas`, foram conferidas por GET em 2026-11-14 e baixadas de ponta a ponta pelo coletor. A cobertura vem de um zip de 78 MB no Google Drive com um xlsx (aba `COVERAGE_11`, 55 colunas, 77.406 linhas, de 1985 a 2025), pelo endereço direto `drive.usercontent.google.com/download?...&confirm=t`, que dispensa o aviso de vírus e o login. A vegetação secundária vem de um xlsx de 58 MB no site do MapBiomas (aba `ANNUAL_SECONDARY_VEGETATION`, 57 colunas, 59.893 linhas, de 1985 a 2025).
+- O leiaute da vegetação secundária mudou: entram `TRANSITION_CLASS_ID` e `TRANSITION_CLASS_NAME` (vegetação primária ou secundária), `VERSION` e `COLLECTION`, e os nomes das colunas passam a maiúsculas. O endereço do xlsx leva o mês de publicação (`2026/10`) e muda se o MapBiomas reenviar o arquivo; o do Drive depende do identificador do arquivo.
+- O coletor de arquivos nomeava o arquivo local pelo último trecho da URL, consulta incluída, o que quebrava no Windows com o endereço do Drive (`?` não vale em nome de arquivo). Passa a usar só o caminho da URL.
+- Dicionário de campos e volume agora medidos (65 MB e 49 MB de CSV exportado), e a descrição, a legenda e o período (1985 a 2025) do catálogo apontam a coleção 11.
+
 ### Added: leva 6 (onda 2), CKAN federal e estadual, CNPJ da Receita e SICOR
 Trinta fontes que já existiam no código entram no catálogo do site. O catálogo passa a 301 entradas e 289 bases distintas, com um tema novo (atividade econômica).
 - **Previdência (INSS).** Comunicações de acidente de trabalho (CAT) e benefícios concedidos, mantidos, cessados e indeferidos, um arquivo por mês desde 2023-06. O CAT de 2026-09 está anunciado pelo portal mas responde HTTP 403, e a coleta pula o mês e baixa 2026-08.

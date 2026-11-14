@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 301 sources cataloged; 211 sampled with real field names.
+- 301 sources cataloged; 213 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -57,8 +57,6 @@ to refresh.
 - `ipeadata_series` (empty): IPEADATA OData series chosen by series (41 series with no primary source counterpart, among them the Atlas da Violencia). Not sampled here.
 - `isp_rj_delegacias_mensal` (empty): Monthly series by police station (CISP) since 2003, 65 columns. Not sampled here.
 - `isp_rj_municipios_mensal` (empty): Monthly series by municipality since 2003, 62 columns. Not sampled here.
-- `mapbiomas_cobertura_municipios` (error): MapBiomas collection 10 land cover by municipality, 54 columns per the spec (79285 rows); the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
-- `mapbiomas_vegetacao_secundaria_municipios` (error): MapBiomas collection 10 secondary vegetation by municipality, 52 columns per the spec; the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
 - `mdhc_disque100` (empty): Disque 100 complaints, one file per semester from 2020 (100 MB to 1.9 GB), 34 or 62 columns depending on the file; anos is required. Not sampled here.
 - `mds_misocial` (empty): MI Social (MDS/SAGI) monthly municipal indicators from 2003, Solr field names as published, chosen by grupos: bolsa_familia (166), cadunico (59), bpc (29), condicionalidades (317), suas (182), auxilios (357), outros (157). Field list fixed in guaraci/mds/campos.py; not sampled here.
 - `mgdi_academia_saude` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
@@ -1179,15 +1177,17 @@ to refresh.
 
 ## mapbiomas_cobertura_municipios
 
-- **Status:** error
+- **Status:** ok (77406 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
-- **Note:** MapBiomas collection 10 land cover by municipality, 54 columns per the spec (79285 rows); the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
+- **Fields:** `ID`, `country`, `biome`, `region`, `state`, `geocode`, `municipality`, `municipality-state`, `class`, `class_level_0`, `class_level_1`, `class_level_2`, `class_level_3`, `class_level_4`, `y1985`, `y1986`, `y1987`, `y1988`, `y1989`, `y1990`, `y1991`, `y1992`, `y1993`, `y1994`, `y1995`, `y1996`, `y1997`, `y1998`, `y1999`, `y2000`, `y2001`, `y2002`, `y2003`, `y2004`, `y2005`, `y2006`, `y2007`, `y2008`, `y2009`, `y2010`, `y2011`, `y2012`, `y2013`, `y2014`, `y2015`, `y2016`, `y2017`, `y2018`, `y2019`, `y2020`, `y2021`, `y2022`, `y2023`, `y2024`, `y2025`
+- **Note:** MapBiomas collection 11 land cover by biome, state and municipality, sheet COVERAGE_11 of the Drive zip (78 MB), sampled live through the run on 2026-11-14: 55 columns, 77406 rows, area in hectares one year per column from y1985 to y2025. Secondary source (CC BY 4.0); class codes follow the LEGEND_CODE sheet. Collection 10 left the public bucket (HTTP 403 since 2026-11-03).
 
 ## mapbiomas_vegetacao_secundaria_municipios
 
-- **Status:** error
+- **Status:** ok (59893 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
-- **Note:** MapBiomas collection 10 secondary vegetation by municipality, 52 columns per the spec; the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
+- **Fields:** `COUNTRY`, `BIOME`, `REGION`, `STATE`, `MUNICIPALITY`, `GEOCODE`, `VERSION`, `COLLECTION`, `TRANSITION_CLASS_ID`, `TRANSITION_CLASS_NAME`, `CLASS_ID`, `CLASS_LEVEL_0`, `CLASS_LEVEL_1`, `CLASS_LEVEL_2`, `CLASS_LEVEL_3`, `CLASS_LEVEL_4`, `y1985`, `y1986`, `y1987`, `y1988`, `y1989`, `y1990`, `y1991`, `y1992`, `y1993`, `y1994`, `y1995`, `y1996`, `y1997`, `y1998`, `y1999`, `y2000`, `y2001`, `y2002`, `y2003`, `y2004`, `y2005`, `y2006`, `y2007`, `y2008`, `y2009`, `y2010`, `y2011`, `y2012`, `y2013`, `y2014`, `y2015`, `y2016`, `y2017`, `y2018`, `y2019`, `y2020`, `y2021`, `y2022`, `y2023`, `y2024`, `y2025`
+- **Note:** MapBiomas collection 11 secondary vegetation by biome, state and municipality, sheet ANNUAL_SECONDARY_VEGETATION of the xlsx (58 MB), sampled live through the run on 2026-11-14: 57 columns, 59893 rows, area in hectares one year per column from y1985 to y2025. The layout changed from collection 10: transition class (primary or secondary vegetation) and the VERSION and COLLECTION columns are new, and column names are upper case. Secondary source (CC BY 4.0).
 
 ## mdhc_disque100
 

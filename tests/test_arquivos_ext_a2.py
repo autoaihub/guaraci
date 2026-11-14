@@ -250,6 +250,19 @@ def test_mapbiomas_traz_origem_licenca_e_citacao() -> None:
         assert "Projeto MapBiomas" in spec.description
         assert "Landsat" in spec.description
         assert spec.sheets and len(spec.sheets) == 1
+        assert "coleção 11" in spec.title
+        assert "collection_10" not in spec.resources[0].url
+
+
+def test_mapbiomas_colecao_11_urls_e_abas() -> None:
+    cobertura, vegetacao = mapbiomas.SPECS
+    # Cobertura: zip no Drive (endereço direto, sem aviso de vírus) com um xlsx de nome fixo.
+    assert cobertura.resources[0].url.startswith("https://drive.usercontent.google.com/download?")
+    assert "confirm=t" in cobertura.resources[0].url
+    assert cobertura.member == "MAPBIOMAS_BRAZIL-COL.11-BIOME_STATE_MUNICIPALITY.xlsx"
+    assert cobertura.sheets == ("COVERAGE_11",)
+    assert vegetacao.resources[0].url.endswith("SECONDARY-VEGETATION-MUNICIPALITY-COLLECTION_11.xlsx")
+    assert vegetacao.sheets == ("ANNUAL_SECONDARY_VEGETATION",)
 
 
 def test_cgu_competencia_mais_nova_e_m_menos_2() -> None:

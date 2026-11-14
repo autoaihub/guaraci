@@ -673,6 +673,18 @@
   "method": "medido",
   "measured_on": "2026-11-14"
  },
+ "mapbiomas_cobertura_municipios": {
+  "csv_bytes": 64738267,
+  "rows": 77406,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
+ "mapbiomas_vegetacao_secundaria_municipios": {
+  "csv_bytes": 49398342,
+  "rows": 59893,
+  "method": "medido",
+  "measured_on": "2026-11-14"
+ },
  "mdhc_ligue180": {
   "csv_bytes": 450000000,
   "method": "pelo menos",

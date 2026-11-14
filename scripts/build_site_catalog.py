@@ -401,8 +401,8 @@ CURATED = {
     "ibge_munic": ("MUNIC 2024 · perfil dos municípios", "Pesquisa de Informações Básicas Municipais: gestão, habitação, transporte, informática e outros blocos, em dez abas", G_IBGE, "IBGE", "pop"),
     "ibge_projecoes_populacao_2024": ("Projeções da população · revisão 2024", "Projeções da população por sexo e idade, com nascimentos e óbitos, para o Brasil e as UFs, em cinco tabelas", G_IBGE, "IBGE", "pop"),
     "inep_ideb_municipios": ("IDEB · municípios", "Índice de Desenvolvimento da Educação Básica por município e etapa, bienal de 2019 a 2025", G_EDU, "INEP, Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira", "pop"),
-    "mapbiomas_cobertura_municipios": ("MapBiomas · cobertura e uso da terra", "Área de cada classe de cobertura e uso da terra por município, de 1985 a 2024 (fonte secundária, CC BY 4.0)", G_TER, "MapBiomas", "clima"),
-    "mapbiomas_vegetacao_secundaria_municipios": ("MapBiomas · vegetação secundária", "Área de vegetação secundária por município e ano, coleção 10 (fonte secundária, CC BY 4.0)", G_TER, "MapBiomas", "clima"),
+    "mapbiomas_cobertura_municipios": ("MapBiomas · cobertura e uso da terra", "Área de cada classe de cobertura e uso da terra por município, de 1985 a 2025, coleção 11 (fonte secundária, CC BY 4.0)", G_TER, "MapBiomas", "clima"),
+    "mapbiomas_vegetacao_secundaria_municipios": ("MapBiomas · vegetação secundária", "Área de vegetação primária e secundária por município e ano, de 1985 a 2025, coleção 11 (fonte secundária, CC BY 4.0)", G_TER, "MapBiomas", "clima"),
     "mdhc_ligue180": ("Ligue 180", "Atendimentos da Central de Atendimento à Mulher por semestre, de 2020 a 1S2024, com perfil de vítima e suspeito", G_SEG, "MDHC, Ministério dos Direitos Humanos e da Cidadania", "pop"),
     "ssp_sp_dados_criminais": ("SSP-SP · dados criminais", "Boletins de ocorrência do estado de São Paulo, por ano desde 2022, com local, natureza e município", G_EST, "SSP-SP, Secretaria da Segurança Pública de São Paulo", "pop"),
     # Registro em novembro/2026: CKAN federal e estadual, CNPJ e SICOR (leva 6, onda 2)

@@ -86,10 +86,10 @@ def test_munic_2024_todas_as_abas(tmp_path: Path) -> None:
     assert len(files) == 10
 
 
-@pytest.mark.skipif(not GRANDE, reason="Set GUARACI_ARQUIVOS_EXT2_SMOKE_GRANDE=1 (56 e 78 MB)")
+@pytest.mark.skipif(not GRANDE, reason="Set GUARACI_ARQUIVOS_EXT2_SMOKE_GRANDE=1 (58 e 78 MB)")
 @pytest.mark.parametrize("spec", mapbiomas.SPECS, ids=lambda s: s.key)
 def test_mapbiomas(tmp_path: Path, spec) -> None:
     source = datasource_for_spec(spec)(output_path=str(tmp_path / "out"))
     _payload, files = _run(source, tmp_path)
     cols = _columns(files[0])
-    assert len(files) == 1 and "geocode" in cols and len(cols) >= 52
+    assert len(files) == 1 and "geocode" in {c.lower() for c in cols} and len(cols) >= 55
