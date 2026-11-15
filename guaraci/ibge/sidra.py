@@ -114,17 +114,18 @@ class SidraAggregateSource(DataSource):
         for index, year in enumerate(years, start=1):
             try:
                 payload = []
-                for localities, classif in requests:
-                    payload.extend(
-                        client.aggregate(
-                            table=self.TABLE,
-                            variable=self.VARIABLE,
-                            period=str(year),
-                            localities=localities,
-                            classificacao=classif,
+                for token in self._period_tokens(year):
+                    for localities, classif in requests:
+                        payload.extend(
+                            client.aggregate(
+                                table=self._table_for(year),
+                                variable=self.VARIABLE,
+                                period=token,
+                                localities=localities,
+                                classificacao=classif,
+                            )
+                            or []
                         )
-                        or []
-                    )
             except IbgeClientError as exc:
                 # Qualquer erro numa fatia descarta o ano inteiro (um ano com
                 # fatias faltando seria um resultado incompleto sem aviso), e o
@@ -225,6 +226,14 @@ class SidraAggregateSource(DataSource):
         if combined:
             payload_out["export_warning"] = combined
         return payload_out
+
+    def _period_tokens(self, year: int) -> List[str]:
+        """Períodos SIDRA pedidos para o ano (as séries mensais pedem o ano em fatias)."""
+        return [str(year)]
+
+    def _table_for(self, year: int) -> str:
+        """Tabela que cobre o ano (índices de preços trocam de tabela ao longo do tempo)."""
+        return self.TABLE
 
     def _empty_result_warning(self, client, years: List[int]) -> str:
         """Explica o vazio dizendo o que a tabela publica, quando dá para saber.

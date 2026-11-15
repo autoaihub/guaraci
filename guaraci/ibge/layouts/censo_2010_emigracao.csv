@@ -1,0 +1,24 @@
+# Leiaute do registro de emigracao da amostra do Censo Demografico 2010 (registro de 74 posicoes, 19 variaveis).
+# Origem: https://ftp.ibge.gov.br/Censos/Censo_Demografico_2010/Resultados_Gerais_da_Amostra/Microdados/Documentacao.zip, membro "Documentacao/Layout/Layout_microdados_Amostra.ods", aba EMIG (IBGE).
+# Extraido uma vez do ODS (nome e posicoes inicial e final da planilha, conferidas em sequencia e contra o comprimento da linha dos dados do AC) e congelado aqui. Todas as colunas saem como texto; V0010 (peso amostral) tem 13 casas decimais implicitas.
+# Colunas: nome, inicio (base 1), largura, texto (1 = formato $), decimais.
+nome,inicio,largura,texto,decimais
+V0001,1,2,1,0
+V0002,3,5,1,0
+V0011,8,13,1,0
+V0300,21,8,0,0
+V0010,29,16,0,0
+V1001,45,1,1,0
+V1002,46,2,1,0
+V1003,48,3,1,0
+V1004,51,2,1,0
+V1006,53,1,1,0
+V0303,54,1,1,0
+V0304,55,4,1,0
+V0305,59,4,1,0
+V3061,63,7,1,0
+M0303,70,1,1,0
+M0304,71,1,1,0
+M0305,72,1,1,0
+M3061,73,1,1,0
+V1005,74,1,1,0
