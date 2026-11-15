@@ -75,6 +75,7 @@ __all__ = [
     "IbgeFtpError",
     "IbgeMicrodadosDataSource",
     "datasource_for",
+    "datasource_for_pesquisa",
 ]
 
 _FROZEN = "@congelado"
@@ -836,6 +837,8 @@ class IbgeMicrodadosDataSource(DataSource):
     """Uma pesquisa do IBGE. Subclasses fixam ``DATASET`` (ver ``datasource_for``)."""
 
     DATASET: str = ""
+    # Pesquisa fora de ``PESQUISAS`` (ver ``datasource_for_pesquisa``): a classe leva a spec.
+    SPEC: Optional[Pesquisa] = None
     DEFAULT_TIMEOUT = IbgeFtpClient.DEFAULT_TIMEOUT
 
     def __init__(
@@ -846,10 +849,11 @@ class IbgeMicrodadosDataSource(DataSource):
         client: Optional[IbgeFtpClient] = None,
     ) -> None:
         key = dataset or self.DATASET
-        if key not in PESQUISAS:
+        spec = self.SPEC if self.SPEC is not None and key == self.SPEC.key else PESQUISAS.get(key)
+        if spec is None:
             raise ValueError(f"Unknown IBGE survey '{key}'. Known: {sorted(PESQUISAS)}")
         super().__init__(name=key, output_path=output_path)
-        self.spec = PESQUISAS[key]
+        self.spec = spec
         self._client = client
 
     def load_dataframe(self, *args, **kwargs) -> pl.DataFrame:  # pragma: no cover
@@ -1077,3 +1081,9 @@ def datasource_for(key: str) -> type:
     spec = PESQUISAS[key]
     class_name = "".join(part.title() for part in key.split("_")) + "DataSource"
     return type(class_name, (IbgeMicrodadosDataSource,), {"DATASET": spec.key})
+
+
+def datasource_for_pesquisa(spec: Pesquisa) -> type:
+    """Subclasse para pesquisa que não está em ``PESQUISAS`` (módulos novos de pesquisas)."""
+    class_name = "".join(part.title() for part in spec.key.split("_")) + "DataSource"
+    return type(class_name, (IbgeMicrodadosDataSource,), {"DATASET": spec.key, "SPEC": spec})
