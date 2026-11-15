@@ -99,11 +99,11 @@ def test_censo_tabelas_pega_so_a_tabela_pedida_e_recusa_ano_antigo(tmp_path: Pat
         source.download(output_dir=str(tmp_path), output_format="csv", start_year=2024)
 
 
-def test_registra_dezessete_chaves_com_schema() -> None:
+def test_registra_dezenove_chaves_com_schema() -> None:
     sources = trabalho_educacao.build_sources()
     service = DownloadService(sources=sources)
     keys = [s.descriptor.source for s in sources]
-    assert len(keys) == 17 and len(set(keys)) == 17
+    assert len(keys) == 19 and len(set(keys)) == 19
     assert set(INEP_CENSO_ESCOLAR_TABELAS) <= set(keys)
     for key in keys:
         service.get_source_schema(key)
@@ -119,7 +119,7 @@ def test_ideb_escolas_e_brasil_ufs_tem_url_e_codigos_certos(tmp_path: Path) -> N
     assert len(inep_ideb.INEP_IDEB_ESCOLAS.resources) == 12
     assert inep_ideb.brasil_url(2023).endswith("divulgacao_brasil_ideb_2023.zip")
     assert inep_ideb.ufs_url(2023).endswith("divulgacao_regioes_ufs_ideb_2023.zip")
-    assert set(inep_ideb.MODES) == {s.key for s in inep_ideb.SPECS}
+    assert set(inep_ideb.MODES) == {s.key for s in (*inep_ideb.SPECS, *inep_ideb.EXTRA_SPECS)}
 
 
 class _FakeSiconfi:

@@ -121,5 +121,7 @@ INEP_IDEB_BRASIL_UFS = HttpFile(
     subperiod_label="Nível (BR = Brasil, UF = regiões e UFs). Omita para os dois.",
 )
 
-SPECS: Tuple[HttpFile, ...] = (INEP_IDEB_MUNICIPIOS, INEP_IDEB_ESCOLAS, INEP_IDEB_BRASIL_UFS)
-MODES: Dict[str, str] = {spec.key: "inep files" for spec in SPECS}
+SPECS: Tuple[HttpFile, ...] = (INEP_IDEB_MUNICIPIOS,)
+# Registradas por ``guaraci.services.sources.trabalho_educacao``, não por ``arquivos``.
+EXTRA_SPECS: Tuple[HttpFile, ...] = (INEP_IDEB_ESCOLAS, INEP_IDEB_BRASIL_UFS)
+MODES: Dict[str, str] = {spec.key: "inep files" for spec in (*SPECS, *EXTRA_SPECS)}

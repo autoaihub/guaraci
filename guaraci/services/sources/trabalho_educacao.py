@@ -1,13 +1,13 @@
 """Fontes da leva 7 de trabalho e educação: indicadores INEP e tabelas do Censo Escolar.
 
-RAIS e CAGED históricos ficam em ``mte_historico``; IDEB de escola e de Brasil/UFs entram
-pelo módulo ``guaraci.arquivos.inep_ideb``, que o ``arquivos`` já registra.
+RAIS e CAGED históricos ficam em ``mte_historico``; IDEB de escola e de Brasil/UFs
+(``inep_ideb.EXTRA_SPECS``) também saem daqui.
 """
 
 from dataclasses import replace
 from typing import List
 
-from guaraci.arquivos import inep_indicadores
+from guaraci.arquivos import inep_ideb, inep_indicadores
 from guaraci.arquivos.inep_censo_escolar import (
     INEP_CENSO_ESCOLAR_TABELAS,
     MIN_TABELAS_YEAR,
@@ -72,6 +72,9 @@ def build_sources() -> List[DownloadSource]:
         http_file_source(spec, inep_indicadores.MODES[spec.key], inep_indicadores.DATASOURCES[spec.key])
         for spec in inep_indicadores.SPECS
     ]
+    sources.extend(
+        http_file_source(spec, inep_ideb.MODES[spec.key]) for spec in inep_ideb.EXTRA_SPECS
+    )
     sources.extend(
         ApiDownloadSource(
             descriptor=SourceDescriptor(source=key, title=meta[1], mode="inep files"),
