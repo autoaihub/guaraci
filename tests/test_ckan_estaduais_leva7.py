@@ -50,6 +50,7 @@ GO_KEYS = {
     "ses_go_oncologia",
 }
 NOVAS = SEADE_KEYS | GO_KEYS
+D = chr(0x2014)  # o portal usa travessão nos nomes dos recursos
 
 
 class _Fake:
@@ -95,11 +96,11 @@ def test_seade_exclui_o_dicionario_e_o_pdf_e_nao_le_periodo_do_nome():
     package = _pkg(
         "obitos",
         ("Óbitos por sexo e faixa etária - 2019 a 2025", base + "a/download/obitos_sexo_idade_periodo.csv", "CSV"),
-        ("Dicionário — Óbitos por sexo e faixa etária - 2019 a 2025", base + "b/download/dic_variaveis_obito_sexo_idade_periodo.csv", "CSV"),
+        (f"Dicionário {D} Óbitos por sexo e faixa etária - 2019 a 2025", base + "b/download/dic_variaveis_obito_sexo_idade_periodo.csv", "CSV"),
         ("Óbitos - 2000 a 2025", base + "c/download/obitos_gerais_esp_periodo.csv", "CSV"),
         # nome do arquivo de dicionário sem a palavra no nome do recurso: o prefixo dic na URL basta
         ("Variáveis", base + "d/download/dicvar_obitos_mesocorrencia_2018a2021.csv", "CSV"),
-        ("Anexo Metodológico — Óbitos do ESP", base + "e/download/anexo-metodologico_obitos.pdf", "PDF"),
+        (f"Anexo Metodológico {D} Óbitos do ESP", base + "e/download/anexo-metodologico_obitos.pdf", "PDF"),
     )
     chosen = _picked("seade_obitos_sp_serie", package)
     assert [n for n, _ in chosen] == [
@@ -116,9 +117,9 @@ def test_seade_ano_corrente_mantem_as_duas_tabelas_de_dados():
     package = _pkg(
         "obitos-estado-de-sp-ano-corrente",
         ("Óbitos por sexo e faixa etária - 2026", base + "a/download/obitos_sexo_idade_anoatual.csv", "CSV"),
-        ("Dicionário — Óbitos por sexo e faixa etária - 2026", base + "b/download/dicvariaveis_obitos_sexo_idade_anoatual.csv", "CSV"),
+        (f"Dicionário {D} Óbitos por sexo e faixa etária - 2026", base + "b/download/dicvariaveis_obitos_sexo_idade_anoatual.csv", "CSV"),
         ("Óbitos por mês de ocorrência - 2026", base + "c/download/obitos_mes_anoatual.csv", "CSV"),
-        ("Dicionário — Óbitos por mês de ocorrência - 2026", base + "d/download/dicvariaveis_obitos_mes_anoatual.csv", "CSV"),
+        (f"Dicionário {D} Óbitos por mês de ocorrência - 2026", base + "d/download/dicvariaveis_obitos_mes_anoatual.csv", "CSV"),
     )
     names = [n for n, _ in _picked("seade_obitos_sp_ano_corrente", package)]
     assert names == ["Óbitos por sexo e faixa etária - 2026", "Óbitos por mês de ocorrência - 2026"]
@@ -129,7 +130,7 @@ def test_seade_baixa_e_exporta_utf8_pelo_pacote_da_chave(tmp_path):
     package = _pkg(
         "esperanca-de-vida",
         ("Esperança de Vida", base + "a/download/esperanca_vida.csv", "CSV"),
-        ("Dicionário — Esperança de Vida", base + "b/download/dicvar_esperanca_vida.csv", "CSV"),
+        (f"Dicionário {D} Esperança de Vida", base + "b/download/dicvar_esperanca_vida.csv", "CSV"),
         ("Anexo Metodológico ─ Esperança de Vida", base + "c/download/painel_esperanca_vida.pdf", "PDF"),
     )
     client = _Fake({"esperanca-de-vida": package})
@@ -160,7 +161,7 @@ def test_seade_fecundidade_escolhe_so_os_dados_e_aceita_recursos():
     assert [r.name for r, _ in chosen] == ["Fecundidade e natalidade por municípios"]
 
 
-def test_go_ignora_o_pdf_de_dicionario_e_usa_ua_de_navegador(tmp_path):
+def test_go_ignora_o_pdf_de_dicionario_e_usa_o_ua_padrao(tmp_path):
     base = "https://dadosabertos.go.gov.br/dataset/x/resource/"
     package = _pkg(
         "ist-hiv",
@@ -175,14 +176,14 @@ def test_go_ignora_o_pdf_de_dicionario_e_usa_ua_de_navegador(tmp_path):
     )
     spec = CKAN_ESTADUAIS["ses_go_hiv_aids"]
     assert spec.package_ids == ("ist-hiv", "ist-aids")
-    assert spec.base_url == GO_BASE_URL and spec.browser_user_agent
+    assert spec.base_url == GO_BASE_URL and not spec.browser_user_agent
     client = _Fake({"ist-hiv": package, "ist-aids": package_aids})
     source = ckan_datasource_for(spec)(output_path=str(tmp_path), client=client)
     result = source.download(output_format="csv", recursos=["hiv-criancas", "aids-obitos"])
     assert result["documents_found"] == 2
     assert client.downloaded == [base + "c/download/hiv-criancas.csv", base + "e/download/aids-obitos.csv"]
     made = ckan_datasource_for(spec)(output_path=str(tmp_path))._make_client(30)
-    assert made.user_agent == BROWSER_USER_AGENT
+    assert made.user_agent != BROWSER_USER_AGENT
 
 
 def test_go_nome_sem_ano_nao_gera_filtro_de_periodo():
@@ -202,7 +203,7 @@ def test_cada_chave_nova_tem_pacote_url_https_e_formato_csv(key):
     assert spec.package_ids and not spec.package_query
     assert spec.base_url in (SEADE_BASE_URL, GO_BASE_URL)
     assert spec.file_format == "csv" and spec.separator == ";"
-    assert spec.browser_user_agent is key.startswith("ses_go_")
+    assert spec.browser_user_agent is False
     assert (spec.exclude_pattern is not None) is key.startswith("seade_")
 
 

@@ -17,13 +17,15 @@ Particularidades de cada portal:
   como outro CSV, que ``exclude_pattern`` tira. Os arquivos "ano corrente" mantêm a mesma
   URL e são regravados todo mês (na virada do ano o recurso passa a trazer o ano novo).
   Verificado ao vivo em 2026-11-14.
-- SES-GO: o WAF do portal devolve "Acesso Negado" (HTML com código 200) a User-Agent que
-  não é de navegador, de forma intermitente (o literal ``Mozilla/5.0`` falha logo, e o
-  padrão do núcleo passou nas primeiras consultas e foi barrado depois de algumas dezenas
-  de chamadas seguidas); o de navegador completo passou sempre, por isso
-  ``browser_user_agent``. Os recursos têm nome de arquivo fixo e sem ano (regravados), e
-  cada pacote traz também um PDF de dicionário, que o ``file_format`` já descarta.
-  Verificado em 2026-11-14.
+- SES-GO: o portal fica atrás de um WAF (F5) que responde 200 com HTML ("Acesso Negado" ou
+  desafio em JavaScript) em vez do JSON. A resposta é intermitente e depende do cliente:
+  o ``Mozilla/5.0`` literal falhou logo; o User-Agent do núcleo passou em dezenas de
+  consultas seguidas e foi barrado depois de uma rajada (cerca de 70 chamadas em pouco
+  mais de um minuto), com a liberação vindo em alguns minutos; um User-Agent de navegador
+  completo passou no curl e falhou no urllib. Por isso as chaves usam o User-Agent padrão
+  e não ``browser_user_agent``, e convém não paralelizar nem repetir as 14 chaves em
+  rajada. Os recursos têm nome de arquivo fixo e sem ano (regravados), e cada pacote traz
+  também um PDF de dicionário, que o ``file_format`` já descarta. Verificado em 2026-11-14.
 """
 
 from __future__ import annotations
@@ -237,7 +239,6 @@ def _go(key: str, title: str, description: str, *package_ids: str) -> CkanDatase
         package_ids=tuple(package_ids),
         file_format="csv",
         separator=";",
-        browser_user_agent=True,
     )
 
 
