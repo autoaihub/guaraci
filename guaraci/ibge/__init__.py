@@ -12,6 +12,8 @@ Exposed sources:
 - ``ibge_saneamento_agua``: households by water supply, census 2022 (table 6803)
 - ``ibge_saneamento_esgoto``: households by sanitary sewage, census 2022 (table 6805)
 - ``ibge_saneamento_lixo``: households by garbage disposal, census 2022 (table 6892)
+- ``ibge_ipca_serie``, ``ibge_inpc_serie``, ``ibge_ipca15_serie`` e ``ibge_*_grupos``: índices de
+  preços ao consumidor, série histórica e por grupo (tabelas 1737, 1736, 3065 e as de grupos)
 
 These are the denominator / socioeconomic layers for health-rate analysis.
 """
@@ -23,6 +25,14 @@ from guaraci.ibge.registro_civil import (
     IbgeDivorciosDataSource,
     IbgeNascidosVivosRcDataSource,
     IbgeObitosRcDataSource,
+)
+from guaraci.ibge.precos import (
+    IbgeInpcGruposDataSource,
+    IbgeInpcSerieDataSource,
+    IbgeIpca15GruposDataSource,
+    IbgeIpca15SerieDataSource,
+    IbgeIpcaGruposDataSource,
+    IbgeIpcaSerieDataSource,
 )
 from guaraci.ibge.saneamento import (
     IbgeSaneamentoAguaDataSource,
@@ -51,4 +61,10 @@ __all__ = [
     "IbgeSaneamentoAguaDataSource",
     "IbgeSaneamentoEsgotoDataSource",
     "IbgeSaneamentoLixoDataSource",
+    "IbgeIpcaSerieDataSource",
+    "IbgeInpcSerieDataSource",
+    "IbgeIpca15SerieDataSource",
+    "IbgeIpcaGruposDataSource",
+    "IbgeInpcGruposDataSource",
+    "IbgeIpca15GruposDataSource",
 ]
