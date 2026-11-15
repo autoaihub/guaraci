@@ -34,7 +34,10 @@
     "Trânsito · Senatran": "Traffic · Senatran",
     "Atividade econômica · CNPJ e BNDES": "Economic activity · CNPJ and BNDES",
     "Agropecuária · MAPA e crédito rural": "Agriculture · MAPA and rural credit",
-    "Frente municipal e estadual · PE, RS e MG": "Municipal and state front · PE, RS and MG"
+    "Frente municipal e estadual · PE, RS e MG": "Municipal and state front · PE, RS and MG",
+    "Tabelas de referência · códigos oficiais": "Reference tables · official codes",
+    "Estados · Goiás": "State-level coverage · Goiás",
+    "Câncer · IARC": "Cancer · IARC"
   },
   "maintainers": {
     "Ministério da Saúde (DATASUS)": "Ministry of Health (DATASUS)",
@@ -89,6 +92,13 @@
     "Prefeitura do Recife": "Recife City Hall",
     "Prefeitura de Porto Alegre": "Porto Alegre City Hall",
     "FHEMIG, Fundação Hospitalar do Estado de Minas Gerais": "FHEMIG, Hospital Foundation of the State of Minas Gerais",
-    "SES-MG, Secretaria de Estado de Saúde de Minas Gerais": "SES-MG, Minas Gerais State Health Secretariat"
+    "SES-MG, Secretaria de Estado de Saúde de Minas Gerais": "SES-MG, Minas Gerais State Health Secretariat",
+    "CONCLA/IBGE, Comissão Nacional de Classificação": "CONCLA/IBGE, National Classification Commission",
+    "TSE, Tribunal Superior Eleitoral": "TSE, Superior Electoral Court",
+    "Fundação SEADE, Governo do Estado de São Paulo": "SEADE Foundation, State Government of São Paulo",
+    "SES-GO, Secretaria de Estado da Saúde de Goiás": "SES-GO, Goiás State Health Secretariat",
+    "IARC, Agência Internacional de Pesquisa em Câncer (OMS)": "IARC, International Agency for Research on Cancer (WHO)",
+    "Cetic.br, NIC.br": "Cetic.br, NIC.br",
+    "Projeto Covitel, Vital Strategies, Ministério da Saúde e Ufpel": "Covitel Project, Vital Strategies, Ministry of Health and Ufpel"
   }
 }

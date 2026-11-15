@@ -1247,6 +1247,26 @@
     "rows_sampled": 336,
     "status": "ok"
   },
+  "cetic_tic_domicilios": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "271 columns and 27,177 rows. Sample of households and individuals, no direct identifier. CC BY 4.0; the URL changes with each edition; it covers internet access in general and touches health only in part. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "cetic_tic_saude_estabelecimentos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "348 columns and 3,261 rows. Sample of health establishments, no direct identifier. CC BY 4.0; the URL changes with each edition. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
   "cgu_bpc": {
     "fields": [
       "MÊS COMPETÊNCIA",
@@ -1619,6 +1639,16 @@
     "rows_sampled": 20,
     "status": "ok"
   },
+  "cid10_datasus": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "url"
+    ],
+    "note": "six CSV files (chapters, groups, categories, subcategories, ICD-O groups and categories), 15,672 rows in all; edition 2008, the one DATASUS publishes as CSV. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
   "ciencia_tecnologia_dgits_contribuicoes_consultas_publicas": {
     "fields": [
       "ano",
@@ -1815,6 +1845,26 @@
     ],
     "rows_sampled": 3915,
     "status": "ok"
+  },
+  "cnae_classes": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "about 10 columns and 673 rows in a real run on 2026-11-14. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "cnae_subclasses": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "13 columns and 1,332 rows in a real run on 2026-11-14; the hierarchy up to the section is flattened and lists are kept as JSON text. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
   },
   "cnes": {
     "fields": [
@@ -2212,6 +2262,26 @@
     "note": "CATMAT items of group 65 (health), 108747 items in 2026-10; sampled live with max_paginas=1 on 2026-11-03. All columns as text, named as the API publishes.",
     "rows_sampled": 50,
     "status": "ok"
+  },
+  "covitel_2022": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "xlsx covitel_observatorio.xlsx, 167 columns and 9,004 rows. Personal data: municipality, area code and interview date, without name. The source does not declare a license. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "covitel_2023": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "CSV BD_Covitel_2023imputed_com_peso.csv, 205 columns and 9,038 rows. Personal data: municipality, area code and interview date, without name. The source does not declare a license. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
   },
   "cvesp_aids_adulto": {
     "fields": [
@@ -4033,6 +4103,40 @@
     "note": "FUNAI indigenous lands (WFS), chosen by camadas, polygon geometry. Not sampled here; attributes read from DescribeFeatureType at download time.",
     "status": "empty"
   },
+  "hiperdia_cadastro": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "uf",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "TabNet HIPERDIA, one .def per state (without uf the run makes 27 queries per month). 9 columns (4 measures: hypertension, type 1 diabetes, type 2 diabetes, hypertension with diabetes); 2012 in Paraná gave 887 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "iarc_ci5_xii": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "IARC CI5-XII zip, four tables: cases (23 columns, 74,214 rows), pop (22, 1,178), registros (4, 589) and cancer (3, 63). Aggregated counts, no personal identifier. IARC terms: non-commercial use with the source acknowledged. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "iarc_monografias_classificacoes": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "8 columns (name, group, cas, volume, year, yeareval, in_prep, comment) and 1,131 rows, read by a parser of the JavaScript list of the page application because there is no CSV or API. No personal identifier. IARC terms: non-commercial use with the source acknowledged. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
   "ibama_agrotoxicos_comercializacao": {
     "fields": [],
     "filters": [
@@ -4137,6 +4241,36 @@
     ],
     "rows_sampled": 1,
     "status": "ok"
+  },
+  "ibge_censo2000_amostra": {
+    "filters": [
+      "output_dir",
+      "start_year",
+      "end_year",
+      "tabelas",
+      "ufs",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "fixed-width layout read from the SAS programs of the documentation zip: households 80 columns, families 26, people 183; AC in a real run gave 16,818 households, 18,113 families and 71,063 people. Personal data: anonymous IBGE microdata, without name or address, with age, sex, color or race, income and municipality grouped by weighting area. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_censo2010_amostra": {
+    "filters": [
+      "output_dir",
+      "start_year",
+      "end_year",
+      "tabelas",
+      "ufs",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "fixed-width layout frozen from the official layout: households 76 columns, people 244, emigration 19, mortality 19; one file per state (AC in a real run: 24,339 households, 93,675 people, 169 emigration and 343 mortality rows). Personal data: anonymous IBGE microdata, without name or address, with age, sex, color or race, income and municipality grouped by weighting area. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
   },
   "ibge_censo2022_amostra": {
     "fields": [],
@@ -4687,6 +4821,121 @@
     "rows_sampled": 1,
     "status": "ok"
   },
+  "ibge_estadic": {
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "each sheet of the xlsx becomes a sibling file, all columns as text; columns vary by sheet; 27 rows per sheet (2023: 9 sheets in a real run). Sem dado pessoal: indicador de gestão, sem identificador de pessoa. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_inpc_grupos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "IBGE SIDRA, consumer prices. 11 columns. Tables 1100 and 7063. Real run for 2025, metropolitan regions, all levels of detail: 214,560 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_inpc_serie": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "IBGE SIDRA, consumer prices. 10 columns. Table 1736. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_ipca15_grupos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "IBGE SIDRA, consumer prices. 11 columns. Tables 1705 and 7062. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_ipca15_serie": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "IBGE SIDRA, consumer prices. 10 columns. Table 3065. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_ipca_grupos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "level",
+      "detalhe",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "IBGE SIDRA, consumer prices. 11 columns. The table changes by year (2938, 1419 and 7060); parameter detalhe selects groups, health or all. Real run for 2019 and 2020, municipality level, health: 2,880 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_ipca_serie": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "keep_raw",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "IBGE SIDRA, consumer prices. 10 columns. Real run for 2024 and 2025 gave 144 rows (table 1737). No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_localidades_distritos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "24 columns and 10,751 rows in a real run on 2026-11-14; nested fields are flattened with underscores. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_localidades_municipios": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "api_base_url"
+    ],
+    "note": "22 columns and 5,571 rows in a real run on 2026-11-14; nested fields are flattened with underscores. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
   "ibge_munic": {
     "fields": [
       "Cod Uf",
@@ -4702,6 +4951,28 @@
     "note": "MUNIC 2024, one workbook of 25 MB with ten sheets exported as sibling outputs, sampled live on 2026-11-03 (Agropecuária 155 columns; Dicionário 6 columns; Evento_climático_RS 100 columns; Gestão_migratória 49 columns; Governanca 169 columns; Habitacao 92 columns; Igualdade_racial 433 columns; Informática_e_comunicação 205 columns; Recursos_humanos 29 columns; Transporte_e_mobilidade_urbana 103 columns). Fields are the columns common to the nine data sheets; the sheet columns differ.",
     "rows_sampled": 5570,
     "status": "ok"
+  },
+  "ibge_munic_edicoes": {
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "each sheet of the xlsx becomes a sibling file, all columns as text; columns vary by sheet; 5,570 rows per sheet (2020: 9 sheets in a real run). Sem dado pessoal: indicador de gestão, sem identificador de pessoa. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ibge_munic_saneamento": {
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "each sheet of the xlsx becomes a sibling file, all columns as text; columns vary by sheet; 2017 gave 5,570 rows per sheet in a real run. Sem dado pessoal: indicador de gestão, sem identificador de pessoa. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
   },
   "ibge_nascidos_vivos_rc": {
     "fields": [
@@ -5448,6 +5719,34 @@
     "rows_sampled": 125625,
     "status": "ok"
   },
+  "inep_adequacao_formacao_docente": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_alunos_por_turma": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
   "inep_censo_escolar": {
     "fields": [],
     "filters": [
@@ -5459,6 +5758,164 @@
       "end_year"
     ],
     "note": "School table of the INEP school census, 2007 onward; 370 columns in 2007, 426 in 2024 and 290 in 2025 (schema changes by year). Includes CO_ENTIDADE, NU_ANO_CENSO, IN_AGUA_REDE_PUBLICA, IN_ESGOTO_REDE_PUBLICA, IN_ALIMENTACAO, IN_INTERNET.",
+    "status": "empty"
+  },
+  "inep_censo_escolar_curso_tecnico": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (7 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_censo_escolar_docente": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (84 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_censo_escolar_gestor": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (50 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_censo_escolar_matricula": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; 263 columns and 178,766 schools in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_censo_escolar_turma": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (95 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_complexidade_gestao": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_distorcao_idade_serie": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_docentes_curso_superior": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_esforco_docente": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_horas_aula": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_ideb_brasil_ufs": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "code AAAA_BR and AAAA_UF; each sheet (AI, AF, EM) is written as a file; 2023 gave 120 columns (AI) and 110 (AF, EM) for Brazil and 142 to 143 rows per sheet for the states; the first two state columns have no name in the spreadsheet. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_ideb_escolas": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "IDEB by school; code AAAA_AI, AAAA_AF or AAAA_EM; 2025 high school gave 22,183 schools and 60 columns in a real run, with the series from 2005 inside the columns. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
     "status": "empty"
   },
   "inep_ideb_municipios": {
@@ -5610,6 +6067,48 @@
     "note": "IDEB by municipality, biennial; sampled live with anos=2025 and meses=AI (initial years) on 2026-11-03. The column count grows each cycle because the series starts in 2005.",
     "rows_sampled": 14532,
     "status": "ok"
+  },
+  "inep_inse": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. Also writes the dictionary of each level as its own CSV; 2023 gave 69,756 rows and 22 columns (ESC), 125,741 and 19 (MUN), 1,552 and 17 (UF), 63 and 14 (BR). No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_regularidade_docente": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "inep_taxas_rendimento": {
+    "filters": [
+      "anos",
+      "meses",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "start_year",
+      "end_year"
+    ],
+    "note": "INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. 59 columns at state level in 2024. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
   },
   "inmet_estacoes": {
     "fields": [
@@ -7024,6 +7523,34 @@
     "note": "Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).",
     "status": "ok"
   },
+  "mte_caged_antigo": {
+    "filters": [
+      "anos",
+      "meses",
+      "start_date",
+      "end_date",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "40 to 42 columns; 20 to 33 MB compressed per month; anos required; series closed in December 2019. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "mte_caged_antigo_ajustes": {
+    "filters": [
+      "anos",
+      "meses",
+      "start_date",
+      "end_date",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "37 to 43 columns; 7 to 20 MB per year (2002 to 2009) and 0.8 to 3 MB per month (2010 to 2019); series closed in December 2019. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
   "mte_novo_caged_exclusoes": {
     "filters": [
       "anos",
@@ -7079,6 +7606,19 @@
     "note": "RAIS establishments, 23 columns, one file per year from 2023. Not sampled here.",
     "status": "empty"
   },
+  "mte_rais_estabelecimentos_historico": {
+    "filters": [
+      "anos",
+      "start_year",
+      "end_year",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "8 to 24 columns depending on the year; 3 to 97 MB compressed per year (2003, a zip, has 6.1 million rows). No CNPJ. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
   "mte_rais_vinculos": {
     "filters": [
       "anos",
@@ -7091,6 +7631,21 @@
       "timeout"
     ],
     "note": "RAIS employment bonds, 62 columns, more than 4 GB compressed per year (2023 onward), chosen by anos and regioes. Not sampled here.",
+    "status": "empty"
+  },
+  "mte_rais_vinculos_historico": {
+    "filters": [
+      "anos",
+      "start_year",
+      "end_year",
+      "ufs",
+      "regioes",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "24 to 60 columns depending on the year, header as published (repeated names such as 'Tipo Estab'); 7z files. No CPF, name or PIS (CBO, CNAE, municipality, bands and pay values). Registered without live field sampling, so the column names are not listed here.",
     "status": "empty"
   },
   "nasa_firms": {
@@ -7427,6 +7982,16 @@
     "note": "PNCP published procurements; sampled live for 2026-10-20 with modalidades=6 and max_paginas=1 on 2026-11-03. Nested organ, unit and legal-basis objects are flattened into object_field columns.",
     "rows_sampled": 50,
     "status": "ok"
+  },
+  "pnds_2006": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "six tables read from the fixed-width .dat files with the .dct of the zip: dom_pess (162 columns, 56,365 rows), filhos (291, 27,477), gravidezes (37, 6,833), medicamentos (125, 15,575), medicamentos_h (31, 93,450) and mulheres (461, 15,575). Home sample with weights, state and region; no name or CPF. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
   },
   "pni": {
     "fields": [
@@ -9313,6 +9878,158 @@
     "rows_sampled": 10,
     "status": "ok"
   },
+  "sb_brasil_1986": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "two spreadsheets: children (15 columns, 12,312 rows) and adults and adolescents (21 columns, 10,401 rows). Survey sample, no name. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "sb_brasil_1996": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "DBF SB96.DBF inside the zip, 32 columns and 30,240 rows; requires the optional datasus extra (dbfread). Survey sample, no name. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "sb_brasil_2003": {
+    "filters": [
+      "indicadores",
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout"
+    ],
+    "note": "five regional DBF files (co, ne, no, se, su), 243 columns each; no gave 21,300 rows and se 24,058 in a real run (the other three were not downloaded); the source path says 2020 but the content is SB Brasil 2003; the indicadores parameter lists regions. Home sample, no name; requires the optional datasus extra (dbfread). No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_esperanca_vida_sp": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package esperanca-de-vida: 1 CSV file, 5 columns, 600 rows (real run). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_fecundidade_sp": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package seade-fecundidade: 7 CSV files with 5 to 14 columns and up to 16,150 rows; resource municipios_serie gave 16,150 rows and 5 columns in a real run. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_ipvs_2010": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package ipvs2010-base-de-dados: 1 CSV file, 51 columns, 28 MB, by census tract; only the header was read. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_ipvs_2022": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package ipvs-populacao-domicilios-e-setores-censitarios: 2 CSV files, 5 columns, 3,870 and 576 rows. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_mortalidade_geral_sp": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package mortalidade-no-estado-de-sao-paulo: 1 CSV file, 21 columns, 16,150 rows. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_mortalidade_infantil_sp": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package mortalidade-infantil: 2 CSV files, 7 columns and 16,150 rows each. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_nascidos_vivos_sp_ano_corrente": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package nascidos-vivos: 3 CSV files (5, 4 and 4 columns; 646, 20,026 and 2,584 rows). The URL keeps and the content changes with the year. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_nascidos_vivos_sp_serie": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package nascidos-vivos-estado-de-sp-serie-historica: 3 CSV files (3, 6 and 5 columns; 16,796, 4,522 and 12,920 rows). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_obitos_sp_ano_corrente": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package obitos-estado-de-sp-ano-corrente: 2 CSV files (5 and 4 columns; 25,960 and 4,390 rows). The file obitos_mes_anoatual.csv carries about 1,044,185 empty lines (';;;') after the data, a residue of the source, kept as published. The URL keeps and the content changes with the year; the closed series is in seade_obitos_sp_serie. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_obitos_sp_serie": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package obitos: 3 CSV files (5, 4 and 4 columns; 172,697, 60,809 and 16,796 rows). Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "seade_saude_painel_sp": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package saude-painel: 5 CSV files with 5 to 9 columns and 63 to 9,097 rows; origin CNES 2024, not reloaded since April 2025. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
   "senappen_sisdepen": {
     "filters": [
       "anos",
@@ -9398,6 +10115,160 @@
     ],
     "note": "RENAEST monthly zip (529 MB for 2026-05) with four CSVs: accidents (35 columns), victims (17), vehicle type (4) and locality (12); headers read by range request on 2026-11-14, not downloaded. Fields are the union. The accident and victim files carry address, CEP and coordinates of the accident site, no names or CPF.",
     "status": "ok"
+  },
+  "ses_go_arboviroses_internacao": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package arbovirose: 1 CSV file, 26 columns. Personal data: the regulation record code, which identifies a request, without name or CPF. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_dengue": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package dengue: cases 9 columns (196 MB in one file), serotypes 7 columns (0.2 MB). No name, CPF or notification number. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_hanseniase": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package hanseniase: 1 CSV file, 28 columns, with occupation and municipality of residence. No name or notification number. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_hepatites": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package ist-hepatite: 2 CSV files (14 and 8 columns); deaths gave 752 rows and 8 columns in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_hiv_aids": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Packages ist-hiv and ist-aids: 8 CSV files with 6 to 11 columns; HIV in children gave 38 rows and 11 columns in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_mapa_leitos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package mapa-de-leitos: 7 CSV files, 9 columns; neonatal ICU gave 7,887 rows in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_mortalidade": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package mortalidade: 4 CSV files, 10 columns (53 MB in the general one). Aggregated, no personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_oncologia": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package oncologia: 2 CSV files, 36 columns (individual, 58 MB) and 14 (grouped, 1.3 MB). Personal data: data_nascimento, without name or CPF. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_regulacao_indicadores": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package transparencia-regulacao-indicadores: 3 CSV files (17, 15 and 6 columns). Aggregated, no personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_sifilis": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package ist-sifilis: 5 CSV files with 6 to 15 columns. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_sindrome_gripal": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package sindrome-gripal-sg: 1 CSV file, 37 columns. Personal data: numero_notificacao and numero_gal. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_srag": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package srag: 1 CSV file, 38 columns. Personal data: numero_notificacao. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_tuberculose": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package tuberculose: 1 CSV file, 48 columns. Personal data: nu_notificacao. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "ses_go_zika_chikungunya": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "keep_raw",
+      "timeout",
+      "recursos"
+    ],
+    "note": "SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package aedes: 2 CSV files (8 and 7 columns); zika gave 25,307 rows in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
   },
   "sesai_tuberculose": {
     "fields": [
@@ -9530,6 +10401,79 @@
     "rows_sampled": 1180837,
     "status": "ok"
   },
+  "siab_cadastro_familiar": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "uf",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 52 columns (47 measures); 24 files (December of 1998 to 2014 and monthly from June to December 2015); Paraná 2015 gave 1,976 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "siab_producao_marcadores": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "uf",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 59 columns (5 keys and 54 measures); Paraná 2015 gave 3,313 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "siab_saneamento": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "uf",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 28 columns (23 measures); same periodicity as the family registration; Paraná 2015 gave 1,976 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "siab_situacao_saude": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "uf",
+      "keep_raw",
+      "timeout",
+      "base_url"
+    ],
+    "note": "TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 57 columns (5 keys and 52 measures); Paraná 2015 gave 3,328 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
+  "siconfi_dca_anexos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "uf",
+      "entes",
+      "anexos",
+      "keep_raw",
+      "timeout",
+      "pause_ms",
+      "api_base_url"
+    ],
+    "note": "11 columns; 2013 arrives as 'Anexo I-E' and from 2014 on as 'DCA-Anexo I-E'; before 2013 the answer is empty; Alta Floresta D'Oeste (1100015) in 2013 and 2014 gave 1,129 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
+  },
   "siconfi_dca_despesa_funcao": {
     "fields": [
       "exercicio",
@@ -9559,6 +10503,24 @@
     ],
     "note": "Fields verified live on 2026-10-13 against the source header (no full collection run yet). DCA Anexo I-E filtered to accounts starting with 10 (Saude); first exercise with data is 2014.",
     "status": "ok"
+  },
+  "siconfi_rreo_anexos": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "start_year",
+      "end_year",
+      "periodos",
+      "uf",
+      "entes",
+      "anexos",
+      "keep_raw",
+      "timeout",
+      "pause_ms",
+      "api_base_url"
+    ],
+    "note": "15 columns; all annexes of the entity in one query (01 to 04, 06, 07, 09, 10 RPPS, 11, 13 and 14), the anexos filter is local; São Paulo (3550308), 2022 bimester 6, annexes 01 and 10 RPPS gave 1,266 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
   },
   "siconfi_rreo_saude": {
     "fields": [
@@ -9594,6 +10556,18 @@
     ],
     "note": "Output columns fixed by the connector (guaraci/tesouro/rreo.py). RREO Anexo 02 (expense by function) filtered to Saude; Anexo 12 returns empty in every slice tested. Data from 2015.",
     "status": "ok"
+  },
+  "sigtap_tabela_unificada": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "competencia",
+      "tabelas",
+      "ftp_host"
+    ],
+    "note": "one CSV per table of the zip (about 40 tables, 2 to 16 columns each, names from the official layout); four tables read in a real run on 2026-11-14 gave 104,527 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
+    "status": "empty"
   },
   "sih": {
     "fields": [
@@ -12049,6 +13023,16 @@
       "tabelas"
     ],
     "note": "Transferegov special transfers (PostgREST), 14 tables chosen by tabelas. Free text fields can hold CPF, and there are parliamentarian names and bank data, published as is. Not sampled here.",
+    "status": "empty"
+  },
+  "tse_municipios_ibge": {
+    "filters": [
+      "output_dir",
+      "output_format",
+      "timeout",
+      "url"
+    ],
+    "note": "10 columns and 5,571 rows in a real run on 2026-11-14; the TSE code keeps its leading zero. No personal identifier. Registered without live field sampling, so the column names are not listed here.",
     "status": "empty"
   },
   "vacinacao_sistema_de_informacao_de_insumos_estrategicos": {
