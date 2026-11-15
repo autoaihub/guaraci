@@ -4,7 +4,10 @@ O INEP publica um zip por ano em ``download.inep.gov.br/dados_abertos`` com o
 nome ``microdados_censo_escolar_<ano>.zip``; só o de 2025 ganhou um sublinhado
 final (``_2025_.zip``). O zip traz a tabela de escolas (infraestrutura, água,
 esgoto, energia, internet, alimentação) e, de 2025 em diante, também as de
-docente, matrícula, turma, gestor e curso técnico, que esta fonte não exporta.
+docente, matrícula, turma, gestor e curso técnico, que saem nas chaves
+``inep_censo_escolar_<tabela>`` (só o zip de 2025 em diante as traz; os de 2007 a 2024 só
+têm a tabela de escolas). Essas tabelas são agregadas por escola (sem dado pessoal além do
+nome da escola) e o zip de 2025 tem 537 MB, baixado inteiro a cada execução.
 O nome do CSV de escolas muda de época (``microdados_ed_basica_<ano>.csv`` até
 2024, ``Tabela_Escola_<ano>_V2.csv`` em 2025) e a pasta que o contém também,
 então o membro é achado por padrão. O CSV sai em ``;`` e cp1252, sem BOM.
@@ -23,8 +26,11 @@ from guaraci.core.datasource import DataSource
 
 __all__ = [
     "INEP_CENSO_ESCOLAR",
+    "INEP_CENSO_ESCOLAR_TABELAS",
     "InepCensoEscolarDataSource",
+    "MIN_TABELAS_YEAR",
     "MIN_YEAR",
+    "tabela_datasource_for",
     "latest_year",
     "year_url",
 ]
@@ -66,6 +72,8 @@ class InepCensoEscolarDataSource(HttpFileDataSource):
     """Um zip por ano; exporta ``inep_censo_escolar_<ano>`` com a tabela de escolas."""
 
     DATASET = INEP_CENSO_ESCOLAR
+    SPEC = _SPEC
+    FIRST_YEAR = MIN_YEAR
 
     def __init__(
         self,
@@ -74,19 +82,21 @@ class InepCensoEscolarDataSource(HttpFileDataSource):
         dataset: Optional[str] = None,
         client: Optional[HttpFileClient] = None,
     ) -> None:
-        DataSource.__init__(self, name=INEP_CENSO_ESCOLAR, output_path=output_path)
-        self.spec = _SPEC
+        DataSource.__init__(self, name=self.DATASET, output_path=output_path)
+        self.spec = self.SPEC
         self._client = client
 
     def _select(self, anos: Optional[Sequence[str]], *_periodo: object):
         # A base passa também ``anos``/``meses`` do recorte por período (PNI,
         # SISVAN); aqui o ano já vem em ``indicadores``, montado em download().
         if not anos:
-            return list(_resources(MIN_YEAR, latest_year()))
+            return list(_resources(self.FIRST_YEAR, latest_year()))
         years = [int(a) for a in anos]
-        low = [y for y in years if y < MIN_YEAR]
+        low = [y for y in years if y < self.FIRST_YEAR]
         if low:
-            raise ValueError(f"Censo Escolar: ano abaixo de {MIN_YEAR} ({low}) tem outro esquema.")
+            raise ValueError(
+                f"{self.DATASET}: ano abaixo de {self.FIRST_YEAR} ({low}) não tem essa tabela."
+            )
         return list(_resources_for(years))
 
     def download(
@@ -98,7 +108,7 @@ class InepCensoEscolarDataSource(HttpFileDataSource):
     ) -> Dict[str, object]:
         if start_year is not None or end_year is not None:
             # ``end_year`` sozinho vale de MIN_YEAR até ele; ``start_year`` sozinho, só o ano dele.
-            first = int(start_year) if start_year is not None else MIN_YEAR
+            first = int(start_year) if start_year is not None else self.FIRST_YEAR
             last = int(end_year) if end_year is not None else first
             if last < first:
                 raise ValueError("end_year must be >= start_year.")
@@ -109,3 +119,69 @@ class InepCensoEscolarDataSource(HttpFileDataSource):
 def _resources_for(years: Sequence[int]):
     for y in dict.fromkeys(years):
         yield HttpResource(str(y), year_url(y), f"Censo Escolar {y}")
+
+
+MIN_TABELAS_YEAR = 2025
+_NOTA_TABELA = (
+    " Agregada por escola (sem dado pessoal além do nome da escola). Só o zip de 2025 em "
+    "diante traz a tabela; cada execução baixa o zip inteiro (537 MB em 2025)."
+)
+# chave, nome no zip, título, descrição
+INEP_CENSO_ESCOLAR_TABELAS = {
+    "inep_censo_escolar_matricula": (
+        "Matricula",
+        "INEP Censo Escolar - Tabela de matrículas",
+        "Matrículas do Censo Escolar por escola: contagens por etapa, modalidade, sexo, "
+        "cor/raça, idade, jornada e necessidade especial (colunas como o INEP publica)." + _NOTA_TABELA,
+    ),
+    "inep_censo_escolar_docente": (
+        "Docente",
+        "INEP Censo Escolar - Tabela de docentes",
+        "Docentes do Censo Escolar por escola: contagens por etapa, sexo, cor/raça, faixa "
+        "etária, escolaridade e vínculo (colunas como o INEP publica)." + _NOTA_TABELA,
+    ),
+    "inep_censo_escolar_turma": (
+        "Turma",
+        "INEP Censo Escolar - Tabela de turmas",
+        "Turmas do Censo Escolar por escola: contagens por etapa, modalidade, turno, "
+        "tamanho e atividade complementar (colunas como o INEP publica)." + _NOTA_TABELA,
+    ),
+    "inep_censo_escolar_gestor": (
+        "Gestor_Escolar",
+        "INEP Censo Escolar - Tabela de gestores escolares",
+        "Gestores escolares do Censo Escolar por escola: contagens por sexo, cor/raça, "
+        "escolaridade, vínculo e forma de acesso ao cargo (colunas como o INEP publica)." + _NOTA_TABELA,
+    ),
+    "inep_censo_escolar_curso_tecnico": (
+        "Curso_Tecnico",
+        "INEP Censo Escolar - Tabela de cursos técnicos",
+        "Cursos técnicos do Censo Escolar por escola: contagens de matrículas por curso "
+        "(49 colunas)." + _NOTA_TABELA,
+    ),
+}
+
+
+def _tabela_spec(key: str) -> HttpFile:
+    member, title, description = INEP_CENSO_ESCOLAR_TABELAS[key]
+    return HttpFile(
+        key,
+        title,
+        description,
+        _resources(MIN_TABELAS_YEAR, MIN_TABELAS_YEAR),
+        separator=";",
+        member_pattern=rf"(?:^|/)Tabela_{member}_\d{{4}}(?:_[vV]\d+)?\.csv$",
+        encoding="cp1252",
+        selector="anos",
+    )
+
+
+def tabela_datasource_for(key: str) -> type:
+    """Subclasse por tabela do Censo Escolar (2025 em diante)."""
+    if key not in INEP_CENSO_ESCOLAR_TABELAS:
+        raise KeyError(key)
+    name = "".join(part.title() for part in key.split("_")) + "DataSource"
+    return type(
+        name,
+        (InepCensoEscolarDataSource,),
+        {"DATASET": key, "SPEC": _tabela_spec(key), "FIRST_YEAR": MIN_TABELAS_YEAR},
+    )
