@@ -1,6 +1,6 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-11-15T12:50:56+00:00. 3284 clonagens (1394 únicas) em 61 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-11-16T13:48:08+00:00. 3284 clonagens (1394 únicas) em 63 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
@@ -53,6 +53,7 @@ Atualizado em 2026-11-15T12:50:56+00:00. 3284 clonagens (1394 únicas) em 61 rep
 | LuisVogelDS/Ilhota | 0 | 0 | 0 | 2026-09-17 |
 | LuisVogelDS/MemoriasPostumasDeBrazucas | 0 | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/ScoutCamisa10 | 0 | 0 | 0 | 2026-08-21 |
+| LuisVogelDS/Tarja | 0 | 0 | 0 | 2026-11-03 |
 | LuisVogelDS/Tatuacu | 0 | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/baldor-scraper | 0 | 0 | 0 | 2026-08-20 |
 | LuisVogelDS/exposicao | 0 | 0 | 0 | 2026-10-22 |
@@ -65,3 +66,4 @@ Atualizado em 2026-11-15T12:50:56+00:00. 3284 clonagens (1394 únicas) em 61 rep
 | cajuice/game-orbita | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-pinta | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-vetor | 0 | 0 | 0 | 2026-10-05 |
+| cajuice/prospero-backup | 0 | 0 | 0 | 2026-11-03 |
