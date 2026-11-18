@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-11-17T14:39:49+00:00",
-  "repo_count": 63,
-  "total_clones": 3366,
-  "total_uniques": 1443,
+  "updated_at": "2026-11-18T14:17:06+00:00",
+  "repo_count": 64,
+  "total_clones": 3403,
+  "total_uniques": 1470,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 2131,
-      "total_uniques": 839,
-      "uniques_14d": 89,
+      "total_clones": 2138,
+      "total_uniques": 846,
+      "uniques_14d": 87,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 855,
-      "total_uniques": 299,
-      "uniques_14d": 49,
+      "total_clones": 871,
+      "total_uniques": 307,
+      "uniques_14d": 54,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/IntraAct",
       "total_clones": 76,
-      "total_uniques": 30,
+      "total_uniques": 31,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
     },
@@ -34,30 +34,30 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 31,
-      "total_uniques": 31,
-      "uniques_14d": 1,
+      "total_clones": 32,
+      "total_uniques": 32,
+      "uniques_14d": 2,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 29,
-      "total_uniques": 29,
-      "uniques_14d": 2,
+      "total_clones": 30,
+      "total_uniques": 30,
+      "uniques_14d": 3,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/churnlab",
-      "total_clones": 27,
-      "total_uniques": 27,
-      "uniques_14d": 2,
+      "total_clones": 28,
+      "total_uniques": 28,
+      "uniques_14d": 3,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/loadbay",
-      "total_clones": 27,
-      "total_uniques": 27,
-      "uniques_14d": 2,
+      "total_clones": 28,
+      "total_uniques": 28,
+      "uniques_14d": 3,
       "tracking_since": "2026-08-20"
     },
     {
@@ -73,6 +73,13 @@
       "total_uniques": 15,
       "uniques_14d": 1,
       "tracking_since": "2026-08-21"
+    },
+    {
+      "repo": "cajuice/clinica",
+      "total_clones": 14,
+      "total_uniques": 15,
+      "uniques_14d": 1,
+      "tracking_since": "2026-09-23"
     },
     {
       "repo": "LuisVogelDS/Alquimia",
@@ -117,16 +124,9 @@
       "tracking_since": "2026-08-20"
     },
     {
-      "repo": "cajuice/clinica",
-      "total_clones": 4,
-      "total_uniques": 14,
-      "uniques_14d": 1,
-      "tracking_since": "2026-09-23"
-    },
-    {
       "repo": "cajuice/presto",
       "total_clones": 4,
-      "total_uniques": 14,
+      "total_uniques": 15,
       "uniques_14d": 1,
       "tracking_since": "2026-09-29"
     },
@@ -169,7 +169,7 @@
       "repo": "LuisVogelDS/prospero-dados",
       "total_clones": 2,
       "total_uniques": 1,
-      "uniques_14d": 1,
+      "uniques_14d": 0,
       "tracking_since": "2026-09-22"
     },
     {
@@ -225,7 +225,7 @@
       "repo": "LuisVogelDS/adormecer-abas",
       "total_clones": 1,
       "total_uniques": 1,
-      "uniques_14d": 1,
+      "uniques_14d": 0,
       "tracking_since": "2026-09-26"
     },
     {
@@ -273,7 +273,7 @@
     {
       "repo": "cajuice/prospero",
       "total_clones": 1,
-      "total_uniques": 2,
+      "total_uniques": 3,
       "uniques_14d": 1,
       "tracking_since": "2026-09-22"
     },
@@ -437,6 +437,13 @@
       "total_uniques": 0,
       "uniques_14d": 0,
       "tracking_since": "2026-10-05"
+    },
+    {
+      "repo": "cajuice/prexto",
+      "total_clones": 0,
+      "total_uniques": 4,
+      "uniques_14d": 1,
+      "tracking_since": "2026-11-04"
     },
     {
       "repo": "cajuice/prospero-backup",
