@@ -1,12 +1,12 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-11-18T14:17:06+00:00. 3403 clonagens (1470 únicas) em 64 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-11-19T14:33:13+00:00. 3417 clonagens (1488 únicas) em 64 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 2138 | 846 | 87 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 871 | 307 | 54 | 2026-08-20 |
-| LuisVogelDS/IntraAct | 76 | 31 | 1 | 2026-08-21 |
+| autoaihub/guaraci | 2155 | 859 | 97 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 877 | 309 | 54 | 2026-08-20 |
+| LuisVogelDS/IntraAct | 76 | 32 | 1 | 2026-08-21 |
 | cajuice/shop-list | 63 | 9 | 0 | 2026-09-20 |
 | LuisVogelDS/LuisVogelDS | 32 | 32 | 2 | 2026-08-20 |
 | LuisVogelDS/retail-pulse | 30 | 30 | 3 | 2026-08-20 |
@@ -14,13 +14,13 @@ Atualizado em 2026-11-18T14:17:06+00:00. 3403 clonagens (1470 únicas) em 64 rep
 | LuisVogelDS/loadbay | 28 | 28 | 3 | 2026-08-20 |
 | LuisVogelDS/vitrine | 26 | 25 | 2 | 2026-08-20 |
 | LuisVogelDS/MemoriaRam | 24 | 15 | 1 | 2026-08-21 |
-| cajuice/clinica | 14 | 15 | 1 | 2026-09-23 |
 | LuisVogelDS/Alquimia | 8 | 2 | 0 | 2026-08-21 |
-| LuisVogelDS/HarpyNest | 8 | 25 | 1 | 2026-09-19 |
+| LuisVogelDS/HarpyNest | 8 | 26 | 1 | 2026-09-19 |
 | cajuice/cajuzinho | 6 | 5 | 0 | 2026-09-22 |
 | LuisVogelDS/GolDePlaca | 5 | 11 | 1 | 2026-09-13 |
 | LuisVogelDS/presto | 5 | 4 | 1 | 2026-10-18 |
 | LuisVogelDS/Volvo | 4 | 4 | 1 | 2026-08-20 |
+| cajuice/clinica | 4 | 15 | 1 | 2026-09-23 |
 | cajuice/presto | 4 | 15 | 1 | 2026-09-29 |
 | cajuice/game-duct-tape | 3 | 2 | 0 | 2026-09-24 |
 | LuisVogelDS/Cajuice | 2 | 2 | 0 | 2026-09-19 |
@@ -30,12 +30,13 @@ Atualizado em 2026-11-18T14:17:06+00:00. 3403 clonagens (1470 únicas) em 64 rep
 | LuisVogelDS/prospero-dados | 2 | 1 | 0 | 2026-09-22 |
 | cajuice/Cajuice | 2 | 2 | 0 | 2026-09-20 |
 | cajuice/conteudo | 2 | 2 | 0 | 2026-09-22 |
-| cajuice/game-galinha | 2 | 1 | 1 | 2026-10-14 |
+| cajuice/game-galinha | 2 | 1 | 0 | 2026-10-14 |
 | cajuice/game-slime | 2 | 2 | 0 | 2026-09-23 |
 | cajuice/site | 2 | 2 | 0 | 2026-09-22 |
 | LuisVogelDS/CartaoVermelho | 1 | 1 | 0 | 2026-08-18 |
 | LuisVogelDS/Prospero | 1 | 1 | 0 | 2026-08-21 |
 | LuisVogelDS/adormecer-abas | 1 | 1 | 0 | 2026-09-26 |
+| LuisVogelDS/exposicao | 1 | 1 | 1 | 2026-10-22 |
 | LuisVogelDS/hub-2ms | 1 | 1 | 0 | 2026-09-22 |
 | LuisVogelDS/hub-pessoal | 1 | 1 | 0 | 2026-09-22 |
 | cajuice/FangYouVeryMuch | 1 | 1 | 0 | 2026-09-30 |
@@ -56,7 +57,6 @@ Atualizado em 2026-11-18T14:17:06+00:00. 3403 clonagens (1470 únicas) em 64 rep
 | LuisVogelDS/Tarja | 0 | 0 | 0 | 2026-11-03 |
 | LuisVogelDS/Tatuacu | 0 | 0 | 0 | 2026-08-21 |
 | LuisVogelDS/baldor-scraper | 0 | 0 | 0 | 2026-08-20 |
-| LuisVogelDS/exposicao | 0 | 0 | 0 | 2026-10-22 |
 | autoaihub/guaraci-docs | 0 | 0 | 0 | 2026-08-21 |
 | cajuice/game-baluarte | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-estrela | 0 | 0 | 0 | 2026-10-14 |
