@@ -1,27 +1,27 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-11-19T14:33:13+00:00. 3417 clonagens (1488 únicas) em 64 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-11-20T14:11:03+00:00. 3420 clonagens (1499 únicas) em 64 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 2155 | 859 | 97 | 2026-08-12 |
+| autoaihub/guaraci | 2158 | 862 | 95 | 2026-08-12 |
 | LuisVogelDS/VogelStack | 877 | 309 | 54 | 2026-08-20 |
-| LuisVogelDS/IntraAct | 76 | 32 | 1 | 2026-08-21 |
-| cajuice/shop-list | 63 | 9 | 0 | 2026-09-20 |
+| LuisVogelDS/IntraAct | 76 | 33 | 1 | 2026-08-21 |
+| cajuice/shop-list | 63 | 10 | 1 | 2026-09-20 |
 | LuisVogelDS/LuisVogelDS | 32 | 32 | 2 | 2026-08-20 |
 | LuisVogelDS/retail-pulse | 30 | 30 | 3 | 2026-08-20 |
 | LuisVogelDS/churnlab | 28 | 28 | 3 | 2026-08-20 |
 | LuisVogelDS/loadbay | 28 | 28 | 3 | 2026-08-20 |
-| LuisVogelDS/vitrine | 26 | 25 | 2 | 2026-08-20 |
+| LuisVogelDS/vitrine | 26 | 26 | 2 | 2026-08-20 |
 | LuisVogelDS/MemoriaRam | 24 | 15 | 1 | 2026-08-21 |
 | LuisVogelDS/Alquimia | 8 | 2 | 0 | 2026-08-21 |
-| LuisVogelDS/HarpyNest | 8 | 26 | 1 | 2026-09-19 |
+| LuisVogelDS/HarpyNest | 8 | 27 | 1 | 2026-09-19 |
 | cajuice/cajuzinho | 6 | 5 | 0 | 2026-09-22 |
-| LuisVogelDS/GolDePlaca | 5 | 11 | 1 | 2026-09-13 |
+| LuisVogelDS/GolDePlaca | 5 | 12 | 1 | 2026-09-13 |
 | LuisVogelDS/presto | 5 | 4 | 1 | 2026-10-18 |
 | LuisVogelDS/Volvo | 4 | 4 | 1 | 2026-08-20 |
-| cajuice/clinica | 4 | 15 | 1 | 2026-09-23 |
-| cajuice/presto | 4 | 15 | 1 | 2026-09-29 |
+| cajuice/clinica | 4 | 16 | 1 | 2026-09-23 |
+| cajuice/presto | 4 | 16 | 1 | 2026-09-29 |
 | cajuice/game-duct-tape | 3 | 2 | 0 | 2026-09-24 |
 | LuisVogelDS/Cajuice | 2 | 2 | 0 | 2026-09-19 |
 | LuisVogelDS/GobbleGoblin | 2 | 1 | 0 | 2026-08-21 |
@@ -66,5 +66,5 @@ Atualizado em 2026-11-19T14:33:13+00:00. 3417 clonagens (1488 únicas) em 64 rep
 | cajuice/game-orbita | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-pinta | 0 | 0 | 0 | 2026-10-05 |
 | cajuice/game-vetor | 0 | 0 | 0 | 2026-10-05 |
-| cajuice/prexto | 0 | 4 | 1 | 2026-11-04 |
+| cajuice/prexto | 0 | 5 | 1 | 2026-11-04 |
 | cajuice/prospero-backup | 0 | 0 | 0 | 2026-11-03 |
