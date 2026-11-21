@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-11-20T14:11:03+00:00",
+  "updated_at": "2026-11-21T13:36:34+00:00",
   "repo_count": 64,
-  "total_clones": 3420,
-  "total_uniques": 1499,
+  "total_clones": 3440,
+  "total_uniques": 1509,
   "repos": [
     {
       "repo": "autoaihub/guaraci",
-      "total_clones": 2158,
-      "total_uniques": 862,
-      "uniques_14d": 95,
+      "total_clones": 2161,
+      "total_uniques": 866,
+      "uniques_14d": 91,
       "tracking_since": "2026-08-12"
     },
     {
       "repo": "LuisVogelDS/VogelStack",
-      "total_clones": 877,
-      "total_uniques": 309,
-      "uniques_14d": 54,
+      "total_clones": 892,
+      "total_uniques": 312,
+      "uniques_14d": 56,
       "tracking_since": "2026-08-20"
     },
     {
@@ -34,16 +34,16 @@
     },
     {
       "repo": "LuisVogelDS/LuisVogelDS",
-      "total_clones": 32,
-      "total_uniques": 32,
-      "uniques_14d": 2,
+      "total_clones": 33,
+      "total_uniques": 33,
+      "uniques_14d": 3,
       "tracking_since": "2026-08-20"
     },
     {
       "repo": "LuisVogelDS/retail-pulse",
-      "total_clones": 30,
-      "total_uniques": 30,
-      "uniques_14d": 3,
+      "total_clones": 31,
+      "total_uniques": 31,
+      "uniques_14d": 4,
       "tracking_since": "2026-08-20"
     },
     {
@@ -84,7 +84,7 @@
     {
       "repo": "LuisVogelDS/HarpyNest",
       "total_clones": 8,
-      "total_uniques": 27,
+      "total_uniques": 28,
       "uniques_14d": 1,
       "tracking_since": "2026-09-19"
     },
