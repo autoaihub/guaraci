@@ -1,4 +1,4 @@
-"""Fontes CKAN estaduais e municipais (Recife, Porto Alegre e Minas Gerais).
+"""Fontes CKAN estaduais e municipais (Recife, Porto Alegre, Minas Gerais, SEADE e SES-GO).
 
 Usa ``ckan_api_source`` do módulo federal. O registro deste módulo em
 ``sources/__init__.py`` é do orquestrador.

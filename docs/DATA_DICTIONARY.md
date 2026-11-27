@@ -7,7 +7,7 @@ to refresh.
 
 - **Filters** = arguments a user can pass (also live via `guaraci fetch schema <source>`).
 - **Fields** = output column names from a real sample (`ok` rows below).
-- 271 sources cataloged; 181 sampled with real field names.
+- 382 sources cataloged; 213 sampled with real field names.
 
 ## Caveats (honest)
 
@@ -19,8 +19,15 @@ to refresh.
 - `anvisa_produtos_saude_registrados` (empty): Registered health products file, 12 columns. Not sampled here; columns as published by ANVISA.
 - `atencao_primaria_pmmb_relatorio_historico_cadastro_cnes` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `atencao_primaria_siaps_cadastro_individual` (empty): Live smoke on 2026-10-13 (competencia 202606) returned rows with qtd_pessoas_cadastradas and the person-profile strata (povo ou comunidade tradicional, situacao de rua, deficiencia, mercado de trabalho); full column list still to be sampled.
+- `cetic_tic_domicilios` (empty): 271 columns and 27,177 rows. Sample of households and individuals, no direct identifier. CC BY 4.0; the URL changes with each edition; it covers internet access in general and touches health only in part. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `cetic_tic_saude_estabelecimentos` (empty): 348 columns and 3,261 rows. Sample of health establishments, no direct identifier. CC BY 4.0; the URL changes with each edition. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `cid10_datasus` (empty): six CSV files (chapters, groups, categories, subcategories, ICD-O groups and categories), 15,672 rows in all; edition 2008, the one DATASUS publishes as CSV. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 - `ciencia_tecnologia_plataformabr_pesquisa_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `ciencia_tecnologia_plataformabr_projeto_aprovado` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `cnae_classes` (empty): about 10 columns and 673 rows in a real run on 2026-11-14. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `cnae_subclasses` (empty): 13 columns and 1,332 rows in a real run on 2026-11-14; the hierarchy up to the section is flattened and lists are kept as JSON text. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `covitel_2022` (empty): xlsx covitel_observatorio.xlsx, 167 columns and 9,004 rows. Personal data: municipality, area code and interview date, without name. The source does not declare a license. Registered without live field sampling, so the column names are not listed here.
+- `covitel_2023` (empty): CSV BD_Covitel_2023imputed_com_peso.csv, 205 columns and 9,038 rows. Personal data: municipality, area code and interview date, without name. The source does not declare a license. Registered without live field sampling, so the column names are not listed here.
 - `cvesp_aids_adulto` (empty): CVE-SP TabNet, cases by municipality of residence and year of notification. Columns as reported by the integration (cod_ibge, municipio, ano, Nº de Casos); not sampled here.
 - `cvesp_hiv` (empty): CVE-SP TabNet, cases by municipality of residence and year of notification. Columns as reported by the integration (cod_ibge, municipio, ano, Nº de Casos); not sampled here.
 - `cvesp_hiv_gestante` (empty): CVE-SP TabNet, cases by municipality of residence and year of notification. Columns as reported by the integration (cod_ibge, municipio, ano, Nº de Casos); not sampled here.
@@ -33,13 +40,29 @@ to refresh.
 - `farmacia_popular_indicadores` (empty): 14 indicator files, one CSV each, sharing co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil and national/state values. Only pfpbben was opened live on 2026-10-13.
 - `funai_aldeias` (empty): FUNAI villages (WFS), 13 attributes plus point geometry. Exact column list read from DescribeFeatureType at download time.
 - `funai_terras_indigenas` (empty): FUNAI indigenous lands (WFS), chosen by camadas, polygon geometry. Not sampled here; attributes read from DescribeFeatureType at download time.
+- `hiperdia_cadastro` (empty): TabNet HIPERDIA, one .def per state (without uf the run makes 27 queries per month). 9 columns (4 measures: hypertension, type 1 diabetes, type 2 diabetes, hypertension with diabetes); 2012 in Paraná gave 887 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `iarc_ci5_xii` (empty): IARC CI5-XII zip, four tables: cases (23 columns, 74,214 rows), pop (22, 1,178), registros (4, 589) and cancer (3, 63). Aggregated counts, no personal identifier. IARC terms: non-commercial use with the source acknowledged. Registered without live field sampling, so the column names are not listed here.
+- `iarc_monografias_classificacoes` (empty): 8 columns (name, group, cas, volume, year, yeareval, in_prep, comment) and 1,131 rows, read by a parser of the JavaScript list of the page application because there is no CSV or API. No personal identifier. IARC terms: non-commercial use with the source acknowledged. Registered without live field sampling, so the column names are not listed here.
 - `ibama_agrotoxicos_comercializacao` (empty): Fields verified live on 2026-10-13 against the source header (no full collection run yet). 33 wide columns: Classe de uso, Ingrediente ativo, SEMESTRE, ANO, Vendas a clientes (ton. produtos), Vendas a Industrias (ton. produtos) and 27 'Qtd. Vendas - <UF>' columns. pt-BR numbers, negative values present; kept wide and as text.
 - `ibama_autos_infracao` (empty): Environmental infraction notices since 1977, 84 columns, including NOME_INFRATOR and CPF_CNPJ_INFRATOR, published as is. Not sampled here.
 - `ibama_rapp_efluentes_liquidos` (empty): RAPP liquid effluents, 27 columns, from 2000. Not sampled here; columns as published by IBAMA.
 - `ibama_rapp_emissoes_atmosfericas` (empty): RAPP air emissions, 13 columns, from 2013. It carries the CNPJ and company name, and for MEI also the name and CPF of the person, published as is. Not sampled here.
 - `ibama_termos_embargo` (empty): Embargo terms, 51 columns, with the offender's CPF without mask, published as is. Not sampled here.
+- `ibge_censo2000_amostra` (empty): fixed-width layout read from the SAS programs of the documentation zip: households 80 columns, families 26, people 183; AC in a real run gave 16,818 households, 18,113 families and 71,063 people. Personal data: anonymous IBGE microdata, without name or address, with age, sex, color or race, income and municipality grouped by weighting area. Registered without live field sampling, so the column names are not listed here.
+- `ibge_censo2010_amostra` (empty): fixed-width layout frozen from the official layout: households 76 columns, people 244, emigration 19, mortality 19; one file per state (AC in a real run: 24,339 households, 93,675 people, 169 emigration and 343 mortality rows). Personal data: anonymous IBGE microdata, without name or address, with age, sex, color or race, income and municipality grouped by weighting area. Registered without live field sampling, so the column names are not listed here.
 - `ibge_censo2022_amostra` (empty): Census 2022 public-use sample, one zip per UF (ufs is required) with four ';' CSV tables: pessoas, domicilios, familias and mortalidade, with weights and weighting area. Not sampled here (the whole country passes 8 GB in CSV); columns as published by IBGE.
 - `ibge_censo_deficiencia` (empty): Two files per run: SIDRA 10125 (sexo, grupo_de_idade) and 10132 (cor_ou_raca, existencia_de_deficiencia), both with nivel, localidade_id, localidade_nome, ano, variavel_id, unidade, valor (2022).
+- `ibge_estadic` (empty): each sheet of the xlsx becomes a sibling file, all columns as text; columns vary by sheet; 27 rows per sheet (2023: 9 sheets in a real run). Sem dado pessoal: indicador de gestão, sem identificador de pessoa. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_inpc_grupos` (empty): IBGE SIDRA, consumer prices. 11 columns. Tables 1100 and 7063. Real run for 2025, metropolitan regions, all levels of detail: 214,560 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_inpc_serie` (empty): IBGE SIDRA, consumer prices. 10 columns. Table 1736. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_ipca15_grupos` (empty): IBGE SIDRA, consumer prices. 11 columns. Tables 1705 and 7062. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_ipca15_serie` (empty): IBGE SIDRA, consumer prices. 10 columns. Table 3065. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_ipca_grupos` (empty): IBGE SIDRA, consumer prices. 11 columns. The table changes by year (2938, 1419 and 7060); parameter detalhe selects groups, health or all. Real run for 2019 and 2020, municipality level, health: 2,880 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_ipca_serie` (empty): IBGE SIDRA, consumer prices. 10 columns. Real run for 2024 and 2025 gave 144 rows (table 1737). No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_localidades_distritos` (empty): 24 columns and 10,751 rows in a real run on 2026-11-14; nested fields are flattened with underscores. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_localidades_municipios` (empty): 22 columns and 5,571 rows in a real run on 2026-11-14; nested fields are flattened with underscores. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_munic_edicoes` (empty): each sheet of the xlsx becomes a sibling file, all columns as text; columns vary by sheet; 5,570 rows per sheet (2020: 9 sheets in a real run). Sem dado pessoal: indicador de gestão, sem identificador de pessoa. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ibge_munic_saneamento` (empty): each sheet of the xlsx becomes a sibling file, all columns as text; columns vary by sheet; 2017 gave 5,570 rows per sheet in a real run. Sem dado pessoal: indicador de gestão, sem identificador de pessoa. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 - `ibge_pense` (empty): Editions 2012 (fixed width, 3 tables), 2015 (two samples, 3 tables each), 2019 and 2024 (CSV). 2009 left out: layout only in XLS. Field list depends on the edition.
 - `ibge_pnad_covid19` (empty): PNAD COVID-19 monthly microdata, May to November 2020, one CSV per month (table microdados) with the published IBGE variable codes. Not sampled here (~758 MB in CSV).
 - `ibge_pnad_saude` (empty): Annual PNAD with the health supplement (1998, 2003, 2008), fixed-width microdata read through the IBGE SAS input at download time, tables pessoas and domicilios; 2003 and 2008 come from the 2001-2012 reweighting. Field list depends on the edition. Not sampled here (~2.2 GB in CSV).
@@ -51,14 +74,29 @@ to refresh.
 - `ibge_pnadc_visita5` (empty): PNAD Continua annual visit 5 (income from all sources), 2016-2024; fixed-width read through the IBGE SAS input, about 558 variables, including V5001A-V5008A2 (income sources), V4117A-V4121B (care and household chores) and SD06001-SD06005 (work at ages 5-17), with replicate weights up to 200 (verified live on 2026-10-13).
 - `ibge_pns` (empty): Fixed-width microdata read through the IBGE SAS input at download time: 1088 variables in 2019, 1000 in 2013 (verified live on 2026-10-13). Field list depends on the edition.
 - `ibge_pof` (empty): POF 2017-2018: 16 fixed-width tables, 550 variables read from the IBGE SAS program (verified live on 2026-10-13). Field list depends on the table.
+- `inep_adequacao_formacao_docente` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+- `inep_alunos_por_turma` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
 - `inep_censo_escolar` (empty): School table of the INEP school census, 2007 onward; 370 columns in 2007, 426 in 2024 and 290 in 2025 (schema changes by year). Includes CO_ENTIDADE, NU_ANO_CENSO, IN_AGUA_REDE_PUBLICA, IN_ESGOTO_REDE_PUBLICA, IN_ALIMENTACAO, IN_INTERNET.
+- `inep_censo_escolar_curso_tecnico` (empty): Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (7 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `inep_censo_escolar_docente` (empty): Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (84 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `inep_censo_escolar_gestor` (empty): Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (50 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `inep_censo_escolar_matricula` (empty): Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; 263 columns and 178,766 schools in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `inep_censo_escolar_turma` (empty): Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (95 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `inep_complexidade_gestao` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+- `inep_distorcao_idade_serie` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+- `inep_docentes_curso_superior` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+- `inep_esforco_docente` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+- `inep_horas_aula` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+- `inep_ideb_brasil_ufs` (empty): code AAAA_BR and AAAA_UF; each sheet (AI, AF, EM) is written as a file; 2023 gave 120 columns (AI) and 110 (AF, EM) for Brazil and 142 to 143 rows per sheet for the states; the first two state columns have no name in the spreadsheet. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `inep_ideb_escolas` (empty): IDEB by school; code AAAA_AI, AAAA_AF or AAAA_EM; 2025 high school gave 22,183 schools and 60 columns in a real run, with the series from 2005 inside the columns. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `inep_inse` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. Also writes the dictionary of each level as its own CSV; 2023 gave 69,756 rows and 22 columns (ESC), 125,741 and 19 (MUN), 1,552 and 17 (UF), 63 and 14 (BR). No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+- `inep_regularidade_docente` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+- `inep_taxas_rendimento` (empty): INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. 59 columns at state level in 2024. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
 - `inpe_deter_cerrado` (empty): Same attributes as DETER Amazonia plus created_date and areatotalkm, WITHOUT mun_geocod (municipality name and UF only). First view_date 2018-05-01. Exact column list read from DescribeFeatureType at download time.
 - `ipeadata_metadados` (empty): IPEADATA catalogue of series, themes and territories. Not sampled here.
 - `ipeadata_series` (empty): IPEADATA OData series chosen by series (41 series with no primary source counterpart, among them the Atlas da Violencia). Not sampled here.
 - `isp_rj_delegacias_mensal` (empty): Monthly series by police station (CISP) since 2003, 65 columns. Not sampled here.
 - `isp_rj_municipios_mensal` (empty): Monthly series by municipality since 2003, 62 columns. Not sampled here.
-- `mapbiomas_cobertura_municipios` (error): MapBiomas collection 10 land cover by municipality, 54 columns per the spec (79285 rows); the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
-- `mapbiomas_vegetacao_secundaria_municipios` (error): MapBiomas collection 10 secondary vegetation by municipality, 52 columns per the spec; the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
 - `mdhc_disque100` (empty): Disque 100 complaints, one file per semester from 2020 (100 MB to 1.9 GB), 34 or 62 columns depending on the file; anos is required. Not sampled here.
 - `mds_misocial` (empty): MI Social (MDS/SAGI) monthly municipal indicators from 2003, Solr field names as published, chosen by grupos: bolsa_familia (166), cadunico (59), bpc (29), condicionalidades (317), suas (182), auxilios (357), outros (157). Field list fixed in guaraci/mds/campos.py; not sampled here.
 - `mgdi_academia_saude` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
@@ -74,22 +112,62 @@ to refresh.
 - `mgdi_saude_bucal_fluoretacao` (empty): One CSV per indicator, MGDI layout shared with mgdi_samu: 7 indicators by municipality, monthly (co_anomes) or yearly (co_ano). Layouts: 25 columns (7 files). Header of every file read live on 2026-10-20.
 - `mgdi_telessaude` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13. One Telessaude file (mgdi_ms_g0y) has 16 columns without co_ibge.
 - `mgdi_upa` (empty): One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
+- `mte_caged_antigo` (empty): 40 to 42 columns; 20 to 33 MB compressed per month; anos required; series closed in December 2019. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `mte_caged_antigo_ajustes` (empty): 37 to 43 columns; 7 to 20 MB per year (2002 to 2009) and 0.8 to 3 MB per month (2010 to 2019); series closed in December 2019. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 - `mte_novo_caged_exclusoes` (empty): Novo CAGED excluded movements, monthly 7z file from 2020-04, 30 columns. Not sampled here.
 - `mte_novo_caged_fora_prazo` (empty): Novo CAGED movements declared late, monthly 7z file from 2020-02, 28 columns. Not sampled here.
 - `mte_novo_caged_movimentacoes` (empty): Novo CAGED movements, monthly 7z file from 2020-01, 28 columns, coded values as published by MTE. Not sampled here.
 - `mte_rais_estabelecimentos` (empty): RAIS establishments, 23 columns, one file per year from 2023. Not sampled here.
+- `mte_rais_estabelecimentos_historico` (empty): 8 to 24 columns depending on the year; 3 to 97 MB compressed per year (2003, a zip, has 6.1 million rows). No CNPJ. Registered without live field sampling, so the column names are not listed here.
 - `mte_rais_vinculos` (empty): RAIS employment bonds, 62 columns, more than 4 GB compressed per year (2023 onward), chosen by anos and regioes. Not sampled here.
+- `mte_rais_vinculos_historico` (empty): 24 to 60 columns depending on the year, header as published (repeated names such as 'Tipo Estab'); 7z files. No CPF, name or PIS (CBO, CNAE, municipality, bands and pay values). Registered without live field sampling, so the column names are not listed here.
 - `nasa_firms` (needs_credential): NASA FIRMS requires a MAP_KEY. Set the environment variable GUARACI_FIRMS_MAP_KEY (free key from https://firms.modaps.eosdis.nasa.gov/api/map_key/).
 - `nasa_gpm` (needs_credential): NASA GPM (GES DISC) requires an Earthdata Login token. Set the environment variable GUARACI_EARTHDATA_TOKEN (generate at https://urs.earthdata.nasa.gov, and authorize the 'NASA GESDISC DATA ARCHIVE' application).
 - `obrasgov_projetos_investimento` (empty): Obrasgov investment projects (REST, paged), 31 fields per project. Not sampled here.
+- `pnds_2006` (empty): six tables read from the fixed-width .dat files with the .dct of the zip: dom_pess (162 columns, 56,365 rows), filhos (291, 27,477), gravidezes (37, 6,833), medicamentos (125, 15,575), medicamentos_h (31, 93,450) and mulheres (461, 15,575). Home sample with weights, state and region; no name or CPF. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 - `prf_acidentes_pessoas` (empty): One row per person involved (35 columns in 2025): occurrence columns plus pesid, id_veiculo, tipo_veiculo, marca, ano_fabricacao_veiculo, tipo_envolvido, estado_fisico, idade, sexo. No names.
 - `rio_iqar_diario` (empty): Rio de Janeiro daily air quality index by station and pollutant (ArcGIS REST), 8 attributes, from 2017. The layer stopped being updated in 2024. Not sampled here.
 - `saude_indigena_acompanhamento_obra_infraestrutura_saude` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `saude_indigena_sesai_hepatites_virais` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `saude_indigena_sesai_obitos` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
+- `sb_brasil_1986` (empty): two spreadsheets: children (15 columns, 12,312 rows) and adults and adolescents (21 columns, 10,401 rows). Survey sample, no name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `sb_brasil_1996` (empty): DBF SB96.DBF inside the zip, 32 columns and 30,240 rows; requires the optional datasus extra (dbfread). Survey sample, no name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `sb_brasil_2003` (empty): five regional DBF files (co, ne, no, se, su), 243 columns each; no gave 21,300 rows and se 24,058 in a real run (the other three were not downloaded); the source path says 2020 but the content is SB Brasil 2003; the indicadores parameter lists regions. Home sample, no name; requires the optional datasus extra (dbfread). No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `seade_esperanca_vida_sp` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package esperanca-de-vida: 1 CSV file, 5 columns, 600 rows (real run). Registered without live field sampling, so the column names are not listed here.
+- `seade_fecundidade_sp` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package seade-fecundidade: 7 CSV files with 5 to 14 columns and up to 16,150 rows; resource municipios_serie gave 16,150 rows and 5 columns in a real run. Registered without live field sampling, so the column names are not listed here.
+- `seade_ipvs_2010` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package ipvs2010-base-de-dados: 1 CSV file, 51 columns, 28 MB, by census tract; only the header was read. Registered without live field sampling, so the column names are not listed here.
+- `seade_ipvs_2022` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package ipvs-populacao-domicilios-e-setores-censitarios: 2 CSV files, 5 columns, 3,870 and 576 rows. Registered without live field sampling, so the column names are not listed here.
+- `seade_mortalidade_geral_sp` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package mortalidade-no-estado-de-sao-paulo: 1 CSV file, 21 columns, 16,150 rows. Registered without live field sampling, so the column names are not listed here.
+- `seade_mortalidade_infantil_sp` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package mortalidade-infantil: 2 CSV files, 7 columns and 16,150 rows each. Registered without live field sampling, so the column names are not listed here.
+- `seade_nascidos_vivos_sp_ano_corrente` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package nascidos-vivos: 3 CSV files (5, 4 and 4 columns; 646, 20,026 and 2,584 rows). The URL keeps and the content changes with the year. Registered without live field sampling, so the column names are not listed here.
+- `seade_nascidos_vivos_sp_serie` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package nascidos-vivos-estado-de-sp-serie-historica: 3 CSV files (3, 6 and 5 columns; 16,796, 4,522 and 12,920 rows). Registered without live field sampling, so the column names are not listed here.
+- `seade_obitos_sp_ano_corrente` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package obitos-estado-de-sp-ano-corrente: 2 CSV files (5 and 4 columns; 25,960 and 4,390 rows). The file obitos_mes_anoatual.csv carries about 1,044,185 empty lines (';;;') after the data, a residue of the source, kept as published. The URL keeps and the content changes with the year; the closed series is in seade_obitos_sp_serie. Registered without live field sampling, so the column names are not listed here.
+- `seade_obitos_sp_serie` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package obitos: 3 CSV files (5, 4 and 4 columns; 172,697, 60,809 and 16,796 rows). Registered without live field sampling, so the column names are not listed here.
+- `seade_saude_painel_sp` (empty): SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package saude-painel: 5 CSV files with 5 to 9 columns and 63 to 9,097 rows; origin CNES 2024, not reloaded since April 2025. Registered without live field sampling, so the column names are not listed here.
 - `senappen_sisdepen` (empty): SISDEPEN (Infopen), 1,117 to 1,737 columns depending on the cycle, from 2014. Not sampled here.
+- `ses_go_arboviroses_internacao` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package arbovirose: 1 CSV file, 26 columns. Personal data: the regulation record code, which identifies a request, without name or CPF. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_dengue` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package dengue: cases 9 columns (196 MB in one file), serotypes 7 columns (0.2 MB). No name, CPF or notification number. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_hanseniase` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package hanseniase: 1 CSV file, 28 columns, with occupation and municipality of residence. No name or notification number. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_hepatites` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package ist-hepatite: 2 CSV files (14 and 8 columns); deaths gave 752 rows and 8 columns in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_hiv_aids` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Packages ist-hiv and ist-aids: 8 CSV files with 6 to 11 columns; HIV in children gave 38 rows and 11 columns in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_mapa_leitos` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package mapa-de-leitos: 7 CSV files, 9 columns; neonatal ICU gave 7,887 rows in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_mortalidade` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package mortalidade: 4 CSV files, 10 columns (53 MB in the general one). Aggregated, no personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_oncologia` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package oncologia: 2 CSV files, 36 columns (individual, 58 MB) and 14 (grouped, 1.3 MB). Personal data: data_nascimento, without name or CPF. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_regulacao_indicadores` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package transparencia-regulacao-indicadores: 3 CSV files (17, 15 and 6 columns). Aggregated, no personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_sifilis` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package ist-sifilis: 5 CSV files with 6 to 15 columns. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_sindrome_gripal` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package sindrome-gripal-sg: 1 CSV file, 37 columns. Personal data: numero_notificacao and numero_gal. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_srag` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package srag: 1 CSV file, 38 columns. Personal data: numero_notificacao. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_tuberculose` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package tuberculose: 1 CSV file, 48 columns. Personal data: nu_notificacao. Registered without live field sampling, so the column names are not listed here.
+- `ses_go_zika_chikungunya` (empty): SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package aedes: 2 CSV files (8 and 7 columns); zika gave 25,307 rows in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 - `sgb_risco_geologico` (empty): Geological risk sectorisation (SGB WFS), 32 attributes plus polygon geometry. Exact column list read from DescribeFeatureType at download time.
 - `sgb_suscetibilidade` (empty): SGB susceptibility charts, chosen by camadas; layers with more than 400 thousand features. Not sampled here; attributes read from DescribeFeatureType at download time.
+- `siab_cadastro_familiar` (empty): TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 52 columns (47 measures); 24 files (December of 1998 to 2014 and monthly from June to December 2015); Paraná 2015 gave 1,976 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `siab_producao_marcadores` (empty): TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 59 columns (5 keys and 54 measures); Paraná 2015 gave 3,313 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `siab_saneamento` (empty): TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 28 columns (23 measures); same periodicity as the family registration; Paraná 2015 gave 1,976 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `siab_situacao_saude` (empty): TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 57 columns (5 keys and 52 measures); Paraná 2015 gave 3,328 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `siconfi_dca_anexos` (empty): 11 columns; 2013 arrives as 'Anexo I-E' and from 2014 on as 'DCA-Anexo I-E'; before 2013 the answer is empty; Alta Floresta D'Oeste (1100015) in 2013 and 2014 gave 1,129 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `siconfi_rreo_anexos` (empty): 15 columns; all annexes of the entity in one query (01 to 04, 06, 07, 09, 10 RPPS, 11, 13 and 14), the anexos filter is local; São Paulo (3550308), 2022 bimester 6, annexes 01 and 10 RPPS gave 1,266 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+- `sigtap_tabela_unificada` (empty): one CSV per table of the zip (about 40 tables, 2 to 16 columns each, names from the official layout); four tables read in a real run on 2026-11-14 gave 104,527 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 - `sim_obitos_exterior` (empty): SIM file of deaths in Brazil of residents abroad (DOREXT), national file per year from 2013, 87 columns in the SIM layout. Not sampled here; columns as published by DATASUS.
 - `sinisa` (error): expected name token at '<![:e\x90\x02ª/Ü4æ\x03\x17G\x92ý\x83\x0b¦'
 - `siops_indicadores_estados` (empty): Fields verified live on 2026-10-13 against the source (no full collection run yet). ano, cod_uf, uf, nome_uf and the 31 state indicators, 2002-2025 (624 rows; DF not in this series).
@@ -99,6 +177,7 @@ to refresh.
 - `ssp_sp_dados_criminais` (empty): SSP-SP criminal records, one xlsx of about 200 MB per year from 2022, with a dictionary sheet and one sheet per semester (about 585 thousand rows each, about 5 minutes of conversion per semester); anos is required. Not sampled here.
 - `transferegov_fundo_a_fundo` (empty): Transferegov fund-to-fund transfers (PostgREST), 21 tables chosen by tabelas. Not sampled here.
 - `transferegov_transferencias_especiais` (empty): Transferegov special transfers (PostgREST), 14 tables chosen by tabelas. Free text fields can hold CPF, and there are parliamentarian names and bank data, published as is. Not sampled here.
+- `tse_municipios_ibge` (empty): 10 columns and 5,571 rows in a real run on 2026-11-14; the TSE code keeps its leading zero. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 - `vigilancia_e_meio_ambiente_sistema_de_informacao_sobre_nascidos_vivos` (empty): No records returned by OpenDataSUS query; export file was not generated. Consider widening the date window or removing optional refinements such as UF.
 - `vigitel` (empty): Single stacked file 2006-2024 (no 2022), 577 MB CSV inside an 87 MB zip, coded values without labels. Header starts with ano, cidade, q6 and ends with yearly rake weights; columns are sparse by year. Not sampled yet because of size.
 
@@ -303,6 +382,41 @@ to refresh.
 - **Filters:** `start_date`, `end_date`, `competencia_siaps`, `municipio`, `regiao`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Note:** Live smoke on 2026-10-13 (competencia 202606) returned rows with qtd_pessoas_cadastradas and the person-profile strata (povo ou comunidade tradicional, situacao de rua, deficiencia, mercado de trabalho); full column list still to be sampled.
 
+## bcb_sicor_comercializacao_uf
+
+- **Status:** ok (272 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `meses`, `timeout`, `pause_ms`, `api_base_url`
+- **Fields:** `nomeProduto`, `nomeRegiao`, `nomeUF`, `MesEmissao`, `AnoEmissao`, `cdPrograma`, `cdSubPrograma`, `cdFonteRecurso`, `cdTipoSeguro`, `QtdComerc`, `VlComerc`, `Atividade`, `cdModalidade`
+- **Note:** BCB SICOR, farm marketing credit by state; sampled live through the run for 2024-03 (OData Olinda, one request per month): 272 rows, 13 columns. Aggregated data, no personal identifier.
+
+## bcb_sicor_custeio_municipio
+
+- **Status:** ok (23201 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `meses`, `timeout`, `pause_ms`, `api_base_url`
+- **Fields:** `Municipio`, `nomeProduto`, `MesEmissao`, `AnoEmissao`, `cdPrograma`, `cdSubPrograma`, `cdFonteRecurso`, `cdTipoSeguro`, `cdEstado`, `VlCusteio`, `cdProduto`, `codCadMu`, `Atividade`, `cdModalidade`, `codIbge`, `AreaCusteio`
+- **Note:** BCB SICOR, farm costing credit by municipality; sampled live through the run for 2024-03 (OData Olinda, one request per month): 23201 rows, 16 columns. Aggregated data, no personal identifier.
+
+## bcb_sicor_investimento_municipio
+
+- **Status:** ok (36484 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `meses`, `timeout`, `pause_ms`, `api_base_url`
+- **Fields:** `Municipio`, `nomeProduto`, `MesEmissao`, `AnoEmissao`, `cdPrograma`, `cdSubPrograma`, `cdFonteRecurso`, `cdTipoSeguro`, `cdEstado`, `VlInvest`, `cdProduto`, `cdMunicipio`, `Atividade`, `cdModalidade`, `AreaInvest`
+- **Note:** BCB SICOR, farm investment credit by municipality; sampled live through the run for 2024-03 (OData Olinda, one request per month): 36484 rows, 15 columns. Aggregated data, no personal identifier.
+
+## bndes_desembolsos_mensais
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `ano`, `mes`, `forma_de_apoio`, `produto`, `instrumento_financeiro`, `inovacao`, `porte_de_empresa`, `regiao`, `uf`, `municipio`, `municipio_codigo`, `setor_cnae`, `subsetor_cnae_agrupado`, `setor_bndes`, `subsetor_bndes`, `desembolsos_reais`, `setor_cnae_classificacao_bndes`, `subsetor_cnae_agrupado_classificacao_bndes`, `codigo_cnae_ibge`, `produto_bndes`
+- **Note:** BNDES monthly disbursements since 2002 (16 columns, 754 MB CSV) plus the BNDES to CNAE sector mapping (6 columns); headers read by range request on 2026-11-14, not downloaded. Fields are the union. Aggregated data, no names or CPF.
+
+## bndes_operacoes_financiamento
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `cliente`, `cpf_cnpj`, `uf`, `municipio`, `municipio_codigo`, `data_da_contratacao`, `valor_da_operacao_em_reais`, `valor_desembolsado_reais`, `fonte_de_recurso_desembolsos`, `custo_financeiro`, `juros`, `prazo_carencia_meses`, `prazo_amortizacao_meses`, `modalidade_de_apoio`, `forma_de_apoio`, `produto`, `instrumento_financeiro`, `inovacao`, `area_operacional`, `setor_cnae`, `subsetor_cnae_agrupado`, `subsetor_cnae_codigo`, `subsetor_cnae_nome`, `setor_bndes`, `subsetor_bndes`, `porte_do_cliente`, `natureza_do_cliente`, `instituicao_financeira_credenciada`, `cnpj_do_agente_financeiro`, `situacao_da_operacao`, `cnpj`, `descricao_do_projeto`, `numero_do_contrato`, `valor_contratado_reais`, `cnpj_da_instituicao_financeira_credenciada`, `tipo_de_garantia`, `tipo_de_excepcionalidade`, `situacao_do_contrato`
+- **Note:** BNDES financing operations: indirect automatic (30 columns, 1.2 GB CSV) and non-automatic (34 columns, 20 MB CSV); headers read by range request on 2026-11-14, not downloaded. Fields are the union. Client name and CPF/CNPJ (masked by the agency in the indirect automatic file, complete in the non-automatic one). Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
 ## cetesb_estacoes
 
 - **Status:** ok (62 rows sampled)
@@ -323,6 +437,18 @@ to refresh.
 - **Filters:** `stations`, `parameters`, `start_date`, `end_date`, `only_validated`, `pause_seconds`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `estacao`, `codigo_estacao`, `latitude`, `longitude`, `parametro`, `codigo_parametro`, `unidade`, `datahora`, `valor`, `validado`
 - **Note:** Live sample from the authenticated CETESB QUALAR on 2026-09-24 (Pinheiros, MP10 and TEMP, 2026-08-01 to 2026-08-07). Requires a free account (https://seguranca.cetesb.sp.gov.br/Home/CadastrarUsuario); set GUARACI_QUALAR_LOGIN/GUARACI_QUALAR_SENHA. Unlike cetesb_qualar, the values here are measured CONCENTRATION in the parameter unit (e.g. ug/m3, degC), not an index. datahora is local Sao Paulo time, naive.
+
+## cetic_tic_domicilios
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** 271 columns and 27,177 rows. Sample of households and individuals, no direct identifier. CC BY 4.0; the URL changes with each edition; it covers internet access in general and touches health only in part. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## cetic_tic_saude_estabelecimentos
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** 348 columns and 3,261 rows. Sample of health establishments, no direct identifier. CC BY 4.0; the URL changes with each edition. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 
 ## cgu_bpc
 
@@ -364,6 +490,12 @@ to refresh.
 - **Status:** ok (20 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `tp_not`, `id_agravo`, `dt_notific`, `sem_not`, `nu_ano`, `sg_uf_not`, `id_municip`, `id_regiona`, `id_unidade`, `dt_sin_pri`, `sem_pri`, `nu_idade_n`, `cs_sexo`, `cs_gestant`, `cs_raca`, `cs_escol_n`, `sg_uf`, `id_mn_resi`, `id_rg_resi`, `id_pais`, `dt_invest`, `id_ocupa_n`, `febre`, `mialgia`, `cefaleia`, `exantema`, `vomito`, `nausea`, `dor_costas`, `conjuntvit`, `artrite`, `artralgia`, `petequia_n`, `leucopenia`, `laco`, `dor_retro`, `diabetes`, `hematolog`, `hepatopat`, `renal`, `hipertensa`, `acido_pept`, `auto_imune`, `dt_chik_s1`, `dt_chik_s2`, `dt_prnt`, `res_chiks1`, `res_chiks2`, `resul_prnt`, `dt_soro`, `resul_soro`, `dt_ns1`, `resul_ns1`, `dt_viral`, `resul_vi_n`, `dt_pcr`, `resul_pcr_`, `sorotipo`, `histopa_n`, `imunoh_n`, `hospitaliz`, `dt_interna`, `uf`, `municipio`, `tpautocto`, `coufinf`, `copaisinf`, `comuninf`, `classi_fin`, `criterio`, `doenca_tra`, `clinc_chik`, `evolucao`, `dt_obito`, `dt_encerra`, `alrm_hipot`, `alrm_plaq`, `alrm_vom`, `alrm_sang`, `alrm_hemat`, `alrm_abdom`, `alrm_letar`, `alrm_hepat`, `alrm_liq`, `dt_alrm`, `grav_pulso`, `grav_conv`, `grav_ench`, `grav_insuf`, `grav_taqui`, `grav_extre`, `grav_hipot`, `grav_hemat`, `grav_melen`, `grav_metro`, `grav_sang`, `grav_ast`, `grav_mioc`, `grav_consc`, `grav_orgao`, `dt_grav`, `mani_hemor`, `epistaxe`, `gengivo`, `metro`, `petequias`, `hematura`, `sangram`, `laco_n`, `plasmatico`, `evidencia`, `plaq_menor`, `con_fhd`, `complica`, `tp_sistema`, `nduplic_n`, `arquivo`, `cs_suspeit`, `in_vincula`, `cs_flxret`, `flxrecebi`, `tpuninot`, `ano_nasc`, `nu_lote_i`, `dt_digita`, `migrado_w`
+
+## cid10_datasus
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `timeout`, `url`
+- **Note:** six CSV files (chapters, groups, categories, subcategories, ICD-O groups and categories), 15,672 rows in all; edition 2008, the one DATASUS publishes as CSV. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 
 ## ciencia_tecnologia_dgits_contribuicoes_consultas_publicas
 
@@ -413,6 +545,18 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `states`
 - **Fields:** `ANO_CMPT`, `MES_CMPT`, `ESPEC`, `CGC_HOSP`, `MUNIC_RES`, `NASC`, `SEXO`, `UTI_MES_TO`, `UTI_INT_TO`, `PROC_REA`, `QT_PROC`, `DT_ATEND`, `DT_SAIDA`, `DIAG_PRINC`, `DIAG_SECUN`, `COBRANCA`, `NATUREZA`, `GESTAO`, `MUNIC_MOV`, `COD_IDADE`, `IDADE`, `DIAS_PERM`, `MORTE`, `NACIONAL`, `CAR_INT`, `HOMONIMO`, `CNES`, `FONTE`, `CGC_CONSOR`, `MODALIDADE`
 
+## cnae_classes
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `timeout`, `api_base_url`
+- **Note:** about 10 columns and 673 rows in a real run on 2026-11-14. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## cnae_subclasses
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `timeout`, `api_base_url`
+- **Note:** 13 columns and 1,332 rows in a real run on 2026-11-14; the hierarchy up to the section is flattened and lists are kept as JSON text. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
 ## cnes
 
 - **Status:** ok (17086 rows sampled)
@@ -451,6 +595,18 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `timeout`, `pause_ms`, `api_base_url`, `codigo_grupo`, `codigo_classe`, `tamanho_pagina`, `max_paginas`
 - **Fields:** `codigoItem`, `codigoGrupo`, `nomeGrupo`, `codigoClasse`, `nomeClasse`, `codigoPdm`, `nomePdm`, `descricaoItem`, `statusItem`, `itemSustentavel`, `codigo_ncm`, `descricao_ncm`, `aplica_margem_preferencia`, `dataHoraAtualizacao`
 - **Note:** CATMAT items of group 65 (health), 108747 items in 2026-10; sampled live with max_paginas=1 on 2026-11-03. All columns as text, named as the API publishes.
+
+## covitel_2022
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** xlsx covitel_observatorio.xlsx, 167 columns and 9,004 rows. Personal data: municipality, area code and interview date, without name. The source does not declare a license. Registered without live field sampling, so the column names are not listed here.
+
+## covitel_2023
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** CSV BD_Covitel_2023imputed_com_peso.csv, 205 columns and 9,038 rows. Personal data: municipality, area code and interview date, without name. The source does not declare a license. Registered without live field sampling, so the column names are not listed here.
 
 ## cvesp_aids_adulto
 
@@ -601,6 +757,13 @@ to refresh.
 - **Fields:** `mun_lpi`, `mes_is`, `sexo`, `dt_is`, `cod_mun_lpi`, `idade`, `dt_obito`, `macrorreg_lpi`, `ano_is`, `se_is`, `monitoramento_is`, `uf_lpi`, `obito`, `cod_uf_lpi`
 - **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
 
+## fhemig_indicadores_hospitalares
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `unidade`, `mes`, `ano`, `grau`, `escore`, `predicao_obito`, `saidas`, `obitos_ocorridos`, `obitos_esperados`, `excluir`, `score`, `setor_centro_custo`, `altas_ate_10h`, `tx_alta_ate_10h`, `saidas_rn`
+- **Note:** FHEMIG hospital indicators, 42 CSVs with a layout of their own; only the headers of the first six were read on 2026-11-14, so fields are a partial union. Aggregated data, no personal identifier.
+
 ## fns_repasses_fundo_a_fundo
 
 - **Status:** ok
@@ -619,6 +782,24 @@ to refresh.
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `camadas`, `cql_filter`, `keep_raw`, `timeout`, `page_size`
 - **Note:** FUNAI indigenous lands (WFS), chosen by camadas, polygon geometry. Not sampled here; attributes read from DescribeFeatureType at download time.
+
+## hiperdia_cadastro
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `uf`, `keep_raw`, `timeout`, `base_url`
+- **Note:** TabNet HIPERDIA, one .def per state (without uf the run makes 27 queries per month). 9 columns (4 measures: hypertension, type 1 diabetes, type 2 diabetes, hypertension with diabetes); 2012 in Paraná gave 887 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## iarc_ci5_xii
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** IARC CI5-XII zip, four tables: cases (23 columns, 74,214 rows), pop (22, 1,178), registros (4, 589) and cancer (3, 63). Aggregated counts, no personal identifier. IARC terms: non-commercial use with the source acknowledged. Registered without live field sampling, so the column names are not listed here.
+
+## iarc_monografias_classificacoes
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** 8 columns (name, group, cas, volume, year, yeareval, in_prep, comment) and 1,131 rows, read by a parser of the JavaScript list of the page application because there is no CSV or API. No personal identifier. IARC terms: non-commercial use with the source acknowledged. Registered without live field sampling, so the column names are not listed here.
 
 ## ibama_agrotoxicos_comercializacao
 
@@ -661,6 +842,18 @@ to refresh.
 - **Status:** ok (1 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `mes`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `mes_do_registro`, `estado_civil_do_primeiro_conjuge`, `estado_civil_do_segundo_conjuge`, `grupo_de_idade_do_primeiro_conjuge`, `grupo_de_idade_do_segundo_conjuge`, `variavel_id`, `unidade`, `valor`
+
+## ibge_censo2000_amostra
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `ufs`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** fixed-width layout read from the SAS programs of the documentation zip: households 80 columns, families 26, people 183; AC in a real run gave 16,818 households, 18,113 families and 71,063 people. Personal data: anonymous IBGE microdata, without name or address, with age, sex, color or race, income and municipality grouped by weighting area. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_censo2010_amostra
+
+- **Status:** empty
+- **Filters:** `output_dir`, `start_year`, `end_year`, `tabelas`, `ufs`, `output_format`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** fixed-width layout frozen from the official layout: households 76 columns, people 244, emigration 19, mortality 19; one file per state (AC in a real run: 24,339 households, 93,675 people, 169 emigration and 343 mortality rows). Personal data: anonymous IBGE microdata, without name or address, with age, sex, color or race, income and municipality grouped by weighting area. Registered without live field sampling, so the column names are not listed here.
 
 ## ibge_censo2022_amostra
 
@@ -799,12 +992,78 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `idade_marido`, `idade_mulher`, `tempo_decorrido`, `keep_raw`, `timeout`, `api_base_url`
 - **Fields:** `nivel`, `localidade_id`, `localidade_nome`, `ano`, `grupos_de_idade_do_marido_na_data_da_sentenca`, `grupos_de_idade_da_mulher_na_data_da_sentenca`, `tempo_transcorrido_entre_as_datas_do_casamento_e_da_sentenca`, `variavel_id`, `unidade`, `valor`
 
+## ibge_estadic
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** each sheet of the xlsx becomes a sibling file, all columns as text; columns vary by sheet; 27 rows per sheet (2023: 9 sheets in a real run). Sem dado pessoal: indicador de gestão, sem identificador de pessoa. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_inpc_grupos
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** IBGE SIDRA, consumer prices. 11 columns. Tables 1100 and 7063. Real run for 2025, metropolitan regions, all levels of detail: 214,560 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_inpc_serie
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** IBGE SIDRA, consumer prices. 10 columns. Table 1736. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_ipca15_grupos
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** IBGE SIDRA, consumer prices. 11 columns. Tables 1705 and 7062. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_ipca15_serie
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** IBGE SIDRA, consumer prices. 10 columns. Table 3065. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_ipca_grupos
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `level`, `detalhe`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** IBGE SIDRA, consumer prices. 11 columns. The table changes by year (2938, 1419 and 7060); parameter detalhe selects groups, health or all. Real run for 2019 and 2020, municipality level, health: 2,880 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_ipca_serie
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`, `api_base_url`
+- **Note:** IBGE SIDRA, consumer prices. 10 columns. Real run for 2024 and 2025 gave 144 rows (table 1737). No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_localidades_distritos
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `timeout`, `api_base_url`
+- **Note:** 24 columns and 10,751 rows in a real run on 2026-11-14; nested fields are flattened with underscores. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_localidades_municipios
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `timeout`, `api_base_url`
+- **Note:** 22 columns and 5,571 rows in a real run on 2026-11-14; nested fields are flattened with underscores. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
 ## ibge_munic
 
 - **Status:** ok (5570 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
 - **Fields:** `Cod Uf`, `Faixa_populacao`, `Regiao`
 - **Note:** MUNIC 2024, one workbook of 25 MB with ten sheets exported as sibling outputs, sampled live on 2026-11-03 (Agropecuária 155 columns; Dicionário 6 columns; Evento_climático_RS 100 columns; Gestão_migratória 49 columns; Governanca 169 columns; Habitacao 92 columns; Igualdade_racial 433 columns; Informática_e_comunicação 205 columns; Recursos_humanos 29 columns; Transporte_e_mobilidade_urbana 103 columns). Fields are the columns common to the nine data sheets; the sheet columns differ.
+
+## ibge_munic_edicoes
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** each sheet of the xlsx becomes a sibling file, all columns as text; columns vary by sheet; 5,570 rows per sheet (2020: 9 sheets in a real run). Sem dado pessoal: indicador de gestão, sem identificador de pessoa. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ibge_munic_saneamento
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** each sheet of the xlsx becomes a sibling file, all columns as text; columns vary by sheet; 2017 gave 5,570 rows per sheet in a real run. Sem dado pessoal: indicador de gestão, sem identificador de pessoa. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 
 ## ibge_nascidos_vivos_rc
 
@@ -990,11 +1249,95 @@ to refresh.
 - **Fields:** `TPCASO`, `SEXO`, `IDADE`, `LOCALNAS`, `RACACOR`, `INSTRUC`, `CLIATEN`, `CLITRAT`, `HISTFAMC`, `ALCOOLIS`, `TABAGISM`, `ESTADRES`, `PROCEDEN`, `ANOPRIDI`, `ORIENC`, `EXDIAG`, `ESTCONJ`, `ANTRI`, `DTPRICON`, `DIAGANT`, `BASMAIMP`, `LOCTUDET`, `LOCTUPRI`, `TIPOHIST`, `LATERALI`, `LOCTUPRO`, `MAISUMTU`, `TNM`, `ESTADIAM`, `OUTROESTA`, `PTNM`, `RZNTR`, `DTINITRT`, `PRITRATH`, `ESTDFIMT`, `CNES`, `UFUH`, `MUUH`, `OCUPACAO`, `DTDIAGNO`, `DTTRIAGE`, `DATAPRICON`, `DATAINITRT`, `DATAOBITO`, `VALOR_TOT`, `BASDIAGSP`
 - **Note:** INCA hospital cancer registry (Integrador RHC), one row per case, all states in one DBF per year (1985, 1986, 1988-2023; 1987 is not published). Fields read from the 2023 DBF on 2026-10-13: 125,625 rows, 46 columns, all text, dates as DD/MM/YYYY. Only hospitals that reported appear (16 UFs in UFUH for 2023). Official dictionary: https://irhc.inca.gov.br/RHCNet/documentosTabWin.action?doc=dicionario.dados
 
+## inep_adequacao_formacao_docente
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+
+## inep_alunos_por_turma
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+
 ## inep_censo_escolar
 
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
 - **Note:** School table of the INEP school census, 2007 onward; 370 columns in 2007, 426 in 2024 and 290 in 2025 (schema changes by year). Includes CO_ENTIDADE, NU_ANO_CENSO, IN_AGUA_REDE_PUBLICA, IN_ESGOTO_REDE_PUBLICA, IN_ALIMENTACAO, IN_INTERNET.
+
+## inep_censo_escolar_curso_tecnico
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (7 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## inep_censo_escolar_docente
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (84 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## inep_censo_escolar_gestor
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (50 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## inep_censo_escolar_matricula
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; 263 columns and 178,766 schools in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## inep_censo_escolar_turma
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** Censo Escolar 2025 table, same 537 MB zip as inep_censo_escolar; member read checked in the zip listing (95 MB uncompressed); columns not counted in a real run. Aggregated counts by school, only the school name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## inep_complexidade_gestao
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+
+## inep_distorcao_idade_serie
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+
+## inep_docentes_curso_superior
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+
+## inep_esforco_docente
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+
+## inep_horas_aula
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+
+## inep_ideb_brasil_ufs
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** code AAAA_BR and AAAA_UF; each sheet (AI, AF, EM) is written as a file; 2023 gave 120 columns (AI) and 110 (AF, EM) for Brazil and 142 to 143 rows per sheet for the states; the first two state columns have no name in the spreadsheet. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## inep_ideb_escolas
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** IDEB by school; code AAAA_AI, AAAA_AF or AAAA_EM; 2025 high school gave 22,183 schools and 60 columns in a real run, with the series from 2005 inside the columns. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 
 ## inep_ideb_municipios
 
@@ -1002,6 +1345,24 @@ to refresh.
 - **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
 - **Fields:** `SG_UF`, `CO_MUNICIPIO`, `NO_MUNICIPIO`, `REDE`, `VL_APROVACAO_2005_SI_4`, `VL_APROVACAO_2005_SI`, `VL_APROVACAO_2005_1`, `VL_APROVACAO_2005_2`, `VL_APROVACAO_2005_3`, `VL_APROVACAO_2005_4`, `VL_INDICADOR_REND_2005`, `VL_APROVACAO_2007_SI_4`, `VL_APROVACAO_2007_SI`, `VL_APROVACAO_2007_1`, `VL_APROVACAO_2007_2`, `VL_APROVACAO_2007_3`, `VL_APROVACAO_2007_4`, `VL_INDICADOR_REND_2007`, `VL_APROVACAO_2009_SI_4`, `VL_APROVACAO_2009_SI`, `VL_APROVACAO_2009_1`, `VL_APROVACAO_2009_2`, `VL_APROVACAO_2009_3`, `VL_APROVACAO_2009_4`, `VL_INDICADOR_REND_2009`, `VL_APROVACAO_2011_SI_4`, `VL_APROVACAO_2011_SI`, `VL_APROVACAO_2011_1`, `VL_APROVACAO_2011_2`, `VL_APROVACAO_2011_3`, `VL_APROVACAO_2011_4`, `VL_INDICADOR_REND_2011`, `VL_APROVACAO_2013_SI_4`, `VL_APROVACAO_2013_SI`, `VL_APROVACAO_2013_1`, `VL_APROVACAO_2013_2`, `VL_APROVACAO_2013_3`, `VL_APROVACAO_2013_4`, `VL_INDICADOR_REND_2013`, `VL_APROVACAO_2015_SI_4`, `VL_APROVACAO_2015_SI`, `VL_APROVACAO_2015_1`, `VL_APROVACAO_2015_2`, `VL_APROVACAO_2015_3`, `VL_APROVACAO_2015_4`, `VL_INDICADOR_REND_2015`, `VL_APROVACAO_2017_SI_4`, `VL_APROVACAO_2017_SI`, `VL_APROVACAO_2017_1`, `VL_APROVACAO_2017_2`, `VL_APROVACAO_2017_3`, `VL_APROVACAO_2017_4`, `VL_INDICADOR_REND_2017`, `VL_APROVACAO_2019_SI_4`, `VL_APROVACAO_2019_SI`, `VL_APROVACAO_2019_1`, `VL_APROVACAO_2019_2`, `VL_APROVACAO_2019_3`, `VL_APROVACAO_2019_4`, `VL_INDICADOR_REND_2019`, `VL_APROVACAO_2021_SI_4`, `VL_APROVACAO_2021_SI`, `VL_APROVACAO_2021_1`, `VL_APROVACAO_2021_2`, `VL_APROVACAO_2021_3`, `VL_APROVACAO_2021_4`, `VL_INDICADOR_REND_2021`, `VL_APROVACAO_2023_SI_4`, `VL_APROVACAO_2023_SI`, `VL_APROVACAO_2023_1`, `VL_APROVACAO_2023_2`, `VL_APROVACAO_2023_3`, `VL_APROVACAO_2023_4`, `VL_INDICADOR_REND_2023`, `VL_APROVACAO_2025_SI_4`, `VL_APROVACAO_2025_SI`, `VL_APROVACAO_2025_1`, `VL_APROVACAO_2025_2`, `VL_APROVACAO_2025_3`, `VL_APROVACAO_2025_4`, `VL_INDICADOR_REND_2025`, `VL_NOTA_MATEMATICA_2005`, `VL_NOTA_PORTUGUES_2005`, `VL_NOTA_MEDIA_2005`, `VL_NOTA_MATEMATICA_2007`, `VL_NOTA_PORTUGUES_2007`, `VL_NOTA_MEDIA_2007`, `VL_NOTA_MATEMATICA_2009`, `VL_NOTA_PORTUGUES_2009`, `VL_NOTA_MEDIA_2009`, `VL_NOTA_MATEMATICA_2011`, `VL_NOTA_PORTUGUES_2011`, `VL_NOTA_MEDIA_2011`, `VL_NOTA_MATEMATICA_2013`, `VL_NOTA_PORTUGUES_2013`, `VL_NOTA_MEDIA_2013`, `VL_NOTA_MATEMATICA_2015`, `VL_NOTA_PORTUGUES_2015`, `VL_NOTA_MEDIA_2015`, `VL_NOTA_MATEMATICA_2017`, `VL_NOTA_PORTUGUES_2017`, `VL_NOTA_MEDIA_2017`, `VL_NOTA_MATEMATICA_2019`, `VL_NOTA_PORTUGUES_2019`, `VL_NOTA_MEDIA_2019`, `VL_NOTA_MATEMATICA_2021`, `VL_NOTA_PORTUGUES_2021`, `VL_NOTA_MEDIA_2021`, `VL_NOTA_MATEMATICA_2023`, `VL_NOTA_PORTUGUES_2023`, `VL_NOTA_MEDIA_2023`, `VL_NOTA_MATEMATICA_2025`, `VL_NOTA_PORTUGUES_2025`, `VL_NOTA_MEDIA_2025`, `VL_OBSERVADO_2005`, `VL_OBSERVADO_2007`, `VL_OBSERVADO_2009`, `VL_OBSERVADO_2011`, `VL_OBSERVADO_2013`, `VL_OBSERVADO_2015`, `VL_OBSERVADO_2017`, `VL_OBSERVADO_2019`, `VL_OBSERVADO_2021`, `VL_OBSERVADO_2023`, `VL_OBSERVADO_2025`, `VL_PROJECAO_2007`, `VL_PROJECAO_2009`, `VL_PROJECAO_2011`, `VL_PROJECAO_2013`, `VL_PROJECAO_2015`, `VL_PROJECAO_2017`, `VL_PROJECAO_2019`, `VL_PROJECAO_2021`
 - **Note:** IDEB by municipality, biennial; sampled live with anos=2025 and meses=AI (initial years) on 2026-11-03. The column count grows each cycle because the series starts in 2005.
+
+## inep_inse
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. Also writes the dictionary of each level as its own CSV; 2023 gave 69,756 rows and 22 columns (ESC), 125,741 and 19 (MUN), 1,552 and 17 (UF), 63 and 14 (BR). No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+
+## inep_regularidade_docente
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
+
+## inep_taxas_rendimento
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
+- **Note:** INEP spreadsheet inside a zip, one xlsx per level (ESC school, MUN municipality, UF); the header is found by rule because the preamble length varies; columns vary by edition and level. 59 columns at state level in 2024. No personal identifier (aggregates by school, municipality or state; the school is identified by code and name). Registered without live field sampling, so the column names are not listed here.
 
 ## inmet_estacoes
 
@@ -1049,6 +1410,41 @@ to refresh.
 - **Fields:** `datahora`, `uf_nome`, `municipio_nome`, `longitude`, `latitude`, `co_ppb`, `no2_ppb`, `o3_ppb`, `pm25_ugm3`, `so2_ugm3`, `precipitacao_mmdia`, `temperatura_c`, `umidade_relativa_percentual`, `vento_direcao_grau`, `vento_velocidade_ms`
 - **Note:** INPE SISAM, model estimates (not station measurements) every 6 hours for 5,572 municipalities, 2000-2019, one zip per year (130 to 217 MB); municipality by name and centroid, no IBGE code. Header read from the first 256 KB of the 2019 zip on 2026-10-20.
 
+## inss_beneficios_cessados
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `especie_beneficio`, `cid10`, `clientela`, `sexo`, `forma_filiacao`, `motivo_cessacao_suspensao`, `grupo_situacao`, `municipio_titular`, `uf`, `vinculo_dependente`, `dt_nascimento_titular`, `dt_cessacao_beneficio`, `dt_despacho_beneficio`, `dt_inicio_beneficio`, `ramo_atividade`, `tipo_beneficio`, `valor_renda_mensal`
+- **Note:** Ceased benefits, one zip per month (4.4 GB zip, 30.6 GB CSV for 2026-09); the CSV header of 2026-09 was read by range request on 2026-11-14, not downloaded. Collected on demand only. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## inss_beneficios_concedidos
+
+- **Status:** ok (105751 rows sampled)
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `APS`, `APS_duplicated_0`, `Competência concessão`, `Espécie`, `Espécie_duplicated_0`, `CID`, `CID_duplicated_0`, `Despacho`, `Despacho_duplicated_0`, `Dt Nascimento`, `Sexo.`, `Clientela`, `Mun Resid`, `Vínculo dependentes`, `Forma Filiação`, `UF`, `Qt SM RMI`, `Ramo Atividade`, `Dt DCB`, `Dt DDB`, `Dt DIB`, `País de Acordo Internacional`, `Classificador PA`, `CNAE 2.0`, `CNAE 2.0_duplicated_0`, `Grau Instrução`, `Qt Anos Contribuição`
+- **Note:** Granted benefits, one xlsx per month; 2026-09 sampled live on 2026-11-14 through the run (105751 rows, 27 columns). The source header repeats names (APS, Espécie, CID, Despacho, CNAE 2.0); the repeats come out with the polars suffix _duplicated_0. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## inss_beneficios_indeferidos
+
+- **Status:** ok (898162 rows sampled)
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `Competência indeferimento`, `Espécie`, `Espécie_duplicated_0`, `Motivo Indeferimento`, `Dt Nascimento`, `Sexo.`, `Clientela`, `Forma Filiação`, `UF`, `Dt Indeferimento`, `Ramo Atividade`, `APS`, `APS_duplicated_0`, `Dt DER`
+- **Note:** Denied benefit claims, one xlsx per month; 2026-09 sampled live on 2026-11-14 through the run (898162 rows, 14 columns). The source header repeats names (Espécie, APS); the repeats come out with the polars suffix _duplicated_0. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## inss_beneficios_mantidos
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `especie_beneficio`, `cid10`, `clientela`, `sexo`, `forma_filiacao`, `motivo_cessacao_suspensao`, `grupo_situacao`, `municipio_titular`, `uf`, `vinculo_dependente`, `dt_nascimento_titular`, `dt_cessacao_beneficio`, `dt_despacho_beneficio`, `dt_inicio_beneficio`, `ramo_atividade`, `tipo_beneficio`, `valor_renda_mensal`
+- **Note:** Active maintained benefits, one zip per month (1.2 GB zip, 7.9 GB CSV for 2026-09); the CSV header of 2026-09 was read by range request on 2026-11-14, not downloaded. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## inss_cat
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `Agente  Causador  Acidente`, `Data Acidente`, `CBO`, `CBO_duplicated_0`, `CID-10`, `CID-10_duplicated_0`, `CNAE2.0 Empregador`, `CNAE2.0 Empregador_duplicated_0`, `Emitente CAT`, `Espécie do benefício`, `Filiação Segurado`, `Indica Óbito Acidente`, `Munic Empr`, `Natureza da Lesão`, `Origem de Cadastramento CAT`, `Parte Corpo Atingida`, `Sexo`, `Tipo do Acidente`, `UF  Munic.  Acidente`, `UF Munic. Empregador`, `Data  Afastamento`, `Data Despacho Benefício`, `Data Acidente_duplicated_0`, `Data Nascimento`, `Data Emissão CAT`, `Tipo de Empregador`, `CNPJ/CEI Empregador`
+- **Note:** Work accident notifications (CAT), one zip per month with CSV, JSON and XML copies; the CSV header of 2026-08 was read by range request on 2026-11-14 (31 MB uncompressed). The 2026-09 zip is announced by the portal but answers HTTP 403, so the newest published month is 2026-08 (a run skips the missing month and downloads 2026-08). The source header repeats names (CBO, CID-10, CNAE2.0 Empregador, Data Acidente); the repeats come out with the polars suffix _duplicated_0 (27 columns). The employer CNPJ/CEI column holds a CPF when the employer is an individual. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
 ## ipeadata_metadados
 
 - **Status:** empty
@@ -1079,17 +1475,40 @@ to refresh.
 - **Filters:** `codigo_municipio`, `municipio`, `sigla_uf`, `codigo_regiao_saude`, `regiao_saude`, `codigo_macrorregiao_de_saude`, `macrorregiao_saude`, `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `codigo_regiao_pais`, `regiao_pais`, `codigo_uf`, `uf`, `codigo_macrorregiao_saude`, `macrorregiao_saude`, `codigo_regiao_saude`, `regiao_saude`, `codigo_municipio`, `municipio`, `populacao_estimada_ibge_2022`
 
+## mapa_agrofit
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `NR_REGISTRO`, `MARCA_COMERCIAL`, `FORMULACAO`, `INGREDIENTE_ATIVO`, `TITULAR_DE_REGISTRO`, `CLASSE`, `MODO_DE_ACAO`, `CULTURA`, `PRAGA_NOME_CIENTIFICO`, `PRAGA_NOME_COMUM`, `EMPRESA_PAIS_TIPO`, `CLASSE_TOXICOLOGICA`, `CLASSE_AMBIENTAL`, `ORGANICOS`, `SITUACAO`, `NUMERO_REGISTRO`, `PRODUTO_TECNICO_MARCA_COMERCIAL`, `INGREDIENTE_ATIVO(GRUPO_QUIMICI)(CONCENTRACAO)`, `TITULAR_REGISTRO`, `EMPRESA_<PAIS>_TIPO`, `CLASSIFICACAO_TOXICOLOGICA`, `CLASSIFICACAO_AMBIENTAL`
+- **Note:** AGROFIT pesticide registry: formulated products (15 columns, 396 MB CSV) and technical products (8 columns); headers read by range request on 2026-11-14, not downloaded. Fields are the union. Holder company name, which may be an individual, as published. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## mapa_sif
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `ANO`, `MES`, `UF_PROCEDENCIA`, `MUNICIPIO_PROCEDENCIA`, `CATEGORIA`, `QUANTIDADE`, `MES_ANO`, `UF_ESTABELECIMENTO`, `ANIMAL_PRODUTO`, `DIAGNOSTICO`, `DESTINO`, `PAIS`, `AREA`, `ESTABELECIMENTO`, `SIF`, `UF`, `MUNICIPIO`, `PRODUTO`, `DT_VALIDADE`, `DT_OCORRENCIA`, `DT_SUSPENSAO`, `QTD_MACHO`, `QTD_FEMEA`, `CLASSE`, `RAZAO_SOCIAL`, `LOGRADOURO`, `ESPECIE`, `NUMERO_ANIMAIS_ACOMETIDOS`, `CIDADE`, `ENDERECO`, `NUMERO_REGISTRO`, `NOME_EMPRESARIAL`, `QTD`, `CPF_CNPJ`, `NOME_FANTASIA`, `NR_SIF`, `DATA_RESERVA`, `DT_REGISTRO`, `NUMERO_PROCESSO`, `SITUACAO`, `BAIRRO`, `CEP`, `TELEFONE`, `EMAIL`, `AREA_CATEGORIA`, `CATEGORIA_CLASSE`, `DATA_OCORRENCIA`, `DESCRICAO_OCORRENCIA`, `PARTE_AFETADA`, `DESTINO_CONDENACAO`, `TOTAL_PARTES_AFETADAS`
+- **Note:** SIF inspection data, 11 of the 11 CSVs read by header on 2026-11-14 (slaughter, condemnations, diseases, registered and habilitated establishments); fields are the union. The establishment lists carry CPF or CNPJ, company name, address, phone and e-mail. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## mapa_sipeagro
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `UNIDADE_DA_FEDERACAO`, `MUNICIPIO`, `NUMERO_REGISTRO_ESTABELECIMENTO`, `STATUS_DO_REGISTRO`, `CNPJ`, `RAZAO_SOCIAL`, `NOME_FANTASIA`, `AREA_ATUACAO`, `ATIVIDADE`, `CLASSIFICACAO`, `UF`, `STATUS_REGISTRO`, `CPF_CNPJ`, `CARACTERISTICA_ADICIONAL`, `ESPECIE`, `STATUS_REGISTRO_ESTABELECIMENTO`, `EMAIL`, `TELEFONE`, `NOME_RESPONSAVEL_TECNICO`, `NUMERO_REGISTRO_CONSELHO_NACIONAL`, `NR_REGISTRO_CLASSE`, `NUMERO_REGISTRO_AERONAVE`, `STATUS_AERONAVE`, `NUMERO_AUTORIZACAO`, `UF_AUTORIZADA`, `MUNICIPIO_AUTORIZADO`, `DATA_INICIO_VALIDADE`, `DATA_TERMINO_VALIDADE`, `IDENTIFICADOR_REGISTRO`, `NOME`, `SITUACAO`
+- **Note:** SIPEAGRO establishment registries, 10 of the 10 CSVs read by header on 2026-11-14; fields are the union. Company or establishment name (may be an individual), CPF or CNPJ (masked in several lists, complete in others), and in agricultural aviation the name, e-mail and phone of the technical responsible. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
 ## mapbiomas_cobertura_municipios
 
-- **Status:** error
+- **Status:** ok (77406 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
-- **Note:** MapBiomas collection 10 land cover by municipality, 54 columns per the spec (79285 rows); the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
+- **Fields:** `ID`, `country`, `biome`, `region`, `state`, `geocode`, `municipality`, `municipality-state`, `class`, `class_level_0`, `class_level_1`, `class_level_2`, `class_level_3`, `class_level_4`, `y1985`, `y1986`, `y1987`, `y1988`, `y1989`, `y1990`, `y1991`, `y1992`, `y1993`, `y1994`, `y1995`, `y1996`, `y1997`, `y1998`, `y1999`, `y2000`, `y2001`, `y2002`, `y2003`, `y2004`, `y2005`, `y2006`, `y2007`, `y2008`, `y2009`, `y2010`, `y2011`, `y2012`, `y2013`, `y2014`, `y2015`, `y2016`, `y2017`, `y2018`, `y2019`, `y2020`, `y2021`, `y2022`, `y2023`, `y2024`, `y2025`
+- **Note:** MapBiomas collection 11 land cover by biome, state and municipality, sheet COVERAGE_11 of the Drive zip (78 MB), sampled live through the run on 2026-11-14: 55 columns, 77406 rows, area in hectares one year per column from y1985 to y2025. Secondary source (CC BY 4.0); class codes follow the LEGEND_CODE sheet. Collection 10 left the public bucket (HTTP 403 since 2026-11-03).
 
 ## mapbiomas_vegetacao_secundaria_municipios
 
-- **Status:** error
+- **Status:** ok (59893 rows sampled)
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
-- **Note:** MapBiomas collection 10 secondary vegetation by municipality, 52 columns per the spec; the public bucket answered HTTP 403 on 2026-11-03 (two attempts), so it was not sampled.
+- **Fields:** `COUNTRY`, `BIOME`, `REGION`, `STATE`, `MUNICIPALITY`, `GEOCODE`, `VERSION`, `COLLECTION`, `TRANSITION_CLASS_ID`, `TRANSITION_CLASS_NAME`, `CLASS_ID`, `CLASS_LEVEL_0`, `CLASS_LEVEL_1`, `CLASS_LEVEL_2`, `CLASS_LEVEL_3`, `CLASS_LEVEL_4`, `y1985`, `y1986`, `y1987`, `y1988`, `y1989`, `y1990`, `y1991`, `y1992`, `y1993`, `y1994`, `y1995`, `y1996`, `y1997`, `y1998`, `y1999`, `y2000`, `y2001`, `y2002`, `y2003`, `y2004`, `y2005`, `y2006`, `y2007`, `y2008`, `y2009`, `y2010`, `y2011`, `y2012`, `y2013`, `y2014`, `y2015`, `y2016`, `y2017`, `y2018`, `y2019`, `y2020`, `y2021`, `y2022`, `y2023`, `y2024`, `y2025`
+- **Note:** MapBiomas collection 11 secondary vegetation by biome, state and municipality, sheet ANNUAL_SECONDARY_VEGETATION of the xlsx (58 MB), sampled live through the run on 2026-11-14: 57 columns, 59893 rows, area in hectares one year per column from y1985 to y2025. The layout changed from collection 10: transition class (primary or secondary vegetation) and the VERSION and COLLECTION columns are new, and column names are upper case. Secondary source (CC BY 4.0).
 
 ## mdhc_disque100
 
@@ -1109,6 +1528,34 @@ to refresh.
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `grupos`, `timeout`, `base_url`
 - **Note:** MI Social (MDS/SAGI) monthly municipal indicators from 2003, Solr field names as published, chosen by grupos: bolsa_familia (166), cadunico (59), bpc (29), condicionalidades (317), suas (182), auxilios (357), outros (157). Field list fixed in guaraci/mds/campos.py; not sampled here.
+
+## mg_acidentes_transporte
+
+- **Status:** ok (62452 rows sampled)
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `dt_obito`, `dt_nascimento`, `nu_idade`, `sg_sexo`, `tp_raca_cor`, `co_municipio_ibge_residencia`, `co_municipio_ibge_ocorrencia`, `co_cid_causa_basica`, `desc_cid_causa_basica`
+- **Note:** Minas Gerais land transport deaths, one CSV of 5.9 MB; sampled through the run on 2026-11-14 (62452 rows, 9 columns). Birth and death dates, no name or CPF. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## mg_aids_hiv
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `id_agravo`, `dt_notific`, `nu_ano`, `id_municip`, `dt_diag`, `dt_nasc`, `nu_idade_n`, `cs_sexo`, `cs_gestant`, `cs_raca`, `cs_escol_n`, `id_mn_resi`, `ant_trasmi`, `antrelse_n`, `ant_droga`, `lab_triage`, `ant_tuberc`, `ant_candid`, `ant_pulmon`, `ant_herpes`, `ant_disfun`, `ant_diarre`, `ant_febre`, `ant_caquex`, `ant_asteri`, `ant_dermat`, `ant_anemia`, `ant_tosse`, `ant_linfo`, `ant_esof_n`, `ant_pneumo`, `ant_toxo`, `ant_contag`, `def_diagno`, `dt_obito`, `evolucao`, `criterio`, `ant_rel_ca`
+- **Note:** Minas Gerais AIDS and HIV cases (SINAN, state residents), one CSV of 25.5 MB; header read by range request on 2026-11-14 (38 columns). Municipality as text and birth date, no name or CPF. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## mg_hanseniase
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `dt_notific`, `id_municip`, `id_regiona`, `id_unidade`, `dt_diag`, `dt_nasc`, `nu_idade_n`, `cs_sexo`, `cs_gestant`, `cs_raca`, `cs_escol_n`, `id_mn_resi`, `id_rg_resi`, `nu_lesoes`, `formaclini`, `avalia_n`, `classopera`, `modoentr`, `mododetect`, `bacilosco`, `dtinictrat`, `esq_ini_n`, `contreg`, `nervosafet`, `dt_noti_at`, `dtultcomp`, `classatual`, `aval_atu_n`, `esq_atu_n`, `dose_receb`, `contexam`, `dtalta_n`, `tpalta_n`
+- **Note:** Minas Gerais leprosy cases (SINAN, state residents), one CSV of 8.2 MB; header read by range request on 2026-11-14 (33 columns). Municipality as text and birth date, no name or CPF. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## mg_tuberculose
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `id_agravo`, `dt_notific`, `nu_ano`, `id_municip`, `id_regiona`, `id_unidade`, `dt_diag`, `nu_idade_n`, `cs_sexo`, `cs_gestant`, `cs_raca`, `cs_escol_n`, `id_mn_resi`, `id_rg_resi`, `cs_zona`, `agravaids`, `agravalcoo`, `agravdiabe`, `agravdoenc`, `agravoutra`, `agravdroga`, `agravtabac`, `tratamento`, `cultura_es`, `hiv`, `histopatol`, `dt_inic_tr`, `bacilosc_1`, `bacilosc_2`, `bacilosc_3`, `bacilosc_4`, `bacilosc_5`, `bacilosc_6`, `tratsup_at`, `situa_ence`, `dt_encerra`, `pop_liber`, `test_molec`, `test_sensi`, `raiox_tora`, `forma`
+- **Note:** Minas Gerais tuberculosis cases (SINAN, state residents), one CSV of 29.6 MB; header read by range request on 2026-11-14 (41 columns). Municipality as text and birth date, no name or CPF. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
 
 ## mgdi_academia_saude
 
@@ -1188,6 +1635,13 @@ to refresh.
 - **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
 - **Note:** One CSV per indicator, MGDI layout shared with Farmacia Popular (co_anomes, co_ibge, vl_indicador_calculado_mun, co_uf, no_municipio, sg_uf, no_uf, co_regiao_brasil, plus national/state values; 25 columns). All files of the program downloaded live on 2026-10-13.
 
+## mma_especies_ameacadas
+
+- **Status:** ok
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Fields:** `Grupão`, `Grupo`, `Família`, `Espécie`, `Nome Comum`, `Categoria`, `Espécie (Simplificado)`, `Fauna/Flora`, `Categoria de Ameaça`, `Sigla Categoria de Ameaça`, `Bioma`, `Principais Ameaças`, `Presença em Áreas Protegidas`, `Plano de Ação Nacional para Conservação (PAN)`, `Ordenamento Pesqueiro`, `Nível de Proteção na Estratégia Nacional`, `Espécie exclusiva do Brasil`, `Estados de Ocorrência`, `#`, `Grupo taxonômico`, `Ordem`, `Espécie ou Subespécie`, `Nome avaliação anterior`, `Categoria em 2014`, `Sugestão de Categoria 2021`, `EW`, `CR`, `EN,`, `VU`, `RE`, `EX`, `Mesma Categoria de Ameaça 2014`, `Aumentou a Categoria de Ameaça`, `Reduziu a Categoria de Ameaça`, `Entrou em Categoria de Ameaça`, `Saiu da Categoria de Ameaça`, `Mantida a Categoria 2014  por não ter reavaliação ou validação`, `Família (FB 2020)`, `Espécie (FB 2020)`, `Saíram da Categoria de Ameaça`, `Saíram da Lista por serem sinonímias taxonômicas`, `nº`, ``, `Classe`, `Espécies ou Subespécies`, `Categoria de risco`, `Nº`, `Espécie ou Subespécie/Variedade`, `Categoria de Risco`, `Ordem/Família`, `Filo`, `Apêndice I`, `Apêndice II`, `Apêndice III`, `Anexo`, `Táxon`, `Nome popular`, `Observações`
+- **Note:** Threatened species lists (2014 to 2026 editions), one CSV per list; headers of the 11 newest files read by range request on 2026-11-14. The layout differs by list (4 to 20 columns); fields are the union.
+
 ## mma_monitorar
 
 - **Status:** ok
@@ -1195,12 +1649,31 @@ to refresh.
 - **Fields:** `no_fonte_dados`, `dh_medicao`, `nu_iqar`, `nu_concentracao`, `st_situacao`, `cd_flag`, `ds_flag`, `st_situacao_iqar`, `no_item_monitorado`, `cd_normalizado`, `id_estacao`, `cod_estacao`, `no_estacao`, `nu_latitude`, `nu_longitude`, `st_estacao`, `id_municipio`, `no_municipio`, `sg_uf`
 - **Note:** Fields verified live on 2026-10-13 against the source header (no full collection run yet). Same 19 columns in 2022-2025. cd_normalizado is the item code (e.g. PRESS), not a unit; units are only in the MMA PDF dictionary.
 
+## mma_unidades_conservacao
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `ID_UC`, `Código UC`, `Informações Gerais`, `Nome da UC`, `Esfera Administrativa`, `Categoria de Manejo`, `Categoria IUCN`, `UF`, `Ano de Criação`, `Ano do ato legal mais recente`, `Ato Legal de Criação`, `Outros atos legais`, `Municípios Abrangidos`, `Plano de Manejo`, `Conselho Gestor`, `Órgão Gestor`, `Fonte da Área: (1 = SHP, 0 = Ato legal)`, `Área soma biomas`, `Área soma Biomas Continental`, `Área Ato Legal de Criação`, `Bioma Área (ha)`, `Amazônia`, `Caatinga`, `Cerrado`, `Mata Atlântica`, `Pampa`, `Pantanal`, `Área Marinha`, `Bioma declarado`, `% Além da linha de costa`, `Grupo`, `PI`, `US`, `Recortes (ha)`, `Mar Territorial`, `Município Costeiro`, `Município Costeiro + Área Marinha`, `Programa/Projeto`, `Sítios do Patrimônio Mundial`, `Sítios Ramsar`, `Mosaico`, `Reserva da Biosfera`, `Código WDPA`, `Amazônia Legal`, `Qualidade dos dados georreferenciados`, `Data da publicação no CNUC`, `Data da última certificação dos dados pelo Órgão Gestor`, `WDPAID`, `Lei da Mata Atlântica`, `Sobreposição com TI ou TQ`, `Biomas Abrangidos`, `Região`, `Presente na versão anterior`, `Diferença Área`, `Razão Diferença Área`, `Sítios do Patrimônio Natural`, `NOME DA UC`, `Ano de criação`, `Área (ha)`, `Área (ha) Amazônia`, `Área (ha) Caatinga`, `Área (ha) Cerrado`, `Área (ha) Mata Atlântica`, `Área (ha) Pampa`, `Área (ha) Pantanal`, `Área (ha) Área Marinha`
+- **Note:** CNUC protected areas, one CSV per semester from 2018; headers of the 15 newest editions read by range request on 2026-11-14, not downloaded. The layout varies by edition (20 to 51 columns); fields are the union. Municipalities come as free text, as published.
+
 ## mpox
 
 - **Status:** ok
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `start_date`, `end_date`, `uf`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `htlv`, `dt_interna`, `pac_imunossup`, `donovanose`, `hpv`, `dt_sin_pri`, `uti`, `cs_raca`, `linfogranuloma`, `co_uf_res`, `dip`, `data_vacina`, `caract_genomica`, `classi_fin`, `cs_sexo`, `orienta_sexual`, `doenca_tra1`, `dt_coleta`, `clado`, `nu_idade_n`, `transm`, `clamidea`, `hiv`, `evolucao`, `verruga_genital`, `id_mn_resi`, `estrangeiro`, `cancro_mole`, `vacina`, `sg_uf_not`, `comp_sexual`, `vinculo_epi`, `profis_saude`, `contag_cd4`, `trichomomas_vaginals`, `gonorreia`, `id_municip`, `ist_ativa`, `cs_gestant`, `contat_animal`, `dt_notific`, `met_lab`, `ident_genero`, `resultado_exa_lab`, `outro_des`, `tp_amost`, `dt_evolucao`, `mycoplasma_genital`, `sintoma`, `local_cont`, `sg_uf`, `hospital`, `sifilis`, `herpes_genital`, `dt_conclusao`
 - **Note:** Colunas do export real (scripts/verificar_conteudo.py, 2026-09-24).
+
+## mte_caged_antigo
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `start_date`, `end_date`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** 40 to 42 columns; 20 to 33 MB compressed per month; anos required; series closed in December 2019. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## mte_caged_antigo_ajustes
+
+- **Status:** empty
+- **Filters:** `anos`, `meses`, `start_date`, `end_date`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** 37 to 43 columns; 7 to 20 MB per year (2002 to 2009) and 0.8 to 3 MB per month (2010 to 2019); series closed in December 2019. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 
 ## mte_novo_caged_exclusoes
 
@@ -1226,11 +1699,23 @@ to refresh.
 - **Filters:** `anos`, `start_year`, `end_year`, `output_dir`, `output_format`, `keep_raw`, `timeout`
 - **Note:** RAIS establishments, 23 columns, one file per year from 2023. Not sampled here.
 
+## mte_rais_estabelecimentos_historico
+
+- **Status:** empty
+- **Filters:** `anos`, `start_year`, `end_year`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** 8 to 24 columns depending on the year; 3 to 97 MB compressed per year (2003, a zip, has 6.1 million rows). No CNPJ. Registered without live field sampling, so the column names are not listed here.
+
 ## mte_rais_vinculos
 
 - **Status:** empty
 - **Filters:** `anos`, `start_year`, `end_year`, `regioes`, `output_dir`, `output_format`, `keep_raw`, `timeout`
 - **Note:** RAIS employment bonds, 62 columns, more than 4 GB compressed per year (2023 onward), chosen by anos and regioes. Not sampled here.
+
+## mte_rais_vinculos_historico
+
+- **Status:** empty
+- **Filters:** `anos`, `start_year`, `end_year`, `ufs`, `regioes`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** 24 to 60 columns depending on the year, header as published (repeated names such as 'Tipo Estab'); 7z files. No CPF, name or PIS (CBO, CNAE, municipality, bands and pay values). Registered without live field sampling, so the column names are not listed here.
 
 ## nasa_firms
 
@@ -1295,6 +1780,12 @@ to refresh.
 - **Fields:** `valorTotalHomologado`, `orgaoEntidade_cnpj`, `orgaoEntidade_razaoSocial`, `orgaoEntidade_poderId`, `orgaoEntidade_esferaId`, `dataInclusao`, `dataAtualizacao`, `anoCompra`, `srp`, `sequencialCompra`, `emendaParlamentar`, `numeroCompra`, `processo`, `objetoCompra`, `informacaoComplementar`, `dataAberturaProposta`, `dataEncerramentoProposta`, `dataPublicacaoPncp`, `dataAtualizacaoGlobal`, `unidadeOrgao_ufNome`, `unidadeOrgao_ufSigla`, `unidadeOrgao_municipioNome`, `unidadeOrgao_codigoIbge`, `unidadeOrgao_nomeUnidade`, `unidadeOrgao_codigoUnidade`, `orgaoSubRogado`, `unidadeSubRogada`, `amparoLegal_nome`, `amparoLegal_descricao`, `amparoLegal_codigo`, `linkSistemaOrigem`, `linkProcessoEletronico`, `justificativaPresencial`, `numeroControlePNCP`, `valorTotalEstimado`, `modalidadeId`, `modalidadeNome`, `modoDisputaId`, `modoDisputaNome`, `tipoInstrumentoConvocatorioCodigo`, `tipoInstrumentoConvocatorioNome`, `fontesOrcamentarias`, `situacaoCompraId`, `situacaoCompraNome`, `usuarioNome`
 - **Note:** PNCP published procurements; sampled live for 2026-10-20 with modalidades=6 and max_paginas=1 on 2026-11-03. Nested organ, unit and legal-basis objects are flattened into object_field columns.
 
+## pnds_2006
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** six tables read from the fixed-width .dat files with the .dct of the zip: dom_pess (162 columns, 56,365 rows), filhos (291, 27,477), gravidezes (37, 6,833), medicamentos (125, 15,575), medicamentos_h (31, 93,450) and mulheres (461, 15,575). Home sample with weights, state and region; no name or CPF. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
 ## pni
 
 - **Status:** ok (8485 rows sampled)
@@ -1315,6 +1806,13 @@ to refresh.
 - **Fields:** `co_documento`, `co_paciente`, `tp_sexo_paciente`, `co_raca_cor_paciente`, `no_raca_cor_paciente`, `co_municipio_paciente`, `co_pais_paciente`, `no_municipio_paciente`, `no_pais_paciente`, `sg_uf_paciente`, `nu_cep_paciente`, `ds_nacionalidade_paciente`, `no_etnia_indigena_paciente`, `co_etnia_indigena_paciente`, `co_cnes_estabelecimento`, `no_razao_social_estabelecimento`, `no_fantasia_estalecimento`, `co_municipio_estabelecimento`, `no_municipio_estabelecimento`, `sg_uf_estabelecimento`, `co_troca_documento`, `co_vacina`, `sg_imunobiologico`, `dt_vacina`, `co_dose_vacina`, `ds_tipo_dose`, `co_local_aplicacao`, `ds_local_aplicacao`, `co_via_administracao`, `ds_via_administracao`, `co_lote_vacina`, `ds_vacina_fabricante`, `dt_entrada_rnds`, `co_sistema_origem`, `ds_sistema_origem`, `st_documento`, `co_estrategia_vacinacao`, `no_estrategia`, `co_origem_registro`, `ds_origem_registro`, `co_vacina_grupo_atendimento`, `no_grupo_atendimento`, `co_categoria`, `ds_categoria`, `co_vacina_fabricante`, `ds_nome`, `ds_condicao_maternal`, `co_tipo_estabelecimento`, `ds_tipo_estabelecimento`, `co_natureza_estabelecimento`, `ds_natureza_estabelecimento`, `nu_idade_paciente`, `co_condicao_maternal`, `no_uf_paciente`, `no_uf_estabelecimento`, `dt_deletado_rnds`
 - **Note:** PNI doses (SI-PNI/RNDS), one zip per month 2020-2026 (~205 GB compressed in total, 0.4 to 4.2 GB per month); header read from vacinacao_jan_2024 on 2026-10-19; ';' separated, latin-1.
 
+## poa_gercon_consultas
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `data_extracao`, `idsolicitacao`, `situacaosolicitacao`, `data_solicitacao`, `corregulador`, `diasfilaespera`, `complexidade`, `especialidade`, `especialidademae`, `cid`, `idpaciente`, `municipio_residencia`, `idade`, `cnes_solicitante`, `unidadesolicitante`, `tipounidade`, `municipiosolicitante`, `situacaoagenda`, `datahora_consulta`, `cnesexecutante`, `unidadeexecutante`, `municipio_executante`, `statusregionalizacao`, `centralregulacao`, `centralregulacaoorigem`, `tipoconsulta`, `coordenadoriasolicitante`, `regiaosaudesolicitante`, `possuiunidadeindicada`
+- **Note:** Porto Alegre GERCON specialist consultation requests, one CSV per year (541 MB for 2025, about 3.3 GB in all); header of 2025 read by range request on 2026-11-14, not downloaded; anos is required. Pseudonymized patient identifier (idpaciente) and age. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
 ## prevencao_e_promocao_distribuicao_epi_insumo
 
 - **Status:** ok
@@ -1334,6 +1832,62 @@ to refresh.
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `keep_raw`, `timeout`
 - **Note:** One row per person involved (35 columns in 2025): occurrence columns plus pesid, id_veiculo, tipo_veiculo, marca, ano_fabricacao_veiculo, tipo_envolvido, estado_fisico, idade, sexo. No names.
+
+## receita_cnpj_empresas
+
+- **Status:** ok
+- **Filters:** `partes`, `competencia`, `token`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `cnpj_basico`, `razao_social`, `natureza_juridica`, `qualificacao_responsavel`, `capital_social`, `porte_empresa`, `ente_federativo_responsavel`
+- **Note:** CNPJ open data, WebDAV competencia 2026-10: Companies, 10 zip parts of about 78 MB (1.4 GB zipped in 2026-10). The CSV has no header in the source; the field names come from the official layout, and the width (7 columns) was checked against the first rows of the part read by range request on 2026-11-14. The company name of a MEI can hold the owner's name. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## receita_cnpj_estabelecimentos
+
+- **Status:** ok
+- **Filters:** `partes`, `competencia`, `token`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `cnpj_basico`, `cnpj_ordem`, `cnpj_dv`, `identificador_matriz_filial`, `nome_fantasia`, `situacao_cadastral`, `data_situacao_cadastral`, `motivo_situacao_cadastral`, `nome_cidade_exterior`, `pais`, `data_inicio_atividade`, `cnae_fiscal_principal`, `cnae_fiscal_secundaria`, `tipo_logradouro`, `logradouro`, `numero`, `complemento`, `bairro`, `cep`, `uf`, `municipio`, `ddd_1`, `telefone_1`, `ddd_2`, `telefone_2`, `ddd_fax`, `fax`, `correio_eletronico`, `situacao_especial`, `data_situacao_especial`
+- **Note:** CNPJ open data, WebDAV competencia 2026-10: Establishments (head offices and branches), 10 zip parts of about 340 MB (5.4 GB zipped in 2026-10). The CSV has no header in the source; the field names come from the official layout, and the width (30 columns) was checked against the first rows of the part read by range request on 2026-11-14. Establishment address, phone and e-mail, including MEI. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## receita_cnpj_simples
+
+- **Status:** ok
+- **Filters:** `competencia`, `token`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `cnpj_basico`, `opcao_pelo_simples`, `data_opcao_pelo_simples`, `data_exclusao_do_simples`, `opcao_pelo_mei`, `data_opcao_pelo_mei`, `data_exclusao_do_mei`
+- **Note:** CNPJ open data, WebDAV competencia 2026-10: Simples Nacional and MEI options, one 311 MB zip (3.2 GB CSV in 2026-10). The CSV has no header in the source; the field names come from the official layout, and the width (7 columns) was checked against the first rows of the part read by range request on 2026-11-14.
+
+## receita_cnpj_socios
+
+- **Status:** ok
+- **Filters:** `partes`, `competencia`, `token`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `cnpj_basico`, `identificador_socio`, `nome_socio_razao_social`, `cnpj_cpf_socio`, `qualificacao_socio`, `data_entrada_sociedade`, `pais`, `representante_legal`, `nome_representante`, `qualificacao_representante_legal`, `faixa_etaria`
+- **Note:** CNPJ open data, WebDAV competencia 2026-10: Partners, 10 zip parts of about 50 MB (0.7 GB zipped in 2026-10). The CSV has no header in the source; the field names come from the official layout, and the width (11 columns) was checked against the first rows of the part read by range request on 2026-11-14. Partner name, partial CPF (six central digits) and legal representative name. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## receita_cnpj_tabelas
+
+- **Status:** ok
+- **Filters:** `tabelas`, `competencia`, `token`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Fields:** `codigo`, `descricao`
+- **Note:** Six CNPJ lookup tables (cnaes 1359 rows, motivos 63, municipios 5572, naturezas 92, paises 255, qualificacoes 68), each with code and description; no header in the source, so the names come from the official layout. Sampled live through the run on 2026-11-14 (competencia 2026-10).
+
+## recife_chikungunya
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `NU_NOTIFIC`, `TP_NOT`, `ID_AGRAVO`, `DT_NOTIFIC`, `SEM_NOT`, `NU_ANO`, `SG_UF_NOT`, `ID_MUNICIP`, `ID_REGIONA`, `ID_UNIDADE`, `DT_SIN_PRI`, `SEM_PRI`, `DT_NASC`, `NU_IDADE_N`, `CS_SEXO`, `CS_GESTANT`, `CS_RACA`, `CS_ESCOL_N`, `SG_UF`, `ID_MN_RESI`, `ID_RG_RESI`, `ID_DISTRIT`, `ID_BAIRRO`, `NM_BAIRRO`, `ID_LOGRADO`, `NM_LOGRADO`, `NU_CEP`, `ID_PAIS`, `DT_INVEST`, `ID_OCUPA_N`, `FEBRE`, `MIALGIA`, `CEFALEIA`, `EXANTEMA`, `VOMITO`, `NAUSEA`, `DOR_COSTAS`, `CONJUNTVIT`, `ARTRITE`, `ARTRALGIA`, `PETEQUIA_N`, `LEUCOPENIA`, `LACO`, `DOR_RETRO`, `DIABETES`, `HEMATOLOG`, `HEPATOPAT`, `RENAL`, `HIPERTENSA`, `ACIDO_PEPT`, `AUTO_IMUNE`, `DT_CHIK_S1`, `DT_CHIK_S2`, `DT_PRNT`, `RES_CHIKS1`, `RES_CHIKS2`, `RESUL_PRNT`, `DT_SORO`, `RESUL_SORO`, `DT_NS1`, `RESUL_NS1`, `DT_VIRAL`, `RESUL_VI_N`, `DT_PCR`, `RESUL_PCR_`, `SOROTIPO`, `HISTOPA_N`, `IMUNOH_N`, `HOSPITALIZ`, `DT_INTERNA`, `UF`, `MUNICIPIO`, `HOSPITAL`, `DDD_HOSP`, `TEL_HOSP`, `TPAUTOCTO`, `COUFINF`, `COPAISINF`, `COMUNINF`, `CODISINF`, `CO_BAINF`, `NOBAIINF`, `CLASSI_FIN`, `CRITERIO`, `DOENCA_TRA`, `CLINC_CHIK`, `EVOLUCAO`, `DT_OBITO`, `DT_ENCERRA`, `ALRM_HIPOT`, `ALRM_PLAQ`, `ALRM_VOM`, `ALRM_SANG`, `ALRM_HEMAT`, `ALRM_ABDOM`, `ALRM_LETAR`, `ALRM_HEPAT`, `ALRM_LIQ`, `DT_ALRM`, `GRAV_PULSO`, `GRAV_CONV`, `GRAV_ENCH`, `GRAV_INSUF`, `GRAV_TAQUI`, `GRAV_EXTRE`, `GRAV_HIPOT`, `GRAV_HEMAT`, `GRAV_MELEN`, `GRAV_METRO`, `GRAV_SANG`, `GRAV_AST`, `GRAV_MIOC`, `GRAV_CONSC`, `GRAV_ORGAO`, `DT_GRAV`, `MANI_HEMOR`, `EPISTAXE`, `GENGIVO`, `METRO`, `PETEQUIAS`, `HEMATURA`, `SANGRAM`, `LACO_N`, `PLASMATICO`, `EVIDENCIA`, `PLAQ_MENOR`, `CON_FHD`, `COMPLICA`, `NU_LOTE_I`, `DS_OBS`, `nu_notificacao`, `tp_notificacao`, `co_cid`, `dt_notificacao`, `ds_semana_notificacao`, `notificacao_ano`, `co_uf_notificacao`, `co_municipio_notificacao`, `id_regional`, `co_unidade_notificacao`, `dt_diagnostico_sintoma`, `ds_semana_sintoma`, `dt_nascimento`, `nu_idade`, `tp_sexo`, `tp_gestante`, `tp_raca_cor`, `tp_escolaridade`, `co_uf_residencia`, `co_municipio_residencia`, `co_regional_residencia`, `co_distrito_residencia`, `co_bairro_residencia`, `no_bairro_residencia`, `co_logradouro_residencia`, `nome_logradouro_residencia`, `nu_cep_residencia`, `tp_zona_residencia`, `co_pais_residencia`, `dt_investigacao`, `co_cbo_ocupacao`, `febre`, `mialgia`, `cefaleia`, `exantema`, `vomito`, `nausea`, `dor_costas`, `conjutivite`, `artrite`, `artralgia`, `petequia_n`, `leucopenia`, `laco`, `dor_retro`, `diabetes`, `hematolog`, `hepatopat`, `renal`, `hipertensao`, `acido_pept`, `auto_imune`, `dt_chil_s1`, `dt_chil_s2`, `dt_prnt`, `res_chiks1`, `res_chiks2`, `resul_prnt`, `dt_coleta_exame`, `tp_result_exame`, `dt_coleta_NS1`, `Tp_result_NS1`, `dt_coleta_isolamento`, `tp_result_isolamento`, `dt_coleta_rtpcr`, `tp_result_rtpcr`, `tp_sorotipo`, `tp_result_histopatologia`, `tp_result_imunohistoquimica`, `st_ocorreu_hospitalizacao`, `dt_internacao`, `co_uf_hospital`, `co_municipio_hospital`, `tp_autoctone_residencia`, `co_uf_infeccao`, `co_pais_infeccao`, `co_municipio_infeccao`, `co_distrito_infeccao`, `co_bairro_infeccao`, `no_bairro_infeccao`, `tp_classificacao_final`, `tp_criterio_confirmacao`, `st_doenca_trabalho`, `clinc_chik`, `tp_evolucao_caso`, `dt_obito`, `dt_encerramento`, `alrm_hipot`, `alrm_plaq`, `alrm_vom`, `alrm_sang`, `alrm_hemat`, `alrm_abdom`, `alrm_letar`, `alrm_hepat`, `alrm_liq`, `dt_alrm`, `grav_pulso`, `grav_conv`, `grav_ench`, `grav_insuf`, `grav_taqui`, `grav_extre`, `grav_hipot`, `grav_hemat`, `grav_melen`, `grav_metro`, `grav_sang`, `grav_ast`, `grav_mioc`, `grav_consc`, `grav_orgao`, `dt_grav`, `mami_hemor`, `epistaxe`, `gengivo`, `metro`, `petequias`, `hematura`, `sangram`, `laco_n`, `plasmatico`, `evidencia`, `plaq_menor`, `conf_fhd`
+- **Note:** Recife chikungunya cases, one CSV per year; headers of the newest and the oldest file read by range request on 2026-11-14 (125 and 130 columns). From 2016 on the layout is SINAN (upper-case names); the earliest files use another layout (lower-case names), so fields are the union and each file comes out separate. Neighborhood, street, CEP and birth date, no name or CPF. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## recife_dengue
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `NU_NOTIFIC`, `TP_NOT`, `ID_AGRAVO`, `DT_NOTIFIC`, `SEM_NOT`, `NU_ANO`, `SG_UF_NOT`, `ID_MUNICIP`, `ID_REGIONA`, `ID_UNIDADE`, `DT_SIN_PRI`, `SEM_PRI`, `DT_NASC`, `NU_IDADE_N`, `CS_SEXO`, `CS_GESTANT`, `CS_RACA`, `CS_ESCOL_N`, `SG_UF`, `ID_MN_RESI`, `ID_RG_RESI`, `ID_DISTRIT`, `ID_BAIRRO`, `NM_BAIRRO`, `ID_LOGRADO`, `NM_LOGRADO`, `NU_CEP`, `ID_PAIS`, `DT_INVEST`, `ID_OCUPA_N`, `FEBRE`, `MIALGIA`, `CEFALEIA`, `EXANTEMA`, `VOMITO`, `NAUSEA`, `DOR_COSTAS`, `CONJUNTVIT`, `ARTRITE`, `ARTRALGIA`, `PETEQUIA_N`, `LEUCOPENIA`, `LACO`, `DOR_RETRO`, `DIABETES`, `HEMATOLOG`, `HEPATOPAT`, `RENAL`, `HIPERTENSA`, `ACIDO_PEPT`, `AUTO_IMUNE`, `DT_CHIK_S1`, `DT_CHIK_S2`, `DT_PRNT`, `RES_CHIKS1`, `RES_CHIKS2`, `RESUL_PRNT`, `DT_SORO`, `RESUL_SORO`, `DT_NS1`, `RESUL_NS1`, `DT_VIRAL`, `RESUL_VI_N`, `DT_PCR`, `RESUL_PCR_`, `SOROTIPO`, `HISTOPA_N`, `IMUNOH_N`, `HOSPITALIZ`, `DT_INTERNA`, `UF`, `MUNICIPIO`, `HOSPITAL`, `DDD_HOSP`, `TEL_HOSP`, `TPAUTOCTO`, `COUFINF`, `COPAISINF`, `COMUNINF`, `CODISINF`, `CO_BAINF`, `NOBAIINF`, `CLASSI_FIN`, `CRITERIO`, `DOENCA_TRA`, `CLINC_CHIK`, `EVOLUCAO`, `DT_OBITO`, `DT_ENCERRA`, `ALRM_HIPOT`, `ALRM_PLAQ`, `ALRM_VOM`, `ALRM_SANG`, `ALRM_HEMAT`, `ALRM_ABDOM`, `ALRM_LETAR`, `ALRM_HEPAT`, `ALRM_LIQ`, `DT_ALRM`, `GRAV_PULSO`, `GRAV_CONV`, `GRAV_ENCH`, `GRAV_INSUF`, `GRAV_TAQUI`, `GRAV_EXTRE`, `GRAV_HIPOT`, `GRAV_HEMAT`, `GRAV_MELEN`, `GRAV_METRO`, `GRAV_SANG`, `GRAV_AST`, `GRAV_MIOC`, `GRAV_CONSC`, `GRAV_ORGAO`, `DT_GRAV`, `MANI_HEMOR`, `EPISTAXE`, `GENGIVO`, `METRO`, `PETEQUIAS`, `HEMATURA`, `SANGRAM`, `LACO_N`, `PLASMATICO`, `EVIDENCIA`, `PLAQ_MENOR`, `CON_FHD`, `COMPLICA`, `NU_LOTE_I`, `DS_OBS`, `nu_notificacao`, `tp_notificacao`, `co_cid`, `dt_notificacao`, `ds_semana_notificacao`, `notificacao_ano`, `co_uf_notificacao`, `co_municipio_notificacao`, `id_regional`, `co_unidade_notificacao`, `dt_diagnostico_sintoma`, `ds_semana_sintoma`, `dt_nascimento`, `nu_idade`, `tp_sexo`, `tp_gestante`, `tp_raca_cor`, `tp_escolaridade`, `co_uf_residencia`, `co_municipio_residencia`, `co_regional_residencia`, `co_distrito_residencia`, `co_bairro_residencia`, `no_bairro_residencia`, `co_logradouro_residencia`, `nome_logradouro_residencia`, `co_geo_campo_1`, `co_geo_campo_2`, `ds_referencia_residencia`, `nu_cep_residencia`, `tp_zona_residencia`, `co_pais_residencia`, `tp_duplicidade`, `dt_digitacao`, `dt_transf_us`, `dt_transf_dm`, `dt_transf_sm`, `dt_transf_rm`, `dt_transf_rs`, `dt_transf_se`, `nu_lote_vertical`, `nu_lote_horizontal`, `tp_fluxo_retorno`, `st_fluxo_retorno_recebido`, `ds_identificador_registro`, `st_importado`, `dt_investigacao`, `co_cbo_ocupacao`, `dt_coleta_exame`, `tp_result_exame`, `dt_coleta_NS1`, `Tp_result_NS1`, `dt_coleta_isolamento`, `tp_result_isolamento`, `dt_coleta_rtpcr`, `tp_result_rtpcr`, `tp_sorotipo`, `tp_result_histopatologia`, `tp_result_imunohistoquimica`, `tp_classificacao_final`, `tp_criterio_confirmacao`, `tp_autoctone_residencia`, `co_uf_infeccao`, `co_pais_infeccao`, `co_municipio_infeccao`, `co_distrito_infeccao`, `co_bairro_infeccao`, `no_bairro_infeccao`, `st_doenca_trabalho`, `tp_evolucao_caso`, `dt_obito`, `dt_encerramento`, `st_ocorreu_hospitalizacao`, `dt_internacao`, `co_uf_hospital`, `co_municipio_hospital`, `co_unidade_hospital`, `nu_ddd_hospital`, `nu_telefone_hospital`
+- **Note:** Recife dengue cases, one CSV per year; headers of the newest and the oldest file read by range request on 2026-11-14 (79 and 130 columns). From 2016 on the layout is SINAN (upper-case names); the earliest files use another layout (lower-case names), so fields are the union and each file comes out separate. Neighborhood, street, CEP and birth date, no name or CPF. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
+
+## recife_zika
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `NU_NOTIFIC`, `TP_NOT`, `ID_AGRAVO`, `CS_SUSPEIT`, `DT_NOTIFIC`, `SEM_NOT`, `NU_ANO`, `SG_UF_NOT`, `ID_MUNICIP`, `ID_REGIONA`, `ID_UNIDADE`, `DT_SIN_PRI`, `SEM_PRI`, `DT_NASC`, `NU_IDADE_N`, `CS_SEXO`, `CS_GESTANT`, `CS_RACA`, `CS_ESCOL_N`, `SG_UF`, `ID_MN_RESI`, `ID_RG_RESI`, `ID_DISTRIT`, `ID_BAIRRO`, `NM_BAIRRO`, `ID_LOGRADO`, `NM_LOGRADO`, `NU_CEP`, `CS_ZONA`, `ID_PAIS`, `NDUPLIC_N`, `IN_VINCULA`, `DT_INVEST`, `ID_OCUPA_N`, `CLASSI_FIN`, `CRITERIO`, `TPAUTOCTO`, `COUFINF`, `COPAISINF`, `COMUNINF`, `CODISINF`, `CO_BAINFC`, `NOBAIINF`, `DOENCA_TRA`, `EVOLUCAO`, `DT_OBITO`, `DT_ENCERRA`, `nu_notificacao`, `tp_notificacao`, `co_cid`, `dt_notificacao`, `ds_semana_notificacao`, `ano_notificacao`, `co_uf_notificacao`, `co_municipio_notificacao`, `id_regional`, `co_unidade_notificacao`, `dt_diagnostico_sintoma`, `ds_semana_sintoma`, `dt_nascimento`, `nu_idade`, `tp_sexo`, `tp_gestante`, `tp_raca_cor`, `tp_escolaridade`, `co_uf_residencia`, `co_municipio_residencia`, `id_rg_residencia`, `co_distrito_residencia`, `co_bairro_residencia`, `no_bairro_residencia`, `co_logradouro_residencia`, `nm_logradouro_residencia`, `nu_cep_residencia`, `tp_zona_residencia`, `co_pais_residencia`, `dt_investigacao`, `tp_classificacao_final`, `tp_criterio_confirmacao`, `tp_autoctone_residencia`, `co_uf_infeccao`, `co_pais_infeccao`, `co_municipio_infeccao`, `co_distrito_infeccao`, `co_bairro_infeccao`, `no_bairro_infeccao`, `st_doenca_trabalho`, `tp_evolucao_caso`, `dt_obito`, `dt_encerra`
+- **Note:** Recife Zika cases, one CSV per year; headers of the newest and the oldest file read by range request on 2026-11-14 (43 and 47 columns). From 2016 on the layout is SINAN (upper-case names); the earliest files use another layout (lower-case names), so fields are the union and each file comes out separate. Neighborhood, street, CEP and birth date, no name or CPF. Published as is, so it includes personal identifiers; LGPD treatment belongs to the Sabia silver and gold layers.
 
 ## resp
 
@@ -1503,11 +2057,186 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `keep_raw`, `batch_size`, `max_pages`, `api_base_url`
 - **Fields:** `gestao_do_dsei`, `descricao_do_polo_base`, `nome_da_terra_indigena`, `codigo_do_ibge`, `nome_do_municipio`, `sigla_da_uf`, `data_de_nascimento`, `tipo_sexo`, `data_de_atendimento`, `mes_de_atendimento`, `ano_de_atendimento`, `idade_em_meses_no_atendimento`, `numero_do_peso`, `numero_da_altura`, `idade_no_atendimento`, `descricao_do_tipo_de_acompanhamento_nutricional`, `tipo_de_aleitamento`, `descricao_peso_idade`, `descricao_estatura_idade`, `descricao_imc_idade`, `codigo_do_profissional`, `codigo_cbo_da_familia`, `descricao_do_cbo_da_familia`, `codigo_cbo_da_ocupacao`, `descricao_do_cbo_da_ocupacao`
 
+## sb_brasil_1986
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** two spreadsheets: children (15 columns, 12,312 rows) and adults and adolescents (21 columns, 10,401 rows). Survey sample, no name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## sb_brasil_1996
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** DBF SB96.DBF inside the zip, 32 columns and 30,240 rows; requires the optional datasus extra (dbfread). Survey sample, no name. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## sb_brasil_2003
+
+- **Status:** empty
+- **Filters:** `indicadores`, `output_dir`, `output_format`, `keep_raw`, `timeout`
+- **Note:** five regional DBF files (co, ne, no, se, su), 243 columns each; no gave 21,300 rows and se 24,058 in a real run (the other three were not downloaded); the source path says 2020 but the content is SB Brasil 2003; the indicadores parameter lists regions. Home sample, no name; requires the optional datasus extra (dbfread). No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## seade_esperanca_vida_sp
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package esperanca-de-vida: 1 CSV file, 5 columns, 600 rows (real run). Registered without live field sampling, so the column names are not listed here.
+
+## seade_fecundidade_sp
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package seade-fecundidade: 7 CSV files with 5 to 14 columns and up to 16,150 rows; resource municipios_serie gave 16,150 rows and 5 columns in a real run. Registered without live field sampling, so the column names are not listed here.
+
+## seade_ipvs_2010
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package ipvs2010-base-de-dados: 1 CSV file, 51 columns, 28 MB, by census tract; only the header was read. Registered without live field sampling, so the column names are not listed here.
+
+## seade_ipvs_2022
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package ipvs-populacao-domicilios-e-setores-censitarios: 2 CSV files, 5 columns, 3,870 and 576 rows. Registered without live field sampling, so the column names are not listed here.
+
+## seade_mortalidade_geral_sp
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package mortalidade-no-estado-de-sao-paulo: 1 CSV file, 21 columns, 16,150 rows. Registered without live field sampling, so the column names are not listed here.
+
+## seade_mortalidade_infantil_sp
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package mortalidade-infantil: 2 CSV files, 7 columns and 16,150 rows each. Registered without live field sampling, so the column names are not listed here.
+
+## seade_nascidos_vivos_sp_ano_corrente
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package nascidos-vivos: 3 CSV files (5, 4 and 4 columns; 646, 20,026 and 2,584 rows). The URL keeps and the content changes with the year. Registered without live field sampling, so the column names are not listed here.
+
+## seade_nascidos_vivos_sp_serie
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package nascidos-vivos-estado-de-sp-serie-historica: 3 CSV files (3, 6 and 5 columns; 16,796, 4,522 and 12,920 rows). Registered without live field sampling, so the column names are not listed here.
+
+## seade_obitos_sp_ano_corrente
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package obitos-estado-de-sp-ano-corrente: 2 CSV files (5 and 4 columns; 25,960 and 4,390 rows). The file obitos_mes_anoatual.csv carries about 1,044,185 empty lines (';;;') after the data, a residue of the source, kept as published. The URL keeps and the content changes with the year; the closed series is in seade_obitos_sp_serie. Registered without live field sampling, so the column names are not listed here.
+
+## seade_obitos_sp_serie
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package obitos: 3 CSV files (5, 4 and 4 columns; 172,697, 60,809 and 16,796 rows). Registered without live field sampling, so the column names are not listed here.
+
+## seade_saude_painel_sp
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SEADE repository (CKAN), aggregated data, no personal identifier, license not declared per dataset. Package saude-painel: 5 CSV files with 5 to 9 columns and 63 to 9,097 rows; origin CNES 2024, not reloaded since April 2025. Registered without live field sampling, so the column names are not listed here.
+
 ## senappen_sisdepen
 
 - **Status:** empty
 - **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `start_year`, `end_year`
 - **Note:** SISDEPEN (Infopen), 1,117 to 1,737 columns depending on the cycle, from 2014. Not sampled here.
+
+## senatran_renaest
+
+- **Status:** ok
+- **Filters:** `anos`, `meses`, `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`, `start_year`, `end_year`
+- **Fields:** `num_acidente`, `chv_localidade`, `data_acidente`, `uf_acidente`, `ano_acidente`, `mes_acidente`, `mes_ano_acidente`, `codigo_ibge`, `dia_semana`, `fase_dia`, `tp_acidente`, `cond_meteorologica`, `end_acidente`, `num_end_acidente`, `cep_acidente`, `bairro_acidente`, `km_via_acidente`, `latitude_acidente`, `longitude_acidente`, `hora_acidente`, `tp_rodovia`, `cond_pista`, `tp_cruzamento`, `tp_pavimento`, `tp_curva`, `lim_velocidade`, `tp_pista`, `ind_guardrail`, `ind_cantcentral`, `ind_acostamento`, `qtde_acidente`, `qtde_acid_com_obitos`, `qtde_envolvidos`, `qtde_feridosilesos`, `qtde_obitos`, `ano_referencia`, `mes_referencia`, `mes_ano_referencia`, `regiao`, `uf`, `municipio`, `regiao_metropolitana`, `qtde_habitantes`, `frota_total`, `frota_circulante`, `tipo_veiculo`, `ind_veic_estrangeiro`, `qtde_veiculos`, `faixa_idade`, `genero`, `tp_envolvido`, `gravidade_lesao`, `equip_seguranca`, `ind_motorista`, `susp_alcool`
+- **Note:** RENAEST monthly zip (529 MB for 2026-05) with four CSVs: accidents (35 columns), victims (17), vehicle type (4) and locality (12); headers read by range request on 2026-11-14, not downloaded. Fields are the union. The accident and victim files carry address, CEP and coordinates of the accident site, no names or CPF.
+
+## ses_go_arboviroses_internacao
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package arbovirose: 1 CSV file, 26 columns. Personal data: the regulation record code, which identifies a request, without name or CPF. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_dengue
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package dengue: cases 9 columns (196 MB in one file), serotypes 7 columns (0.2 MB). No name, CPF or notification number. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_hanseniase
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package hanseniase: 1 CSV file, 28 columns, with occupation and municipality of residence. No name or notification number. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_hepatites
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package ist-hepatite: 2 CSV files (14 and 8 columns); deaths gave 752 rows and 8 columns in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_hiv_aids
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Packages ist-hiv and ist-aids: 8 CSV files with 6 to 11 columns; HIV in children gave 38 rows and 11 columns in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_mapa_leitos
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package mapa-de-leitos: 7 CSV files, 9 columns; neonatal ICU gave 7,887 rows in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_mortalidade
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package mortalidade: 4 CSV files, 10 columns (53 MB in the general one). Aggregated, no personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_oncologia
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package oncologia: 2 CSV files, 36 columns (individual, 58 MB) and 14 (grouped, 1.3 MB). Personal data: data_nascimento, without name or CPF. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_regulacao_indicadores
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package transparencia-regulacao-indicadores: 3 CSV files (17, 15 and 6 columns). Aggregated, no personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_sifilis
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package ist-sifilis: 5 CSV files with 6 to 15 columns. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_sindrome_gripal
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package sindrome-gripal-sg: 1 CSV file, 37 columns. Personal data: numero_notificacao and numero_gal. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_srag
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package srag: 1 CSV file, 38 columns. Personal data: numero_notificacao. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_tuberculose
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package tuberculose: 1 CSV file, 48 columns. Personal data: nu_notificacao. Registered without live field sampling, so the column names are not listed here.
+
+## ses_go_zika_chikungunya
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `keep_raw`, `timeout`, `recursos`
+- **Note:** SES-GO open data portal (CKAN), one CSV with ';' per resource, fixed name, rewritten by the source; license not declared. The portal WAF can answer 200 with HTML instead of JSON in a burst (treated as transient). Package aedes: 2 CSV files (8 and 7 columns); zika gave 25,307 rows in a real run. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 
 ## sesai_tuberculose
 
@@ -1534,6 +2263,36 @@ to refresh.
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `groups`, `states`
 - **Fields:** `PA_CODUNI`, `PA_GESTAO`, `PA_CONDIC`, `PA_UFMUN`, `PA_REGCT`, `PA_INCOUT`, `PA_INCURG`, `PA_TPUPS`, `PA_TIPPRE`, `PA_MN_IND`, `PA_CNPJCPF`, `PA_CNPJMNT`, `PA_CNPJ_CC`, `PA_MVM`, `PA_CMP`, `PA_PROC_ID`, `PA_TPFIN`, `PA_SUBFIN`, `PA_NIVCPL`, `PA_DOCORIG`, `PA_AUTORIZ`, `PA_CNSMED`, `PA_CBOCOD`, `PA_MOTSAI`, `PA_OBITO`, `PA_ENCERR`, `PA_PERMAN`, `PA_ALTA`, `PA_TRANSF`, `PA_CIDPRI`, `PA_CIDSEC`, `PA_CIDCAS`, `PA_CATEND`, `PA_IDADE`, `IDADEMIN`, `IDADEMAX`, `PA_FLIDADE`, `PA_SEXO`, `PA_RACACOR`, `PA_MUNPCN`, `PA_QTDPRO`, `PA_QTDAPR`, `PA_VALPRO`, `PA_VALAPR`, `PA_UFDIF`, `PA_MNDIF`, `PA_DIF_VAL`, `NU_VPA_TOT`, `NU_PA_TOT`, `PA_INDICA`, `PA_CODOCO`, `PA_FLQT`, `PA_FLER`, `PA_ETNIA`, `PA_VL_CF`, `PA_VL_CL`, `PA_VL_INC`, `PA_SRV_C`, `PA_INE`, `PA_NAT_JUR`
 
+## siab_cadastro_familiar
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `uf`, `keep_raw`, `timeout`, `base_url`
+- **Note:** TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 52 columns (47 measures); 24 files (December of 1998 to 2014 and monthly from June to December 2015); Paraná 2015 gave 1,976 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## siab_producao_marcadores
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `uf`, `keep_raw`, `timeout`, `base_url`
+- **Note:** TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 59 columns (5 keys and 54 measures); Paraná 2015 gave 3,313 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## siab_saneamento
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `uf`, `keep_raw`, `timeout`, `base_url`
+- **Note:** TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 28 columns (23 measures); same periodicity as the family registration; Paraná 2015 gave 1,976 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## siab_situacao_saude
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `uf`, `keep_raw`, `timeout`, `base_url`
+- **Note:** TabNet SIAB, one query per monthly .dbf, rows by municipality, all measures of the form as published ('-' is zero, '...' is no data). 57 columns (5 keys and 52 measures); Paraná 2015 gave 3,328 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
+## siconfi_dca_anexos
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `uf`, `entes`, `anexos`, `keep_raw`, `timeout`, `pause_ms`, `api_base_url`
+- **Note:** 11 columns; 2013 arrives as 'Anexo I-E' and from 2014 on as 'DCA-Anexo I-E'; before 2013 the answer is empty; Alta Floresta D'Oeste (1100015) in 2013 and 2014 gave 1,129 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
 ## siconfi_dca_despesa_funcao
 
 - **Status:** ok
@@ -1541,12 +2300,24 @@ to refresh.
 - **Fields:** `exercicio`, `instituicao`, `cod_ibge`, `uf`, `anexo`, `rotulo`, `coluna`, `cod_conta`, `conta`, `valor`, `populacao`
 - **Note:** Fields verified live on 2026-10-13 against the source header (no full collection run yet). DCA Anexo I-E filtered to accounts starting with 10 (Saude); first exercise with data is 2014.
 
+## siconfi_rreo_anexos
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `periodos`, `uf`, `entes`, `anexos`, `keep_raw`, `timeout`, `pause_ms`, `api_base_url`
+- **Note:** 15 columns; all annexes of the entity in one query (01 to 04, 06, 07, 09, 10 RPPS, 11, 13 and 14), the anexos filter is local; São Paulo (3550308), 2022 bimester 6, annexes 01 and 10 RPPS gave 1,266 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
+
 ## siconfi_rreo_saude
 
 - **Status:** ok
 - **Filters:** `output_dir`, `output_format`, `start_year`, `end_year`, `periodos`, `uf`, `entes`, `conta`, `keep_raw`, `timeout`, `pause_ms`, `api_base_url`
 - **Fields:** `exercicio`, `demonstrativo`, `periodo`, `periodicidade`, `instituicao`, `cod_ibge`, `uf`, `populacao`, `anexo`, `esfera`, `rotulo`, `coluna`, `cod_conta`, `conta`, `valor`
 - **Note:** Output columns fixed by the connector (guaraci/tesouro/rreo.py). RREO Anexo 02 (expense by function) filtered to Saude; Anexo 12 returns empty in every slice tested. Data from 2015.
+
+## sigtap_tabela_unificada
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `timeout`, `competencia`, `tabelas`, `ftp_host`
+- **Note:** one CSV per table of the zip (about 40 tables, 2 to 16 columns each, names from the official layout); four tables read in a real run on 2026-11-14 gave 104,527 rows. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 
 ## sih
 
@@ -1793,6 +2564,12 @@ to refresh.
 - **Status:** empty
 - **Filters:** `output_dir`, `output_format`, `timeout`, `pause_ms`, `api_base_url`, `tabelas`
 - **Note:** Transferegov special transfers (PostgREST), 14 tables chosen by tabelas. Free text fields can hold CPF, and there are parliamentarian names and bank data, published as is. Not sampled here.
+
+## tse_municipios_ibge
+
+- **Status:** empty
+- **Filters:** `output_dir`, `output_format`, `timeout`, `url`
+- **Note:** 10 columns and 5,571 rows in a real run on 2026-11-14; the TSE code keeps its leading zero. No personal identifier. Registered without live field sampling, so the column names are not listed here.
 
 ## vacinacao_sistema_de_informacao_de_insumos_estrategicos
 

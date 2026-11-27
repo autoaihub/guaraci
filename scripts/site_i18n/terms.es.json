@@ -29,7 +29,15 @@
     "Trabalho e emprego · MTE": "Trabajo y empleo · MTE",
     "Segurança pública e direitos humanos": "Seguridad pública y derechos humanos",
     "Frente estadual · SP e RJ": "Cobertura estatal · SP y RJ",
-    "Investimento público e séries econômicas": "Inversión pública y series económicas"
+    "Investimento público e séries econômicas": "Inversión pública y series económicas",
+    "Previdência social · INSS": "Previsión social · INSS",
+    "Trânsito · Senatran": "Tránsito · Senatran",
+    "Atividade econômica · CNPJ e BNDES": "Actividad económica · CNPJ y BNDES",
+    "Agropecuária · MAPA e crédito rural": "Agropecuaria · MAPA y crédito rural",
+    "Frente municipal e estadual · PE, RS e MG": "Cobertura municipal y estatal · PE, RS y MG",
+    "Tabelas de referência · códigos oficiais": "Tablas de referencia · códigos oficiales",
+    "Estados · Goiás": "Cobertura estatal · Goiás",
+    "Câncer · IARC": "Cáncer · IARC"
   },
   "maintainers": {
     "Ministério da Saúde (DATASUS)": "Ministerio de Salud (DATASUS)",
@@ -74,6 +82,23 @@
     "Compras.gov.br, Ministério da Gestão e da Inovação": "Compras.gov.br, Ministerio de Gestión e Innovación",
     "PNCP, Ministério da Gestão e da Inovação": "PNCP, Ministerio de Gestión e Innovación",
     "MapBiomas": "MapBiomas",
-    "SSP-SP, Secretaria da Segurança Pública de São Paulo": "SSP-SP, Secretaría de Seguridad Pública del Estado de São Paulo"
+    "SSP-SP, Secretaria da Segurança Pública de São Paulo": "SSP-SP, Secretaría de Seguridad Pública del Estado de São Paulo",
+    "INSS, Instituto Nacional do Seguro Social": "INSS, Instituto Nacional del Seguro Social",
+    "Senatran, Secretaria Nacional de Trânsito": "Senatran, Secretaría Nacional de Tránsito",
+    "Receita Federal do Brasil": "Receita Federal de Brasil",
+    "BNDES, Banco Nacional de Desenvolvimento Econômico e Social": "BNDES, Banco Nacional de Desarrollo Económico y Social",
+    "MAPA, Ministério da Agricultura e Pecuária": "MAPA, Ministerio de Agricultura y Ganadería",
+    "Banco Central do Brasil": "Banco Central de Brasil",
+    "Prefeitura do Recife": "Alcaldía de Recife",
+    "Prefeitura de Porto Alegre": "Alcaldía de Porto Alegre",
+    "FHEMIG, Fundação Hospitalar do Estado de Minas Gerais": "FHEMIG, Fundación Hospitalaria del Estado de Minas Gerais",
+    "SES-MG, Secretaria de Estado de Saúde de Minas Gerais": "SES-MG, Secretaría de Estado de Salud de Minas Gerais",
+    "CONCLA/IBGE, Comissão Nacional de Classificação": "CONCLA/IBGE, Comisión Nacional de Clasificación",
+    "TSE, Tribunal Superior Eleitoral": "TSE, Tribunal Superior Electoral",
+    "Fundação SEADE, Governo do Estado de São Paulo": "Fundación SEADE, Gobierno del Estado de São Paulo",
+    "SES-GO, Secretaria de Estado da Saúde de Goiás": "SES-GO, Secretaría de Estado de Salud de Goiás",
+    "IARC, Agência Internacional de Pesquisa em Câncer (OMS)": "IARC, Agencia Internacional de Investigación sobre el Cáncer (OMS)",
+    "Cetic.br, NIC.br": "Cetic.br, NIC.br",
+    "Projeto Covitel, Vital Strategies, Ministério da Saúde e Ufpel": "Proyecto Covitel, Vital Strategies, Ministerio de Salud y Ufpel"
   }
 }

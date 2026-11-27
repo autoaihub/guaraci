@@ -137,6 +137,148 @@ _NOVAS_FONTES_2026_10: Dict[str, tuple] = {
     "inep_ideb_municipios": (Kind.SNAPSHOT, Cadence.IRREGULAR, None),
     "mapbiomas_cobertura_municipios": (Kind.SNAPSHOT, Cadence.ANNUAL, None),
     "mapbiomas_vegetacao_secundaria_municipios": (Kind.SNAPSHOT, Cadence.ANNUAL, None),
+    # Leva 6 (onda 2, registro em novembro/2026): CKAN federal e estadual, CNPJ e SICOR. As de
+    # coleta sob pedido (arquivos de GB) estão na cadeia própria de ``profile_for``.
+    "mma_unidades_conservacao": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2018),
+    "mma_especies_ameacadas": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2014),
+    "inss_cat": (Kind.API_WINDOW, Cadence.MONTHLY, 2023),
+    "inss_beneficios_concedidos": (Kind.API_WINDOW, Cadence.MONTHLY, 2023),
+    "inss_beneficios_mantidos": (Kind.API_WINDOW, Cadence.MONTHLY, 2023),
+    "inss_beneficios_indeferidos": (Kind.API_WINDOW, Cadence.MONTHLY, 2023),
+    "senatran_renaest": (Kind.SNAPSHOT, Cadence.MONTHLY, 2018),
+    "bndes_desembolsos_mensais": (Kind.SNAPSHOT, Cadence.MONTHLY, 2002),
+    "mapa_agrofit": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mapa_sif": (Kind.SNAPSHOT, Cadence.MONTHLY, 2002),
+    "mapa_sipeagro": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    # O CNPJ é republicado por competência com o cadastro inteiro: um instantâneo por mês.
+    "receita_cnpj_simples": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "receita_cnpj_tabelas": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "recife_dengue": (Kind.API_WINDOW, Cadence.ANNUAL, 2013),
+    "recife_chikungunya": (Kind.API_WINDOW, Cadence.ANNUAL, 2015),
+    "recife_zika": (Kind.API_WINDOW, Cadence.ANNUAL, 2015),
+    "fhemig_indicadores_hospitalares": (Kind.SNAPSHOT, Cadence.MONTHLY, None),
+    "mg_hanseniase": (Kind.SNAPSHOT, Cadence.WEEKLY, None),
+    "mg_aids_hiv": (Kind.SNAPSHOT, Cadence.WEEKLY, None),
+    "mg_tuberculose": (Kind.SNAPSHOT, Cadence.WEEKLY, None),
+    "mg_acidentes_transporte": (Kind.SNAPSHOT, Cadence.WEEKLY, 2010),
+    "bcb_sicor_custeio_municipio": (Kind.API_WINDOW, Cadence.MONTHLY, 2013),
+    "bcb_sicor_investimento_municipio": (Kind.API_WINDOW, Cadence.MONTHLY, 2013),
+    "bcb_sicor_comercializacao_uf": (Kind.API_WINDOW, Cadence.MONTHLY, 2013),
+}
+
+# Leva 7 (registro em novembro/2026): códigos de referência, SIAB e HIPERDIA, preços do IBGE, histórico
+# do MTE, educação, SEADE, SES-GO e inquéritos de saúde. Tupla: tipo, cadência, piso, último ano
+# publicado (séries encerradas). Fica antes do ramo ``ibge`` em ``profile_for`` porque as chaves
+# ``ibge_*`` não são a pesquisa anual do SIDRA.
+_LEVA_7: Dict[str, tuple] = {
+    "ibge_localidades_municipios": (Kind.SNAPSHOT, Cadence.IRREGULAR, None, None),
+    "ibge_localidades_distritos": (Kind.SNAPSHOT, Cadence.IRREGULAR, None, None),
+    "sigtap_tabela_unificada": (Kind.SNAPSHOT, Cadence.MONTHLY, 2012, None),
+    "cid10_datasus": (Kind.SNAPSHOT, Cadence.IRREGULAR, None, None),
+    "cnae_subclasses": (Kind.SNAPSHOT, Cadence.IRREGULAR, None, None),
+    "cnae_classes": (Kind.SNAPSHOT, Cadence.IRREGULAR, None, None),
+    "tse_municipios_ibge": (Kind.SNAPSHOT, Cadence.IRREGULAR, None, None),
+    "siab_situacao_saude": (Kind.API_WINDOW, Cadence.MONTHLY, 1998, 2015),
+    "siab_producao_marcadores": (Kind.API_WINDOW, Cadence.MONTHLY, 1998, 2015),
+    "siab_cadastro_familiar": (Kind.API_WINDOW, Cadence.MONTHLY, 1998, 2015),
+    "siab_saneamento": (Kind.API_WINDOW, Cadence.MONTHLY, 1998, 2015),
+    "hiperdia_cadastro": (Kind.API_WINDOW, Cadence.MONTHLY, 2002, 2013),
+    "ibge_ipca_serie": (Kind.API_WINDOW, Cadence.MONTHLY, 1979, None),
+    "ibge_inpc_serie": (Kind.API_WINDOW, Cadence.MONTHLY, 1979, None),
+    "ibge_ipca15_serie": (Kind.API_WINDOW, Cadence.MONTHLY, 2000, None),
+    "ibge_ipca_grupos": (Kind.API_WINDOW, Cadence.MONTHLY, 2006, None),
+    "ibge_inpc_grupos": (Kind.API_WINDOW, Cadence.MONTHLY, 2012, None),
+    "ibge_ipca15_grupos": (Kind.API_WINDOW, Cadence.MONTHLY, 2012, None),
+    "ibge_munic_edicoes": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2018, None),
+    "ibge_estadic": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2018, None),
+    "ibge_munic_saneamento": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2017, None),
+    "ibge_censo2010_amostra": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2010, None),
+    "ibge_censo2000_amostra": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2000, None),
+    "mte_rais_vinculos_historico": (Kind.API_WINDOW, Cadence.ANNUAL, 1985, 2022),
+    "mte_rais_estabelecimentos_historico": (Kind.API_WINDOW, Cadence.ANNUAL, 1985, 2022),
+    "mte_caged_antigo": (Kind.API_MONTHLY, Cadence.MONTHLY, 2007, 2019),
+    "mte_caged_antigo_ajustes": (Kind.API_MONTHLY, Cadence.MONTHLY, 2002, 2019),
+    "inep_taxas_rendimento": (Kind.SNAPSHOT, Cadence.ANNUAL, 2012, None),
+    "inep_distorcao_idade_serie": (Kind.SNAPSHOT, Cadence.ANNUAL, 2012, None),
+    "inep_adequacao_formacao_docente": (Kind.SNAPSHOT, Cadence.ANNUAL, 2013, None),
+    "inep_inse": (Kind.SNAPSHOT, Cadence.ANNUAL, 2019, None),
+    "inep_esforco_docente": (Kind.SNAPSHOT, Cadence.ANNUAL, 2013, None),
+    "inep_regularidade_docente": (Kind.SNAPSHOT, Cadence.ANNUAL, 2013, None),
+    "inep_complexidade_gestao": (Kind.SNAPSHOT, Cadence.ANNUAL, 2013, None),
+    "inep_alunos_por_turma": (Kind.SNAPSHOT, Cadence.ANNUAL, 2012, None),
+    "inep_horas_aula": (Kind.SNAPSHOT, Cadence.ANNUAL, 2012, None),
+    "inep_docentes_curso_superior": (Kind.SNAPSHOT, Cadence.ANNUAL, 2011, None),
+    "inep_censo_escolar_matricula": (Kind.SNAPSHOT, Cadence.ANNUAL, 2025, None),
+    "inep_censo_escolar_docente": (Kind.SNAPSHOT, Cadence.ANNUAL, 2025, None),
+    "inep_censo_escolar_turma": (Kind.SNAPSHOT, Cadence.ANNUAL, 2025, None),
+    "inep_censo_escolar_gestor": (Kind.SNAPSHOT, Cadence.ANNUAL, 2025, None),
+    "inep_censo_escolar_curso_tecnico": (Kind.SNAPSHOT, Cadence.ANNUAL, 2025, None),
+    "inep_ideb_escolas": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2019, None),
+    "inep_ideb_brasil_ufs": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2019, None),
+    "siconfi_dca_anexos": (Kind.API_WINDOW, Cadence.ANNUAL, 2013, None),
+    "siconfi_rreo_anexos": (Kind.API_WINDOW, Cadence.MONTHLY, 2015, None),
+    "seade_obitos_sp_serie": (Kind.SNAPSHOT, Cadence.ANNUAL, 2000, None),
+    "seade_obitos_sp_ano_corrente": (Kind.SNAPSHOT, Cadence.MONTHLY, 2026, None),
+    "seade_nascidos_vivos_sp_serie": (Kind.SNAPSHOT, Cadence.ANNUAL, 2000, None),
+    "seade_nascidos_vivos_sp_ano_corrente": (Kind.SNAPSHOT, Cadence.MONTHLY, 2026, None),
+    "seade_mortalidade_geral_sp": (Kind.SNAPSHOT, Cadence.ANNUAL, 2000, None),
+    "seade_mortalidade_infantil_sp": (Kind.SNAPSHOT, Cadence.ANNUAL, 2000, None),
+    "seade_esperanca_vida_sp": (Kind.SNAPSHOT, Cadence.ANNUAL, None, None),
+    "seade_fecundidade_sp": (Kind.SNAPSHOT, Cadence.ANNUAL, 2000, None),
+    "seade_saude_painel_sp": (Kind.SNAPSHOT, Cadence.ANNUAL, 2010, None),
+    "seade_ipvs_2022": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2022, None),
+    "seade_ipvs_2010": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2010, None),
+    "ses_go_mapa_leitos": (Kind.SNAPSHOT, Cadence.DAILY, None, None),
+    "ses_go_dengue": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_zika_chikungunya": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_arboviroses_internacao": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_srag": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_sindrome_gripal": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_mortalidade": (Kind.SNAPSHOT, Cadence.DAILY, None, None),
+    "ses_go_hiv_aids": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_sifilis": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_hepatites": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_tuberculose": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_hanseniase": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "ses_go_regulacao_indicadores": (Kind.SNAPSHOT, Cadence.DAILY, None, None),
+    "ses_go_oncologia": (Kind.SNAPSHOT, Cadence.WEEKLY, None, None),
+    "iarc_ci5_xii": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2013, None),
+    "iarc_monografias_classificacoes": (Kind.SNAPSHOT, Cadence.IRREGULAR, None, None),
+    "sb_brasil_1986": (Kind.SNAPSHOT, Cadence.IRREGULAR, 1986, None),
+    "sb_brasil_1996": (Kind.SNAPSHOT, Cadence.IRREGULAR, 1996, None),
+    "sb_brasil_2003": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2003, None),
+    "pnds_2006": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2006, None),
+    "covitel_2022": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2022, None),
+    "covitel_2023": (Kind.SNAPSHOT, Cadence.IRREGULAR, 2023, None),
+    "cetic_tic_saude_estabelecimentos": (Kind.SNAPSHOT, Cadence.ANNUAL, 2025, None),
+    "cetic_tic_domicilios": (Kind.SNAPSHOT, Cadence.ANNUAL, 2025, None),
+}
+
+# Chaves da leva 7 de coleta sob pedido (volume, requisições ou WAF): o motivo vai na nota do perfil.
+_LEVA_7_SOB_PEDIDO: Dict[str, str] = {
+    "ibge_munic_edicoes": "six large xlsx files, one per edition, selected by indicadores - collect on demand, not swept",
+    "ibge_censo2010_amostra": "needs ufs, about 1 GB zipped and 10 GB or more as CSV for the whole country - collect on demand, not swept",
+    "ibge_censo2000_amostra": "needs ufs, about 0.5 GB zipped for the whole country - collect on demand, not swept",
+    "mte_rais_vinculos_historico": "0.3 to 3.2 GB compressed per year, needs anos - collect on demand, not swept",
+    "inep_taxas_rendimento": "school level is hundreds of MB per indicator, select meses=UF or MUN - collect on demand, not swept",
+    "inep_distorcao_idade_serie": "school level is hundreds of MB per indicator, select meses=UF or MUN - collect on demand, not swept",
+    "inep_adequacao_formacao_docente": "school level is hundreds of MB per indicator, select meses=UF or MUN - collect on demand, not swept",
+    "inep_esforco_docente": "school level is hundreds of MB per indicator, select meses=UF or MUN - collect on demand, not swept",
+    "inep_regularidade_docente": "school level is hundreds of MB per indicator, select meses=UF or MUN - collect on demand, not swept",
+    "inep_complexidade_gestao": "school level is hundreds of MB per indicator, select meses=UF or MUN - collect on demand, not swept",
+    "inep_alunos_por_turma": "school level is hundreds of MB per indicator, select meses=UF or MUN - collect on demand, not swept",
+    "inep_horas_aula": "school level is hundreds of MB per indicator, select meses=UF or MUN - collect on demand, not swept",
+    "inep_docentes_curso_superior": "school level is hundreds of MB per indicator, select meses=UF or MUN - collect on demand, not swept",
+    "inep_censo_escolar_matricula": "downloads the whole 537 MB Censo Escolar 2025 zip on each run - collect on demand, not swept",
+    "inep_censo_escolar_docente": "downloads the whole 537 MB Censo Escolar 2025 zip on each run - collect on demand, not swept",
+    "inep_censo_escolar_turma": "downloads the whole 537 MB Censo Escolar 2025 zip on each run - collect on demand, not swept",
+    "inep_censo_escolar_gestor": "downloads the whole 537 MB Censo Escolar 2025 zip on each run - collect on demand, not swept",
+    "inep_censo_escolar_curso_tecnico": "downloads the whole 537 MB Censo Escolar 2025 zip on each run - collect on demand, not swept",
+    "inep_ideb_escolas": "spreadsheets of tens of MB per stage - collect on demand, not swept",
+    "siconfi_dca_anexos": "about 5.6 thousand requests per year without uf or entes - collect on demand, not swept",
+    "siconfi_rreo_anexos": "about 33 thousand requests per year without uf - collect on demand, not swept",
+    "ses_go_dengue": "one 196 MB file rewritten whole, and the portal WAF blocks bursts - collect on demand, not swept",
+    "ses_go_oncologia": "one 58 MB file rewritten whole, and the portal WAF blocks bursts - collect on demand, not swept",
 }
 
 # Edit here to re-tune how often a source is re-checked for new data.
@@ -349,6 +491,57 @@ def profile_for(source: str, mode: str = "") -> SourceProfile:
     elif name in ("ibge_munic", "ibge_projecoes_populacao_2024"):
         # Um arquivo por edição, sem parâmetro obrigatório.
         profile = SourceProfile(name, Kind.SNAPSHOT, Cadence.IRREGULAR, None)
+    elif name == "inss_beneficios_cessados":
+        # Um zip de até 3 GB por mês (17 colunas, um benefício cessado por linha): coleta sob
+        # pedido, por ano e mês.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.MONTHLY,
+            2023,
+            auto=False,
+            note="zip of up to 3 GB per month, needs anos and meses - collect on demand, not swept",
+        )
+    elif name in (
+        "receita_cnpj_estabelecimentos",
+        "receita_cnpj_empresas",
+        "receita_cnpj_socios",
+    ):
+        # Cerca de 7,8 GB comprimidos por competência no conjunto, em até dez partes por arquivo.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.MONTHLY,
+            2023,
+            auto=False,
+            note="about 7.8 GB per competencia across the three files, up to ten parts each - collect on demand, not swept",
+        )
+    elif name == "bndes_operacoes_financiamento":
+        # CSV de 1,2 GB das operações indiretas automáticas, republicado por cima.
+        profile = SourceProfile(
+            name,
+            Kind.SNAPSHOT,
+            Cadence.MONTHLY,
+            2002,
+            auto=False,
+            note="1.2 GB CSV republished in place - collect on demand, not swept",
+        )
+    elif name == "poa_gercon_consultas":
+        # Um CSV por ano, de centenas de MB (o conjunto passa de 3 GB); anos obrigatório.
+        profile = SourceProfile(
+            name,
+            Kind.API_WINDOW,
+            Cadence.DAILY,
+            2017,
+            auto=False,
+            note="one CSV per year, about 3.3 GB in all, needs anos - collect on demand, not swept",
+        )
+    elif name in _LEVA_7:
+        kind, cadence, floor, last_year = _LEVA_7[name]
+        note = _LEVA_7_SOB_PEDIDO.get(name, "")
+        profile = SourceProfile(
+            name, kind, cadence, floor, auto=not note, note=note, max_year=last_year
+        )
     elif name.startswith("ana"):
         profile = SourceProfile(
             name,

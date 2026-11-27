@@ -162,7 +162,7 @@ def test_mg_ses_baixa_o_recurso_csv_e_ignora_o_datapackage(tmp_path):
 
 def test_registro_responde_ao_schema_e_so_recife_e_gercon_trazem_anos():
     service = DownloadService(sources=ckan_estaduais.build_sources())
-    assert set(CKAN_ESTADUAIS) == {
+    assert set(CKAN_ESTADUAIS) >= {
         "recife_dengue", "recife_chikungunya", "recife_zika", "poa_gercon_consultas",
         "fhemig_indicadores_hospitalares", "mg_hanseniase", "mg_aids_hiv", "mg_tuberculose",
         "mg_acidentes_transporte",

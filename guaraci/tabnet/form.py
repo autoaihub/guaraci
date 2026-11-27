@@ -20,11 +20,20 @@ ALL_CATEGORIES = "TODAS_AS_CATEGORIAS__"
 
 _SELECT_RE = re.compile(r"<SELECT\b([^>]*)>(.*?)</SELECT>", re.I | re.S)
 _NAME_RE = re.compile(r"""\bNAME\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
-_OPTION_RE = re.compile(r"<OPTION\b([^>]*)>([^<]*)", re.I)
+# Valor entre aspas pode ter ``>`` (``Mulheres_>60anos``) e o rótulo pode ter ``<``
+# (``Mulheres <1ano``): o atributo respeita aspas e o rótulo vai até o fim da linha.
+_OPTION_RE = re.compile(r"""<OPTION\b((?:"[^"]*"|'[^']*'|[^>"'])*)>([^\r\n]*)""", re.I)
 _VALUE_RE = re.compile(r"""\bVALUE\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
 _FORM_RE = re.compile(r"<FORM\b([^>]*)>", re.I)
 _ACTION_RE = re.compile(r"""\bACTION\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
 _RADIO_RE = re.compile(r"<INPUT\b([^>]*\bTYPE\s*=\s*\"?radio\"?[^>]*)>", re.I)
+
+
+_PERIOD_RE = re.compile(r"^([A-Za-z]{3})/(\d{4})$")
+_MESES = {
+    "jan": 1, "fev": 2, "mar": 3, "abr": 4, "mai": 5, "jun": 6,
+    "jul": 7, "ago": 8, "set": 9, "out": 10, "nov": 11, "dez": 12,
+}
 
 
 def _attr(pattern: re.Pattern, text: str) -> Optional[str]:
@@ -64,6 +73,16 @@ class TabnetForm:
             label = option.label.strip()
             if label.isdigit() and len(label) == 4:
                 found[int(label)] = option.value
+        return found
+
+    def periods(self, field_name: str = "Arquivos") -> Dict[Tuple[int, int], str]:
+        """(ano, mês) para o valor do arquivo, a partir de rótulos ``Dez/2015``."""
+        found: Dict[Tuple[int, int], str] = {}
+        for option in self.selects.get(field_name, []):
+            match = _PERIOD_RE.match(option.label.strip())
+            month = _MESES.get(match.group(1).lower()) if match else None
+            if match and month:
+                found[(int(match.group(2)), month)] = option.value
         return found
 
     def build_body(
