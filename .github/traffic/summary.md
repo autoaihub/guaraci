@@ -1,12 +1,12 @@
 # Clonagens acumuladas
 
-Atualizado em 2026-11-27T15:16:57+00:00. 3556 clonagens (1595 únicas) em 65 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
+Atualizado em 2026-11-28T14:21:49+00:00. 3563 clonagens (1600 únicas) em 65 repositórios. Únicas (14 dias) são as pessoas distintas da última quinzena, sem repetição entre dias.
 
 | Repositório | Clonagens | Únicas | Únicas (14 dias) | Desde |
 | --- | --: | --: | --: | --- |
-| autoaihub/guaraci | 2237 | 925 | 112 | 2026-08-12 |
-| LuisVogelDS/VogelStack | 925 | 326 | 39 | 2026-08-20 |
-| LuisVogelDS/IntraAct | 76 | 36 | 1 | 2026-08-21 |
+| autoaihub/guaraci | 2239 | 927 | 102 | 2026-08-12 |
+| LuisVogelDS/VogelStack | 930 | 328 | 36 | 2026-08-20 |
+| LuisVogelDS/IntraAct | 76 | 37 | 1 | 2026-08-21 |
 | cajuice/shop-list | 63 | 10 | 1 | 2026-09-20 |
 | LuisVogelDS/retail-pulse | 36 | 33 | 4 | 2026-08-20 |
 | LuisVogelDS/LuisVogelDS | 33 | 33 | 3 | 2026-08-20 |
@@ -26,7 +26,7 @@ Atualizado em 2026-11-27T15:16:57+00:00. 3556 clonagens (1595 únicas) em 65 rep
 | LuisVogelDS/Cajuice | 2 | 2 | 0 | 2026-09-19 |
 | LuisVogelDS/GobbleGoblin | 2 | 1 | 0 | 2026-08-21 |
 | LuisVogelDS/LilianeVogelAtelier | 2 | 3 | 1 | 2026-08-21 |
-| LuisVogelDS/Vestiario | 2 | 2 | 1 | 2026-10-15 |
+| LuisVogelDS/Vestiario | 2 | 2 | 0 | 2026-10-15 |
 | LuisVogelDS/prospero-dados | 2 | 1 | 0 | 2026-09-22 |
 | cajuice/Cajuice | 2 | 2 | 0 | 2026-09-20 |
 | cajuice/conteudo | 2 | 2 | 0 | 2026-09-22 |
